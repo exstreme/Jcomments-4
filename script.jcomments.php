@@ -299,6 +299,7 @@ class com_jcommentsInstallerScript
 							$db->setQuery($query);
 							$db->execute();
 						} catch (RuntimeException $e) {
+						    error_log($e->getMessage());
 						}
 					}
 				}
