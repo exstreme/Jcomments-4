@@ -89,7 +89,8 @@ class com_jcommentsInstallerScript
 		// Extract plugins for integration with 3rd party extensions
 		$source = JPATH_SITE . '/components/com_jcomments/plugins/plugins.zip';
 		$destination = JPATH_SITE . '/components/com_jcomments/plugins/';
-        Zip::extract($source, $destination);
+		$zip = new Zip();
+        $zip->extract($source, $destination);
 		JFile::delete($source);
 
 		// Execute database updates
