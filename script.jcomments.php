@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\Archive\Zip;
+
 defined('_JEXEC') or die;
 
 jimport('joomla.filesystem.folder');
@@ -87,7 +89,7 @@ class com_jcommentsInstallerScript
 		// Extract plugins for integration with 3rd party extensions
 		$source = JPATH_SITE . '/components/com_jcomments/plugins/plugins.zip';
 		$destination = JPATH_SITE . '/components/com_jcomments/plugins/';
-		JArchive::extract($source, $destination);
+        Zip::extract($source, $destination);
 		JFile::delete($source);
 
 		// Execute database updates
