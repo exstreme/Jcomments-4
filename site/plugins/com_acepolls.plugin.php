@@ -10,13 +10,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_acepolls extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = 'SELECT p.id, p.title, p.access '
 			. ', CASE WHEN CHAR_LENGTH(p.alias) THEN CONCAT_WS(":", p.id, p.alias) ELSE p.id END as slug'
 			. ' FROM #__acepolls_polls AS p'

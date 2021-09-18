@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 /**
@@ -27,7 +29,7 @@ class JCommentsMultilingual
 				$enabled = $app->getLanguageFilter();
 			}
 			 else {
-				$db = JFactory::getDBO();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 				$query = $db->getQuery(true);
 				$query->select('enabled');
 				$query->from($db->quoteName('#__extensions'));

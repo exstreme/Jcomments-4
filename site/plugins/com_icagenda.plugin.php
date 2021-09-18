@@ -10,13 +10,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_icagenda extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = $db->getQuery(true);
 		$query->select('id, title, access, created_by, alias');
 		$query->from('#__icagenda_events');

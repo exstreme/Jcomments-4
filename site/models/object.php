@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class JCommentsModelObject
 {
 	public static function getObjectInfo($object_id, $object_group, $language)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = "SELECT * "
 			. " FROM `#__jcomments_objects`"
@@ -32,7 +34,7 @@ class JCommentsModelObject
 
 	public static function setObjectInfo($objectId, $info)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		if (!empty($objectId)) {
 			$query = "UPDATE #__jcomments_objects"

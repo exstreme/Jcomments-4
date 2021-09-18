@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
@@ -24,7 +26,7 @@ class plgUserJComments extends JPlugin
 			$id = (int)$user['id'];
 
 			if ($id > 0 && trim($user['username']) != '' && trim($user['email']) != '') {
-				$db = JFactory::getDBO();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 
 				// update name, username and email in comments
 				$query = $db->getQuery(true);
@@ -53,7 +55,7 @@ class plgUserJComments extends JPlugin
 			$id = (int)$user['id'];
 
 			if ($id > 0) {
-				$db = JFactory::getDBO();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 
 				$query = $db->getQuery(true);
 				$query->update($db->quoteName('#__jcomments'));

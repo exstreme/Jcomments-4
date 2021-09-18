@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_adsmanager extends JCommentsPlugin
@@ -16,7 +18,7 @@ class jc_com_adsmanager extends JCommentsPlugin
 	function getObjectInfo($id, $language = null)
 	{
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT id, ad_headline, userid, category FROM #__adsmanager_ads WHERE id = ' . $id);
 		$row = $db->loadObject();
 

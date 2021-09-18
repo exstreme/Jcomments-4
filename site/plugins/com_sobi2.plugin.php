@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_sobi2 extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = "SELECT i.itemid as id, i.title, i.owner"
 			. " FROM #__sobi2_item as i"
 			. " WHERE i.itemid = " . $id;

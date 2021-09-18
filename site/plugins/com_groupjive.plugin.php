@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_groupjive extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT subject FROM #__gj_bul WHERE id = ' . $id );
 		return $db->loadResult();
 	}
@@ -25,7 +27,7 @@ class jc_com_groupjive extends JCommentsPlugin
 		$Itemid = self::getItemid('com_groupjive');
 		$Itemid = $Itemid > 0 ? '&Itemid=' . $Itemid : '';
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT group_id FROM #__gj_bul WHERE id = ' . $id );
 		$gid = $db->loadResult();
 
@@ -35,7 +37,7 @@ class jc_com_groupjive extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT author_id FROM #__gj_bul WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

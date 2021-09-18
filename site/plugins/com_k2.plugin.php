@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_k2 extends JCommentsPlugin
@@ -23,7 +25,7 @@ class jc_com_k2 extends JCommentsPlugin
 				require_once($routerHelper);
 			}
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = "SELECT i.id, i.title, i.catid, i.alias, i.access, i.created_by, c.alias as catalias"
 				. " FROM #__k2_items as i"
 				. " LEFT JOIN #__k2_categories as c ON c.id=i.catid"

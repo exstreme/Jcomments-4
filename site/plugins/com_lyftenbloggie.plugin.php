@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_lyftenbloggie extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = "SELECT e.id, e.title, e.created_by, e.created, e.access"
 			. ', CASE WHEN CHAR_LENGTH(e.alias) THEN CONCAT_WS(":", e.id, e.alias) ELSE e.id END as slug'
 			. ' FROM #__bloggies_entries AS e'

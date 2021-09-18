@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_tpdugg extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery("SELECT title, id FROM #__tpdugg WHERE id='$id'");
 		return $db->loadResult();
 	}
@@ -29,7 +31,7 @@ class jc_com_tpdugg extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery("SELECT userid FROM #__tpdugg WHERE id='$id'");
 		return $db->loadResult();
 	}

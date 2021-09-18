@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_phocadownload extends JCommentsPlugin
@@ -17,7 +19,7 @@ class jc_com_phocadownload extends JCommentsPlugin
 	{
 		$info = new JCommentsObjectInfo();
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = 'SELECT id, title, access '
 			. ' , CASE WHEN CHAR_LENGTH(alias) THEN CONCAT_WS(\':\', id, alias) ELSE id END as slug'
 			. ' FROM #__phocadownload_categories'

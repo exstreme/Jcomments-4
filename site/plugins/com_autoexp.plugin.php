@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_autoexp extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = "'SELECT a.model_name, m.name AS mark "
 			. "\n FROM #__autoexp_add AS a"
 			. "\n LEFT JOIN #__autoexp_mark AS m ON m.id = a.mark_id"
@@ -42,7 +44,7 @@ class jc_com_autoexp extends JCommentsPlugin
 	{
 		$_Itemid = self::getItemid( 'com_autoexp' );
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT mark_id FROM #__autoexp_add WHERE id = ' . $id );
 		$catid = $db->loadResult();
 
@@ -52,7 +54,7 @@ class jc_com_autoexp extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT user_id FROM #__autoexp_add WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

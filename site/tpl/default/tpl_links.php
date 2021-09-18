@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 /**
@@ -28,7 +30,7 @@ class jtt_tpl_links extends JoomlaTuneTemplate
 
 
 			if (!isset($content->hits)) {
-				$db = JFactory::getDbo();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 				$db->setQuery('SELECT hits FROM #__content WHERE id = ' . (int) $content->id);
 				$cnt = (int) $db->loadResult();
 			} else {

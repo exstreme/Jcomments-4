@@ -10,6 +10,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_galleric extends JCommentsPlugin
@@ -18,7 +20,7 @@ class jc_com_galleric extends JCommentsPlugin
 	{
 		$info = new JCommentsObjectInfo();
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT name, alias FROM #__galleric_category WHERE id = ' . $id);
 		$row = $db->loadObject();
 

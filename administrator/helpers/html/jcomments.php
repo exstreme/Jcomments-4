@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 abstract class JHtmlJComments
@@ -132,7 +134,7 @@ abstract class JHtmlJComments
 
 		$isSuperAdmin = JFactory::getUser()->authorise('core.admin');
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = $db->getQuery(true);
 		$query->select('a.*, COUNT(DISTINCT b.id) AS level');
 		$query->from($db->quoteName('#__usergroups') . ' AS a');

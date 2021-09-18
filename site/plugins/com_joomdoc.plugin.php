@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_joomdoc extends JCommentsPlugin
@@ -22,7 +24,7 @@ class jc_com_joomdoc extends JCommentsPlugin
 			require_once(JPATH_ROOT.'/administrator/components/com_joomdoc/defines.php');
 			require_once($routerHelper);
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->select('a.id, a.title, a.alias, a.access, a.created_by, a.path');

@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 /**
@@ -128,7 +130,7 @@ class JCommentsCfg
 	 */
 	public static function _load($language = '', $component = '')
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->select('*');

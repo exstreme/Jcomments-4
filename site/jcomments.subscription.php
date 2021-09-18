@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class JCommentsSubscriptionManager
@@ -64,7 +66,7 @@ class JCommentsSubscriptionManager
 			$lang = JCommentsMultilingual::getLanguage();
 		}
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		if ($userid != 0) {
 			$user = JFactory::getUser($userid);
@@ -138,7 +140,7 @@ class JCommentsSubscriptionManager
 			$subscription = $this->getSubscriptionByHash($hash);
 			
 			if ($subscription !== null) {
-				$db = JFactory::getDbo();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 
 				$query = $db->getQuery(true);
 				$query->delete($db->quoteName('#__jcomments_subscriptions'));
@@ -167,7 +169,7 @@ class JCommentsSubscriptionManager
 	function unsubscribe($object_id, $object_group, $userid)
 	{
 		if ($userid != 0) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->delete($db->quoteName('#__jcomments_subscriptions'));
@@ -196,7 +198,7 @@ class JCommentsSubscriptionManager
 	        $subscription = null;
 
 		if (!empty($hash)) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->select('*');
@@ -251,7 +253,7 @@ class JCommentsSubscriptionManager
 			$language = JCommentsMultilingual::getLanguage();
 		}
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->select('COUNT(*)');

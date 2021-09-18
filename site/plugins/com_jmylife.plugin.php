@@ -9,20 +9,22 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_jmylife extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( "SELECT CASE WHEN title IS NULL OR title = '' THEN SUBSTRING(`fulltext`, 1, 20) ELSE `title` END as title, id FROM #__jmylife_stories WHERE id = " . $id );
 		return $db->loadResult();
 	}
 
 	function getObjectLink($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT cat.`name` AS catname, cat.`id` AS catid, s.`title`, s.`user_alias` FROM `#__jmylife_categories` AS cat LEFT JOIN `#__jmylife_stories` AS s ON ( cat.`id` = s.`catid` ) WHERE s.`id` = '.$id.' GROUP BY cat.`id`' );
 
 		$_Itemid = '';
@@ -42,7 +44,7 @@ class jc_com_jmylife extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT user_id FROM #__jmylife_stories WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

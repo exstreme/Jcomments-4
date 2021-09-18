@@ -10,6 +10,7 @@
  */
 
 use Joomla\Archive\Zip;
+use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
@@ -35,7 +36,7 @@ class com_jcommentsInstallerScript
 
 	function postflight($type, $parent)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$language = JFactory::getLanguage();
 		$language->load('com_jcomments', JPATH_ADMINISTRATOR, 'en-GB', true);
@@ -180,7 +181,7 @@ class com_jcommentsInstallerScript
 		} catch (Exception $e) {
 		}
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->select('*');
@@ -208,7 +209,7 @@ class com_jcommentsInstallerScript
 
 	function uninstall($parent)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$language = JFactory::getLanguage();
 		$language->load('com_jcomments', JPATH_ADMINISTRATOR, 'en-GB', true);
@@ -290,7 +291,7 @@ class com_jcommentsInstallerScript
 			}
 
 			if (count($queries)) {
-				$db = JFactory::getDBO();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 				foreach ($queries as $query) {
 					$query = trim($query);
 					if ($query != '' && $query[0] != '#') {
@@ -309,7 +310,7 @@ class com_jcommentsInstallerScript
 
 	private function fixComponentName()
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->update($db->quoteName('#__extensions'));
@@ -321,7 +322,7 @@ class com_jcommentsInstallerScript
 
 	private function fixUsergroups()
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$groups = $this->getUsergroups();
 		$guest_usergroup = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
 
@@ -376,7 +377,7 @@ class com_jcommentsInstallerScript
 
 	private function fixUsergroupsCustomBBCodes()
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$groups = $this->getUsergroups();
 		$guest_usergroup = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
 
@@ -429,7 +430,7 @@ class com_jcommentsInstallerScript
 		$params = JComponentHelper::getParams('com_users');
 		$guest_usergroup = $params->get('guest_usergroup');
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->select('COUNT(*)');
@@ -456,7 +457,7 @@ class com_jcommentsInstallerScript
 
 	private function getUsergroups()
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->select('a.*, COUNT(DISTINCT b.id) AS level');

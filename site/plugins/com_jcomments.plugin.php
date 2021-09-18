@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_jcomments extends JCommentsPlugin
@@ -33,7 +35,7 @@ class jc_com_jcomments extends JCommentsPlugin
 
 	protected static function getMenuItem($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = "SELECT m.*"
 			. " FROM `#__menu` AS m"

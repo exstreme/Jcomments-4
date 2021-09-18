@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_ohanah extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT title, created_by FROM #__ohanah_events WHERE ohanah_event_id = ' . $id);
 		$row = $db->loadObject();
 

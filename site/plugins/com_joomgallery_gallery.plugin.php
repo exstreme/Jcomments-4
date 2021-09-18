@@ -9,6 +9,9 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_joomgallery_gallery extends JCommentsPlugin
@@ -25,7 +28,7 @@ class jc_com_joomgallery_gallery extends JCommentsPlugin
 	{
 		// Get an Itemid of JoomGallery
 		// First, check whether there was set one in the configuration
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT jg_itemid FROM #__joomgallery_config LIMIT 1');
 		if (!$_Itemid = $db->loadResult()) {
 			$_Itemid = self::getItemid('com_joomgallery');
@@ -37,7 +40,7 @@ class jc_com_joomgallery_gallery extends JCommentsPlugin
 	function getObjectOwner($id)
 	{
 		// Gallery owner (a super administrator)
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT id FROM #__users WHERE gid = 25');
 		$userid = $db->loadResult();
 		return intval($userid);

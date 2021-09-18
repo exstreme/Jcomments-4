@@ -10,6 +10,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_jshopping extends JCommentsPlugin
@@ -25,7 +27,7 @@ class jc_com_jshopping extends JCommentsPlugin
 
 			$titleField = 'name_' . JFactory::getLanguage()->getTag();
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = "SELECT p.`$titleField`, p.access, c.category_id "
 				. " FROM #__jshopping_products AS p"
 				. " JOIN #__jshopping_products_to_categories AS c ON p.product_id = c.product_id"

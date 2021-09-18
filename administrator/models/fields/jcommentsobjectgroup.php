@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 jimport('joomla.filesystem.folder');
@@ -38,7 +40,7 @@ class JFormFieldJCommentsObjectGroup extends JFormFieldList
 	{
 		$options = array();
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT DISTINCT `element` FROM `#__extensions` WHERE `type` = "component" ORDER BY `element`;');
 		$components = $db->loadColumn();
 

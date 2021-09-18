@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_joomleague_nextmatch extends JCommentsPlugin
@@ -21,7 +23,7 @@ class jc_com_joomleague_nextmatch extends JCommentsPlugin
 		if (is_file($routerHelper)) {
 			require_once($routerHelper);
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = "SELECT m.id as matchid,
 								t1.short_name t1name,
 								t2.short_name t2name,

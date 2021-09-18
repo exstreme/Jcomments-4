@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class JCommentsModelImport extends JCommentsModelLegacy
@@ -81,7 +83,7 @@ class JCommentsModelImport extends JCommentsModelLegacy
 
 	function updateParent($source)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->update(array($db->quoteName('#__jcomments') . ' AS c1', $db->quoteName('#__jcomments') . ' AS c2'));
@@ -98,7 +100,7 @@ class JCommentsModelImport extends JCommentsModelLegacy
 
 	function getCommentsCount($source)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->select('COUNT(*)');
@@ -112,7 +114,7 @@ class JCommentsModelImport extends JCommentsModelLegacy
 
 	function deleteComments($source)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->delete();

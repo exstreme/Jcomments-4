@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\String\StringHelper;
 
 jimport('joomla.plugin.plugin');
@@ -69,7 +70,7 @@ class plgSearchJComments extends JPlugin
 		if (file_exists(JPATH_ROOT . '/components/com_jcomments/jcomments.php')) {
 			require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$limit = $this->params->def('search_limit', 50);
 
 			switch ($phrase) {

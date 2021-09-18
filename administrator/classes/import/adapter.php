@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 abstract class JCommentsImportAdapter
@@ -29,7 +31,7 @@ abstract class JCommentsImportAdapter
 		$result = -1;
 
 		if (!empty($this->tableName)) {
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 			$query->select('COUNT(*)');
 			$query->from($db->quoteName($this->tableName));

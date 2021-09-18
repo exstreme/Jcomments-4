@@ -10,13 +10,15 @@
  
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_rseventspro extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT id, name, owner FROM #__rseventspro_eventsWHERE id = ' . $id);
 		$row = $db->loadObject();
 

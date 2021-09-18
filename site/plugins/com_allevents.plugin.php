@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_allevents extends JCommentsPlugin
@@ -21,7 +23,7 @@ class jc_com_allevents extends JCommentsPlugin
 		if (is_file($routerHelper)) {
 			require_once($routerHelper);
 		
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$db->setQuery('SELECT titre, access, proposed_by FROM #__allevents_events WHERE `id`=' . $db->Quote($id));
 			$row = $db->loadObject();
 			

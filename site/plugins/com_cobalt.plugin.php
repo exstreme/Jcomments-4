@@ -10,6 +10,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_cobalt extends JCommentsPlugin
@@ -23,7 +25,7 @@ class jc_com_cobalt extends JCommentsPlugin
 		if (is_file($helper)) {
 			require_once($helper);
 
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 
 			$query->select('*');

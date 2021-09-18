@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_joomgallery_categories extends JCommentsPlugin
@@ -16,7 +18,7 @@ class jc_com_joomgallery_categories extends JCommentsPlugin
 	function getObjectTitle($id)
 	{
 		// Category comments
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT name, cid FROM #__joomgallery_catg WHERE cid = ' . $id);
 		return $db->loadResult();
 	}
@@ -25,7 +27,7 @@ class jc_com_joomgallery_categories extends JCommentsPlugin
 	{
 		// Get an Itemid of JoomGallery
 		// First, check whether there was set one in the configuration
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT jg_itemid FROM #__joomgallery_config LIMIT 1');
 		if (!$_Itemid = $db->loadResult()) {
 			$_Itemid = self::getItemid('com_joomgallery');
@@ -38,7 +40,7 @@ class jc_com_joomgallery_categories extends JCommentsPlugin
 	function getObjectOwner($id)
 	{
 		// Category owner
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT owner FROM #__joomgallery_catg WHERE cid = ' . $id);
 		$userid = $db->loadResult();
 		return intval($userid);

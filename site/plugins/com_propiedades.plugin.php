@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_propiedades extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT titulo_producto, id_producto FROM #__propiedades_productos WHERE id_producto = ' . $id );
 		return $db->loadResult();
 	}
@@ -24,7 +26,7 @@ class jc_com_propiedades extends JCommentsPlugin
 	{
 		$_Itemid = self::getItemid('com_propiedades');
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query =  ' SELECT CASE WHEN CHAR_LENGTH(p.alias) THEN CONCAT_WS(":", p.id_producto, p.alias) ELSE p.id_producto END as slug,'
 			. ' CASE WHEN CHAR_LENGTH(t.alias) THEN CONCAT_WS(":", t.id_categoria, t.alias) ELSE t.id_categoria END as catslug,'
 			. ' FROM #__propiedades_productos AS p '				
@@ -50,7 +52,7 @@ class jc_com_propiedades extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT publicador_id FROM #__propiedades_productos WHERE id_producto = ' . $id );
 		$userid = $db->loadResult();
 		

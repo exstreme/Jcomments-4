@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_jevents extends JCommentsPlugin 
@@ -17,7 +19,7 @@ class jc_com_jevents extends JCommentsPlugin
 	{
 		$info = new JCommentsObjectInfo();
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = 'SELECT det.summary, rpt.rp_id, ev.created_by, ev.access'
 			. ' FROM #__jevents_repetition AS rpt '

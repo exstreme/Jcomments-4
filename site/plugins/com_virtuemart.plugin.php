@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_virtuemart extends JCommentsPlugin
@@ -27,7 +29,7 @@ class jc_com_virtuemart extends JCommentsPlugin
 	
 			VmConfig::loadConfig();
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$db->setQuery('SELECT product_name, created_by FROM #__virtuemart_products_' . VMLANG . ' WHERE virtuemart_product_id =' . $id);
 			$row = $db->loadObject();
 			

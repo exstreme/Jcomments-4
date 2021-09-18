@@ -9,20 +9,22 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_eventlist extends JCommentsPlugin 
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT title, id FROM #__eventlist_events WHERE id = ' . $id );
 		return $db->loadResult();
 	}
 
 	function getObjectLink($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = 'SELECT a.id, CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(\':\', a.id, a.alias) ELSE a.id END as slug'
 			. ' FROM #__eventlist_events AS a'
@@ -46,7 +48,7 @@ class jc_com_eventlist extends JCommentsPlugin
 
 	function getObjectOwner($id) {
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT created_by, id FROM #__eventlist_events WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

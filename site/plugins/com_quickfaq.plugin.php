@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_quickfaq extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT title, id FROM #__quickfaq_items WHERE id = ' . $id );
 		return $db->loadResult();
 	}
@@ -29,7 +31,7 @@ class jc_com_quickfaq extends JCommentsPlugin
 	        if (is_file($quickFaqRouterPath)) {
 			require_once ($quickFaqRouterPath);
 
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			
 			$query = 'SELECT CASE WHEN CHAR_LENGTH(i.alias) THEN CONCAT_WS(\':\', i.id, i.alias) ELSE i.id END as slug,'
 				. ' CASE WHEN CHAR_LENGTH(c.alias) THEN CONCAT_WS(\':\', c.id, c.alias) ELSE c.id END as categoryslug'
@@ -49,7 +51,7 @@ class jc_com_quickfaq extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT created_by, id FROM #__quickfaq_items WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

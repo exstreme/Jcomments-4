@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_sobipro extends JCommentsPlugin
@@ -18,7 +20,7 @@ class jc_com_sobipro extends JCommentsPlugin
 		$info = new JCommentsObjectInfo();
 		$app = JFactory::getApplication();
 		if (JCommentsSystemPluginHelper::isAdmin($app)) {
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = "SELECT o.id, o.name, o.owner, o.parent, fd.baseData"
 				. " FROM #__sobipro_object as o"
 				. " LEFT JOIN #__sobipro_field_data AS fd ON o.id = fd.sid"

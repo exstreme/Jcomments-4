@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 include_once(JPATH_ROOT . '/components/com_jcomments/jcomments.legacy.php');
@@ -348,7 +350,7 @@ class plgContentJComments extends JPlugin
 
 			JCommentsModel::deleteComments((int)$table->id, 'com_content');
 
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 			$query->delete();
 			$query->from($db->quoteName('#__jcomments_subscriptions'));

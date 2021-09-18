@@ -8,20 +8,22 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_jphoto extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT title, id FROM #__jphoto_imgs WHERE id = ' . $id);
 		return $db->loadResult();
 	}
 
 	function getObjectLink($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT alias, gallery FROM #__jphoto_imgs WHERE id = ' . $id );
 		$r = $db->loadAssoc();
 		$alias = $r['alias'];
@@ -35,7 +37,7 @@ class jc_com_jphoto extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery("SELECT created_by FROM #__jphoto_imgs WHERE id = " . $id);
 		$userid = $db->loadResult();
 		

@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\String\StringHelper;
 
 /**
@@ -35,7 +36,7 @@ class JCommentsSecurity
 		$interval = JCommentsFactory::getConfig()->getInt('flood_time');
 
 		if ($interval > 0) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$now = JFactory::getDate()->toSql();
 			$query = "SELECT COUNT(*) "
 				. "\nFROM #__jcomments "
@@ -76,7 +77,7 @@ class JCommentsSecurity
 
 		if ($config->getInt('enable_username_check') == 1) {
 			$name = StringHelper::strtolower($name);
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->select('COUNT(*)');
@@ -97,7 +98,7 @@ class JCommentsSecurity
 
 		if ($config->getInt('enable_username_check') == 1) {
 			$email = StringHelper::strtolower($email);
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->select('COUNT(*)');
@@ -126,7 +127,7 @@ class JCommentsSecurity
 		$result = true;
 
 		if (count($options)) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->select('COUNT(*)');

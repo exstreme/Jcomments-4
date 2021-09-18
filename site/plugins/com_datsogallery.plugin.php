@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_datsogallery extends JCommentsPlugin
@@ -17,7 +19,7 @@ class jc_com_datsogallery extends JCommentsPlugin
 	{
 		$info = new JCommentsObjectInfo();
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT id, catid, imgtitle, owner_id FROM #__datsogallery WHERE id = ' . $id);
 		$row = $db->loadObject();
 

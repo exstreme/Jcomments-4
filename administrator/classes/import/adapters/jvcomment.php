@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class JCommentsImportJVComment extends JCommentsImportAdapter
@@ -27,7 +29,7 @@ class JCommentsImportJVComment extends JCommentsImportAdapter
 
 	public function execute($language, $start = 0, $limit = 100)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$source = $this->getCode();
 
 		$query = $db->getQuery(true);

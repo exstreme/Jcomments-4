@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_tz_portfolio extends JCommentsPlugin
@@ -21,7 +23,7 @@ class jc_com_tz_portfolio extends JCommentsPlugin
 		if (is_file($routerHelper)) {
 			require_once($routerHelper);
 
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 
 			$query->select('a.id, a.title, a.created_by, a.access, a.alias, a.catid');

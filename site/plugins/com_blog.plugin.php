@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_blog extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery('SELECT post_title, id FROM #__blog_postings WHERE id = ' . $id);
 		return $db->loadResult();
 	}
@@ -40,7 +42,7 @@ class jc_com_blog extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = "SELECT user_id FROM #__blog_postings WHERE id = " . $id;
 		$db->setQuery( $query );
 		$userid = $db->loadResult();

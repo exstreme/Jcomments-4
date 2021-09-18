@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 /**
@@ -30,7 +32,7 @@ class JCommentsModel
 		$key = md5(serialize($options));
 
 		if (!isset($cache[$key]) || $noCache == true) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$db->setQuery(self::_getCommentsCountQuery($options));
 			$cache[$key] = (int) $db->loadResult();
 		}
@@ -50,7 +52,7 @@ class JCommentsModel
 			$options['orderBy'] = self::_getDefaultOrder();
 		}
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$pagination = isset($options['pagination']) ? $options['pagination'] : '';
 
@@ -87,7 +89,7 @@ class JCommentsModel
 	{
 		$comment = null;
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$config = JCommentsFactory::getConfig();
 
 		$options['object_id'] = (int) $object_id;
@@ -118,7 +120,7 @@ class JCommentsModel
 	{
 		if (is_array($ids)) {
 			if (count($ids)) {
-				$db = JFactory::getDbo();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 				$db->setQuery("SELECT DISTINCT object_group, object_id FROM #__jcomments WHERE parent IN (" . implode(',', $ids) . ")");
 				$objects = $db->loadObjectList();
 
@@ -166,7 +168,7 @@ class JCommentsModel
 		$object_group = trim($object_group);
 		$oids = is_array($object_id) ? implode(',', $object_id) : $object_id;
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = "SELECT id FROM #__jcomments "
 				. "\n WHERE object_group = " . $db->Quote($object_group)
@@ -187,7 +189,7 @@ class JCommentsModel
 
 	protected static function _getCommentsCountQuery(&$options)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$object_id = @$options['object_id'];
 		$object_group = @$options['object_group'];
@@ -241,7 +243,7 @@ class JCommentsModel
 	protected static function _getCommentsQuery(&$options)
 	{
 		$acl = JCommentsFactory::getACL();
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$object_id = @$options['object_id'];
 		$object_group = @$options['object_group'];

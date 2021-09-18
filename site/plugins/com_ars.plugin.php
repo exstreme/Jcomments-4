@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_ars extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = 'SELECT r.id, r.category_id, r.version, r.access, r.created_by, c.title'
 			. ' FROM #__ars_categories AS c '
 			. ' JOIN #__ars_releases AS r ON c.id = r.category_id '

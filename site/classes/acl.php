@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 /**
@@ -101,7 +103,7 @@ class JCommentsACL
 
 			if ($group === null) {
 				if ($user->id) {
-					$db = JFactory::getDbo();
+					$db = Factory::getContainer()->get('DatabaseDriver');
 					// get highest group
 					$query = $db->getQuery(true);
 					$query->select('a.id');

@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_moofaq extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT title, id FROM #__content WHERE id = ' . $id );
 		return $db->loadResult();
 	}
@@ -33,7 +35,7 @@ class jc_com_moofaq extends JCommentsPlugin
 				' LEFT JOIN #__categories AS cc ON cc.id = a.catid' .
 				' WHERE a.id = ' . $id;
 
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( $query );
 		$row = $db->loadObject();
 
@@ -50,7 +52,7 @@ class jc_com_moofaq extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery( 'SELECT created_by FROM #__content WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

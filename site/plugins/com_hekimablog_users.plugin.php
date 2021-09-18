@@ -10,13 +10,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
  
 class jc_com_hekimablog_users extends JCommentsPlugin
 {
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = "SELECT i.id, i.name, i.username"
 			. " , CONCAT_WS(':', i.id, i.username) as alias"
 			. " FROM #__users as i"

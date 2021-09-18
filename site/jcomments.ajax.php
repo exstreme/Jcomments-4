@@ -325,7 +325,7 @@ class JCommentsAJAX
 					}
 				}
 
-				$db = JFactory::getDbo();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 
 				// small fix (by default $my has empty 'name' and 'email' field)
 				if ($user->id) {
@@ -990,7 +990,7 @@ class JCommentsAJAX
 	public static function voteComment($id, $value)
 	{
 		$acl = JCommentsFactory::getACL();
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$response = JCommentsFactory::getAjaxResponse();
 
 		$id = (int) $id;
@@ -1081,7 +1081,7 @@ class JCommentsAJAX
 		}
 
 		$acl = JCommentsFactory::getACL();
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$config = JCommentsFactory::getConfig();
 		$response = JCommentsFactory::getAjaxResponse();
 		$values = self::prepareValues($_POST);
@@ -1244,7 +1244,7 @@ class JCommentsAJAX
 		$count = 50;
 
 		if ($hash === md5($app->getCfg('secret'))) {
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 
 			if ($step == 0) {

@@ -9,6 +9,9 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_redshop extends JCommentsPlugin
@@ -16,7 +19,7 @@ class jc_com_redshop extends JCommentsPlugin
 
 	function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = 'SELECT p.product_id, p.product_name, c.category_id'
 			. ' FROM #__redshop_product AS p '
 			. ' LEFT JOIN #__redshop_product_category_xref AS pcx ON pcx.product_id = p.product_id '
@@ -67,7 +70,7 @@ class jc_com_redshop extends JCommentsPlugin
 				}
 			}
 
-			$db = JFactory::getDBO();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$db->setQuery('SELECT category_id FROM #__redshop_product_category_xref WHERE product_id = ' . $product_id);
 			$categories = $db->loadResultArray();
 

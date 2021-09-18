@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_easyblog extends JCommentsPlugin
@@ -21,7 +23,7 @@ class jc_com_easyblog extends JCommentsPlugin
 		if (is_file($routerHelper)) {
 			require_once($routerHelper);
 
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$db->setQuery('SELECT id, title, created_by, category_id FROM #__easyblog_post WHERE id = ' . $id);
 			$row = $db->loadObject();
 

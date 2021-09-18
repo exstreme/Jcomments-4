@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_improvemycity extends JCommentsPlugin
@@ -18,7 +20,7 @@ class jc_com_improvemycity extends JCommentsPlugin
 		$info = new JCommentsObjectInfo();
 
 		if (is_file(JPATH_ROOT.'/components/com_improvemycity/improvemycity.php')) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 
 			$query->select('a.id, a.title, a.userid, a.catid');

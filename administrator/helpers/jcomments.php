@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class JCommentsHelper
@@ -135,7 +137,7 @@ class JCommentsHelper
 
 	public static function getGroups()
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$db->setQuery(
 			'SELECT a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level' .
 			' FROM #__usergroups AS a' .

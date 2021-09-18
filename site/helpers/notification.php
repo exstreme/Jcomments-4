@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 /**
@@ -67,7 +69,7 @@ class JCommentsNotificationHelper
 		$senderName = $app->getCfg('fromname');
 
 		if (!empty($senderEmail) && !empty($senderName)) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->select($db->quoteName('id'));
@@ -106,7 +108,7 @@ class JCommentsNotificationHelper
 	 */
 	public static function purge()
 	{
-		$db = JFactory::getDbo();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$query = $db->getQuery(true);
 		$query->delete($db->quoteName('#__jcomments_mailq'));
@@ -122,7 +124,7 @@ class JCommentsNotificationHelper
 	private static function lock($keys)
 	{
 		if (is_array($keys)) {
-			$db = JFactory::getDbo();
+			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true);
 			$query->update($db->quoteName('#__jcomments_mailq'));
@@ -332,7 +334,7 @@ class JCommentsNotificationHelper
 				if ($config->get('notification_email') != '') {
 					$emails = explode(',', $config->get('notification_email'));
 
-					$db = JFactory::getDbo();
+					$db = Factory::getContainer()->get('DatabaseDriver');
 					$db->setQuery('SELECT * FROM #__users WHERE email IN ("' . implode('", "', $emails) . '")');
 					$users = $db->loadObjectList('email');
 
@@ -354,7 +356,7 @@ class JCommentsNotificationHelper
 			case 'comment-reply':
 			case 'comment-update':
 			default:
-				$db = JFactory::getDbo();
+				$db = Factory::getContainer()->get('DatabaseDriver');
 
 				$query = "SELECT DISTINCTROW js.`name`, js.`email`, js.`hash`, js.`userid` "
 					. " FROM #__jcomments_subscriptions AS js"

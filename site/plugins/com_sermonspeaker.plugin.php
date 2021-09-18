@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Factory;
+
 defined('_JEXEC') or die;
 
 class jc_com_sermonspeaker extends JCommentsPlugin
@@ -17,7 +19,7 @@ class jc_com_sermonspeaker extends JCommentsPlugin
 	{
 		$info = new JCommentsObjectInfo();
 
-		$db = JFactory::getDBO();
+		$db = Factory::getContainer()->get('DatabaseDriver');
 		$query = 'SELECT id, sermon_title, created_by '
 			. ' FROM #__sermon_sermons'
 			. ' WHERE id = '.$id
