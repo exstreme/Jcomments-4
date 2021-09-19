@@ -25,26 +25,11 @@ class JCommentsViewSubscription extends JCommentsViewLegacy
 
 		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
-		if (version_compare(JVERSION, '4.0', '<')){
-			JHtml::_('behavior.tooltip');
-			JHtml::_('behavior.formvalidation');
-		} else {
-			HTMLHelper::_('bootstrap.tooltip');
-			HTMLHelper::_('behavior.formvalidator');
-		}
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			if (version_compare(JVERSION, '4.0', '<')){
-				JHtml::_('formbehavior.chosen', 'select');
-			} else	{
-				HTMLHelper::_('formbehavior.chosen', 'select');
-			}
-			$this->bootstrap = true;
-		} else {
-			JHtml::_('jcomments.bootstrap');
-		}
+        HTMLHelper::_('bootstrap.tooltip');
+        HTMLHelper::_('behavior.formvalidator');
+        HTMLHelper::_('formbehavior.chosen', 'select');
 
 		JHtml::_('jcomments.stylesheet');
-
 
 		$this->addToolbar();
 

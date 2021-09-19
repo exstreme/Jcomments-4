@@ -26,10 +26,6 @@ abstract class JHtmlJComments
 		$document = JFactory::getDocument();
 		$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/style.css', 'text/css', null);
 
-		if (version_compare(JVERSION, '3.0', 'lt')) {
-			$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/legacy.css', 'text/css', null);
-		}
-
 		if (JFactory::getLanguage()->isRTL()) {
 			$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/style_rtl.css', 'text/css', null);
 		}
@@ -45,13 +41,7 @@ abstract class JHtmlJComments
 			return;
 		}
 
-		if (version_compare(JVERSION, '3.0', 'lt')) {
-			$document = JFactory::getDocument();
-			$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jquery.js');
-			$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jquery-noconflict.js');
-		} else {
-			JHtml::_('jquery.framework');
-		}
+        JHtml::_('jquery.framework');
 
 		self::$loaded[__METHOD__] = true;
 
@@ -64,15 +54,7 @@ abstract class JHtmlJComments
 			return;
 		}
 
-		if (version_compare(JVERSION, '3.0', 'lt')) {
-			JHtml::_('jcomments.jquery');
-
-			$document = JFactory::getDocument();
-			$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/bootstrap-legacy.css');
-			$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/bootstrap-legacy.js');
-		} else {
-			JHtml::_('bootstrap.framework');
-		}
+        JHtml::_('bootstrap.framework');
 
 		self::$loaded[__METHOD__] = true;
 
@@ -89,39 +71,28 @@ abstract class JHtmlJComments
 		$text = JText::_($text);
 		$title = JText::_($title);
 
-		$html = '';
+        $html = "<button class=\"btn btn-micro " . $buttonClass . "\" data-toggle=\"modal\" data-target=\"#modal-" . $name . "\">\n";
+        $html .= "<i class=\"icon-" . $iconClass . "\">\n</i>\n";
+        $html .= "$text\n";
+        $html .= "</button>\n";
 
-		if (version_compare(JVERSION, '3.0', 'lt')) {
-			$rel = "{handler: 'iframe', size: {x: $width, y: $height}, onClose: function() {" . $onClose . "}}";
+        // Build the options array for the modal
+        $params = array();
+        $params['title'] = $title;
+        $params['url'] = (substr($url, 0, 4) !== 'http') ? JURI::base() . $url : $url;
+        $params['height'] = $height;
+        $params['width'] = $width;
+        $html .= JHtml::_('bootstrap.renderModal', 'modal-' . $name, $params);
 
-			$html .= "<a class=\"modal btn " . $buttonClass . "\" href=\"$url\" rel=\"" . $rel . "\">\n";
-			$html .= "<i class=\"icon-" . $iconClass . "\">\n</i>\n";
-			$html .= "$text\n";
-			$html .= '</a>';
-		} else {
-			$html = "<button class=\"btn btn-micro " . $buttonClass . "\" data-toggle=\"modal\" data-target=\"#modal-" . $name . "\">\n";
-			$html .= "<i class=\"icon-" . $iconClass . "\">\n</i>\n";
-			$html .= "$text\n";
-			$html .= "</button>\n";
-
-			// Build the options array for the modal
-			$params = array();
-			$params['title'] = $title;
-			$params['url'] = (substr($url, 0, 4) !== 'http') ? JURI::base() . $url : $url;
-			$params['height'] = $height;
-			$params['width'] = $width;
-			$html .= JHtml::_('bootstrap.renderModal', 'modal-' . $name, $params);
-
-			// If an $onClose event is passed, add it to the modal JS object
-			if (strlen($onClose) >= 1) {
-				$html .= "<script>\n";
-				$html .= "jQuery('#modal-" . $name . "').on('hide', function () {\n";
-				$html .= $onClose . ";\n";
-				$html .= "}";
-				$html .= ");";
-				$html .= "</script>\n";
-			}
-		}
+        // If an $onClose event is passed, add it to the modal JS object
+        if (strlen($onClose) >= 1) {
+            $html .= "<script>\n";
+            $html .= "jQuery('#modal-" . $name . "').on('hide', function () {\n";
+            $html .= $onClose . ";\n";
+            $html .= "}";
+            $html .= ");";
+            $html .= "</script>\n";
+        }
 
 		echo $html;
 	}
