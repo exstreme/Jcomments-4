@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\Utilities\ArrayHelper;
+
 defined('_JEXEC') or die;
 
 class JCommentsControllerSubscriptions extends JCommentsControllerList
@@ -41,7 +43,7 @@ class JCommentsControllerSubscriptions extends JCommentsControllerList
 		$cid = $this->input->get('cid', array(), 'array');
 		$data = array('publish' => 1, 'unpublish' => 0);
 		$task = $this->getTask();
-		$value = JArrayHelper::getValue($data, $task, 0, 'int');
+		$value = ArrayHelper::getValue($data, $task, 0, 'int');
 
 		if (!empty($cid)) {
 			$model = $this->getModel();

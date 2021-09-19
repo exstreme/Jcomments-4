@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\Utilities\ArrayHelper;
+
 defined('_JEXEC') or die;
 
 class JCommentsControllerCustombbcodes extends JCommentsControllerList
@@ -42,7 +44,7 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 
 		$pks = $this->input->post->get('cid', array(), 'array');
 		
-		JArrayHelper::toInteger($pks);
+		ArrayHelper::toInteger($pks);
 
 		if (!empty($pks)) {
 			$model = $this->getModel();
@@ -60,7 +62,7 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		$data = array('publish' => 1, 'unpublish' => 0);
 		$task = $this->getTask();
 
-		$value = JArrayHelper::getValue($data, $task, 0, 'int');
+		$value = ArrayHelper::getValue($data, $task, 0, 'int');
 
 		if (!empty($pks)) {
 			$model = $this->getModel();
@@ -78,7 +80,7 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		$data = array('button_enable' => 1, 'button_disable' => 0);
 		$task = $this->getTask();
 
-		$value = JArrayHelper::getValue($data, $task, 0, 'int');
+		$value = ArrayHelper::getValue($data, $task, 0, 'int');
 
 		if (!empty($pks)) {
 			$model = $this->getModel();
@@ -95,7 +97,7 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		$pks = $this->input->post->get('cid', array(), 'array');
 		$inc = ($this->getTask() == 'orderup') ? -1 : +1;
 
-		JArrayHelper::toInteger($pks);
+		ArrayHelper::toInteger($pks);
 
 		$model = $this->getModel();
 		$return = $model->reorder($pks, $inc);
@@ -123,8 +125,8 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		$pks = $this->input->post->get('cid', array(), 'array');
 		$order = $this->input->post->get('order', array(), 'array');
 
-		JArrayHelper::toInteger($pks);
-		JArrayHelper::toInteger($order);
+		ArrayHelper::toInteger($pks);
+		ArrayHelper::toInteger($order);
 
 		$model = $this->getModel();
 
@@ -151,8 +153,8 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		$pks = $this->input->post->get('cid', array(), 'array');
 		$order = $this->input->post->get('order', array(), 'array');
 
-		JArrayHelper::toInteger($pks);
-		JArrayHelper::toInteger($order);
+		ArrayHelper::toInteger($pks);
+		ArrayHelper::toInteger($order);
 
 		$model = $this->getModel();
 

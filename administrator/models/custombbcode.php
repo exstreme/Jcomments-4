@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\Utilities\ArrayHelper;
+
 defined('_JEXEC') or die;
 
 class JCommentsModelCustomBBCode extends JCommentsModelForm
@@ -71,7 +73,7 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 			}
 
 			$acl = is_array($data['button_acl']) ? $data['button_acl'] : array();
-			JArrayHelper::toInteger($acl);
+			ArrayHelper::toInteger($acl);
 			$table->button_acl = implode(',', $acl);
 
 			$table->name = trim(strip_tags($table->name));

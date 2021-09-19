@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\Utilities\ArrayHelper;
+
 defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
@@ -143,7 +145,7 @@ class plgSystemJComments extends JPlugin
 				// remove comments if content item deleted from trash
 				if ($option == 'com_trash' && $task == 'delete' && $type == 'content') {
 					$cid = $app->input->post->get('cid', array(), 'array');
-					JArrayHelper::toInteger($cid, array(0));
+					ArrayHelper::toInteger($cid, array(0));
 					include_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
 					JCommentsModel::deleteComments($cid, 'com_content');
 				}
