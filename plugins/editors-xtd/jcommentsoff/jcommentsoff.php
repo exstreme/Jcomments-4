@@ -11,41 +11,54 @@
 
 defined('_JEXEC') or die;
 
-jimport('joomla.plugin.plugin');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Object\CMSObject;
+use Joomla\CMS\Plugin\CMSPlugin;
 
 /**
  * Provides button to insert {jcomments off} into content edit box
+ *
+ * @since  1.5
  */
-class plgButtonJCommentsOff extends JPlugin
+class plgButtonJCommentsOff extends CMSPlugin
 {
-	public function __construct(& $subject, $config)
+	protected $autoloadLanguage = true;
+
+	public function __construct(&$subject, $config)
 	{
 		parent::__construct($subject, $config);
-		$this->loadLanguage('plg_editors-xtd_jcommentsoff', JPATH_ADMINISTRATOR);
+		$this->loadLanguage('plg_editors-xtd_jcommentson', JPATH_ADMINISTRATOR);
 	}
 
-	function onDisplay($name)
+	/**
+	 * JComments Off button
+	 *
+	 * @param string $name Editor field name
+	 *
+	 * @return  CMSObject  $button
+	 *
+	 * @throws  Exception
+	 * @since   1.5
+	 */
+	public function onDisplay($name)
 	{
-		$getContent = $this->_subject->getContent($name);
 		$js = "
-				function insertJCommentsOff(editor) {
-					var content = $getContent
-					if (content.match(/{jcomments off}/)) {
-						return false;
-					} else {
-						jInsertEditorText('{jcomments off}', editor);
-					}
-				}
-				";
+		function insertJCommentsOff(editor) {
+			var content = Joomla.editors.instances['$name'].getValue();
 
-		$document = JFactory::getDocument();
-		$document->addScriptDeclaration($js);
+			if (!content.match(/{jcomments off}/)) {
+				Joomla.editors.instances['$name'].replaceSelection('{jcomments off}');
+			}
+		}";
 
-		$button = new JObject();
+		Factory::getApplication()->getDocument()->addScriptDeclaration($js);
+
+		$button = new CMSObject();
 		$button->set('class', 'btn');
 		$button->set('modal', false);
 		$button->set('onclick', 'insertJCommentsOff(\'' . $name . '\');return false;');
-		$button->set('text', JText::_('PLG_EDITORS-XTD_JCOMMENTSOFF_BUTTON_JCOMMENTSOFF'));
+		$button->set('text', Text::_('PLG_EDITORS-XTD_JCOMMENTSOFF_BUTTON_JCOMMENTSOFF'));
 		$button->set('name', 'blank');
 		$button->set('link', '#');
 
