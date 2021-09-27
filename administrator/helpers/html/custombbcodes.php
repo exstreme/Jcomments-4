@@ -2,12 +2,15 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 defined('_JEXEC') or die;
 
@@ -36,13 +39,13 @@ abstract class JHtmlCustomBBCodes
 			),
 		);
 
-		return JHtml::_('jgrid.state', $states, $value, $i, 'custombbcodes.', $enabled, true, $checkbox);
+		return HTMLHelper::_('jgrid.state', $states, $value, $i, 'custombbcodes.', $enabled, true, $checkbox);
 	}
 
 	public static function sample($text)
 	{
 		$html = '<div class="jcomments-sample span4">';
-		$html .= '<div class="jcomments-sample-heading">' . JText::_('A_CUSTOM_BBCODE_EXAMPLE') . '</div>';
+		$html .= '<div class="jcomments-sample-heading">' . Text::_('A_CUSTOM_BBCODE_EXAMPLE') . '</div>';
 		$html .= '<div class="jcomments-sample-text">' . $text . '</div>';
 		$html .= '</div>';
 

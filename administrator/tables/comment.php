@@ -2,14 +2,17 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 
 /**
  * JComments comments table
@@ -73,7 +76,8 @@ class JCommentsTableComment extends JTable
 	var $editor = '';
 
 	/**
-	 * @param JDatabase $_db A database connector object
+	 * @param   DatabaseDriver  $_db  A database connector object
+	 *
 	 * @return JCommentsTableComment
 	 */
 	public function __construct(&$_db)
@@ -84,15 +88,16 @@ class JCommentsTableComment extends JTable
 	/**
 	 * Magic method to get an object property's value by name.
 	 *
-	 * @param   string $name  Name of the property for which to return a value.
+	 * @param   string  $name  Name of the property for which to return a value.
+	 *
 	 * @return  mixed  The requested value if it exists.
 	 */
 	public function __get($name)
 	{
-		switch ($name) {
+		switch ($name)
+		{
 			case 'datetime':
 				return $this->date;
-				break;
 		}
 
 		return null;
@@ -101,57 +106,73 @@ class JCommentsTableComment extends JTable
 	public function store($updateNulls = false)
 	{
 		$config = JCommentsFactory::getConfig();
-		$app = JFactory::getApplication();
+		$app    = Factory::getApplication();
 
-		if (JCommentsSystemPluginHelper::isAdmin($app)) {
-			$language = JFactory::getLanguage();
+		if (JCommentsSystemPluginHelper::isAdmin($app))
+		{
+			$language = Factory::getApplication()->getLanguage();
 			$language->load('com_jcomments', JPATH_SITE);
 
-			if ($this->id == 0 && !empty($this->source)) {
-				$this->comment = $this->clearComment($this->comment);
+			if ($this->id == 0 && !empty($this->source))
+			{
+				$this->comment  = $this->clearComment($this->comment);
 				$this->homepage = strip_tags($this->homepage);
-				$this->title = strip_tags($this->title);
+				$this->title    = strip_tags($this->title);
 
-				if (!$this->userid) {
-					$this->name = $this->clearComment($this->name);
+				if (!$this->userid)
+				{
+					$this->name     = $this->clearComment($this->name);
 					$this->username = $this->clearComment($this->username);
 				}
 			}
 		}
 
-		if ($this->parent > 0) {
+		if ($this->parent > 0)
+		{
 			$parent = new JCommentsTableComment($this->_db);
-			if ($parent->load($this->parent)) {
-				if (empty($this->title) && $config->getInt('comment_title') == 1) {
-					if (!empty($parent->title)) {
-						if (strpos($parent->title, JText::_('COMMENT_TITLE_RE')) === false) {
-							$this->title = JText::_('COMMENT_TITLE_RE') . ' ' . $parent->title;
-						} else {
+			if ($parent->load($this->parent))
+			{
+				if (empty($this->title) && $config->getInt('comment_title') == 1)
+				{
+					if (!empty($parent->title))
+					{
+						if (strpos($parent->title, Text::_('COMMENT_TITLE_RE')) === false)
+						{
+							$this->title = Text::_('COMMENT_TITLE_RE') . ' ' . $parent->title;
+						}
+						else
+						{
 							$this->title = $parent->title;
 						}
 					}
 				}
 
 				$this->thread_id = $parent->thread_id ? $parent->thread_id : $parent->id;
-				$this->level = $parent->level + 1;
-				$this->path = $parent->path . ',' . $parent->id;
+				$this->level     = $parent->level + 1;
+				$this->path      = $parent->path . ',' . $parent->id;
 			}
-		} else {
-			if (empty($this->title) && $config->getInt('comment_title') == 1) {
+		}
+		else
+		{
+			if (empty($this->title) && $config->getInt('comment_title') == 1)
+			{
 				$title = JCommentsObjectHelper::getTitle($this->object_id, $this->object_group, $this->lang);
-				if (!empty($title)) {
-					$this->title = JText::_('COMMENT_TITLE_RE') . ' ' . $title;
+				if (!empty($title))
+				{
+					$this->title = Text::_('COMMENT_TITLE_RE') . ' ' . $title;
 				}
 			}
 
 			$this->path = '0';
 		}
 
-		if (isset($this->datetime)) {
+		if (isset($this->datetime))
+		{
 			unset($this->datetime);
 		}
 
-		if (isset($this->author)) {
+		if (isset($this->author))
+		{
 			unset($this->author);
 		}
 
@@ -160,12 +181,13 @@ class JCommentsTableComment extends JTable
 
 	public function delete($oid = null)
 	{
-		$k = $this->_tbl_key;
+		$k  = $this->_tbl_key;
 		$id = $oid ? $oid : $this->$k;
 
 		$result = parent::delete($oid);
 
-		if ($result) {
+		if ($result)
+		{
 			// process nested comments (threaded mode)
 			$query = "SELECT id, parent"
 				. "\n FROM #__jcomments"
@@ -176,25 +198,28 @@ class JCommentsTableComment extends JTable
 
 			require_once(JCOMMENTS_LIBRARIES . '/joomlatune/tree.php');
 
-			$tree = new JoomlaTuneTree($rows);
+			$tree        = new JoomlaTuneTree($rows);
 			$descendants = $tree->descendants($id);
 
 			unset($rows);
 
-			if (count($descendants)) {
+			if (count($descendants))
+			{
 				$query = "DELETE FROM #__jcomments WHERE id IN (" . implode(',', $descendants) . ')';
 				$this->_db->setQuery($query);
 				$this->_db->execute();
 
 				$descendants[] = $id;
-				$query = "DELETE FROM #__jcomments_votes WHERE commentid IN (" . implode(',', $descendants) . ')';
+				$query         = "DELETE FROM #__jcomments_votes WHERE commentid IN (" . implode(',', $descendants) . ')';
 				$this->_db->setQuery($query);
 				$this->_db->execute();
 
 				$query = "DELETE FROM #__jcomments_reports WHERE commentid IN (" . implode(',', $descendants) . ')';
 				$this->_db->setQuery($query);
 				$this->_db->execute();
-			} else {
+			}
+			else
+			{
 				// delete comment's vote info
 				$query = "DELETE FROM #__jcomments_votes WHERE commentid = " . $id;
 				$this->_db->setQuery($query);
@@ -213,7 +238,7 @@ class JCommentsTableComment extends JTable
 
 	public function markAsDeleted()
 	{
-		$this->title = null;
+		$this->title   = null;
 		$this->deleted = 1;
 		$this->store();
 	}
@@ -227,15 +252,17 @@ class JCommentsTableComment extends JTable
 		$map = array();
 		$key = '';
 
-		foreach ($matches[1] as $code) {
-			$key = '{' . md5($code . $key) . '}';
+		foreach ($matches[1] as $code)
+		{
+			$key       = '{' . md5($code . $key) . '}';
 			$map[$key] = $code;
-			$value = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
+			$value     = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
 		}
 
 		$value = JCommentsText::nl2br($value);
 
-		foreach ($map as $key => $code) {
+		foreach ($map as $key => $code)
+		{
 			$value = preg_replace('#' . preg_quote($key, '#') . '#isUu', $code, $value);
 		}
 
@@ -276,7 +303,7 @@ class JCommentsTableComment extends JTable
 		, '[/url]'
 		, '[youtube]\\1[/youtube]'
 		);
-		$value = preg_replace($patterns, $replacements, $value);
+		$value        = preg_replace($patterns, $replacements, $value);
 
 		return $value;
 	}
