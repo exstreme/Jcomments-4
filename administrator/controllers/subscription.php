@@ -11,12 +11,10 @@
 
 defined('_JEXEC') or die;
 
-class JCommentsControllerSmiley extends JCommentsControllerForm
+class JCommentsControllerSubscription extends JCommentsControllerForm
 {
-	public function __construct($config = array())
+	public function getModel($name = 'Subscription', $prefix = 'JCommentsModel', $config = array())
 	{
-		parent::__construct($config);
-
-		$this->view_list = 'smilies';
+		return parent::getModel($name, $prefix, $config);
 	}
 }
