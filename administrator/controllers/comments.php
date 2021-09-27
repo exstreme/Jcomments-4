@@ -2,16 +2,20 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\Utilities\ArrayHelper;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
+use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerComments extends JCommentsControllerList
 {
@@ -29,45 +33,46 @@ class JCommentsControllerComments extends JCommentsControllerList
 		parent::display($cachable, $urlparams);
 	}
 
-	public function getModel($name = 'Comments', $prefix = 'JCommentsModel', $config = array('ignore_request' => true))
-	{
-		$model = parent::getModel($name, $prefix, $config);
-
-		return $model;
-	}
-
 	public function publish()
 	{
-		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
 
-		$cid = $this->input->get('cid', array(), 'array');
-		$data = array('publish' => 1, 'unpublish' => 0);
-		$task = $this->getTask();
+		$cid   = $this->input->get('cid', array(), 'array');
+		$data  = array('publish' => 1, 'unpublish' => 0);
+		$task  = $this->getTask();
 		$value = ArrayHelper::getValue($data, $task, 0, 'int');
 
-		if (!empty($cid)) {
-			$model = $this->getModel();
+		if (!empty($cid))
+		{
+			$model = $this->getModel('Comments', 'JCommentsModel', array('ignore_request' => true));
 			$model->publish($cid, $value);
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
 	}
 
 	public function checkin()
 	{
-		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
 
-		$ids = JFactory::getApplication()->input->post->get('cid', array(), 'array');
+		$ids = Factory::getApplication()->input->post->get('cid', array(), 'array');
 
-		$model = $this->getModel();
+		$model  = $this->getModel('Comments', 'JCommentsModel', array('ignore_request' => true));
 		$return = $model->checkin($ids);
-		if ($return === false) {
-			$message = JText::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError());
-			$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false), $message, 'error');
+
+		if ($return === false)
+		{
+			$this->setRedirect(
+				Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false),
+				Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $model->getError()),
+				'error'
+			);
 
 			return false;
-		} else {
-			$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+		}
+		else
+		{
+			$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
 
 			return true;
 		}

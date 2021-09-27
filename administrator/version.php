@@ -2,11 +2,11 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
@@ -24,11 +24,7 @@ class JCommentsVersion
 	/** @var int Build Number */
 	var $BUILD = '';
 	/** @var string Date */
-	var $RELDATE = '18/09/2021';
-	/** @var string Time */
-	var $RELTIME = '00:26';
-	/** @var string Timezone */
-	var $RELTZ = 'GMT+2';
+	var $RELDATE = '27/09/2021';
 
 	/**
 	 * @return string Long format version
