@@ -11,22 +11,25 @@
 
 defined('_JEXEC') or die;
 
-if (!JFactory::getUser()->authorise('core.manage', 'com_jcomments')) {
-	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\BaseController;
+
+if (!Factory::getApplication()->getIdentity()->authorise('core.manage', 'com_jcomments')) {
+	throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 404);
 }
 
 if (!defined('JPATH_COMPONENT')) {
 	define('JPATH_COMPONENT', dirname(__FILE__));
 }
 
-$language = JFactory::getLanguage();
+$language = Factory::getApplication()->getLanguage();
 $language->load('com_jcomments', JPATH_ROOT . '/administrator', 'en-GB', true);
 $language->load('com_jcomments', JPATH_ROOT . '/administrator', null, true);
 
 require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.legacy.php');
 require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.class.php');
 
-JLoader::register('JCommentsControllerLegacy', JPATH_COMPONENT . '/controllers/controller.php');
 JLoader::register('JCommentsControllerForm', JPATH_COMPONENT . '/controllers/controllerform.php');
 JLoader::register('JCommentsControllerList', JPATH_COMPONENT . '/controllers/controllerlist.php');
 JLoader::register('JCommentsModelLegacy', JPATH_COMPONENT . '/models/model.php');
@@ -34,6 +37,6 @@ JLoader::register('JCommentsModelForm', JPATH_COMPONENT . '/models/modelform.php
 JLoader::register('JCommentsModelList', JPATH_COMPONENT . '/models/modellist.php');
 JLoader::register('JCommentsViewLegacy', JPATH_COMPONENT . '/views/view.php');
 
-$controller = JControllerLegacy::getInstance('JComments');
-$controller->execute(JFactory::getApplication()->input->get('task'));
+$controller = BaseController::getInstance('JComments');
+$controller->execute(Factory::getApplication()->input->get('task'));
 $controller->redirect();

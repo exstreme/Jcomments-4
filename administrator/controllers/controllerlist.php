@@ -2,16 +2,21 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-class JCommentsControllerList extends JCommentsControllerLegacy
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
+
+class JCommentsControllerList extends BaseController
 {
 	protected $context;
 	protected $option;
@@ -22,25 +27,31 @@ class JCommentsControllerList extends JCommentsControllerLegacy
 	{
 		parent::__construct($config);
 
-		if (empty($this->option)) {
+		if (empty($this->option))
+		{
 			$this->option = 'com_' . strtolower($this->getName());
 		}
 
-		if (empty($this->text_prefix)) {
+		if (empty($this->text_prefix))
+		{
 			$this->text_prefix = strtoupper($this->option);
 		}
 
-		if (empty($this->context)) {
+		if (empty($this->context))
+		{
 			$r = null;
-			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r)) {
+			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
+			{
 				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
 			}
 			$this->context = strtolower($r[2]);
 		}
 
-		if (empty($this->view_list)) {
+		if (empty($this->view_list))
+		{
 			$r = null;
-			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r)) {
+			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
+			{
 				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
 			}
 			$this->view_list = strtolower($r[2]);
@@ -49,7 +60,8 @@ class JCommentsControllerList extends JCommentsControllerLegacy
 
 	public function getModel($name = '', $prefix = '', $config = array('ignore_request' => true))
 	{
-		if (empty($name)) {
+		if (empty($name))
+		{
 			$name = $this->context;
 		}
 
@@ -58,15 +70,16 @@ class JCommentsControllerList extends JCommentsControllerLegacy
 
 	public function delete()
 	{
-		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
 
 		$cid = $this->input->get('cid', array(), 'array');
 
-		if (!empty($cid)) {
+		if (!empty($cid))
+		{
 			$model = $this->getModel();
 			$model->delete($cid);
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
 	}
 }
