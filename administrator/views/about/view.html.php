@@ -23,18 +23,10 @@ class JCommentsViewAbout extends JCommentsViewLegacy
 		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
 		JHtml::_('jcomments.stylesheet');
-		if (version_compare(JVERSION, '4.0', 'lt')) {
-			JHtml::_('behavior.framework');
-		}
+        JHtml::_('behavior.framework');
 
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			JCommentsHelper::addSubmenu('about');
-			$this->bootstrap = true;
-			$this->sidebar = JHtmlSidebar::render();
-		} else {
-			JCommentsHelper::addSubmenu('about');
-		}
-
+        $this->bootstrap = true;
+        $this->sidebar = JHtmlSidebar::render();
 
 		$this->addToolbar();
 
