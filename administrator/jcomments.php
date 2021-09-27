@@ -2,11 +2,11 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
@@ -15,11 +15,13 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 
-if (!Factory::getApplication()->getIdentity()->authorise('core.manage', 'com_jcomments')) {
+if (!Factory::getApplication()->getIdentity()->authorise('core.manage', 'com_jcomments'))
+{
 	throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 404);
 }
 
-if (!defined('JPATH_COMPONENT')) {
+if (!defined('JPATH_COMPONENT'))
+{
 	define('JPATH_COMPONENT', dirname(__FILE__));
 }
 

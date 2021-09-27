@@ -2,21 +2,20 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-jimport('joomla.html.html');
-jimport('joomla.form.formfield');
-jimport('joomla.form.helper');
-JFormHelper::loadFieldClass('list');
+use Joomla\CMS\Filesystem\Folder;
+use Joomla\CMS\Form\Field\ListField;
+use Joomla\CMS\HTML\HTMLHelper;
 
-class JFormFieldJCommentsTemplate extends JFormFieldList
+class JFormFieldJCommentsTemplate extends ListField
 {
 	protected $type = 'JCommentsTemplate';
 
@@ -31,10 +30,12 @@ class JFormFieldJCommentsTemplate extends JFormFieldList
 	{
 		$options = array();
 
-		$folders = JFolder::folders(JPATH_ROOT . '/components/com_jcomments/tpl/');
-		if (is_array($folders)) {
-			foreach ($folders as $folder) {
-				$options[] = JHtml::_('select.option', $folder, $folder);
+		$folders = Folder::folders(JPATH_ROOT . '/components/com_jcomments/tpl/');
+		if (is_array($folders))
+		{
+			foreach ($folders as $folder)
+			{
+				$options[] = HTMLHelper::_('select.option', $folder, $folder);
 			}
 		}
 
