@@ -2,61 +2,76 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Access;
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
+use Joomla\Registry\Registry;
+
 include_once(JPATH_ROOT . '/components/com_jcomments/jcomments.legacy.php');
 
-if (!defined('JCOMMENTS_JVERSION')) {
+if (!defined('JCOMMENTS_JVERSION'))
+{
 	return;
 }
-
-jimport('joomla.plugin.plugin');
 
 /**
  * Plugin for attaching comments list and form to content item
  */
-class plgContentJComments extends JPlugin
+class plgContentJComments extends CMSPlugin
 {
-	function __construct(&$subject, $config)
+	public function __construct(&$subject, $config)
 	{
 		parent::__construct($subject, $config);
 	}
 
-	function onPrepareContent(&$article, &$params, $limitstart = 0)
+	public function onPrepareContent(&$article, &$params)
 	{
 		require_once(JPATH_ROOT . '/components/com_jcomments/helpers/content.php');
 
 		// check whether plugin has been unpublished
-		if (!JPluginHelper::isEnabled('content', 'jcomments')) {
+		if (!JPluginHelper::isEnabled('content', 'jcomments'))
+		{
 			JCommentsContentPluginHelper::clear($article);
+
 			return '';
 		}
 
-		$app = JFactory::getApplication('site');
+		$app    = Factory::getApplication();
 		$option = $app->input->get('option');
-		$view = $app->input->get('view');
+		$view   = $app->input->get('view');
 
-		if (!isset($article->id) || ($option != 'com_content' && $option != 'com_alphacontent' && $option != 'com_multicategories')) {
+		if (!isset($article->id) || ($option != 'com_content' && $option != 'com_alphacontent' && $option != 'com_multicategories'))
+		{
 			return '';
 		}
 
-		if (!isset($params) || $params == null) {
-			$params = new JRegistry('');
-		} else if (isset($params->_raw) && strpos($params->_raw, 'moduleclass_sfx') !== false) {
+		if (!isset($params) || $params == null)
+		{
+			$params = new Registry('');
+		}
+		else if (isset($params->_raw) && strpos($params->_raw, 'moduleclass_sfx') !== false)
+		{
 			return '';
 		}
 
-		if ($view == 'frontpage' || $view == 'featured') {
-			if ($this->params->get('show_frontpage', 1) == 0) {
+		if ($view == 'frontpage' || $view == 'featured')
+		{
+			if ($this->params->get('show_frontpage', 1) == 0)
+			{
 				return '';
 			}
 		}
@@ -67,14 +82,15 @@ class plgContentJComments extends JPlugin
 
 		$config = JCommentsFactory::getConfig();
 
-		$categoryEnabled = JCommentsContentPluginHelper::checkCategory($article->catid);
-		$commentsEnabled = JCommentsContentPluginHelper::isEnabled($article) || $categoryEnabled;
+		$categoryEnabled  = JCommentsContentPluginHelper::checkCategory($article->catid);
+		$commentsEnabled  = JCommentsContentPluginHelper::isEnabled($article) || $categoryEnabled;
 		$commentsDisabled = JCommentsContentPluginHelper::isDisabled($article) || !$commentsEnabled;
-		$commentsLocked = JCommentsContentPluginHelper::isLocked($article);
+		$commentsLocked   = JCommentsContentPluginHelper::isLocked($article);
 
 		$archivesState = 2;
 
-		if (isset($article->state) && $article->state == $archivesState && $this->params->get('enable_for_archived', 0) == 0) {
+		if (isset($article->state) && $article->state == $archivesState && $this->params->get('enable_for_archived', 0) == 0)
+		{
 			$commentsLocked = true;
 		}
 
@@ -82,28 +98,32 @@ class plgContentJComments extends JPlugin
 		$config->set('comments_off', intval($commentsDisabled));
 		$config->set('comments_locked', intval($commentsLocked));
 
-		if ($view != 'article') {
-			$user = JFactory::getUser();
+		if ($view != 'article')
+		{
+			$user = $app->getIdentity();
 
-			$authorised = JAccess::getAuthorisedViewLevels($user->get('id'));
+			$authorised  = Access::getAuthorisedViewLevels($user->get('id'));
 			$checkAccess = in_array($article->access, $authorised);
 
-			$slug = isset($article->slug) ? $article->slug : $article->id;
+			$slug     = isset($article->slug) ? $article->slug : $article->id;
 			$language = isset($article->language) ? $article->language : 0;
 
-			if ($checkAccess) {
-				$readmore_link = JRoute::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
+			if ($checkAccess)
+			{
+				$readmore_link     = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
 				$readmore_register = 0;
-			} else {
-				$returnURL = JRoute::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
+			}
+			else
+			{
+				$returnURL = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
 
-				$menu = JFactory::getApplication()->getMenu();
+				$menu   = $app->getMenu();
 				$active = $menu->getActive();
 				$itemId = $active->id;
-				$link1 = JRoute::_('index.php?option=com_users&view=login&Itemid=' . $itemId);
-				$link = new JURI($link1);
+				$link1  = Route::_('index.php?option=com_users&view=login&Itemid=' . $itemId);
+				$link   = new Uri($link1);
 				$link->setVar('return', base64_encode($returnURL));
-				$readmore_link = $link;
+				$readmore_link     = $link;
 				$readmore_register = 1;
 			}
 
@@ -114,40 +134,54 @@ class plgContentJComments extends JPlugin
 			$tmpl->addVar('tpl_links', 'comments_link_style', ($readmore_register ? -1 : 1));
 			$tmpl->addVar('tpl_links', 'content-item', $article);
 			$tmpl->addVar('tpl_links', 'show_hits',
-						  intval($this->params->get('show_hits', 0) && $params->get('show_hits', 0)));
+				intval($this->params->get('show_hits', 0) && $params->get('show_hits', 0)));
 
 			$readmoreDisabled = false;
 
-			if (($params->get('show_readmore') == 0) || (@$article->readmore == 0)) {
+			if (($params->get('show_readmore') == 0) || (@$article->readmore == 0))
+			{
 				$readmoreDisabled = true;
-			} else if (@$article->readmore > 0) {
+			}
+			else if (@$article->readmore > 0)
+			{
 				$readmoreDisabled = false;
 			}
 
-			if ($this->params->get('readmore_link', 1) == 0) {
+			if ($this->params->get('readmore_link', 1) == 0)
+			{
 				$readmoreDisabled = true;
 			}
 
-			$tmpl->addVar('tpl_links', 'readmore_link_hidden', intval($readmoreDisabled));
+			$tmpl->addVar('tpl_links', 'readmore_link_hidden', (int) $readmoreDisabled);
 
 			// don't fill any readmore variable if it disabled
-			if (!$readmoreDisabled) {
-				if ($readmore_register == 1) {
-					$readmore_text = JText::_('COM_CONTENT_REGISTER_TO_READ_MORE');
-				} else if (isset($params) && $readmore = $params->get('readmore')) {
+			if (!$readmoreDisabled)
+			{
+				if ($readmore_register == 1)
+				{
+					$readmore_text = Text::_('COM_CONTENT_REGISTER_TO_READ_MORE');
+				}
+				else if (isset($params) && $readmore = $params->get('readmore'))
+				{
 					$readmore_text = $readmore;
-				} else if ($alternative_readmore = $article->alternative_readmore) {
+				}
+				else if ($alternative_readmore = $article->alternative_readmore)
+				{
 					$readmore_text = trim($alternative_readmore);
-					
-					if ($params->get('show_readmore_title', 0) != 0) {
-						$readmore_text .= ' ' . JHtml::_('string.truncate', $article->title, $params->get('readmore_limit'));
+
+					if ($params->get('show_readmore_title', 0) != 0)
+					{
+						$readmore_text .= ' ' . HTMLHelper::_('string.truncate', $article->title, $params->get('readmore_limit'));
 					}
-				} else {
-					$readmore_text = JText::_('COM_CONTENT_READ_MORE_TITLE');
-					
-					if ($params->get('show_readmore_title', 0) == 1) {
-						$readmore_text = JText::_('COM_CONTENT_READ_MORE') 
-								. JHtml::_('string.truncate', $article->title, $params->get('readmore_limit'));
+				}
+				else
+				{
+					$readmore_text = Text::_('COM_CONTENT_READ_MORE_TITLE');
+
+					if ($params->get('show_readmore_title', 0) == 1)
+					{
+						$readmore_text = Text::_('COM_CONTENT_READ_MORE')
+							. HTMLHelper::_('string.truncate', $article->title, $params->get('readmore_limit'));
 					}
 				}
 				$tmpl->addVar('tpl_links', 'link-readmore', $readmore_link);
@@ -158,50 +192,60 @@ class plgContentJComments extends JPlugin
 
 			$commentsDisabled = false;
 
-			if ($config->getInt('comments_off', 0) == 1) {
+			if ($config->getInt('comments_off') == 1)
+			{
 				$commentsDisabled = true;
-			} else if ($config->getInt('comments_on', 0) == 1) {
+			}
+			else if ($config->getInt('comments_on') == 1)
+			{
 				$commentsDisabled = false;
 			}
 
-			$tmpl->addVar('tpl_links', 'comments_link_hidden', intval($commentsDisabled));
+			$tmpl->addVar('tpl_links', 'comments_link_hidden', (int) $commentsDisabled);
 
 			$count = 0;
 
 			// do not query comments count if comments disabled and link hidden
-			if (!$commentsDisabled) {
+			if (!$commentsDisabled)
+			{
 				require_once(JPATH_ROOT . '/components/com_jcomments/models/jcomments.php');
 
 				$anchor = "";
 
-				if ($this->params->get('comments_count', 1) != 0) {
+				if ($this->params->get('comments_count', 1) != 0)
+				{
 
 					$acl = JCommentsFactory::getACL();
 
-					$options = array();
-					$options['object_id'] = (int)$article->id;
+					$options                 = array();
+					$options['object_id']    = (int) $article->id;
 					$options['object_group'] = 'com_content';
-					$options['published'] = $acl->canPublish() || $acl->canPublishForObject($article->id,
-																							'com_content') ? null : 1;
+					$options['published']    = $acl->canPublish() || $acl->canPublishForObject($article->id,
+						'com_content') ? null : 1;
 
 					$count = JCommentsModel::getCommentsCount($options);
 
 					$tmpl->addVar('tpl_links', 'comments-count', $count);
 					$anchor = $count == 0 ? '#addcomments' : '#comments';
 
-					if ($count == 0) {
-						$link_text = JText::_('LINK_ADD_COMMENT');
-					} else {
-						$link_text = JText::plural('LINK_READ_COMMENTS', $count);
+					if ($count == 0)
+					{
+						$link_text = Text::_('LINK_ADD_COMMENT');
 					}
-				} else {
-					$link_text = JText::_('LINK_ADD_COMMENT');
+					else
+					{
+						$link_text = Text::plural('LINK_READ_COMMENTS', $count);
+					}
+				}
+				else
+				{
+					$link_text = Text::_('LINK_ADD_COMMENT');
 				}
 
 				$tmpl->addVar('tpl_links', 'link-comment', $readmore_link . $anchor);
 				$tmpl->addVar('tpl_links', 'link-comment-text', $link_text);
 				$tmpl->addVar('tpl_links', 'link-comments-class',
-							  $this->params->get('comments_css_class', 'comments-link'));
+					$this->params->get('comments_css_class', 'comments-link'));
 			}
 
 			JCommentsContentPluginHelper::clear($article);
@@ -211,35 +255,48 @@ class plgContentJComments extends JPlugin
 					|| ($count == 0 && $this->params->get('add_comments', 1) == 0)
 					|| ($count == 0 && $readmore_register == 1))
 				&& !$commentsDisabled
-			) {
+			)
+			{
 				$tmpl->addVar('tpl_links', 'comments_link_hidden', 1);
 			}
 
 			//links_position
-			if ($this->params->get('links_position', 1) == 1) {
+			if ($this->params->get('links_position', 1) == 1)
+			{
 				$article->text .= $tmpl->renderTemplate('tpl_links');
-			} else {
+			}
+			else
+			{
 				$article->text = $tmpl->renderTemplate('tpl_links') . $article->text;
 			}
 
 			$tmpl->freeTemplate('tpl_links');
 
-			if ($this->params->get('readmore_link', 1) == 1) {
-				$article->readmore = 0;
-				$article->readmore_link = '';
+			if ($this->params->get('readmore_link', 1) == 1)
+			{
+				$article->readmore          = 0;
+				$article->readmore_link     = '';
 				$article->readmore_register = false;
 			}
-		} else {
-			if ($this->params->get('show_comments_event') == 'onPrepareContent') {
+		}
+		else
+		{
+			if ($this->params->get('show_comments_event') == 'onPrepareContent')
+			{
 				$isEnabled = ($config->getInt('comments_on', 0) == 1) && ($config->getInt('comments_off', 0) == 0);
-				if ($isEnabled && $view == 'article') {
+
+				if ($isEnabled && $view == 'article')
+				{
 					require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
 
 					$comments = JComments::show($article->id, 'com_content', $article->title);
 
-					if (strpos($article->text, '{jcomments}') !== false) {
+					if (strpos($article->text, '{jcomments}') !== false)
+					{
 						$article->text = str_replace('{jcomments}', $comments, $article->text);
-					} else {
+					}
+					else
+					{
 						$article->text .= $comments;
 					}
 				}
@@ -250,32 +307,36 @@ class plgContentJComments extends JPlugin
 		return '';
 	}
 
-	function onAfterDisplayContent(&$article, &$params, $limitstart = 0)
+	public function onAfterDisplayContent(&$article, &$params)
 	{
-		if ($this->params->get('show_comments_event', 'onAfterDisplayContent') == 'onAfterDisplayContent') {
+		if ($this->params->get('show_comments_event', 'onAfterDisplayContent') == 'onAfterDisplayContent')
+		{
 			require_once(JPATH_ROOT . '/components/com_jcomments/helpers/content.php');
 
-			$app = JFactory::getApplication('site');
+			$app  = Factory::getApplication();
 			$view = $app->input->get('view');
 
 			// check whether plugin has been unpublished
-			if (!JPluginHelper::isEnabled('content', 'jcomments')
+			if (!PluginHelper::isEnabled('content', 'jcomments')
 				|| ($view != 'article')
 				|| $params->get('intro_only')
 				|| $params->get('popup')
 				|| $app->input->getBool('fullview')
 				|| $app->input->get('print')
-			) {
+			)
+			{
 				JCommentsContentPluginHelper::clear($article);
+
 				return '';
 			}
 
 			require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
 
-			$config = JCommentsFactory::getConfig();
+			$config    = JCommentsFactory::getConfig();
 			$isEnabled = ($config->getInt('comments_on', 0) == 1) && ($config->getInt('comments_off', 0) == 0);
 
-			if ($isEnabled && $view == 'article') {
+			if ($isEnabled && $view == 'article')
+			{
 				JCommentsContentPluginHelper::clear($article);
 
 				return JComments::show($article->id, 'com_content', $article->title);
@@ -285,37 +346,49 @@ class plgContentJComments extends JPlugin
 		return '';
 	}
 
-	function onContentBeforeDisplay($context, &$article, &$params, $page = 0)
+	public function onContentBeforeDisplay($context, &$article, &$params, $page = 0)
 	{
-		if ($context == 'com_content.article' || $context == 'com_content.featured' || $context == 'com_content.category') {
-			$app = JFactory::getApplication('site');
+		if ($context == 'com_content.article' || $context == 'com_content.featured' || $context == 'com_content.category')
+		{
+			$app  = Factory::getApplication();
 			$view = $app->input->get('view');
 
-			if ($view == 'featured' || $context == 'com_content.featured') {
-				if ($this->params->get('show_frontpage', 1) == 0) {
+			if ($view == 'featured' || $context == 'com_content.featured')
+			{
+				if ($this->params->get('show_frontpage', 1) == 0)
+				{
 					return;
 				}
 			}
 
 			// do not display comments in modules
 			$data = $params->toArray();
-			if (isset($data['moduleclass_sfx'])) {
+
+			if (isset($data['moduleclass_sfx']))
+			{
 				return;
 			}
 
-			$originalText = isset($article->text) ? $article->text : '';
+			$originalText  = isset($article->text) ? $article->text : '';
 			$article->text = '';
-			$this->onPrepareContent($article, $params, $page);
+			$this->onPrepareContent($article, $params);
 
-			if (isset($article->text)) {
-				if (($view == 'article') && strpos($originalText, '{jcomments}') !== false) {
+			if (isset($article->text))
+			{
+				if (($view == 'article') && strpos($originalText, '{jcomments}') !== false)
+				{
 					$originalText = str_replace('{jcomments}', $article->text, $originalText);
-				} else {
+				}
+				else
+				{
 					$article->introtext = str_replace('{jcomments}', '', $article->introtext);
 
-					if ($this->params->get('links_position', 1) == 1) {
+					if ($this->params->get('links_position', 1) == 1)
+					{
 						$article->introtext = $article->introtext . $article->text;
-					} else {
+					}
+					else
+					{
 						$article->introtext = $article->text . $article->introtext;
 					}
 				}
@@ -326,47 +399,54 @@ class plgContentJComments extends JPlugin
 		}
 	}
 
-	function onContentAfterDisplay($context, &$article, &$params, $limitstart = 0)
+	public function onContentAfterDisplay($context, &$article, &$params)
 	{
-		if ($context == 'com_content.article' || $context == 'com_content.featured' || $context == 'com_content.category') {
+		if ($context == 'com_content.article' || $context == 'com_content.featured' || $context == 'com_content.category')
+		{
 			// do not display comments in modules
 			$data = $params->toArray();
-			if (isset($data['moduleclass_sfx'])) {
+
+			if (isset($data['moduleclass_sfx']))
+			{
 				return '';
 			}
 
-			return $this->onAfterDisplayContent($article, $params, $limitstart);
+			return $this->onAfterDisplayContent($article, $params);
 		}
 
 		return '';
 	}
 
-	function onContentAfterDelete($context, $data)
+	public function onContentAfterDelete($context, $data)
 	{
-		if ($context == 'com_content.article') {
+		if ($context == 'com_content.article')
+		{
 			require_once(JPATH_ROOT . '/components/com_jcomments/models/jcomments.php');
 
-			JCommentsModel::deleteComments((int)$table->id, 'com_content');
+			// TODO Get Table to get item ID.
+			JCommentsModel::deleteComments((int) $table->id);
 
-			$db = Factory::getContainer()->get('DatabaseDriver');
+			$db    = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 			$query->delete();
 			$query->from($db->quoteName('#__jcomments_subscriptions'));
-			$query->where($db->quoteName('object_id') . ' = ' . (int)$data->id);
+			$query->where($db->quoteName('object_id') . ' = ' . (int) $data->id);
 			$query->where($db->quoteName('object_group') . ' = ' . $db->Quote('com_content'));
 			$db->setQuery($query);
 			$db->execute();
 		}
 	}
 
-	function onContentAfterSave($context, $article, $isNew)
+	public function onContentAfterSave($context, $article, $isNew)
 	{
 		// Check we are handling the frontend edit form.
-		if ($context == 'com_content.form' && !$isNew) {
+		if ($context == 'com_content.form' && !$isNew)
+		{
 			require_once(JPATH_ROOT . '/components/com_jcomments/helpers/content.php');
-			if (JCommentsContentPluginHelper::checkCategory($article->catid)) {
+			if (JCommentsContentPluginHelper::checkCategory($article->catid))
+			{
 				require_once(JPATH_ROOT . '/components/com_jcomments/helpers/object.php');
-				JCommentsObjectHelper::storeObjectInfo($article->id, 'com_content');
+				JCommentsObjectHelper::storeObjectInfo($article->id);
 			}
 		}
 	}

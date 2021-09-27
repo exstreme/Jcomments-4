@@ -9,16 +9,17 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
 
-jimport('joomla.plugin.plugin');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Plugin\CMSPlugin;
 
 /**
  * User plugin for updating user info in comments
+ *
+ * @since 1.5
  */
-class plgUserJComments extends JPlugin
+class plgUserJComments extends CMSPlugin
 {
 	function onUserAfterSave($user, $isNew, $success, $msg)
 	{

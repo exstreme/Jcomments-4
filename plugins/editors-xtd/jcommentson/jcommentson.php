@@ -11,41 +11,54 @@
 
 defined('_JEXEC') or die;
 
-jimport('joomla.plugin.plugin');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Object\CMSObject;
+use Joomla\CMS\Plugin\CMSPlugin;
 
 /**
  * Provides button to insert {jcomments on} into content edit box
+ *
+ * @since  1.5
  */
-class plgButtonJCommentsOn extends JPlugin
+class plgButtonJCommentsOn extends CMSPlugin
 {
-	public function __construct(& $subject, $config)
+	protected $autoloadLanguage = true;
+
+	public function __construct(&$subject, $config)
 	{
 		parent::__construct($subject, $config);
 		$this->loadLanguage('plg_editors-xtd_jcommentson', JPATH_ADMINISTRATOR);
 	}
 
-	function onDisplay($name)
+	/**
+	 * JComments On button
+	 *
+	 * @param string $name Editor field name
+	 *
+	 * @return  CMSObject  $button
+	 *
+	 * @throws  Exception
+	 * @since   1.5
+	 */
+	public function onDisplay($name)
 	{
-		$getContent = $this->_subject->getContent($name);
 		$js = "
-				function insertJCommentsOn(editor) {
-					var content = $getContent
-					if (content.match(/{jcomments on}/)) {
-						return false;
-					} else {
-						jInsertEditorText('{jcomments on}', editor);
-					}
-				}
-				";
+		function insertJCommentsOn(editor) {
+			var content = Joomla.editors.instances['$name'].getValue();
 
-		$document = JFactory::getDocument();
-		$document->addScriptDeclaration($js);
+			if (!content.match(/{jcomments on}/)) {
+				Joomla.editors.instances['$name'].replaceSelection('{jcomments on}');
+			}
+		}";
 
-		$button = new JObject();
+		Factory::getApplication()->getDocument()->addScriptDeclaration($js);
+
+		$button = new CMSObject();
 		$button->set('class', 'btn');
 		$button->set('modal', false);
 		$button->set('onclick', 'insertJCommentsOn(\'' . $name . '\');return false;');
-		$button->set('text', JText::_('PLG_EDITORS-XTD_JCOMMENTSON_BUTTON_JCOMMENTSON'));
+		$button->set('text', Text::_('PLG_EDITORS-XTD_JCOMMENTSON_BUTTON_JCOMMENTSON'));
 		$button->set('name', 'blank');
 		$button->set('link', '#');
 
