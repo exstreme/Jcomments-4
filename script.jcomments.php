@@ -321,15 +321,7 @@ class com_jcommentsInstallerScript
 				return false;
 			}
 
-			// TODO Remove this if/else
-			if (version_compare(JVERSION, '3.0', 'ge'))
-			{
-				$queries = JDatabaseDriver::splitSql($buffer);
-			}
-			else
-			{
-				$queries = JFactory::getDbo()->splitSql($buffer);
-			}
+			$queries = JDatabaseDriver::splitSql($buffer);
 
 			if (count($queries))
 			{

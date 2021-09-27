@@ -29,19 +29,13 @@ class JCommentsViewBlacklists extends JCommentsViewLegacy
 
 		JHtml::_('jcomments.stylesheet');
 
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			JHtml::_('bootstrap.tooltip');
-			JHtml::_('formbehavior.chosen', 'select');
+        JHtml::_('bootstrap.tooltip');
+        JHtml::_('formbehavior.chosen', 'select');
 
-			JCommentsHelper::addSubmenu('blacklists');
+        JHtmlSidebar::setAction('index.php?option=com_jcomments&view=blacklists');
 
-			JHtmlSidebar::setAction('index.php?option=com_jcomments&view=blacklists');
-
-			$this->bootstrap = true;
-			$this->sidebar = JHtmlSidebar::render();
-		} else {
-			JCommentsHelper::addSubmenu('blacklists');
-		}
+        $this->bootstrap = true;
+        $this->sidebar = JHtmlSidebar::render();
 
 		$this->addToolbar();
 
