@@ -321,7 +321,7 @@ class com_jcommentsInstallerScript
 				return false;
 			}
 
-            $queries = JDatabaseDriver::splitSql($buffer);
+			$queries = JDatabaseDriver::splitSql($buffer);
 
 			if (count($queries))
 			{

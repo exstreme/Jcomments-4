@@ -2,16 +2,19 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Uri\Uri;
 
 abstract class JHtmlJComments
 {
@@ -19,14 +22,16 @@ abstract class JHtmlJComments
 
 	public static function stylesheet()
 	{
-		if (!empty(self::$loaded[__METHOD__])) {
+		if (!empty(self::$loaded[__METHOD__]))
+		{
 			return;
 		}
 
-		$document = JFactory::getDocument();
+		$document = Factory::getApplication()->getDocument();
 		$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/style.css', 'text/css', null);
 
-		if (JFactory::getLanguage()->isRTL()) {
+		if (Factory::getApplication()->getLanguage()->isRTL())
+		{
 			$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/style_rtl.css', 'text/css', null);
 		}
 
@@ -37,11 +42,12 @@ abstract class JHtmlJComments
 
 	public static function jquery()
 	{
-		if (!empty(self::$loaded[__METHOD__])) {
+		if (!empty(self::$loaded[__METHOD__]))
+		{
 			return;
 		}
 
-        JHtml::_('jquery.framework');
+		HTMLHelper::_('jquery.framework');
 
 		self::$loaded[__METHOD__] = true;
 
@@ -50,11 +56,12 @@ abstract class JHtmlJComments
 
 	public static function bootstrap()
 	{
-		if (!empty(self::$loaded[__METHOD__])) {
+		if (!empty(self::$loaded[__METHOD__]))
+		{
 			return;
 		}
 
-        JHtml::_('bootstrap.framework');
+		HTMLHelper::_('bootstrap.framework');
 
 		self::$loaded[__METHOD__] = true;
 
@@ -64,35 +71,37 @@ abstract class JHtmlJComments
 	public static function modal($name = '', $text = '', $url = '', $title = '', $onClose = '', $iconClass = 'out-2', $buttonClass = 'btn-small', $width = 500, $height = 300)
 	{
 
-		if (strlen($title) == 0) {
+		if (strlen($title) == 0)
+		{
 			$title = $text;
 		}
 
-		$text = JText::_($text);
-		$title = JText::_($title);
+		$text  = Text::_($text);
+		$title = Text::_($title);
 
-        $html = "<button class=\"btn btn-micro " . $buttonClass . "\" data-toggle=\"modal\" data-target=\"#modal-" . $name . "\">\n";
-        $html .= "<i class=\"icon-" . $iconClass . "\">\n</i>\n";
-        $html .= "$text\n";
-        $html .= "</button>\n";
+		$html = "<button class=\"btn btn-micro " . $buttonClass . "\" data-toggle=\"modal\" data-target=\"#modal-" . $name . "\">\n";
+		$html .= "<i class=\"icon-" . $iconClass . "\">\n</i>\n";
+		$html .= "$text\n";
+		$html .= "</button>\n";
 
-        // Build the options array for the modal
-        $params = array();
-        $params['title'] = $title;
-        $params['url'] = (substr($url, 0, 4) !== 'http') ? JURI::base() . $url : $url;
-        $params['height'] = $height;
-        $params['width'] = $width;
-        $html .= JHtml::_('bootstrap.renderModal', 'modal-' . $name, $params);
+		// Build the options array for the modal
+		$params           = array();
+		$params['title']  = $title;
+		$params['url']    = (substr($url, 0, 4) !== 'http') ? Uri::base() . $url : $url;
+		$params['height'] = $height;
+		$params['width']  = $width;
+		$html             .= HTMLHelper::_('bootstrap.renderModal', 'modal-' . $name, $params);
 
-        // If an $onClose event is passed, add it to the modal JS object
-        if (strlen($onClose) >= 1) {
-            $html .= "<script>\n";
-            $html .= "jQuery('#modal-" . $name . "').on('hide', function () {\n";
-            $html .= $onClose . ";\n";
-            $html .= "}";
-            $html .= ");";
-            $html .= "</script>\n";
-        }
+		// If an $onClose event is passed, add it to the modal JS object
+		if (strlen($onClose) >= 1)
+		{
+			$html .= "<script>\n";
+			$html .= "jQuery('#modal-" . $name . "').on('hide', function () {\n";
+			$html .= $onClose . ";\n";
+			$html .= "}";
+			$html .= ");";
+			$html .= "</script>\n";
+		}
 
 		echo $html;
 	}
@@ -103,31 +112,35 @@ abstract class JHtmlJComments
 
 		$count++;
 
-		$isSuperAdmin = JFactory::getUser()->authorise('core.admin');
+		$isSuperAdmin = Factory::getApplication()->getIdentity()->authorise('core.admin');
 
-		$db = Factory::getContainer()->get('DatabaseDriver');
-		$query = $db->getQuery(true);
-		$query->select('a.*, COUNT(DISTINCT b.id) AS level');
-		$query->from($db->quoteName('#__usergroups') . ' AS a');
-		$query->join('LEFT', $db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt');
-		$query->group('a.id, a.title, a.lft, a.rgt, a.parent_id');
-		$query->order('a.lft ASC');
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true)
+			->select('a.*, COUNT(DISTINCT b.id) AS level')
+			->from($db->quoteName('#__usergroups') . ' AS a')
+			->join('LEFT', $db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt')
+			->group('a.id, a.title, a.lft, a.rgt, a.parent_id')
+			->order('a.lft ASC');
+
 		$db->setQuery($query);
 		$groups = $db->loadObjectList();
 
 		$html = array();
 
-		for ($i = 0, $n = count($groups); $i < $n; $i++) {
-			$item = & $groups[$i];
+		for ($i = 0, $n = count($groups); $i < $n; $i++)
+		{
+			$item = &$groups[$i];
 
 			// If checkSuperAdmin is true, only add item if the user is superadmin or the group is not super admin
-			if ((!$checkSuperAdmin) || $isSuperAdmin || (!JAccess::checkGroup($item->id, 'core.admin'))) {
+			if ((!$checkSuperAdmin) || $isSuperAdmin || (!JAccess::checkGroup($item->id, 'core.admin')))
+			{
 				// Setup  the variable attributes.
 				$eid = $count . 'group_' . $item->id;
 
 				// Don't call in_array unless something is selected
 				$checked = '';
-				if ($selected) {
+				if ($selected)
+				{
 					$checked = in_array($item->id, $selected) ? ' checked="checked"' : '';
 				}
 				$rel = ($item->parent_id > 0) ? ' rel="' . $count . 'group_' . $item->parent_id . '"' : '';
