@@ -2,20 +2,24 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Table\Table;
 
 class JCommentsModelMailq extends JCommentsModelList
 {
 	public function __construct($config = array())
 	{
-		if (empty($config['filter_fields'])) {
+		if (empty($config['filter_fields']))
+		{
 			$config['filter_fields'] = array(
 				'id',
 				'name',
@@ -32,44 +36,49 @@ class JCommentsModelMailq extends JCommentsModelList
 
 	public function getTable($type = 'Mailq', $prefix = 'JCommentsTable', $config = array())
 	{
-		return JTable::getInstance($type, $prefix, $config);
+		return Table::getInstance($type, $prefix, $config);
 	}
 
 	protected function getListQuery()
 	{
-		$query = $this->_db->getQuery(true);
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 		$query->select("*");
-		$query->from($this->_db->quoteName('#__jcomments_mailq'));
+		$query->from($db->quoteName('#__jcomments_mailq'));
 
 		// Filter by search in name or email
 		$search = $this->getState('filter.search');
-		if (!empty($search)) {
-			$search = $this->_db->Quote('%' . $this->_db->escape($search, true) . '%');
-			$query->where('(' . $this->_db->quoteName('name') . ' LIKE ' . $search .
-				' OR ' . $this->_db->quoteName('email') . ' LIKE ' . $search . ')'
+
+		if (!empty($search))
+		{
+			$search = $db->Quote('%' . $db->escape($search, true) . '%');
+			$query->where('(' . $db->quoteName('name') . ' LIKE ' . $search .
+				' OR ' . $db->quoteName('email') . ' LIKE ' . $search . ')'
 			);
 		}
-		$ordering = $this->state->get('list.ordering', $this->_db->quoteName('created'));
+
+		$ordering  = $this->state->get('list.ordering', $db->quoteName('created'));
 		$direction = $this->state->get('list.direction', 'ASC');
-		$query->order($this->_db->escape($ordering . ' ' . $direction));
+		$query->order($db->escape($ordering . ' ' . $direction));
 
 		return $query;
 	}
 
 	public function purge()
 	{
-		$query = $this->_db->getQuery(true);
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 		$query->delete();
-		$query->from($this->_db->quoteName('#__jcomments_mailq'));
-		$this->_db->setQuery($query);
-		$this->_db->execute();
+		$query->from($db->quoteName('#__jcomments_mailq'));
+		$db->setQuery($query);
+		$db->execute();
 
 		return true;
 	}
 
 	protected function populateState($ordering = null, $direction = null)
 	{
-		$app = JFactory::getApplication('administrator');
+		$app = Factory::getApplication();
 
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);

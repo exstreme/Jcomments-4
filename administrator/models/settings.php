@@ -2,16 +2,20 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-jimport('joomla.filesystem.folder');
+use Joomla\CMS\Captcha\Captcha;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
+use Joomla\CMS\Language\LanguageHelper;
+use Joomla\CMS\Table\Table;
 
 class JCommentsModelSettings extends JCommentsModelForm
 {
@@ -21,7 +25,8 @@ class JCommentsModelSettings extends JCommentsModelForm
 	{
 		parent::__construct($config);
 
-		if (empty($this->context)) {
+		if (empty($this->context))
+		{
 			$this->context = strtolower($this->option . '.' . $this->getName());
 		}
 	}
@@ -29,26 +34,30 @@ class JCommentsModelSettings extends JCommentsModelForm
 	public function getItem($pk = null)
 	{
 		$language = $this->getState($this->getName() . '.language');
+		$db = $this->getDbo();
 
-		$query = $this->_db->getQuery(true);
-		$query->select("*");
-		$query->from($this->_db->quoteName('#__jcomments_settings'));
-		$query->where($this->_db->quoteName('component') . '=' . $this->_db->quote(''));
-		$query->where($this->_db->quoteName('lang') . '=' . $this->_db->quote($language));
+		$query = $db->getQuery(true)
+			->select("*")
+			->from($db->quoteName('#__jcomments_settings'))
+			->where($db->quoteName('component') . '=' . $db->quote(''))
+			->where($db->quoteName('lang') . '=' . $db->quote($language));
 
-		$this->_db->setQuery($query);
-		$params = $this->_db->loadObjectList();
+		$db->setQuery($query);
+		$params = $db->loadObjectList();
 
 		$item = new StdClass;
 
-		if (is_array($params)) {
+		if (is_array($params))
+		{
 			$exclude = $this->getExclude();
 
-			foreach ($params as $param) {
-				$key = $param->name;
+			foreach ($params as $param)
+			{
+				$key   = $param->name;
 				$value = $param->value;
 
-				if (!in_array($key, $exclude)) {
+				if (!in_array($key, $exclude))
+				{
 					$item->$key = $value;
 				}
 			}
@@ -59,16 +68,15 @@ class JCommentsModelSettings extends JCommentsModelForm
 
 	public function getExclude()
 	{
-		$keys = array('enable_geshi');
-
-		return $keys;
+		return array('enable_geshi');
 	}
 
 	public function getForm($data = array(), $loadData = true)
 	{
-		$form = $this->loadForm('com_jcomments.settings', 'settings', array('control' => 'jform',
-																			'load_data' => $loadData));
-		if (empty($form)) {
+		$form = $this->loadForm('com_jcomments.settings', 'settings', array('control'   => 'jform',
+		                                                                    'load_data' => $loadData));
+		if (empty($form))
+		{
 			return false;
 		}
 
@@ -77,14 +85,18 @@ class JCommentsModelSettings extends JCommentsModelForm
 
 	protected function loadFormData()
 	{
-		$data = JFactory::getApplication()->getUserState('com_jcomments.edit.settings.data', array());
+		$data = Factory::getApplication()->getUserState('com_jcomments.edit.settings.data', array());
 
-		if (empty($data)) {
+		if (empty($data))
+		{
 			$data = $this->getItem();
 
 			$parameters = array('notification_type', 'enable_categories');
-			foreach ($parameters as $parameter) {
-				if (isset($data->$parameter)) {
+
+			foreach ($parameters as $parameter)
+			{
+				if (isset($data->$parameter))
+				{
 					$data->$parameter = explode(',', $data->$parameter);
 				}
 			}
@@ -95,34 +107,39 @@ class JCommentsModelSettings extends JCommentsModelForm
 
 	public function getTable($type = 'Settings', $prefix = 'JCommentsTable', $config = array())
 	{
-		return JTable::getInstance($type, $prefix, $config);
+		return Table::getInstance($type, $prefix, $config);
 	}
 
 	public function getLanguages()
 	{
 		static $languages = null;
 
-		if (!isset($languages)) {
-			$query = $this->_db->getQuery(true);
-			$query->select('enabled');
-			$query->from($this->_db->quoteName('#__extensions'));
-			$query->where($this->_db->quoteName('type') . ' = ' . $this->_db->quote('plugin'));
-			$query->where($this->_db->quoteName('folder') . ' = ' . $this->_db->quote('system'));
-			$query->where($this->_db->quoteName('element') . ' = ' . $this->_db->quote('languagefilter'));
-			$this->_db->setQuery($query);
+		if (!isset($languages))
+		{
+			$db = $this->getDbo();
+			$query = $db->getQuery(true)
+				->select('enabled')
+				->from($db->quoteName('#__extensions'))
+				->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+				->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+				->where($db->quoteName('element') . ' = ' . $db->quote('languagefilter'));
 
-			$enabled = $this->_db->loadResult();
+			$db->setQuery($query);
+			$enabled = $db->loadResult();
 
-			if ($enabled) {
-				$query = $this->_db->getQuery(true);
-				$query->select('*');
-				$query->from($this->_db->quoteName('#__languages'));
-				$query->where($this->_db->quoteName('published') . '= 1');
-				$this->_db->setQuery($query);
+			if ($enabled)
+			{
+				$query = $db->getQuery(true)
+					->select('*')
+					->from($db->quoteName('#__languages'))
+					->where($db->quoteName('published') . '= 1');
 
-				$languages = $this->_db->loadObjectList();
+				$db->setQuery($query);
+				$languages = $db->loadObjectList();
 				$languages = is_array($languages) ? $languages : array();
-			} else {
+			}
+			else
+			{
 				$languages = array();
 			}
 		}
@@ -132,46 +149,55 @@ class JCommentsModelSettings extends JCommentsModelForm
 
 	public function getUserGroups()
 	{
-		$query = $this->_db->getQuery(true);
-		$query->select('a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level, a.parent_id')
+		$db = $this->getDbo();
+		$query = $db->getQuery(true)
+			->select('a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level, a.parent_id')
 			->from('#__usergroups AS a')
-			->leftJoin($this->_db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt')
+			->leftJoin($db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt')
 			->group('a.id, a.title, a.lft, a.rgt, a.parent_id')
 			->order('a.lft ASC');
-		$this->_db->setQuery($query);
-		$options = $this->_db->loadObjectList();
 
-		return $options;
+		$db->setQuery($query);
+
+		return $db->loadObjectList();
 	}
 
 	public function getPermissionForms()
 	{
-		JForm::addFormPath(JPATH_COMPONENT . '/models/forms');
-		JForm::addFieldPath(JPATH_COMPONENT . '/models/fields');
+		Form::addFormPath(JPATH_COMPONENT . '/models/forms');
+		Form::addFieldPath(JPATH_COMPONENT . '/models/fields');
 
-		$item = $this->getItem();
+		$item   = $this->getItem();
 		$groups = $this->getUserGroups();
-		$form = JForm::getInstance('jcomments.permissions', 'permissions', array('control' => ''), false, '/permissions');
+		$form   = Form::getInstance('jcomments.permissions', 'permissions', array('control' => ''), false, '/permissions');
 
 		$parameters = array();
-		foreach ($form->getFieldsets() as $fieldset) {
-			foreach ($form->getFieldset($fieldset->name) as $field) {
-				$name = $field->fieldname;
+
+		foreach ($form->getFieldsets() as $fieldset)
+		{
+			foreach ($form->getFieldset($fieldset->name) as $field)
+			{
+				$name              = $field->fieldname;
 				$parameters[$name] = !empty($item->$name) ? explode(',', $item->$name) : array();
 			}
 		}
 
 		$groupParameters = array();
-		foreach ($groups as $group) {
-			foreach ($parameters as $key => $values) {
+
+		foreach ($groups as $group)
+		{
+			foreach ($parameters as $key => $values)
+			{
 				$groupParameters[$group->value][$key] = array('group' => $group->value,
-															  'value' => in_array($group->value, $values) ? $group->value : null);
+				                                              'value' => in_array($group->value, $values) ? $group->value : null);
 			}
 		}
 
 		$forms = array();
-		foreach ($groups as $group) {
-			$form = JForm::getInstance('jcomments.permissions.' . $group->value, 'permissions', array('control' => 'jform'), false, '/permissions');
+
+		foreach ($groups as $group)
+		{
+			$form = Form::getInstance('jcomments.permissions.' . $group->value, 'permissions', array('control' => 'jform'), false, '/permissions');
 			$form->bind($groupParameters[$group->value]);
 			$forms[$group->value] = $form;
 		}
@@ -183,45 +209,57 @@ class JCommentsModelSettings extends JCommentsModelForm
 	{
 		$language = $this->getState($this->getName() . '.language');
 
-		if (is_array($data)) {
+		if (is_array($data))
+		{
 			$config = JCommentsFactory::getConfig();
 
-			JForm::addFormPath(JPATH_COMPONENT . '/models/forms');
-			JForm::addFieldPath(JPATH_COMPONENT . '/models/fields');
-			$form = JForm::getInstance('jcomments.permissions', 'permissions', array('control' => ''), false, '/permissions');
+			Form::addFormPath(JPATH_COMPONENT . '/models/forms');
+			Form::addFieldPath(JPATH_COMPONENT . '/models/fields');
+			$form = Form::getInstance('jcomments.permissions', 'permissions', array('control' => ''), false, '/permissions');
 
-			foreach ($form->getFieldsets() as $fieldset) {
-				foreach ($form->getFieldset($fieldset->name) as $field) {
+			foreach ($form->getFieldsets() as $fieldset)
+			{
+				foreach ($form->getFieldset($fieldset->name) as $field)
+				{
 					$key = $field->fieldname;
-					if (!isset($data[$key])) {
+					if (!isset($data[$key]))
+					{
 						$data[$key] = '';
 					}
 				}
 			}
 
-			$form = JForm::getInstance('jcomments.settings', 'settings', array('control' => ''), false);
-			foreach ($form->getFieldsets() as $fieldset) {
-				foreach ($form->getFieldset($fieldset->name) as $field) {
+			$form = Form::getInstance('jcomments.settings', 'settings', array('control' => ''), false);
+			foreach ($form->getFieldsets() as $fieldset)
+			{
+				foreach ($form->getFieldset($fieldset->name) as $field)
+				{
 					$key = $field->fieldname;
-					if (!isset($data[$key])) {
+					if (!isset($data[$key]))
+					{
 						$data[$key] = '';
 					}
 				}
 			}
 
-			if ($data['captcha_engine'] != 'kcaptcha') {
-				$plugin = $data['captcha_engine'] == 'joomladefault' ? JFactory::getConfig()->get('captcha') : $data['captcha_engine'];
-				if (($captcha = JCaptcha::getInstance($plugin, array('namespace' => 'jcomments'))) == null) {
+			if ($data['captcha_engine'] != 'kcaptcha')
+			{
+				$plugin = $data['captcha_engine'] == 'joomladefault' ? Factory::getApplication()->get('captcha') : $data['captcha_engine'];
+
+				if (($captcha = Captcha::getInstance($plugin, array('namespace' => 'jcomments'))) == null)
+				{
 					return false;
 				}
 			}
 
-			if (isset($data['forbidden_names'])) {
+			if (isset($data['forbidden_names']))
+			{
 				$data['forbidden_names'] = preg_replace("#[\n|\r]+#", ',', $data['forbidden_names']);
 				$data['forbidden_names'] = preg_replace("#,+#", ',', $data['forbidden_names']);
 			}
 
-			if (isset($data['badwords'])) {
+			if (isset($data['badwords']))
+			{
 				$data['badwords'] = preg_replace('#[\s|\,]+#i', "\n", $data['badwords']);
 				$data['badwords'] = preg_replace('#[\n|\r]+#i', "\n", $data['badwords']);
 
@@ -229,49 +267,62 @@ class JCommentsModelSettings extends JCommentsModelForm
 				$data['badwords'] = preg_replace("#,+#", ',', preg_replace("#[\n|\r]+#", ',', $data['badwords']));
 			}
 
-			if (!isset($data['smilies'])) {
+			if (!isset($data['smilies']))
+			{
 				$data['smilies'] = $config->get('smilies');
 			}
 
-			if (!isset($data['smilies_path'])) {
+			if (!isset($data['smilies_path']))
+			{
 				$data['smilies_path'] = $config->get('smilies_path');
 			}
 
-			if (!isset($data['comment_minlength'])) {
+			if (!isset($data['comment_minlength']))
+			{
 				$data['comment_minlength'] = 0;
 			}
 
-			if (!isset($data['comment_maxlength'])) {
+			if (!isset($data['comment_maxlength']))
+			{
 				$data['comment_maxlength'] = 0;
 			}
 
-			if ($data['comment_minlength'] > $data['comment_maxlength']) {
+			if ($data['comment_minlength'] > $data['comment_maxlength'])
+			{
 				$data['comment_minlength'] = 0;
 			}
 
-			$query = $this->_db->getQuery(true);
-			$query->select($this->_db->quoteName('name'));
-			$query->from($this->_db->quoteName('#__jcomments_settings'));
-			$query->where($this->_db->quoteName('component') . '=' . $this->_db->quote(''));
-			$query->where($this->_db->quoteName('lang') . '=' . $this->_db->quote($language));
+			$db = $this->getDbo();
+			$query = $db->getQuery(true)
+				->select($db->quoteName('name'))
+				->from($db->quoteName('#__jcomments_settings'))
+				->where($db->quoteName('component') . '=' . $db->quote(''))
+				->where($db->quoteName('lang') . '=' . $db->quote($language));
 
-			$this->_db->setQuery($query);
-			$params = $this->_db->loadColumn();
+			$db->setQuery($query);
+			$params = $db->loadColumn();
 
 			$excludes = $this->getExclude();
 
-			foreach ($data as $key => $value) {
-				if (!in_array($key, $excludes)) {
-					if (is_array($value)) {
+			foreach ($data as $key => $value)
+			{
+				if (!in_array($key, $excludes))
+				{
+					if (is_array($value))
+					{
 						$value = implode(',', $value);
-						if ($key == 'enable_categories') {
-							if (strpos($value, '*') !== false) {
+
+						if ($key == 'enable_categories')
+						{
+							if (strpos($value, '*') !== false)
+							{
 								$value = '*';
 							}
 						}
 					}
 
-					if (!function_exists('get_magic_quotes_gpc') || get_magic_quotes_gpc()) {
+					if (!function_exists('get_magic_quotes_gpc') || get_magic_quotes_gpc())
+					{
 						$value = stripslashes($value);
 					}
 
@@ -279,26 +330,29 @@ class JCommentsModelSettings extends JCommentsModelForm
 
 					$config->set($key, $value);
 
-					if (in_array($key, $params)) {
-						$query = $this->_db->getQuery(true);
-						$query->update($this->_db->quoteName('#__jcomments_settings'));
-						$query->set($this->_db->quoteName('value') . '=' . $this->_db->quote($value));
-						$query->where($this->_db->quoteName('component') . '=' . $this->_db->quote(''));
-						$query->where($this->_db->quoteName('lang') . '=' . $this->_db->quote($language));
-						$query->where($this->_db->quoteName('name') . '=' . $this->_db->quote($key));
+					if (in_array($key, $params))
+					{
+						$query = $db->getQuery(true)
+							->update($db->quoteName('#__jcomments_settings'))
+							->set($db->quoteName('value') . '=' . $db->quote($value))
+							->where($db->quoteName('component') . '=' . $db->quote(''))
+							->where($db->quoteName('lang') . '=' . $db->quote($language))
+							->where($db->quoteName('name') . '=' . $db->quote($key));
 
-						$this->_db->setQuery($query);
-						$this->_db->execute();
-					} else {
-						$query = $this->_db->getQuery(true);
-						$query->insert($this->_db->quoteName('#__jcomments_settings'));
-						$query->set($this->_db->quoteName('value') . '=' . $this->_db->quote($value));
-						$query->set($this->_db->quoteName('component') . '=' . $this->_db->quote(''));
-						$query->set($this->_db->quoteName('lang') . '=' . $this->_db->quote($language));
-						$query->set($this->_db->quoteName('name') . '=' . $this->_db->quote($key));
+						$db->setQuery($query);
+						$db->execute();
+					}
+					else
+					{
+						$query = $db->getQuery(true)
+							->insert($db->quoteName('#__jcomments_settings'))
+							->set($db->quoteName('value') . '=' . $db->quote($value))
+							->set($db->quoteName('component') . '=' . $db->quote(''))
+							->set($db->quoteName('lang') . '=' . $db->quote($language))
+							->set($db->quoteName('name') . '=' . $db->quote($key));
 
-						$this->_db->setQuery($query);
-						$this->_db->execute();
+						$db->setQuery($query);
+						$db->execute();
 					}
 				}
 			}
@@ -314,17 +368,21 @@ class JCommentsModelSettings extends JCommentsModelForm
 
 	protected function populateState($ordering = null, $direction = null)
 	{
-		$app = JFactory::getApplication('administrator');
-
+		$app = Factory::getApplication();
 		$languages = $this->getLanguages();
 
-		if (count($languages)) {
+		if (count($languages))
+		{
 			$language = $app->getUserStateFromRequest($this->context . '.language', 'language');
-			if (empty($language)) {
-				$languages = JLanguageHelper::getLanguages();
-				$language = isset($languages[0]->lang_code) ? $languages[0]->lang_code : '';
+
+			if (empty($language))
+			{
+				$languages = LanguageHelper::getLanguages();
+				$language  = isset($languages[0]->lang_code) ? $languages[0]->lang_code : '';
 			}
-		} else {
+		}
+		else
+		{
 			$language = '';
 		}
 
