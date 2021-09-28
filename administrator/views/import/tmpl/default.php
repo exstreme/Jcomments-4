@@ -2,40 +2,43 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+
+HTMLHelper::_('jcomments.stylesheet');
+HTMLHelper::_('bootstrap.tooltip');
+HTMLHelper::_('formbehavior.chosen', 'select');
+
 $containerClass = empty($this->sidebar) ? '' : 'span10';
 ?>
-
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=import'); ?>" method="post" name="adminForm"
+<form action="<?php echo Route::_('index.php?option=com_jcomments&view=import'); ?>" method="post" name="adminForm"
 	  id="adminForm">
-	<?php if (!empty($this->sidebar)): ?>
-		<div id="j-sidebar-container" class="span2">
-			<?php echo $this->sidebar; ?>
-		</div>
-	<?php endif; ?>
 	<div id="j-main-container" class="<?php echo $containerClass; ?>">
 		<div id="jc">
 			<table class="adminlist table table-striped" id="adminlist" cellspacing="1">
 				<thead>
 				<tr>
 					<th width="50%" class="left nowrap">
-						<?php echo JText::_('A_IMPORT_HEADING_COMPONENT'); ?>
+						<?php echo Text::_('A_IMPORT_HEADING_COMPONENT'); ?>
 					</th>
 					<th width="20%" class="center hidden-phone">
-						<?php echo JText::_('A_IMPORT_HEADING_AUTHOR'); ?>
+						<?php echo Text::_('A_IMPORT_HEADING_AUTHOR'); ?>
 					</th>
 					<th width="20%" class="center nowrap hidden-phone">
-						<?php echo JText::_('A_IMPORT_HEADING_LICENSE'); ?>
+						<?php echo Text::_('A_IMPORT_HEADING_LICENSE'); ?>
 					</th>
 					<th width="5%" class="center nowrap">
-						<?php echo JText::_('A_IMPORT_HEADING_COMMENTS'); ?>
+						<?php echo Text::_('A_IMPORT_HEADING_COMMENTS'); ?>
 					</th>
 					<th width="5%" class="center nowrap">
 					</th>
@@ -63,7 +66,7 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 							</td>
 							<td class="center nowrap">
 								<?php
-								echo JHtml::_('jcomments.modal', 'jcomments-import-' . $i, 'A_IMPORT_BUTTON_IMPORT',
+								echo HTMLHelper::_('jcomments.modal', 'jcomments-import-' . $i, 'A_IMPORT_BUTTON_IMPORT',
 									'index.php?option=com_jcomments&task=import.modal&source=' . $item->code . '&tmpl=component',
 									'A_COMMENTS', 'window.location.reload();', 'download', 'btn-micro', 500, 210);
 								?>
@@ -73,7 +76,7 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 				<?php else: ?>
 					<tr>
 						<td colspan="5" class="center">
-							<?php echo JText::_('A_IMPORT_NO_SOURCES'); ?>
+							<?php echo Text::_('A_IMPORT_NO_SOURCES'); ?>
 						</td>
 					</tr>
 				<?php endif; ?>
@@ -82,6 +85,6 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 		</div>
 
 		<input type="hidden" name="task" value=""/>
-		<?php echo JHTML::_('form.token'); ?>
+		<?php echo HTMLHelper::_('form.token'); ?>
 	</div>
 </form>
