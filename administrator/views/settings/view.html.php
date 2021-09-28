@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\HTML\Helpers\Sidebar;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 
@@ -40,7 +41,7 @@ class JCommentsViewSettings extends HtmlView
 
 		if (count($languages))
 		{
-			// $language_options[] = JHTML::_('select.option', '', JText::_('JALL_LANGUAGE'));
+			// $language_options[] = JHTML::_('select.option', '', Text::_('JALL_LANGUAGE'));
 			foreach ($languages as $language)
 			{
 				$language_options[] = HTMLHelper::_('select.option', $language->lang_code, $language->title);
@@ -59,13 +60,12 @@ class JCommentsViewSettings extends HtmlView
 
 		HTMLHelper::_('jcomments.stylesheet');
 
-		JCommentsHelper::addSubmenu('settings');
 		Sidebar::setAction('index.php?option=com_jcomments&view=settings');
 
 		if (count($languages))
 		{
 			Sidebar::addFilter(
-				JText::_('JOPTION_SELECT_LANGUAGE'),
+				Text::_('JOPTION_SELECT_LANGUAGE'),
 				'language',
 				HTMLHelper::_('select.options', $language_options, 'value', 'text', $language, true)
 			);
@@ -74,30 +74,6 @@ class JCommentsViewSettings extends HtmlView
 		$this->bootstrap = true;
 		$this->sidebar   = Sidebar::render();
 
-		$this->addToolbar();
-
-		parent::display($tpl);
-	}
-
-	protected function addToolbar()
-	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
-		$canDo = JCommentsHelper::getActions();
-
-		ToolbarHelper::title(JText::_('A_SETTINGS'));
-
-		if ($canDo->get('core.admin'))
-		{
-			ToolbarHelper::apply('settings.save');
-		}
-
-		ToolbarHelper::cancel('settings.cancel');
-
-		if ($canDo->get('core.admin'))
-		{
-			ToolbarHelper::divider();
-			ToolbarHelper::preferences('com_jcomments', '600', '800');
-		}
-	}
+        parent::display($tpl);
+    }
 }
