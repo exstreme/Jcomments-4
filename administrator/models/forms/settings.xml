@@ -4,7 +4,6 @@
         <field
                 name="enable_categories"
                 type="category"
-                size="15"
                 addfieldpath="/administrator/components/com_categories/models/fields"
                 extension="com_content"
                 class="inputbox jcommentscategories"
@@ -322,7 +321,6 @@
                 name="show_policy"
                 type="usergroups"
                 multiple="multiple"
-                size="10"
                 class="inputbox"
                 default=""
                 label="AP_SHOW_POLICY"
@@ -548,7 +546,6 @@
                 name="enable_autocensor"
                 type="usergroups"
                 multiple="multiple"
-                size="10"
                 class="inputbox"
                 default=""
                 label="AP_ENABLE_AUTOCENSOR"
