@@ -2,32 +2,38 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-JTable::addIncludePath(JPATH_COMPONENT . '/tables');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Table\Table;
+
+Table::addIncludePath(JPATH_COMPONENT . '/tables');
 
 class JCommentsModelSmiley extends JCommentsModelForm
 {
 	public function getTable($type = 'Smiley', $prefix = 'JCommentsTable', $config = array())
 	{
-		return JTable::getInstance($type, $prefix, $config);
+		return Table::getInstance($type, $prefix, $config);
 	}
 
 	public function getForm($data = array(), $loadData = true)
 	{
 		$form = $this->loadForm('com_jcomments.smiley', 'smiley', array('control' => 'jform', 'load_data' => $loadData));
-		if (empty($form)) {
+		
+		if (empty($form))
+		{
 			return false;
 		}
 
-		if (!$this->canEditState((object)$data)) {
+		if (!$this->canEditState())
+		{
 			$form->setFieldAttribute('ordering', 'disabled', 'true');
 			$form->setFieldAttribute('ordering', 'filter', 'unset');
 
@@ -40,9 +46,10 @@ class JCommentsModelSmiley extends JCommentsModelForm
 
 	protected function loadFormData()
 	{
-		$data = JFactory::getApplication()->getUserState('com_jcomments.edit.smiley.data', array());
+		$data = Factory::getApplication()->getUserState('com_jcomments.edit.smiley.data', array());
 
-		if (empty($data)) {
+		if (empty($data))
+		{
 			$data = $this->getItem();
 		}
 
@@ -51,28 +58,33 @@ class JCommentsModelSmiley extends JCommentsModelForm
 
 	public function save($data)
 	{
-		$table = $this->getTable();
+		$table  = $this->getTable();
 		$pkName = $table->getKeyName();
-		$pk = (!empty($data[$pkName])) ? $data[$pkName] : (int)$this->getState($this->getName() . '.id');
+		$pk     = (!empty($data[$pkName])) ? $data[$pkName] : (int) $this->getState($this->getName() . '.id');
 
-		try {
-			if ($pk > 0) {
+		try
+		{
+			if ($pk > 0)
+			{
 				$table->load($pk);
 			}
 
-			if (!$table->bind($data)) {
+			if (!$table->bind($data))
+			{
 				$this->setError($table->getError());
 
 				return false;
 			}
 
-			if (!$table->check()) {
+			if (!$table->check())
+			{
 				$this->setError($table->getError());
 
 				return false;
 			}
 
-			if (!$table->store()) {
+			if (!$table->store())
+			{
 				$this->setError($table->getError());
 
 				return false;
@@ -82,13 +94,16 @@ class JCommentsModelSmiley extends JCommentsModelForm
 
 			$this->cleanCache('com_jcomments');
 
-		} catch (Exception $e) {
+		}
+		catch (Exception $e)
+		{
 			$this->setError($e->getMessage());
 
 			return false;
 		}
 
-		if (isset($table->$pkName)) {
+		if (isset($table->$pkName))
+		{
 			$this->setState($this->getName() . '.id', $table->$pkName);
 		}
 
@@ -97,49 +112,59 @@ class JCommentsModelSmiley extends JCommentsModelForm
 
 	public function saveLegacy()
 	{
-		$query = $this->_db->getQuery(true);
-		$query->select("code, image");
-		$query->from($this->_db->quoteName('#__jcomments_smilies'));
-		$query->where('published = 1');
-		$query->order('ordering');
+		$db = $this->getDbo();
+		$query = $db->getQuery(true)
+			->select("code, image")
+			->from($db->quoteName('#__jcomments_smilies'))
+			->where('published = 1')
+			->order('ordering');
 
-		$this->_db->setQuery($query);
+		$db->setQuery($query);
 
-		$items = $this->_db->loadObjectList();
+		$items = $db->loadObjectList();
 
-		if (count($items)) {
+		if (count($items))
+		{
 			$values = array();
-			foreach ($items as $item) {
-				if ($item->code != '' && $item->image != '') {
+
+			foreach ($items as $item)
+			{
+				if ($item->code != '' && $item->image != '')
+				{
 					$values[] = $item->code . "\t" . $item->image;
 				}
 			}
 
 			$values = count($values) ? implode("\n", $values) : '';
 
-			$query = $this->_db->getQuery(true);
-			$query->select("COUNT(*)");
-			$query->from($this->_db->quoteName('#__jcomments_settings'));
-			$query->where('component = ' . $this->_db->quote(''));
-			$query->where('name = ' . $this->_db->quote('smilies'));
-			$this->_db->setQuery($query);
+			$query = $db->getQuery(true)
+				->select("COUNT(*)")
+				->from($db->quoteName('#__jcomments_settings'))
+				->where('component = ' . $db->quote(''))
+				->where('name = ' . $db->quote('smilies'));
 
-			$count = $this->_db->loadResult();
+			$db->setQuery($query);
+			$count = $db->loadResult();
 
-			if ($count) {
-				$query = $this->_db->getQuery(true);
-				$query->update($this->_db->quoteName('#__jcomments_settings'));
-				$query->set($this->_db->quoteName('value') . ' = ' . $this->_db->quote($values));
-				$query->where('name = ' . $this->_db->quote('smilies'));
-				$this->_db->setQuery($query);
-				$this->_db->execute();
-			} else {
-				$query = $this->_db->getQuery(true);
-				$query->insert($this->_db->quoteName('#__jcomments_settings'));
-				$query->columns(array($this->_db->quoteName('name'), $this->_db->quoteName('value')));
-				$query->values($this->_db->quote('smilies') . ', ' . $this->_db->quote($values));
-				$this->_db->setQuery($query);
-				$this->_db->execute();
+			if ($count)
+			{
+				$query = $db->getQuery(true)
+					->update($db->quoteName('#__jcomments_settings'))
+					->set($db->quoteName('value') . ' = ' . $db->quote($values))
+					->where('name = ' . $db->quote('smilies'));
+
+				$db->setQuery($query);
+				$db->execute();
+			}
+			else
+			{
+				$query = $db->getQuery(true)
+					->insert($db->quoteName('#__jcomments_settings'))
+					->columns(array($db->quoteName('name'), $db->quoteName('value')))
+					->values($db->quote('smilies') . ', ' . $db->quote($values));
+
+				$db->setQuery($query);
+				$db->execute();
 			}
 		}
 	}
