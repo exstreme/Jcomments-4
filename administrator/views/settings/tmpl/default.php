@@ -182,7 +182,7 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 
 <form
 	action="<?php echo Route::_('index.php?option=com_jcomments&view=settings'); ?>"
-	method="post" name="adminForm" id="settings-form" class="form-validate form-horizontal">
+	method="post" name="adminForm" id="settings-form" class="form-validate options-form">
 	<?php if (!empty($this->sidebar)): ?>
 		<div id="j-sidebar-container" class="span2">
 			<?php echo $this->sidebar; ?>

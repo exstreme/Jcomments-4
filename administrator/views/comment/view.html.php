@@ -10,8 +10,13 @@
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
-class JCommentsViewComment extends JCommentsViewLegacy
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+
+class JCommentsViewComment extends HtmlView
 {
 	protected $item;
 	protected $reports;
@@ -26,15 +31,13 @@ class JCommentsViewComment extends JCommentsViewLegacy
 		$this->form = $this->get('Form');
 		$this->state = $this->get('State');
 		$this->ajax = JCommentsFactory::getLink('ajax-backend');
+        $this->bootstrap = true;
+        $this->sidebar = JHtmlSidebar::render();
 
-		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-		//JHtml::_('behavior.tooltip');
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
         HTMLHelper::_('behavior.formvalidator');
         HTMLHelper::_('formbehavior.chosen', 'select');
-
-
-		JHtml::_('jcomments.stylesheet');
+		HTMLHelper::_('jcomments.stylesheet');
 
 		$this->addToolbar();
 
@@ -45,17 +48,13 @@ class JCommentsViewComment extends JCommentsViewLegacy
 	{
 		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
-		$userId = JFactory::getUser()->get('id');
+		$userId = Factory::getApplication()->getIdentity()->get('id');
 		$canDo = JCommentsHelper::getActions();
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
 
 		JFactory::getApplication()->input->set('hidemainmenu', 1);
 
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			JToolBarHelper::title(JText::_('A_COMMENTS'));
-		} else {
-			JToolBarHelper::title(JText::_('A_COMMENT_EDIT'), 'jcomments-comments');
-		}
+        JToolBarHelper::title(Text::_('A_COMMENT_EDIT'), 'jcomments-comments');
 
 		if (!$checkedOut && $canDo->get('core.edit')) {
 			JToolBarHelper::apply('comment.apply');

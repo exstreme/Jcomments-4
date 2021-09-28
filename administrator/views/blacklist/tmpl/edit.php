@@ -20,7 +20,7 @@ Joomla.submitbutton = function(task)
 }
 </script>
 
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="blacklist-form" class="form-validate form-horizontal">
+<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="blacklist-form" class="form-validate options-form">
 	<?php if(!empty($this->bootstrap)): ?>
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="#general" data-toggle="tab"><?php echo empty($this->item->id) ? JText::_('A_BLACKLIST_EDIT') : JText::sprintf('A_BLACKLIST_EDIT', $this->item->id);?></a></li>

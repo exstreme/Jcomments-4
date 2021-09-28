@@ -43,7 +43,7 @@ defined('_JEXEC') or die;
 
 <form
 	action="<?php echo JRoute::_('index.php?option=com_jcomments&view=comment&layout=edit&id=' . (int)$this->item->id); ?>"
-	method="post" name="adminForm" id="comment-form" class="form-validate form-horizontal">
+	method="post" name="adminForm" id="comment-form" class="form-validate options-form">
 	<?php if (count($this->reports)): ?>
 		<ul class="nav nav-tabs">
 			<li class="active"><a href="#general" data-toggle="tab"><?php echo JText::_('A_COMMENT_EDIT'); ?></a></li>

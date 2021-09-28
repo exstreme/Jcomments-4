@@ -9,12 +9,14 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die;
 ?>
-<div class="row-fluid">
-	<div class="span6">
-		<fieldset class="form-horizontal">
-			<legend><?php echo JText::_('A_VIEW'); ?></legend>
+<div class="row">
+	<div class="col-lg-6">
+		<fieldset class="options-form">
+			<legend><?php echo Text::_('A_VIEW'); ?></legend>
 			<?php foreach ($this->form->getFieldset('view') as $field) : ?>
 				<div class="control-group">
 					<div class="control-label">
@@ -27,9 +29,9 @@ defined('_JEXEC') or die;
 			<?php endforeach; ?>
 		</fieldset>
 	</div>
-	<div class="span6">
-		<fieldset class="form-horizontal">
-			<legend><?php echo JText::_('A_LIST_PARAMS'); ?></legend>
+	<div class="col-lg-6">
+		<fieldset class="options-form">
+			<legend><?php echo Text::_('A_LIST_PARAMS'); ?></legend>
 			<?php foreach ($this->form->getFieldset('list') as $field) : ?>
 				<div class="control-group">
 					<div class="control-label">
@@ -41,8 +43,8 @@ defined('_JEXEC') or die;
 				</div>
 			<?php endforeach; ?>
 		</fieldset>
-		<fieldset class="form-horizontal">
-			<legend><?php echo JText::_('A_FORM_PARAMS'); ?></legend>
+		<fieldset class="options-form">
+			<legend><?php echo Text::_('A_FORM_PARAMS'); ?></legend>
 			<?php foreach ($this->form->getFieldset('form') as $field) : ?>
 				<div class="control-group">
 					<div class="control-label">

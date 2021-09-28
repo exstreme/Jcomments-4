@@ -9,13 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die;
 ?>
 <?php if (empty($this->bootstrap)): ?>
 <fieldset id="filter-bar">
 	<?php if (!empty($this->filter) != '') : ?>
 	<div class="filter-select fltlft">
-		<label for="lang"><?php echo JText::_('JFIELD_LANGUAGE_LABEL'); ?></label>
+		<label for="lang"><?php echo Text::_('JFIELD_LANGUAGE_LABEL'); ?></label>
 		<?php echo $this->filter; ?>
 	</div>
 	<?php endif; ?>

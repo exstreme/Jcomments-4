@@ -9,9 +9,15 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\HTML\Helpers\Sidebar;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+
 defined('_JEXEC') or die;
 
-class JCommentsViewComments extends JCommentsViewLegacy
+class JCommentsViewComments extends HtmlView
 {
     protected $items;
     protected $pagination;
@@ -31,36 +37,36 @@ class JCommentsViewComments extends JCommentsViewLegacy
 
         // Filter by published state
         $filter_state_options = array();
-        $filter_state_options[] = JHTML::_('select.option', '1', JText::_('A_FILTER_STATE_PUBLISHED'));
-        $filter_state_options[] = JHTML::_('select.option', '0', JText::_('A_FILTER_STATE_UNPUBLISHED'));
-        $filter_state_options[] = JHTML::_('select.option', '2', JText::_('A_FILTER_STATE_REPORTED'));
+        $filter_state_options[] = HTMLHelper::_('select.option', '1', Text::_('A_FILTER_STATE_PUBLISHED'));
+        $filter_state_options[] = HTMLHelper::_('select.option', '0', Text::_('A_FILTER_STATE_UNPUBLISHED'));
+        $filter_state_options[] = HTMLHelper::_('select.option', '2', Text::_('A_FILTER_STATE_REPORTED'));
 
         // Filter by component (object_group)
         $filter_object_group_options = array();
         $object_groups = $this->get('FilterObjectGroups');
         foreach ($object_groups as $object_group) {
-            $filter_object_group_options[] = JHTML::_('select.option', $object_group->name, $object_group->name);
+            $filter_object_group_options[] = HTMLHelper::_('select.option', $object_group->name, $object_group->name);
         }
 
         // Filter by language
         $filter_language_options = array();
         $languages = $this->get('FilterLanguages');
         foreach ($languages as $language) {
-            $filter_language_options[] = JHTML::_('select.option', $language->name, $language->name);
+            $filter_language_options[] = HTMLHelper::_('select.option', $language->name, $language->name);
         }
 
-        JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
+        HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
-        JHtml::_('jcomments.stylesheet');
+        HTMLHelper::_('jcomments.stylesheet');
 
-        //JHtml::_('bootstrap.tooltip');
-        JHtml::_('formbehavior.chosen', 'select');
+        //HTMLHelper::_('bootstrap.tooltip');
+        HTMLHelper::_('formbehavior.chosen', 'select');
 
-        JHtmlSidebar::setAction('index.php?option=com_jcomments&view=comments');
+        Sidebar::setAction('index.php?option=com_jcomments&view=comments');
 
 
         $this->bootstrap = true;
-        $this->sidebar = JHtmlSidebar::render();
+        $this->sidebar = Sidebar::render();
 
 
         $this->addToolbar();
@@ -72,23 +78,23 @@ class JCommentsViewComments extends JCommentsViewLegacy
     {
         $canDo = JCommentsHelper::getActions();
 
-        JToolBarHelper::title(JText::_('A_SUBMENU_COMMENTS'), 'jcomments-comments');
+        ToolbarHelper::title(Text::_('A_SUBMENU_COMMENTS'), 'jcomments-comments');
 
         if (($canDo->get('core.edit'))) {
-            JToolBarHelper::editList('comment.edit');
+            ToolbarHelper::editList('comment.edit');
         }
 
         if ($canDo->get('core.edit.state')) {
-            JToolBarHelper::publishList('comments.publish');
-            JToolBarHelper::unpublishList('comments.unpublish');
-            JToolbarHelper::checkin('comments.checkin');
+            ToolbarHelper::publishList('comments.publish');
+            ToolbarHelper::unpublishList('comments.unpublish');
+            ToolbarHelper::checkin('comments.checkin');
         }
 
         if (($canDo->get('core.delete'))) {
-            JToolBarHelper::deletelist('', 'comments.delete');
+            ToolbarHelper::deletelist('', 'comments.delete');
         }
 
-        JToolBarHelper::divider();
+        ToolbarHelper::divider();
 
         $bar = JToolBar::getInstance('toolbar');
         $bar->appendButton('Popup', 'refresh', 'A_REFRESH_OBJECTS_INFO',
@@ -99,13 +105,13 @@ class JCommentsViewComments extends JCommentsViewLegacy
     protected function getSortFields()
     {
         return array(
-            'jc.published' => JText::_('JSTATUS'),
-            'jc.title' => JText::_('A_COMMENT_TITLE'),
-            'jc.name' => JText::_('A_COMMENT_NAME'),
-            'jc.object_group' => JText::_('A_COMPONENT'),
-            'jo.title' => JText::_('A_COMMENT_OBJECT_TITLE'),
-            'jc.date' => JText::_('A_COMMENT_DATE'),
-            'jc.id' => JText::_('JGRID_HEADING_ID')
+            'jc.published' => Text::_('JSTATUS'),
+            'jc.title' => Text::_('A_COMMENT_TITLE'),
+            'jc.name' => Text::_('A_COMMENT_NAME'),
+            'jc.object_group' => Text::_('A_COMPONENT'),
+            'jo.title' => Text::_('A_COMMENT_OBJECT_TITLE'),
+            'jc.date' => Text::_('A_COMMENT_DATE'),
+            'jc.id' => Text::_('JGRID_HEADING_ID')
         );
     }
 }
