@@ -2,18 +2,24 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-$source = $this->state->get('import.source');
-$language = $this->state->get('import.language');
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
+HTMLHelper::_('jcomments.stylesheet');
+HTMLHelper::_('bootstrap.tooltip');
+HTMLHelper::_('formbehavior.chosen', 'select');
+
+$source   = $this->state->get('import.source');
+$language = $this->state->get('import.language');
 ?>
 <script type="text/javascript">
 	(function ($) {
@@ -23,7 +29,7 @@ $language = $this->state->get('import.language');
 				var oldHeader = $('#jcomments-modal-header').html();
 				var oldMessage = $('#jcomments-modal-message').html();
 
-				$('#jcomments-modal-header').html('<?php echo JText::_('A_REFRESH_OBJECTS_INFO'); ?>');
+				$('#jcomments-modal-header').html('<?php echo Text::_('A_REFRESH_OBJECTS_INFO'); ?>');
 				$('#jcomments-modal-message').html('');
 
 				JCommentsObjects.setup('<?php echo $this->objectsUrl; ?>');
@@ -43,7 +49,7 @@ $language = $this->state->get('import.language');
 <div id="jcomments-modal-container">
 	<br/>
 
-	<h1 id="jcomments-modal-header"><?php echo JText::_('A_IMPORT'); ?></h1>
+	<h1 id="jcomments-modal-header"><?php echo Text::_('A_IMPORT'); ?></h1>
 
 	<p id="jcomments-modal-message">&nbsp;</p>
 

@@ -24,19 +24,9 @@ class JCommentsViewAbout extends HtmlView
 		require_once(JPATH_COMPONENT . '/version.php');
 
 		$this->version = new JCommentsVersion();
-
 		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-		$this->bootstrap = true;
-		$this->sidebar   = Sidebar::render();
-
-		$this->addToolbar();
+		ToolbarHelper::title(JText::_('A_SUBMENU_ABOUT'));
 
 		parent::display($tpl);
-	}
-
-	protected function addToolbar()
-	{
-		ToolbarHelper::title(JText::_('A_SUBMENU_ABOUT'));
 	}
 }

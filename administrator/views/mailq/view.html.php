@@ -2,12 +2,16 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 defined('_JEXEC') or die;
 
@@ -21,25 +25,12 @@ class JCommentsViewMailq extends JCommentsViewLegacy
 	{
 		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
-		$this->items = $this->get('Items');
+		$this->items      = $this->get('Items');
 		$this->pagination = $this->get('Pagination');
-		$this->state = $this->get('State');
+		$this->state      = $this->get('State');
 
-		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-		JHtml::_('jcomments.stylesheet');
-
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			JHtml::_('bootstrap.tooltip');
-			JHtml::_('formbehavior.chosen', 'select');
-
-			JCommentsHelper::addSubmenu('mailq');
-
-			$this->bootstrap = true;
-			$this->sidebar = JHtmlSidebar::render();
-		} else {
-			JCommentsHelper::addSubmenu('mailq');
-		}
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
+		JCommentsHelper::addSubmenu('mailq');
 
 		$this->addToolbar();
 
@@ -51,25 +42,26 @@ class JCommentsViewMailq extends JCommentsViewLegacy
 	{
 		$canDo = JCommentsHelper::getActions();
 
-		JToolBarHelper::title(JText::_('A_MAILQ'), 'jcomments-mailq');
+		ToolbarHelper::title(Text::_('A_MAILQ'), 'jcomments-mailq');
 
-		if (($canDo->get('core.delete'))) {
-			JToolBarHelper::deletelist('', 'mailq.delete');
-			JToolBarHelper::divider();
-			JToolBarHelper::custom('mailq.purge', 'purge', 'icon-32-unpublish.png', 'A_MAILQ_PURGE_ITEMS', false);
+		if (($canDo->get('core.delete')))
+		{
+			ToolbarHelper::deletelist('', 'mailq.delete');
+			ToolbarHelper::divider();
+			ToolbarHelper::custom('mailq.purge', 'purge', 'icon-32-unpublish.png', 'A_MAILQ_PURGE_ITEMS', false);
 		}
 	}
 
 	protected function getSortFields()
 	{
 		return array(
-			'name' => JText::_('A_MAILQ_HEADING_NAME'),
-			'email' => JText::_('A_MAILQ_HEADING_EMAIL'),
-			'subject' => JText::_('A_MAILQ_HEADING_SUBJECT'),
-			'priority' => JText::_('A_MAILQ_HEADING_PRIORITY'),
-			'attempts' => JText::_('A_MAILQ_HEADING_ATTEMPTS'),
-			'created' => JText::_('A_MAILQ_HEADING_CREATED'),
-			'id' => JText::_('JGRID_HEADING_ID')
+			'name'     => Text::_('A_MAILQ_HEADING_NAME'),
+			'email'    => Text::_('A_MAILQ_HEADING_EMAIL'),
+			'subject'  => Text::_('A_MAILQ_HEADING_SUBJECT'),
+			'priority' => Text::_('A_MAILQ_HEADING_PRIORITY'),
+			'attempts' => Text::_('A_MAILQ_HEADING_ATTEMPTS'),
+			'created'  => Text::_('A_MAILQ_HEADING_CREATED'),
+			'id'       => Text::_('JGRID_HEADING_ID')
 		);
 	}
 }
