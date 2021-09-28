@@ -190,37 +190,37 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 	<?php endif; ?>
 	<div id="j-main-container" class="<?php echo $containerClass; ?>">
 		<?php echo $this->loadTemplate('filter'); ?>
-        <?php echo JHtml::_('bootstrap.startTabSet', 'myTab', array('active' => 'general')); ?>
+        <?php echo HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'general')); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'general', Text::_('A_COMMON')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'general', Text::_('A_COMMON')); ?>
         <?php echo $this->loadTemplate('general'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'layout', Text::_('A_LAYOUT')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'layout', Text::_('A_LAYOUT')); ?>
         <?php echo $this->loadTemplate('layout'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'permissions', Text::_('A_RIGHTS')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'permissions', Text::_('A_RIGHTS')); ?>
         <?php echo $this->loadTemplate('permissions'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'restrictions', Text::_('A_RESTRICTIONS')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'restrictions', Text::_('A_RESTRICTIONS')); ?>
         <?php echo $this->loadTemplate('restrictions'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'censor', Text::_('A_CENSOR')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'censor', Text::_('A_CENSOR')); ?>
         <?php echo $this->loadTemplate('censor'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'messages', Text::_('A_MESSAGES')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'messages', Text::_('A_MESSAGES')); ?>
         <?php echo $this->loadTemplate('messages'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.endTabSet'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTabSet'); ?>
 
 		<div>
 			<input type="hidden" name="task" value=""/>
-			<?php echo JHtml::_('form.token'); ?>
+			<?php echo HTMLHelper::_('form.token'); ?>
 		</div>
 	</div>
 </form>
