@@ -9,12 +9,14 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die;
 ?>
-<div class="row-fluid">
-	<div class="span6">
-		<fieldset class="form-horizontal">
-			<legend><?php echo JText::_('A_RESTRICTIONS'); ?></legend>
+<div class="row">
+	<div class="col-lg-6">
+		<fieldset class="options-form">
+			<legend><?php echo Text::_('A_RESTRICTIONS'); ?></legend>
 			<?php foreach ($this->form->getFieldset('restrictions') as $field) : ?>
 				<div class="control-group">
 					<div class="control-label">
@@ -28,9 +30,9 @@ defined('_JEXEC') or die;
 		</fieldset>
 	</div>
 
-	<div class="span6">
-		<fieldset class="form-horizontal">
-			<legend><?php echo JText::_('A_SECURITY'); ?></legend>
+	<div class="col-lg-6">
+		<fieldset class="options-form">
+			<legend><?php echo Text::_('A_SECURITY'); ?></legend>
 			<?php foreach ($this->form->getFieldset('security') as $field) : ?>
 				<div class="control-group">
 					<div class="control-label">

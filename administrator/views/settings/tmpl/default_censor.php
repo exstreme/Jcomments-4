@@ -11,7 +11,7 @@
 
 defined('_JEXEC') or die;
 ?>
-<fieldset class="form-horizontal">
+<fieldset class="options-form">
 	<legend><?php echo JText::_('A_CENSOR'); ?></legend>
 	<?php foreach ($this->form->getFieldset('censor') as $field) : ?>
 		<div class="control-group">

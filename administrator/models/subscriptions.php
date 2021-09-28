@@ -2,20 +2,24 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Table\Table;
 
 class JCommentsModelSubscriptions extends JCommentsModelList
 {
 	public function __construct($config = array())
 	{
-		if (empty($config['filter_fields'])) {
+		if (empty($config['filter_fields']))
+		{
 			$config['filter_fields'] = array(
 				'id', 'js.id',
 				'title', 'js.title',
@@ -32,86 +36,102 @@ class JCommentsModelSubscriptions extends JCommentsModelList
 
 	public function getTable($type = 'Subscription', $prefix = 'JCommentsTable', $config = array())
 	{
-		return JTable::getInstance($type, $prefix, $config);
+		return Table::getInstance($type, $prefix, $config);
 	}
 
 	protected function getListQuery()
 	{
-		$query = $this->_db->getQuery(true);
+		$db = $this->getDbo();
+		$query = $db->getQuery(true);
 		$query->select("js.*");
-		$query->from($this->_db->quoteName('#__jcomments_subscriptions') . ' AS js');
+		$query->from($db->quoteName('#__jcomments_subscriptions') . ' AS js');
 
 		// Join over the objects
 		$query->select('jo.title AS object_title, jo.link AS object_link');
-		$query->join('LEFT', $this->_db->quoteName('#__jcomments_objects') . ' AS jo ON jo.object_id = js.object_id AND jo.object_group = js.object_group AND jo.lang = js.lang');
+		$query->join('LEFT', $db->quoteName('#__jcomments_objects') . ' AS jo ON jo.object_id = js.object_id AND jo.object_group = js.object_group AND jo.lang = js.lang');
 
 		// Join over the users
 		$query->select('u.name AS editor');
-		$query->join('LEFT', $this->_db->quoteName('#__users') . ' AS u ON u.id = js.checked_out');
+		$query->join('LEFT', $db->quoteName('#__users') . ' AS u ON u.id = js.checked_out');
 
 		// Filter by published state
 		$state = $this->getState('filter.state');
-		if (is_numeric($state)) {
-			$query->where('js.published = ' . (int)$state);
+
+		if (is_numeric($state))
+		{
+			$query->where('js.published = ' . (int) $state);
 		}
 
 		// Filter by component (object group)
 		$object_group = $this->getState('filter.object_group');
-		if ($object_group != '') {
-			$query->where('js.object_group = ' . $this->_db->Quote($this->_db->escape($object_group)));
+
+		if ($object_group != '')
+		{
+			$query->where('js.object_group = ' . $db->Quote($db->escape($object_group)));
 		}
 
 		// Filter by language
 		$language = $this->getState('filter.language');
-		if ($language != '') {
-			$query->where('js.lang = ' . $this->_db->Quote($this->_db->escape($language)));
+
+		if ($language != '')
+		{
+			$query->where('js.lang = ' . $db->Quote($db->escape($language)));
 		}
 
 		// Filter by search in name or email
 		$search = $this->getState('filter.search');
-		if (!empty($search)) {
-			if (stripos($search, 'id:') === 0) {
-				$query->where('js.id = ' . (int)substr($search, 3));
-			} else {
-				$search = $this->_db->Quote('%' . $this->_db->escape($search, true) . '%');
+
+		if (!empty($search))
+		{
+			if (stripos($search, 'id:') === 0)
+			{
+				$query->where('js.id = ' . (int) substr($search, 3));
+			}
+			else
+			{
+				$search = $db->Quote('%' . $db->escape($search, true) . '%');
 				$query->where('(js.name LIKE ' . $search . ' OR js.email LIKE ' . $search . ')');
 			}
 		}
 
-		$ordering = $this->state->get('list.ordering', 'js.name');
+		$ordering  = $this->state->get('list.ordering', 'js.name');
 		$direction = $this->state->get('list.direction', 'asc');
-		$query->order($this->_db->escape($ordering . ' ' . $direction));
+		$query->order($db->escape($ordering . ' ' . $direction));
 
 		return $query;
 	}
 
 	public function getFilterLanguages()
 	{
-		$query = $this->_db->getQuery(true);
-		$query->select('DISTINCT(lang) AS name');
-		$query->from('#__jcomments_subscriptions');
-		$query->order('lang ASC');
-		$this->_db->setQuery($query);
-		$rows = $this->_db->loadObjectList();
+		$db = $this->getDbo();
+		$query = $db->getQuery(true)
+			->select('DISTINCT(lang) AS name')
+			->from('#__jcomments_subscriptions')
+			->order('lang ASC');
+
+		$db->setQuery($query);
+		$rows = $db->loadObjectList();
 
 		return is_array($rows) ? $rows : array();
 	}
 
 	public function getFilterObjectGroups()
 	{
-		$query = $this->_db->getQuery(true);
-		$query->select('DISTINCT(object_group) AS name');
-		$query->from('#__jcomments_subscriptions');
-		$query->order('object_group ASC');
-		$this->_db->setQuery($query);
-		$rows = $this->_db->loadObjectList();
+		$db = $this->getDbo();
+		$query = $db->getQuery(true)
+			->select('DISTINCT(object_group) AS name')
+			->from('#__jcomments_subscriptions')
+			->order('object_group ASC');
+
+		$db->setQuery($query);
+		$rows = $db->loadObjectList();
 
 		return is_array($rows) ? $rows : array();
 	}
 
 	protected function populateState($ordering = null, $direction = null)
 	{
-		$app = JFactory::getApplication('administrator');
+		$app = Factory::getApplication();
 
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);

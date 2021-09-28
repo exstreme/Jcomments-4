@@ -2,16 +2,16 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
 
 abstract class JCommentsImportAdapter
 {
@@ -30,8 +30,9 @@ abstract class JCommentsImportAdapter
 	{
 		$result = -1;
 
-		if (!empty($this->tableName)) {
-			$db = Factory::getContainer()->get('DatabaseDriver');
+		if (!empty($this->tableName))
+		{
+			$db    = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 			$query->select('COUNT(*)');
 			$query->from($db->quoteName($this->tableName));
@@ -47,7 +48,8 @@ abstract class JCommentsImportAdapter
 	{
 		$result = $this->code;
 
-		if (empty($result)) {
+		if (empty($result))
+		{
 			$result = empty($this->extension) ? strtolower(preg_replace('/[^A-Z0-9_]/i', '', $this->name)) : $this->extension;
 		}
 

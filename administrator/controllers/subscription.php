@@ -11,14 +11,10 @@
 
 defined('_JEXEC') or die;
 
-/**
- * JComments settings table
- *
- */
-class JCommentsTableSettings extends JTable
+class JCommentsControllerSubscription extends JCommentsControllerForm
 {
-	public function __construct($_db)
+	public function getModel($name = 'Subscription', $prefix = 'JCommentsModel', $config = array())
 	{
-		parent::__construct('#__jcomments_settings', 'id', $_db);
+		return parent::getModel($name, $prefix, $config);
 	}
 }

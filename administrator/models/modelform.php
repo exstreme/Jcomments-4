@@ -2,30 +2,35 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-use Joomla\Utilities\ArrayHelper; 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\Utilities\ArrayHelper;
 
-abstract class JCommentsModelForm extends JCommentsModelLegacy
+abstract class JCommentsModelForm extends BaseDatabaseModel
 {
 	protected $_forms = array();
 
 	public function getItem($pk = null)
 	{
-		$pk = (!empty($pk)) ? $pk : (int)$this->getState($this->getName() . '.id');
+		$pk    = (!empty($pk)) ? $pk : (int) $this->getState($this->getName() . '.id');
 		$table = $this->getTable();
 
-		if ($pk > 0) {
+		if ($pk > 0)
+		{
 			$return = $table->load($pk);
 
-			if ($return === false && $table->getError()) {
+			if ($return === false && $table->getError())
+			{
 				$this->setError($table->getError());
 
 				return false;
@@ -34,37 +39,42 @@ abstract class JCommentsModelForm extends JCommentsModelLegacy
 
 		$properties = $table->getProperties(1);
 
-		$item = ArrayHelper::toObject($properties, 'JObject');
-
-		return $item;
+		return ArrayHelper::toObject($properties, 'JObject');
 	}
 
 	abstract public function getForm($data = array(), $loadData = true);
 
 	protected function loadForm($name, $source = null, $options = array(), $clear = false, $xpath = false)
 	{
-	    $options['control'] = ArrayHelper::getValue($options, 'control', false);
-		$hash = md5($source . serialize($options));
+		$options['control'] = ArrayHelper::getValue($options, 'control', false);
+		$hash               = md5($source . serialize($options));
 
-		if (isset($this->_forms[$hash]) && !$clear) {
+		if (isset($this->_forms[$hash]) && !$clear)
+		{
 			return $this->_forms[$hash];
 		}
 
-		JForm::addFormPath(JPATH_COMPONENT . '/models/forms');
-		JForm::addFieldPath(JPATH_COMPONENT . '/models/fields');
+		Form::addFormPath(JPATH_COMPONENT . '/models/forms');
+		Form::addFieldPath(JPATH_COMPONENT . '/models/fields');
 
-		try {
-			$form = JForm::getInstance($name, $source, $options, false, $xpath);
+		try
+		{
+			$form = Form::getInstance($name, $source, $options, false, $xpath);
 
-			if (isset($options['load_data']) && $options['load_data']) {
+			if (isset($options['load_data']) && $options['load_data'])
+			{
 				$data = $this->loadFormData();
-			} else {
+			}
+			else
+			{
 				$data = array();
 			}
 
 			$form->bind($data);
 
-		} catch (Exception $e) {
+		}
+		catch (Exception $e)
+		{
 			$this->setError($e->getMessage());
 
 			return false;
@@ -80,51 +90,59 @@ abstract class JCommentsModelForm extends JCommentsModelLegacy
 		return array();
 	}
 
-	protected function canDelete($record)
+	protected function canDelete()
 	{
-		return JFactory::getUser()->authorise('core.delete', $this->option);
+		return Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
 	}
 
-	protected function canEditState($record)
+	protected function canEditState()
 	{
-		return JFactory::getUser()->authorise('core.edit.state', $this->option);
+		return Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option);
 	}
 
 	public function save($data)
 	{
-		$table = $this->getTable();
+		$table  = $this->getTable();
 		$pkName = $table->getKeyName();
-		$pk = (!empty($data[$pkName])) ? $data[$pkName] : (int)$this->getState($this->getName() . '.id');
+		$pk     = (!empty($data[$pkName])) ? $data[$pkName] : (int) $this->getState($this->getName() . '.id');
 
-		try {
-			if ($pk > 0) {
+		try
+		{
+			if ($pk > 0)
+			{
 				$table->load($pk);
 			}
 
-			if (!$table->bind($data)) {
+			if (!$table->bind($data))
+			{
 				$this->setError($table->getError());
 
 				return false;
 			}
 
-			if (!$table->check()) {
+			if (!$table->check())
+			{
 				$this->setError($table->getError());
 
 				return false;
 			}
 
-			if (!$table->store()) {
+			if (!$table->store())
+			{
 				$this->setError($table->getError());
 
 				return false;
 			}
-		} catch (Exception $e) {
+		}
+		catch (Exception $e)
+		{
 			$this->setError($e->getMessage());
 
 			return false;
 		}
 
-		if (isset($table->$pkName)) {
+		if (isset($table->$pkName))
+		{
 			$this->setState($this->getName() . '.id', $table->$pkName);
 		}
 
@@ -133,17 +151,20 @@ abstract class JCommentsModelForm extends JCommentsModelLegacy
 
 	public function validate($form, $data, $group = null)
 	{
-		$data = $form->filter($data);
+		$data   = $form->filter($data);
 		$return = $form->validate($data, $group);
 
-		if ($return instanceof Exception) {
+		if ($return instanceof Exception)
+		{
 			$this->setError($return->getMessage());
 
 			return false;
 		}
 
-		if ($return === false) {
-			foreach ($form->getErrors() as $message) {
+		if ($return === false)
+		{
+			foreach ($form->getErrors() as $message)
+			{
 				$this->setError($message);
 			}
 
@@ -155,25 +176,30 @@ abstract class JCommentsModelForm extends JCommentsModelLegacy
 
 	public function checkin($pk = null)
 	{
-		if ($pk) {
-			$table = $this->getTable();
+		if ($pk)
+		{
+			$table   = $this->getTable();
 			$checkin = property_exists($table, 'checked_out');
-			if ($checkin) {
-				if (!$table->load($pk)) {
+			if ($checkin)
+			{
+				if (!$table->load($pk))
+				{
 					$this->setError($table->getError());
 
 					return false;
 				}
 
-				$user = JFactory::getUser();
+				$user = Factory::getApplication()->getIdentity();
 
-				if ($table->checked_out > 0 && $table->checked_out != $user->get('id') && !$user->authorise('core.admin', 'com_checkin')) {
+				if ($table->checked_out > 0 && $table->checked_out != $user->get('id') && !$user->authorise('core.admin', 'com_checkin'))
+				{
 					$this->setError(JText::_('JLIB_APPLICATION_ERROR_CHECKIN_USER_MISMATCH'));
 
 					return false;
 				}
 
-				if (!$table->checkin($pk)) {
+				if (!$table->checkin($pk))
+				{
 					$this->setError($table->getError());
 
 					return false;
@@ -186,25 +212,30 @@ abstract class JCommentsModelForm extends JCommentsModelLegacy
 
 	public function checkout($pk = null)
 	{
-		if ($pk) {
-			$table = $this->getTable();
+		if ($pk)
+		{
+			$table   = $this->getTable();
 			$checkin = property_exists($table, 'checked_out');
-			if ($checkin) {
-				if (!$table->load($pk)) {
+			if ($checkin)
+			{
+				if (!$table->load($pk))
+				{
 					$this->setError($table->getError());
 
 					return false;
 				}
 
-				$user = JFactory::getUser();
+				$user = Factory::getApplication()->getIdentity();
 
-				if ($table->checked_out > 0 && $table->checked_out != $user->get('id')) {
+				if ($table->checked_out > 0 && $table->checked_out != $user->get('id'))
+				{
 					$this->setError(JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'));
 
 					return false;
 				}
 
-				if (!$table->checkout($user->get('id'), $pk)) {
+				if (!$table->checkout($user->get('id'), $pk))
+				{
 					$this->setError($table->getError());
 
 					return false;
@@ -218,9 +249,9 @@ abstract class JCommentsModelForm extends JCommentsModelLegacy
 	protected function populateState()
 	{
 		$table = $this->getTable();
-		$key = $table->getKeyName();
+		$key   = $table->getKeyName();
 
-		$pk = JFactory::getApplication()->input->getInt($key);
+		$pk = Factory::getApplication()->input->getInt($key);
 		$this->setState($this->getName() . '.id', $pk);
 	}
 }

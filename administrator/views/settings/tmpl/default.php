@@ -9,6 +9,10 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+
 defined('_JEXEC') or die;
 
 $containerClass = empty($this->sidebar) ? '' : 'span10';
@@ -177,8 +181,8 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 </script>
 
 <form
-	action="<?php echo JRoute::_('index.php?option=com_jcomments&view=settings'); ?>"
-	method="post" name="adminForm" id="settings-form" class="form-validate form-horizontal">
+	action="<?php echo Route::_('index.php?option=com_jcomments&view=settings'); ?>"
+	method="post" name="adminForm" id="settings-form" class="form-validate options-form">
 	<?php if (!empty($this->sidebar)): ?>
 		<div id="j-sidebar-container" class="span2">
 			<?php echo $this->sidebar; ?>
@@ -186,46 +190,46 @@ $containerClass = empty($this->sidebar) ? '' : 'span10';
 	<?php endif; ?>
 	<div id="j-main-container" class="<?php echo $containerClass; ?>">
 		<?php echo $this->loadTemplate('filter'); ?>
-        <?php echo JHtml::_('bootstrap.startTabSet', 'myTab', array('active' => 'general')); ?>
+        <?php echo HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'general')); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'general', JText::_('A_COMMON')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'general', Text::_('A_COMMON')); ?>
         <?php echo $this->loadTemplate('general'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'layout', JText::_('A_LAYOUT')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'layout', Text::_('A_LAYOUT')); ?>
         <?php echo $this->loadTemplate('layout'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'permissions', JText::_('A_RIGHTS')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'permissions', Text::_('A_RIGHTS')); ?>
         <?php echo $this->loadTemplate('permissions'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'restrictions', JText::_('A_RESTRICTIONS')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'restrictions', Text::_('A_RESTRICTIONS')); ?>
         <?php echo $this->loadTemplate('restrictions'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'censor', JText::_('A_CENSOR')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'censor', Text::_('A_CENSOR')); ?>
         <?php echo $this->loadTemplate('censor'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'messages', JText::_('A_MESSAGES')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'messages', Text::_('A_MESSAGES')); ?>
         <?php echo $this->loadTemplate('messages'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo JHtml::_('bootstrap.endTabSet'); ?>
+        <?php echo HTMLHelper::_('bootstrap.endTabSet'); ?>
 
 		<div>
 			<input type="hidden" name="task" value=""/>
-			<?php echo JHtml::_('form.token'); ?>
+			<?php echo HTMLHelper::_('form.token'); ?>
 		</div>
 	</div>
 </form>
 
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments'); ?>" method="post" id="settings-save-form">
+<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post" id="settings-save-form">
 	<div>
 		<input type="hidden" name="base64" id="base64" value=""/>
 		<input type="hidden" name="task" value="settings.save"/>
-		<?php echo JHtml::_('form.token'); ?>
+		<?php echo HTMLHelper::_('form.token'); ?>
 	</div>
 </form>
 

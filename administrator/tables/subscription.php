@@ -2,16 +2,16 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
 
 /**
  * JComments subscriptions table
@@ -38,44 +38,50 @@ class JCommentsTableSubscription extends JTable
 	/** @var boolean */
 	var $published = null;
 
-	public function __construct(&$_db)
+	public function __construct($_db)
 	{
 		parent::__construct('#__jcomments_subscriptions', 'id', $_db);
 	}
 
-	function store($updateNulls = false)
+	public function store($updateNulls = false)
 	{
-		if ($this->userid != 0 && empty($this->email)) {
-			$user = JFactory::getUser($this->userid);
+		if ($this->userid != 0 && empty($this->email))
+		{
+			// TODO How to get user object by user ID in J4?
+			$user        = Factory::getUser($this->userid);
 			$this->email = $user->email;
 		}
 
-		if ($this->userid == 0 && !empty($this->email)) {
+		if ($this->userid == 0 && !empty($this->email))
+		{
 			$db = Factory::getContainer()->get('DatabaseDriver');
 
-			$query = $db->getQuery(true);
-			$query->select('*');
-			$query->from($db->quoteName('#__users'));
-			$query->where($db->quoteName('email') . ' = ' . $db->Quote($db->escape($this->email, true)));
-			$db->setQuery($query);
+			$query = $db->getQuery(true)
+				->select('*')
+				->from($db->quoteName('#__users'))
+				->where($db->quoteName('email') . ' = ' . $db->Quote($db->escape($this->email, true)));
 
+			$db->setQuery($query);
 			$users = $db->loadObjectList();
 
-			if (count($users)) {
+			if (count($users))
+			{
 				$this->userid = $users[0]->id;
-				$this->name = $users[0]->name;
+				$this->name   = $users[0]->name;
 			}
 		}
 
-		if (empty($this->lang)) {
+		if (empty($this->lang))
+		{
 			$this->lang = JCommentsMultilingual::getLanguage();
 		}
 
 		$this->hash = $this->getHash();
+
 		return parent::store($updateNulls);
 	}
 
-	function getHash()
+	public function getHash()
 	{
 		return md5($this->object_id . $this->object_group . $this->userid . $this->email . $this->lang);
 	}

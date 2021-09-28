@@ -2,16 +2,23 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-class JCommentsModelList extends JCommentsModelLegacy
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Pagination\Pagination;
+use Joomla\CMS\Table\Table;
+
+class JCommentsModelList extends BaseDatabaseModel
 {
 	protected $cache = array();
 	protected $context = null;
@@ -22,13 +29,15 @@ class JCommentsModelList extends JCommentsModelLegacy
 	{
 		parent::__construct($config);
 
-		JTable::addIncludePath(JPATH_COMPONENT . '/tables');
+		Table::addIncludePath(JPATH_COMPONENT . '/tables');
 
-		if (isset($config['filter_fields'])) {
+		if (isset($config['filter_fields']))
+		{
 			$this->filter_fields = $config['filter_fields'];
 		}
 
-		if (empty($this->context)) {
+		if (empty($this->context))
+		{
 			$this->context = strtolower($this->option . '.' . $this->getName());
 		}
 	}
@@ -37,15 +46,19 @@ class JCommentsModelList extends JCommentsModelLegacy
 	{
 		$store = $this->getStoreId();
 
-		if (isset($this->cache[$store])) {
+		if (isset($this->cache[$store]))
+		{
 			return $this->cache[$store];
 		}
 
 		$query = $this->_getListQuery();
 
-		try {
+		try
+		{
 			$items = $this->_getList($query, $this->getStart(), $this->getState('list.limit'));
-		} catch (RuntimeException $e) {
+		}
+		catch (RuntimeException $e)
+		{
 			$this->setError($e->getMessage());
 
 			return false;
@@ -60,13 +73,13 @@ class JCommentsModelList extends JCommentsModelLegacy
 	{
 		$store = $this->getStoreId('getPagination');
 
-		if (isset($this->cache[$store])) {
+		if (isset($this->cache[$store]))
+		{
 			return $this->cache[$store];
 		}
 
-		$limit = (int)$this->getState('list.limit');
-		jimport('joomla.html.pagination');
-		$page = new JPagination($this->getTotal(), $this->getStart(), $limit);
+		$limit = (int) $this->getState('list.limit');
+		$page = new Pagination($this->getTotal(), $this->getStart(), $limit);
 
 		$this->cache[$store] = $page;
 
@@ -75,9 +88,7 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	protected function getListQuery()
 	{
-		$query = $this->_db->getQuery(true);
-
-		return $query;
+		return $this->getDbo()->getQuery(true);
 	}
 
 	protected function getStoreId($id = '')
@@ -95,15 +106,19 @@ class JCommentsModelList extends JCommentsModelLegacy
 	{
 		$store = $this->getStoreId('getTotal');
 
-		if (isset($this->cache[$store])) {
+		if (isset($this->cache[$store]))
+		{
 			return $this->cache[$store];
 		}
 
 		$query = $this->_getListQuery();
 
-		try {
-			$total = (int)$this->_getListCount($query);
-		} catch (RuntimeException $e) {
+		try
+		{
+			$total = (int) $this->_getListCount($query);
+		}
+		catch (RuntimeException $e)
+		{
 			$this->setError($e->getMessage());
 
 			return false;
@@ -118,15 +133,17 @@ class JCommentsModelList extends JCommentsModelLegacy
 	{
 		$store = $this->getStoreId('getStart');
 
-		if (isset($this->cache[$store])) {
+		if (isset($this->cache[$store]))
+		{
 			return $this->cache[$store];
 		}
 
 		$start = $this->getState('list.start');
 		$limit = $this->getState('list.limit');
 		$total = $this->getTotal();
-		if ($start > $total - $limit) {
-			$start = max(0, (int)(ceil($total / $limit) - 1) * $limit);
+		if ($start > $total - $limit)
+		{
+			$start = max(0, (int) (ceil($total / $limit) - 1) * $limit);
 		}
 
 		$this->cache[$store] = $start;
@@ -141,7 +158,8 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 		$currentStoreId = $this->getStoreId();
 
-		if ($lastStoreId != $currentStoreId || empty($this->query)) {
+		if ($lastStoreId != $currentStoreId || empty($this->query))
+		{
 			$lastStoreId = $currentStoreId;
 			$this->query = $this->getListQuery();
 		}
@@ -151,44 +169,55 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	protected function _getListCount($query)
 	{
-		$this->_db->setQuery($query);
-		$this->_db->execute();
+		$db = $this->getDbo();
+		$db->setQuery($query);
+		$db->execute();
 
-		return $this->_db->getNumRows();
+		return $db->getNumRows();
 	}
 
 	protected function canDelete($record)
 	{
-		return JFactory::getUser()->authorise('core.delete', $this->option);
+		return Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
 	}
 
 	protected function canEditState($record)
 	{
-		return JFactory::getUser()->authorise('core.edit.state', $this->option);
+		return Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option);
 	}
 
 	public function delete(&$pks)
 	{
-		$pks = (array)$pks;
+		$pks   = (array) $pks;
 		$table = $this->getTable();
 
-		foreach ($pks as $i => $pk) {
-			if ($table->load($pk)) {
-				if ($this->canDelete($table)) {
-					if (!$table->delete($pk)) {
+		foreach ($pks as $i => $pk)
+		{
+			if ($table->load($pk))
+			{
+				if ($this->canDelete($table))
+				{
+					if (!$table->delete($pk))
+					{
 						$this->setError($table->getError());
 
 						return false;
 					}
-				} else {
+				}
+				else
+				{
 					unset($pks[$i]);
 					$error = $this->getError();
-					if ($error) {
-						JLog::add($error, JLog::WARNING, 'jerror');
+
+					if ($error)
+					{
+						Log::add($error, Log::WARNING, 'jerror');
 
 						return false;
-					} else {
-						JLog::add(JText::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), JLog::WARNING, 'jerror');
+					}
+					else
+					{
+						Log::add(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), Log::WARNING, 'jerror');
 
 						return false;
 					}
@@ -201,21 +230,25 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	public function publish(&$pks, $value = 1)
 	{
-		$pks = (array)$pks;
-		$user = JFactory::getUser();
+		$pks   = (array) $pks;
+		$user  = Factory::getApplication()->getIdentity();
 		$table = $this->getTable();
 
-		foreach ($pks as $i => $pk) {
+		foreach ($pks as $i => $pk)
+		{
 			$table->reset();
 
-			if ($table->load($pk)) {
-				if (!$this->canEditState($table)) {
+			if ($table->load($pk))
+			{
+				if (!$this->canEditState($table))
+				{
 					unset($pks[$i]);
-					JLog::add(JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), JLog::WARNING, 'jerror');
+					Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
 
 					return false;
 				}
-				if (!$table->publish(array($pk), $value, $user->get('id'))) {
+				if (!$table->publish(array($pk), $value, $user->get('id')))
+				{
 					$this->setError($table->getError());
 
 					return false;
@@ -228,22 +261,30 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	public function checkin($pks = array())
 	{
-		$pks = (array)$pks;
-		$table = $this->getTable();
+		$pks     = (array) $pks;
+		$table   = $this->getTable();
 		$checkin = property_exists($table, 'checked_out');
-		$count = 0;
+		$count   = 0;
 
-		if ($checkin && !empty($pks)) {
-			foreach ($pks as $pk) {
-				if ($table->load($pk)) {
-					if ($table->checked_out > 0) {
-						if (!$table->checkin($pk)) {
+		if ($checkin && !empty($pks))
+		{
+			foreach ($pks as $pk)
+			{
+				if ($table->load($pk))
+				{
+					if ($table->checked_out > 0)
+					{
+						if (!$table->checkin($pk))
+						{
 							$this->setError($table->getError());
+
 							return false;
 						}
 						$count++;
 					}
-				} else {
+				}
+				else
+				{
 					$this->setError($table->getError());
 
 					return false;
@@ -261,42 +302,51 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	public function saveOrder($pks = null, $order = null)
 	{
-		if (!empty($pks)) {
-			$table = $this->getTable();
+		if (!empty($pks))
+		{
+			$table      = $this->getTable();
 			$conditions = array();
-			$ordering = property_exists($table, 'ordering');
+			$ordering   = property_exists($table, 'ordering');
 
-			if ($ordering) {
-				foreach ($pks as $i => $pk) {
-					$table->load((int)$pk);
+			if ($ordering)
+			{
+				foreach ($pks as $i => $pk)
+				{
+					$table->load((int) $pk);
 
-					if ($table->ordering != $order[$i]) {
+					if ($table->ordering != $order[$i])
+					{
 						$table->ordering = $order[$i];
 
-						if (!$table->store()) {
+						if (!$table->store())
+						{
 							$this->setError($table->getError());
 
 							return false;
 						}
 
 						$reorderCondition = $this->getReorderConditions($table);
-						$found = false;
+						$found            = false;
 
-						foreach ($conditions as $condition) {
-							if ($condition[1] == $reorderCondition) {
+						foreach ($conditions as $condition)
+						{
+							if ($condition[1] == $reorderCondition)
+							{
 								$found = true;
 								break;
 							}
 						}
 
-						if (!$found) {
-							$key = $table->getKeyName();
+						if (!$found)
+						{
+							$key          = $table->getKeyName();
 							$conditions[] = array($table->$key, $reorderCondition);
 						}
 					}
 				}
 
-				foreach ($conditions as $condition) {
+				foreach ($conditions as $condition)
+				{
 					$table->load($condition[0]);
 					$table->reorder($condition[1]);
 				}
@@ -308,47 +358,55 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	public function reorder($pks, $delta = 0)
 	{
-		$table = $this->getTable();
-		$pks = (array)$pks;
+		$table  = $this->getTable();
+		$pks    = (array) $pks;
 		$result = true;
 
 		$allowed = true;
 
-		foreach ($pks as $i => $pk) {
+		foreach ($pks as $i => $pk)
+		{
 			$table->reset();
 
-			if ($table->load($pk) && $this->checkout($pk)) {
+			if ($table->load($pk) && $this->checkout($pk))
+			{
 				// Access checks.
-				if (!$this->canEditState($table)) {
+				if (!$this->canEditState($table))
+				{
 					// Prune items that you can't change.
 					unset($pks[$i]);
 					$this->checkin($pk);
-					JLog::add(JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), JLog::WARNING, 'jerror');
+					Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
 					$allowed = false;
 					continue;
 				}
 
 				$where = $this->getReorderConditions($table);
 
-				if (!$table->move($delta, $where)) {
+				if (!$table->move($delta, $where))
+				{
 					$this->setError($table->getError());
 					unset($pks[$i]);
 					$result = false;
 				}
 
 				$this->checkin($pk);
-			} else {
+			}
+			else
+			{
 				$this->setError($table->getError());
 				unset($pks[$i]);
 				$result = false;
 			}
 		}
 
-		if ($allowed === false && empty($pks)) {
+		if ($allowed === false && empty($pks))
+		{
 			$result = null;
 		}
 
-		if ($result == true) {
+		if ($result == true)
+		{
 			$this->cleanCache();
 		}
 
@@ -358,10 +416,11 @@ class JCommentsModelList extends JCommentsModelLegacy
 
 	protected function populateState($ordering = null, $direction = null)
 	{
-		if ($this->context) {
-			$app = JFactory::getApplication('administrator');
+		if ($this->context)
+		{
+			$app = Factory::getApplication();
 
-			$value = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->getCfg('list_limit'), 'uint');
+			$value = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit'), 'uint');
 			$limit = $value;
 			$this->setState('list.limit', $limit);
 
@@ -370,19 +429,25 @@ class JCommentsModelList extends JCommentsModelLegacy
 			$this->setState('list.start', $start);
 
 			$value = $app->getUserStateFromRequest($this->context . '.filter.order', 'filter_order', $ordering);
-			if (!in_array($value, $this->filter_fields)) {
+
+			if (!in_array($value, $this->filter_fields))
+			{
 				$value = $ordering;
 				$app->setUserState($this->context . '.filter.order', $value);
 			}
-			$this->setState('list.ordering', $value);
 
+			$this->setState('list.ordering', $value);
 			$value = $app->getUserStateFromRequest($this->context . '.filter.order', 'filter_order_Dir', $direction);
-			if (!in_array(strtoupper($value), array('ASC', 'DESC', ''))) {
+
+			if (!in_array(strtoupper($value), array('ASC', 'DESC', '')))
+			{
 				$value = $direction;
 				$app->setUserState($this->context . '.filter.order_Dir', $value);
 			}
 			$this->setState('list.direction', $value);
-		} else {
+		}
+		else
+		{
 			$this->setState('list.start', 0);
 		}
 	}

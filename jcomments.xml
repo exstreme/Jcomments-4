@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension type="component" version="2.5" method="upgrade">
+<extension type="component" method="upgrade">
 	<name>JComments</name>
 	<creationDate>18/09/2021</creationDate>
 	<author>smart</author>
@@ -24,7 +24,6 @@
 	</uninstall>
 
 	<files folder="site">
-		<filename>index.html</filename>
 		<filename>jcomments.php</filename>
 		<filename>jcomments.ajax.php</filename>
 		<filename>jcomments.captcha.php</filename>

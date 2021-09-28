@@ -2,18 +2,21 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
-class JCommentsModelImport extends JCommentsModelLegacy
+use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Filesystem\Folder;
+use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+
+class JCommentsModelImport extends BaseDatabaseModel
 {
 	protected $_adapters = array();
 	protected static $initialised = false;
@@ -25,26 +28,27 @@ class JCommentsModelImport extends JCommentsModelLegacy
 
 	public function getItems()
 	{
-		$app = JFactory::getApplication();
-		$prefix = $app->getCfg('dbprefix');
-		$tables = JFactory::getDbo()->getTableList();
+		$app      = Factory::getApplication();
+		$tables   = $this->getDbo()->getTableList();
 		$adapters = $this->getAdapters();
 
 		$items = array();
 
-		foreach ($adapters as $adapter) {
+		foreach ($adapters as $adapter)
+		{
 			$tableName = $adapter->getTableName();
-			$tableName = str_replace('#__', $prefix, $tableName);
+			$tableName = str_replace('#__', $app->get('dbprefix'), $tableName);
 
-			if (in_array($tableName, $tables)) {
-				$item = new StdClass;
-				$item->code = $adapter->getCode();
-				$item->name = $adapter->getName();
-				$item->author = $adapter->getAuthor();
-				$item->license = $adapter->getLicense();
+			if (in_array($tableName, $tables))
+			{
+				$item             = new StdClass;
+				$item->code       = $adapter->getCode();
+				$item->name       = $adapter->getName();
+				$item->author     = $adapter->getAuthor();
+				$item->license    = $adapter->getLicense();
 				$item->licenseUrl = $adapter->getLicenseUrl();
-				$item->siteUrl = $adapter->getSiteUrl();
-				$item->comments = $adapter->getCount();
+				$item->siteUrl    = $adapter->getSiteUrl();
+				$item->comments   = $adapter->getCount();
 
 				$items[] = $item;
 			}
@@ -57,8 +61,10 @@ class JCommentsModelImport extends JCommentsModelLegacy
 	{
 		$adapters = $this->getAdapters();
 
-		if (isset($adapters[$source])) {
-			if ($start == 0) {
+		if (isset($adapters[$source]))
+		{
+			if ($start == 0)
+			{
 				$this->deleteComments(strtolower($source));
 			}
 
@@ -68,7 +74,8 @@ class JCommentsModelImport extends JCommentsModelLegacy
 			$total = $adapter->getCount();
 			$count = $this->getCommentsCount($source);
 
-			if ($total == $count) {
+			if ($total == $count)
+			{
 				$this->updateParent($source);
 			}
 
@@ -81,76 +88,78 @@ class JCommentsModelImport extends JCommentsModelLegacy
 		return false;
 	}
 
-	function updateParent($source)
+	public function updateParent($source)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = $this->getDbo();
 
-		$query = $db->getQuery(true);
-		$query->update(array($db->quoteName('#__jcomments') . ' AS c1', $db->quoteName('#__jcomments') . ' AS c2'));
-		$query->set('c1.parent = c2.id');
-		$query->where('c1.source = c2.source');
-		$query->where('c1.id <> c2.id');
-		$query->where('c1.parent <> 0');
-		$query->where('c1.parent = c2.source_id');
-		$query->where('c1.source = ' . $db->quote($source));
+		$query = $db->getQuery(true)
+			->update($db->quoteName('#__jcomments') . ' AS c1, ' . $db->quoteName('#__jcomments') . ' AS c2')
+			->set('c1.parent = c2.id')
+			->where('c1.source = c2.source')
+			->where('c1.id <> c2.id')
+			->where('c1.parent <> 0')
+			->where('c1.parent = c2.source_id')
+			->where('c1.source = ' . $db->quote($source));
 
 		$db->setQuery($query);
 		$db->execute();
 	}
 
-	function getCommentsCount($source)
+	public function getCommentsCount($source)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = $this->getDbo();
 
-		$query = $db->getQuery(true);
-		$query->select('COUNT(*)');
-		$query->from($db->quoteName('#__jcomments'));
-		$query->where($db->quoteName('source') . '=' . $db->quote($source));
+		$query = $db->getQuery(true)
+			->select('COUNT(*)')
+			->from($db->quoteName('#__jcomments'))
+			->where($db->quoteName('source') . '=' . $db->quote($source));
+
 		$db->setQuery($query);
-		$result = $db->loadResult();
 
-		return $result;
+		return $db->loadResult();
 	}
 
-	function deleteComments($source)
+	public function deleteComments($source)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = $this->getDbo();
 
-		$query = $db->getQuery(true);
-		$query->delete();
-		$query->from($db->quoteName('#__jcomments'));
-		$query->where($db->quoteName('source') . '=' . $db->quote($source));
+		$query = $db->getQuery(true)
+			->delete()
+			->from($db->quoteName('#__jcomments'))
+			->where($db->quoteName('source') . '=' . $db->quote($source));
+
 		$db->setQuery($query);
 		$db->execute();
 
-		$query = $db->getQuery(true);
-		$query->delete();
-		$query->from($db->quoteName('#__jcomments_subscriptions'));
-		$query->where($db->quoteName('source') . '=' . $db->quote($source));
+		$query = $db->getQuery(true)
+			->delete()
+			->from($db->quoteName('#__jcomments_subscriptions'))
+			->where($db->quoteName('source') . '=' . $db->quote($source));
+
 		$db->setQuery($query);
 		$db->execute();
 	}
 
-	function getAdapters()
+	public function getAdapters()
 	{
-		if (!self::$initialised) {
+		if (!self::$initialised)
+		{
 			require_once JPATH_COMPONENT . '/classes/import/adapter.php';
 
-			jimport('joomla.filesystem.folder');
-			jimport('joomla.filesystem.file');
-
 			$this->_adapters = array();
-			$path = JPATH_COMPONENT . '/classes/import/adapters';
+			$path            = JPATH_COMPONENT . '/classes/import/adapters';
+			$files = Folder::files($path, '\.php');
 
-			$files = JFolder::files($path, '\.php');
-			foreach ($files as $file) {
+			foreach ($files as $file)
+			{
 				require_once $path . '/' . $file;
 
-				$name = JFile::stripExt($file);
+				$name      = File::stripExt($file);
 				$className = 'JCommentsImport' . ucfirst($name);
 
-				if (class_exists($className)) {
-					$adapter = new $className;
+				if (class_exists($className))
+				{
+					$adapter                              = new $className;
 					$this->_adapters[$adapter->getCode()] = $adapter;
 				}
 			}

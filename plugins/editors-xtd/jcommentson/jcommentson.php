@@ -54,13 +54,14 @@ class plgButtonJCommentsOn extends CMSPlugin
 
 		Factory::getApplication()->getDocument()->addScriptDeclaration($js);
 
-		$button = new CMSObject();
-		$button->set('class', 'btn');
-		$button->set('modal', false);
-		$button->set('onclick', 'insertJCommentsOn(\'' . $name . '\');return false;');
-		$button->set('text', Text::_('PLG_EDITORS-XTD_JCOMMENTSON_BUTTON_JCOMMENTSON'));
-		$button->set('name', 'blank');
-		$button->set('link', '#');
+		// CMSObject only used. Using Registry or stdClass will cause an errors.
+		$button          = new CMSObject;
+		$button->class   = 'btn';
+		$button->modal   = false;
+		$button->onclick = 'insertJCommentsOn(\'' . $name . '\');return false;';
+		$button->text    = Text::_('PLG_EDITORS-XTD_JCOMMENTSON_BUTTON_JCOMMENTSON');
+		$button->name    = 'blank';
+		$button->link    = '#';
 
 		return $button;
 	}

@@ -10,7 +10,9 @@
  */
 
 defined('_JEXEC') or die;
+
 use Joomla\CMS\HTML\HTMLHelper;
+
 class JCommentsViewSmiley extends JCommentsViewLegacy
 {
 	protected $item;
@@ -31,7 +33,7 @@ class JCommentsViewSmiley extends JCommentsViewLegacy
 		} else {
 			HTMLHelper::_('bootstrap.tooltip');
 			HTMLHelper::_('behavior.formvalidator');
-		
+		}
 
 		if (version_compare(JVERSION, '3.0', 'ge')) {
 			if (version_compare(JVERSION, '4.0', '<')){
