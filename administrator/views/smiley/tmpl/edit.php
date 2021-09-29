@@ -20,7 +20,7 @@ Joomla.submitbutton = function(task)
 }
 </script>
 
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=smiley&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="smiley-form" class="form-validate form-horizontal">
+<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=smiley&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="smiley-form" class="form-validate options-form">
 	<?php if(!empty($this->bootstrap)): ?>
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="#general" data-toggle="tab"><?php echo JText::_('A_SMILIES_SMILEY_DETAILS');?></a></li>

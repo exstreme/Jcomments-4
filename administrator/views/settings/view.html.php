@@ -74,6 +74,30 @@ class JCommentsViewSettings extends HtmlView
 		$this->bootstrap = true;
 		$this->sidebar   = Sidebar::render();
 
+        $this->addToolbar();
+
         parent::display($tpl);
+    }
+
+    protected function addToolbar()
+    {
+        require_once JPATH_COMPONENT . '/helpers/jcomments.php';
+
+        $canDo = JCommentsHelper::getActions();
+
+        ToolbarHelper::title(JText::_('A_SETTINGS'));
+
+        if ($canDo->get('core.admin'))
+        {
+            ToolbarHelper::apply('settings.save');
+        }
+
+        ToolbarHelper::cancel('settings.cancel');
+
+        if ($canDo->get('core.admin'))
+        {
+            ToolbarHelper::divider();
+            ToolbarHelper::preferences('com_jcomments', '600', '800');
+        }
     }
 }
