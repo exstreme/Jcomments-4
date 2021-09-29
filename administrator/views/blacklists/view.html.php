@@ -2,40 +2,39 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-class JCommentsViewBlacklists extends JCommentsViewLegacy
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+
+class JCommentsViewBlacklists extends HtmlView
 {
 	protected $items;
 	protected $pagination;
 	protected $state;
+	public $filterForm;
+	public $activeFilters;
 
 	function display($tpl = null)
 	{
 		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
-		$this->items = $this->get('Items');
-		$this->pagination = $this->get('Pagination');
-		$this->state = $this->get('State');
+		$this->items         = $this->get('Items');
+		$this->pagination    = $this->get('Pagination');
+		$this->filterForm    = $this->get('FilterForm');
+		$this->activeFilters = $this->get('ActiveFilters');
+		$this->state         = $this->get('State');
 
 		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-		JHtml::_('jcomments.stylesheet');
-
-        JHtml::_('bootstrap.tooltip');
-        JHtml::_('formbehavior.chosen', 'select');
-
-        JHtmlSidebar::setAction('index.php?option=com_jcomments&view=blacklists');
-
-        $this->bootstrap = true;
-        $this->sidebar = JHtmlSidebar::render();
+		JHtmlSidebar::setAction('index.php?option=com_jcomments&view=blacklists');
 
 		$this->addToolbar();
 
@@ -47,30 +46,21 @@ class JCommentsViewBlacklists extends JCommentsViewLegacy
 	{
 		$canDo = JCommentsHelper::getActions();
 
-		JToolBarHelper::title(JText::_('A_SUBMENU_BLACKLIST'), 'jcomments-blacklist');
+		ToolbarHelper::title(Text::_('A_SUBMENU_BLACKLIST'), 'jcomments-blacklist');
 
-		if (($canDo->get('core.create'))) {
-			JToolBarHelper::addNew('blacklist.add');
+		if (($canDo->get('core.create')))
+		{
+			ToolbarHelper::addNew('blacklist.add');
 		}
 
-		if (($canDo->get('core.edit'))) {
-			JToolBarHelper::editList('blacklist.edit');
+		if (($canDo->get('core.edit')))
+		{
+			ToolbarHelper::editList('blacklist.edit');
 		}
 
-		if (($canDo->get('core.delete'))) {
-			JToolBarHelper::deletelist('', 'blacklists.delete');
+		if (($canDo->get('core.delete')))
+		{
+			ToolbarHelper::deletelist('', 'blacklists.delete');
 		}
-	}
-
-	protected function getSortFields()
-	{
-		return array(
-			'jb.ip' => JText::_('A_BLACKLIST_IP'),
-			'jb.reason' => JText::_('A_BLACKLIST_REASON'),
-			'jb.notes' => JText::_('A_BLACKLIST_NOTES'),
-			'u.name' => JText::_('JGRID_HEADING_CREATED_BY'),
-			'jb.created' => JText::_('JGLOBAL_CREATED_DATE'),
-			'jb.id' => JText::_('JGRID_HEADING_ID')
-		);
 	}
 }
