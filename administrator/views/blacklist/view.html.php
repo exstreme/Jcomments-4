@@ -2,16 +2,21 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
-class JCommentsViewBlacklist extends JCommentsViewLegacy
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+
+class JCommentsViewBlacklist extends HtmlView
 {
 	protected $item;
 	protected $form;
@@ -19,19 +24,11 @@ class JCommentsViewBlacklist extends JCommentsViewLegacy
 
 	function display($tpl = null)
 	{
-		$this->item = $this->get('Item');
-		$this->form = $this->get('Form');
+		$this->item  = $this->get('Item');
+		$this->form  = $this->get('Form');
 		$this->state = $this->get('State');
 
-		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-		HTMLHelper::_('jquery.framework');
-        HTMLHelper::_('bootstrap.tooltip');
-        HTMLHelper::_('behavior.formvalidator');
-        HTMLHelper::_('bootstrap.tab');
-        HTMLHelper::_('formbehavior.chosen', 'select');
-
-		JHtml::_('jcomments.stylesheet');
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
 		$this->addToolbar();
 
@@ -42,33 +39,32 @@ class JCommentsViewBlacklist extends JCommentsViewLegacy
 	{
 		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
-		$userId = JFactory::getUser()->get('id');
-		$canDo = JCommentsHelper::getActions();
+		$userId     = Factory::getApplication()->getIdentity()->get('id');
+		$canDo      = JCommentsHelper::getActions();
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
-		$isNew = ($this->item->id == 0);
+		$isNew      = ($this->item->id == 0);
 
-		JFactory::getApplication()->input->set('hidemainmenu', 1);
+		Factory::getApplication()->input->set('hidemainmenu', 1);
+		ToolbarHelper::title(JText::_('A_BLACKLIST'));
 
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			JToolBarHelper::title(JText::_('A_BLACKLIST'));
-		} else {
-			$title = $isNew ? JText::_('A_BLACKLIST_EDIT') : JText::_('A_BLACKLIST_EDIT');
-			JToolBarHelper::title($title, 'jcomments-blacklist');
+		if (!$checkedOut && $canDo->get('core.edit'))
+		{
+			ToolbarHelper::apply('blacklist.apply');
+			ToolbarHelper::save('blacklist.save');
 		}
 
-		if (!$checkedOut && $canDo->get('core.edit')) {
-			JToolBarHelper::apply('blacklist.apply');
-			JToolBarHelper::save('blacklist.save');
-		}
-
-		if (!$isNew && $canDo->get('core.create')) {
+		if (!$isNew && $canDo->get('core.create'))
+		{
 			JToolbarHelper::save2new('blacklist.save2new');
 		}
 
-		if ($isNew) {
-			JToolBarHelper::cancel('blacklist.cancel');
-		} else {
-			JToolBarHelper::cancel('blacklist.cancel', 'JTOOLBAR_CLOSE');
+		if ($isNew)
+		{
+			ToolbarHelper::cancel('blacklist.cancel');
+		}
+		else
+		{
+			ToolbarHelper::cancel('blacklist.cancel', 'JTOOLBAR_CLOSE');
 		}
 	}
 }

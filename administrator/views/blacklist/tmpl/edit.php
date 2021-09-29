@@ -2,34 +2,41 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @version       3.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+
+HTMLHelper::_('jquery.framework');
+HTMLHelper::_('bootstrap.tooltip');
+HTMLHelper::_('behavior.formvalidator');
+HTMLHelper::_('formbehavior.chosen', 'select');
+HTMLHelper::_('jcomments.stylesheet');
 ?>
 <script type="text/javascript">
-Joomla.submitbutton = function(task)
-{
-	if (task == 'blacklist.cancel' || document.formvalidator.isValid(document.getElementById('blacklist-form'))) {
-		Joomla.submitform(task, document.getElementById('blacklist-form'));
+	Joomla.submitbutton = function (task) {
+		if (task === 'blacklist.cancel' || document.formvalidator.isValid(document.getElementById('blacklist-form'))) {
+			Joomla.submitform(task, document.getElementById('blacklist-form'));
+		}
 	}
-}
 </script>
 
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="blacklist-form" class="form-validate options-form">
-	<?php if(!empty($this->bootstrap)): ?>
-	<ul class="nav nav-tabs">
-		<li class="active"><a href="#general" data-toggle="tab"><?php echo empty($this->item->id) ? JText::_('A_BLACKLIST_EDIT') : JText::sprintf('A_BLACKLIST_EDIT', $this->item->id);?></a></li>
-	</ul>
-	<?php endif;?>
-	<div class="tab-content">
-		<div class="tab-pane active" id="general">
-			<div class="row-fluid">
-				<div class="span6">
+<form action="<?php echo Route::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id=' . (int) $this->item->id); ?>"
+	  method="post" name="adminForm" id="blacklist-form" class="form-validate">
+	<div class="main-card">
+		<div class="row">
+			<div class="col-12">
+				<fieldset id="fieldset-edit" class="options-form">
+					<legend><?php echo Text::_('A_BLACKLIST_EDIT'); ?></legend>
+
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('ip'); ?>
@@ -70,10 +77,10 @@ Joomla.submitbutton = function(task)
 							<?php echo $this->form->getInput('id'); ?>
 						</div>
 					</div>
-				</div>
+				</fieldset>
 			</div>
 		</div>
-		<input type="hidden" name="task" value="" />
-		<?php echo JHtml::_('form.token'); ?>
+		<input type="hidden" name="task" value=""/>
+		<?php echo HTMLHelper::_('form.token'); ?>
 	</div>
 </form>
