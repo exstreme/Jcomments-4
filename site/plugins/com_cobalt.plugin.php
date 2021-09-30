@@ -4,7 +4,7 @@
  *
  * @version 2.3
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2012 by Sergey Romanov
  * @copyright (C) 2012-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html

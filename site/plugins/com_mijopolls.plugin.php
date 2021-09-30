@@ -2,7 +2,7 @@
 /**
  * JComments plugin for MijoPolls support
  *
- * @version 3.0
+ * @version 4.0
  * @package JComments
  * @author Mijosoft LLC
  * @copyright (C) 2009-2013 Mijosoft LLC, mijosoft.com
