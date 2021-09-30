@@ -9,10 +9,12 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Language\Text;
+
 defined('_JEXEC') or die;
 ?>
 <fieldset class="options-form">
-	<legend><?php echo JText::_('A_CENSOR'); ?></legend>
+	<legend><?php echo Text::_('A_CENSOR'); ?></legend>
 	<?php foreach ($this->form->getFieldset('censor') as $field) : ?>
 		<div class="control-group">
 			<div class="control-label">
