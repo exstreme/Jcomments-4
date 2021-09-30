@@ -2,9 +2,9 @@
 /**
  * JComments plugin for JoomDOC objects support (http://www.artio.net/downloads/joomla/joomdoc)
  *
- * @version 3.0
+ * @version 4.0
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2011-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
