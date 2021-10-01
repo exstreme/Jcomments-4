@@ -14,6 +14,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
 class JCommentsViewBlacklists extends HtmlView
 {
@@ -44,18 +45,13 @@ class JCommentsViewBlacklists extends HtmlView
 
 	protected function addToolbar()
 	{
-		$canDo = JCommentsHelper::getActions();
+		$canDo = ContentHelper::getActions('com_jcomments', 'component');
 
 		ToolbarHelper::title(Text::_('A_SUBMENU_BLACKLIST'), 'jcomments-blacklist');
 
 		if (($canDo->get('core.create')))
 		{
 			ToolbarHelper::addNew('blacklist.add');
-		}
-
-		if (($canDo->get('core.edit')))
-		{
-			ToolbarHelper::editList('blacklist.edit');
 		}
 
 		if (($canDo->get('core.delete')))

@@ -13,6 +13,8 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\Database\DatabaseDriver;
+use Joomla\Event\DispatcherInterface;
 
 /**
  * JComments comments table
@@ -75,14 +77,20 @@ class JCommentsTableComment extends JTable
 	/** @var string */
 	var $editor = '';
 
+
 	/**
-	 * @param   DatabaseDriver  $_db  A database connector object
+	 * Object constructor to set table and key fields.  In most cases this will
+	 * be overridden by child classes to explicitly set the table and key fields
+	 * for a particular database table.
 	 *
-	 * @return JCommentsTableComment
+	 * @param   DatabaseDriver  $table  Name of the table to model.
+	 *
+	 * @return  JCommentsTableComment
+	 * @since   1.7.0
 	 */
-	public function __construct(&$_db)
+	public function __construct($table)
 	{
-		parent::__construct('#__jcomments', 'id', $_db);
+		parent::__construct('#__jcomments', 'id', $table);
 	}
 
 	/**

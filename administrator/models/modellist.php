@@ -176,16 +176,6 @@ class JCommentsModelList extends BaseDatabaseModel
 		return $db->getNumRows();
 	}
 
-	protected function canDelete($record)
-	{
-		return Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
-	}
-
-	protected function canEditState($record)
-	{
-		return Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option);
-	}
-
 	public function delete(&$pks)
 	{
 		$pks   = (array) $pks;
@@ -195,7 +185,7 @@ class JCommentsModelList extends BaseDatabaseModel
 		{
 			if ($table->load($pk))
 			{
-				if ($this->canDelete($table))
+				if (Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option))
 				{
 					if (!$table->delete($pk))
 					{
@@ -240,7 +230,7 @@ class JCommentsModelList extends BaseDatabaseModel
 
 			if ($table->load($pk))
 			{
-				if (!$this->canEditState($table))
+				if (!Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option))
 				{
 					unset($pks[$i]);
 					Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
@@ -371,7 +361,7 @@ class JCommentsModelList extends BaseDatabaseModel
 			if ($table->load($pk) && $this->checkout($pk))
 			{
 				// Access checks.
-				if (!$this->canEditState($table))
+				if (!Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option))
 				{
 					// Prune items that you can't change.
 					unset($pks[$i]);

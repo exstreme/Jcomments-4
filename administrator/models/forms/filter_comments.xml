@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields name="filter">
+		<field
+				name="search"
+				type="text"
+				inputmode="search"
+				label="JSEARCH_FILTER_LABEL"
+				description="A_COMMENTS_SEARCH_DESC"
+				hint="JSEARCH_FILTER"
+		/>
+
+		<field
+				name="published"
+				type="list"
+				label="JOPTION_SELECT_PUBLISHED"
+				onchange="this.form.submit();"
+		>
+			<option value="">JOPTION_SELECT_PUBLISHED</option>
+			<option value="1">A_FILTER_STATE_PUBLISHED</option>
+			<option value="0">A_FILTER_STATE_UNPUBLISHED</option>
+			<option value="2">A_FILTER_STATE_REPORTED</option>
+			<option value="-1">A_FILTER_STATE_MARKED_AS_DEL</option>
+		</field>
+
+		<field
+				name="author_id"
+				type="sql"
+				label="JOPTION_SELECT_AUTHOR"
+				multiple="true"
+				layout="joomla.form.field.list-fancy-select"
+				sql_select="c.userid AS value, u.username AS name"
+				sql_from="#__jcomments AS c"
+				sql_join="#__users AS u ON u.id = c.userid"
+				sql_where="c.userid != 0"
+				sql_order="u.username ASC"
+				key_field="value"
+				value_field="name"
+				sql_group="c.userid"
+				hint="JOPTION_SELECT_AUTHOR"
+				onchange="this.form.submit();"
+		>
+		</field>
+
+		<field
+				name="language"
+				type="sql"
+				label="JGRID_HEADING_LANGUAGE"
+				class="form-select"
+				sql_select="c.lang AS value, l.title AS name"
+				sql_from="#__jcomments AS c"
+				sql_join="#__languages AS l ON l.lang_code = c.lang"
+				sql_order="value ASC"
+				key_field="value"
+				value_field="name"
+				sql_group="value"
+				onchange="this.form.submit();"
+		>
+			<option value="">JOPTION_SELECT_LANGUAGE</option>
+			<option value="*">JALL</option>
+		</field>
+
+		<field
+				name="object_group"
+				type="sql"
+				label="A_FILTER_COMPONENT"
+				class="form-select"
+				sql_select="object_group AS value, object_group AS name"
+				sql_from="#__jcomments"
+				sql_order="value ASC"
+				key_field="value"
+				value_field="name"
+				sql_group="value"
+				onchange="this.form.submit();"
+		>
+			<option value="">A_FILTER_COMPONENT</option>
+		</field>
+	</fields>
+
+	<fields name="list">
+		<field
+				name="fullordering"
+				type="list"
+				label="JGLOBAL_SORT_BY"
+				default="jc.date ASC"
+				onchange="this.form.submit();"
+				validate="options"
+		>
+			<option value="">JGLOBAL_SORT_BY</option>
+			<option value="jc.published ASC">JSTATUS_ASC</option>
+			<option value="jc.published DESC">JSTATUS_DESC</option>
+			<option value="jc.title ASC">A_COMMENTS_SORT_TITLE_ASC</option>
+			<option value="jc.title DESC">A_COMMENTS_SORT_TITLE_DESC</option>
+			<option value="jc.name ASC">JAUTHOR_ASC</option>
+			<option value="jc.name DESC">JAUTHOR_DESC</option>
+			<option value="jc.ip ASC">A_BLACKLIST_SORT_IP_ASC</option>
+			<option value="jc.ip DESC">A_BLACKLIST_SORT_IP_DESC</option>
+			<option value="jc.object_group ASC">A_COMMENTS_SORT_COPM_ASC</option>
+			<option value="jc.object_group DESC">A_COMMENTS_SORT_COPM_DESC</option>
+			<option value="jc.date ASC">A_COMMENTS_SORT_DATE_CREATE_ASC</option>
+			<option value="jc.date DESC">A_COMMENTS_SORT_DATE_CREATE_DESC</option>
+			<option value="jc.lang ASC">JGRID_HEADING_LANGUAGE_ASC</option>
+			<option value="jc.lang DESC">JGRID_HEADING_LANGUAGE_DESC</option>
+			<option value="jc.id ASC">JGRID_HEADING_ID_ASC</option>
+			<option value="jc.id DESC">JGRID_HEADING_ID_DESC</option>
+		</field>
+
+		<field
+				name="limit"
+				type="limitbox"
+				label="JGLOBAL_LIST_LIMIT"
+				default="25"
+				onchange="this.form.submit();"
+		/>
+	</fields>
+</form>

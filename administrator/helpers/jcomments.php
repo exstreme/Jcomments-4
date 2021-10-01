@@ -11,9 +11,7 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Access\Access;
 use Joomla\CMS\Factory;
-use Joomla\Registry\Registry;
 
 class JCommentsHelper
 {
@@ -64,34 +62,6 @@ class JCommentsHelper
 			'index.php?option=com_jcomments&view=about',
 			$vName == 'about'
 		);
-	}
-
-	public static function getActions()
-	{
-		$user   = Factory::getApplication()->getIdentity();
-		$result = new Registry;
-
-		$assetName = 'com_jcomments';
-
-		$actions = Access::getActionsFromFile(JPATH_COMPONENT_ADMINISTRATOR . '/access.xml');
-
-		if (is_array($actions))
-		{
-			foreach ($actions as $action)
-			{
-				$result->set($action->name, $user->authorise($action->name, $assetName));
-			}
-		}
-		else
-		{
-			$actions = array('core.admin', 'core.manage', 'core.create', 'core.delete', 'core.edit', 'core.edit.state');
-			foreach ($actions as $action)
-			{
-				$result->set($action, $user->authorise($action, $assetName));
-			}
-		}
-
-		return $result;
 	}
 
 	public static function getGroups()
