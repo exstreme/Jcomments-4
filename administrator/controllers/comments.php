@@ -55,8 +55,7 @@ class JCommentsControllerComments extends JCommentsControllerList
 	{
 		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
 
-		$ids = Factory::getApplication()->input->post->get('cid', array(), 'array');
-
+		$ids    = Factory::getApplication()->input->post->get('cid', array(), 'array');
 		$model  = $this->getModel('Comments', 'JCommentsModel', array('ignore_request' => true));
 		$return = $model->checkin($ids);
 

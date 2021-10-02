@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
 class JCommentsViewBlacklist extends HtmlView
 {
@@ -40,7 +41,7 @@ class JCommentsViewBlacklist extends HtmlView
 		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
 		$userId     = Factory::getApplication()->getIdentity()->get('id');
-		$canDo      = JCommentsHelper::getActions();
+		$canDo      = ContentHelper::getActions('com_jcomments', 'component');
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
 		$isNew      = ($this->item->id == 0);
 

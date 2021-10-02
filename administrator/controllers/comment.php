@@ -32,6 +32,7 @@ class JCommentsControllerComment extends JCommentsControllerForm
 				$result  = count($reports);
 			}
 		}
+
 		echo $result;
 
 		Factory::getApplication()->close();

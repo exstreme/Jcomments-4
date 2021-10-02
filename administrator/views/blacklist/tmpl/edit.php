@@ -15,12 +15,13 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
-HTMLHelper::_('jquery.framework');
-HTMLHelper::_('behavior.formvalidator');
+/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')
+	->useScript('form.validate');
 ?>
-
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id=' . (int) $this->item->id); ?>"
-      method="post" name="adminForm" id="blacklist-form" class="form-validate">
+      method="post" name="adminForm" id="item-form" class="form-validate">
     <div class="main-card">
         <div class="row">
             <div class="col-12">

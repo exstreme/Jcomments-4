@@ -43,10 +43,10 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<th scope="col">
 							<?php echo Text::_('A_BLACKLIST_REASON'); ?>
 						</th>
-						<th scope="col">
+						<th scope="col" class="d-none d-md-table-cell">
 							<?php echo Text::_('A_BLACKLIST_NOTES'); ?>
 						</th>
-						<th scope="col" class="w-10 d-none d-md-table-cell">
+						<th scope="col" class="w-10 d-md-table-cell">
 							<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_CREATED_BY', 'u.name', $listDirn, $listOrder); ?>
 						</th>
 						<th scope="col" class="w-10 d-none d-md-table-cell">
@@ -64,7 +64,6 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						?>
 						<tr class="row<?php echo $i % 2; ?>">
 							<td class="text-center">
-								<?php //echo HTMLHelper::_('grid.id', $i, $item->id); ?>
 								<?php echo HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->ip); ?>
 							</td>
 							<td class="nowrap has-context">
@@ -78,16 +77,16 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 									<?php echo $this->escape($item->ip); ?>
 								<?php endif; ?>
 							</td>
-							<td class="small d-none d-md-table-cell">
+							<td class="small d-md-table-cell">
 								<?php echo $item->reason; ?>
 							</td>
 							<td class="small d-none d-md-table-cell">
 								<?php echo $item->notes; ?>
 							</td>
-							<td class="text-center hidden-phone">
+							<td class="d-md-table-cell">
 								<?php echo $item->name; ?>
 							</td>
-							<td class="text-center nowrap">
+							<td class="d-none d-md-table-cell">
 								<?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC4')); ?>
 							</td>
 							<td class="d-none d-md-table-cell">

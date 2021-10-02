@@ -14,11 +14,21 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
-use Joomla\CMS\Table\Table;
+use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\String\StringHelper;
+use Joomla\Utilities\ArrayHelper;
 
-class JCommentsModelComments extends JCommentsModelList
+class JCommentsModelComments extends ListModel
 {
+	/**
+	 * Context string for the model type.  This is used to handle uniqueness
+	 * when dealing with the getStoreId() method and caching data structures.
+	 *
+	 * @var    string
+	 * @since  1.6
+	 */
+	protected $context = 'com_jcomments.comments';
+
 	public function __construct($config = array())
 	{
 		if (empty($config['filter_fields']))
@@ -35,26 +45,27 @@ class JCommentsModelComments extends JCommentsModelList
 				'lang', 'jc.lang',
 				'checked_out', 'jc.checked_out',
 				'checked_out_time', 'jc.checked_out_time',
+				'ip', 'jc.ip',
+				'language', 'jc.lang'
 			);
 		}
 
 		parent::__construct($config);
 	}
 
-	public function getTable($type = 'Comment', $prefix = 'JCommentsTable', $config = array())
-	{
-		return Table::getInstance($type, $prefix, $config);
-	}
-
 	protected function getListQuery()
 	{
 		$db = $this->getDbo();
-		// TODO: filter deleted comments
 		$query = $db->getQuery(true);
 
 		$reportsSubQuery = ', (SELECT COUNT(*) FROM ' . $db->quoteName('#__jcomments_reports') . ' AS r  WHERE r.commentid = jc.id) AS reports';
 
-		$query->select('jc.*' . $reportsSubQuery);
+		$query->select(
+			$this->getState(
+				'list.select',
+				'jc.*' . $reportsSubQuery
+			)
+		);
 		$query->from($db->quoteName('#__jcomments') . ' AS jc');
 
 		// Join over the objects
@@ -65,18 +76,26 @@ class JCommentsModelComments extends JCommentsModelList
 		$query->select('u.name AS editor');
 		$query->join('LEFT', $db->quoteName('#__users') . ' AS u ON u.id = jc.checked_out');
 
-		// Filter by published state
-		$state = $this->getState('filter.state');
+		// Join over the language
+		$query->select($db->quoteName('l.title', 'language_title'))
+			->join('LEFT', $db->quoteName('#__languages', 'l') . ' ON ' . $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('jc.lang'));
 
-		if (is_numeric($state))
+		// Filter by published state
+		$published = $this->getState('filter.published');
+
+		if (is_numeric($published))
 		{
-			if ($state == 2)
+			if ($published == 2)
 			{
 				$query->where('EXISTS (SELECT * FROM ' . $db->quoteName('#__jcomments_reports') . ' AS jr WHERE jr.commentid = jc.id)');
 			}
+			elseif ($published == -1)
+			{
+				$query->where('jc.deleted = 1');
+			}
 			else
 			{
-				$query->where('jc.published = ' . (int) $state);
+				$query->where('jc.published = ' . (int) $published);
 			}
 		}
 
@@ -86,6 +105,15 @@ class JCommentsModelComments extends JCommentsModelList
 		if ($object_group != '')
 		{
 			$query->where('jc.object_group = ' . $db->Quote($db->escape($object_group)));
+		}
+
+		// Filter by user
+		$authors = $this->getState('filter.author_id');
+		$authors = ArrayHelper::toInteger($authors);
+
+		if (!empty($authors))
+		{
+			$query->where('jc.userid IN (' . implode(',', $authors) . ')');
 		}
 
 		// Filter by language
@@ -129,45 +157,54 @@ class JCommentsModelComments extends JCommentsModelList
 		return $query;
 	}
 
-	public function getFilterLanguages()
+	public function checkin($pks = array())
 	{
-		$db = $this->getDbo();
-		$query = $db->getQuery(true)
-			->select('DISTINCT(lang) AS name')
-			->from('#__jcomments')
-			->order('lang ASC');
+		$pks     = (array) $pks;
+		$table   = $this->getTable('Comment', 'JCommentsTable');
+		$checkin = property_exists($table, 'checked_out');
+		$count   = 0;
 
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
+		if ($checkin && !empty($pks))
+		{
+			foreach ($pks as $pk)
+			{
+				if ($table->load($pk))
+				{
+					if ($table->checked_out > 0)
+					{
+						if (!$table->checkin($pk))
+						{
+							$this->setError($table->getError());
 
-		return is_array($rows) ? $rows : array();
-	}
+							return false;
+						}
+						$count++;
+					}
+				}
+				else
+				{
+					$this->setError($table->getError());
 
-	public function getFilterObjectGroups()
-	{
-		$db = $this->getDbo();
-		$query = $db->getQuery(true)
-			->select('DISTINCT(object_group) AS name')
-			->from('#__jcomments')
-			->order('object_group ASC');
+					return false;
+				}
+			}
+		}
 
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
-
-		return is_array($rows) ? $rows : array();
+		return $count;
 	}
 
 	public function delete(&$pks)
 	{
-		$pks   = (array) $pks;
-		$table = $this->getTable();
-		$total = count($pks);
+		$pks       = (array) $pks;
+		$table     = $this->getTable('Comment', 'JCommentsTable');
+		$total     = count($pks);
+		$canDelete = Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
 
 		foreach ($pks as $i => $pk)
 		{
 			if ($table->load($pk))
 			{
-				if ($this->canDelete($table))
+				if ($canDelete)
 				{
 					$config = JCommentsFactory::getConfig();
 
@@ -214,20 +251,22 @@ class JCommentsModelComments extends JCommentsModelList
 
 	public function publish(&$pks, $value = 1)
 	{
-		$pks      = (array) $pks;
-		$user     = Factory::getApplication()->getIdentity();
-		$language = Factory::getApplication()->getLanguage();
-		$table    = $this->getTable();
+		$pks          = (array) $pks;
+		$user         = Factory::getApplication()->getIdentity();
+		$language     = Factory::getApplication()->getLanguage();
+		$table        = $this->getTable('Comment', 'JCommentsTable');
+		$canEditState = Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option);
 
 		$lastLanguage = '';
+
 		foreach ($pks as $i => $pk)
 		{
 			if ($table->load($pk))
 			{
-				if (!$this->canEditState($table))
+				if (!$canEditState)
 				{
 					unset($pks[$i]);
-					Log::add(JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
+					Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
 
 					return false;
 				}
@@ -264,7 +303,7 @@ class JCommentsModelComments extends JCommentsModelList
 		return true;
 	}
 
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'jc.date', $direction = 'desc')
 	{
 		$app    = Factory::getApplication();
 		$config = JCommentsFactory::getConfig();
@@ -275,6 +314,9 @@ class JCommentsModelComments extends JCommentsModelList
 		$state = $app->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
 		$this->setState('filter.state', $state);
 
+		$state = $app->getUserStateFromRequest($this->context . '.filter.ip', 'filter_ip', '', 'string');
+		$this->setState('filter.ip', $state);
+
 		$object_group = $app->getUserStateFromRequest($this->context . '.filter.object_group', 'filter_object_group', '');
 		$this->setState('filter.object_group', $object_group);
 
@@ -283,6 +325,31 @@ class JCommentsModelComments extends JCommentsModelList
 
 		$this->setState('config.comment_title', $config->getInt('comment_title'));
 
-		parent::populateState('jc.date', 'desc');
+		parent::populateState($ordering, $direction);
+	}
+
+	/**
+	 * Method to get a store id based on model configuration state.
+	 *
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param   string  $id  A prefix for the store id.
+	 *
+	 * @return  string  A store id.
+	 *
+	 * @since   1.6
+	 */
+	protected function getStoreId($id = '')
+	{
+		// Compile the store id.
+		$id .= ':' . $this->getState('filter.search');
+		$id .= ':' . $this->getState('filter.published');
+		$id .= ':' . $this->getState('filter.object_group');
+		$id .= ':' . serialize($this->getState('filter.author_id'));
+		$id .= ':' . $this->getState('filter.language');
+
+		return parent::getStoreId($id);
 	}
 }
