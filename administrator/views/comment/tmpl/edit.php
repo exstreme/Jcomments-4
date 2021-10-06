@@ -161,7 +161,7 @@ $wa->useScript('jquery')
 						<?php echo $report->name; ?><br/ ><?php echo $report->ip; ?>
 					</td>
 					<td>
-						<?php echo JHtml::_('date', $report->date, 'Y-m-d H:i:s'); ?>
+						<?php echo HTMLHelper::_('date', $report->date, 'Y-m-d H:i:s'); ?>
 					</td>
 					<td>
 						<a title="<?php echo Text::_('A_REPORTS_REMOVE_REPORT'); ?>" href="#"
@@ -181,5 +181,5 @@ $wa->useScript('jquery')
 	</div>
 
 	<input type="hidden" name="task" value=""/>
-	<?php echo JHtml::_('form.token'); ?>
+	<?php echo HTMLHelper::_('form.token'); ?>
 </form>

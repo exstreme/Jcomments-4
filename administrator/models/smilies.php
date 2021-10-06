@@ -12,10 +12,11 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Table\Table;
 
 class JCommentsModelSmilies extends JCommentsModelList
 {
+	protected $context = 'com_jcomments.smilies';
+
 	public function __construct($config = array())
 	{
 		if (empty($config['filter_fields']))
@@ -33,16 +34,22 @@ class JCommentsModelSmilies extends JCommentsModelList
 		parent::__construct($config);
 	}
 
-	public function getTable($type = 'Smiley', $prefix = 'JCommentsTable', $config = array())
+	public function getTable($name = '', $prefix = '', $options = array())
 	{
-		return Table::getInstance($type, $prefix, $config);
+		return parent::getTable('Smiley', 'JCommentsTable', $options);
 	}
 
 	protected function getListQuery()
 	{
-		$db = $this->getDbo();
+		$db    = $this->getDbo();
 		$query = $db->getQuery(true);
-		$query->select("js.*");
+
+		$query->select(
+			$this->getState(
+				'list.select',
+				'js.*'
+			)
+		);
 		$query->from($db->quoteName('#__jcomments_smilies') . ' AS js');
 
 		// Join over the users
@@ -50,8 +57,8 @@ class JCommentsModelSmilies extends JCommentsModelList
 		$query->join('LEFT', $db->quoteName('#__users') . ' AS u ON u.id = js.checked_out');
 
 		// Filter by published state
-		$state = $this->getState('filter.state');
-		
+		$state = $this->getState('filter.published');
+
 		if (is_numeric($state))
 		{
 			$query->where('js.published = ' . (int) $state);
@@ -59,7 +66,7 @@ class JCommentsModelSmilies extends JCommentsModelList
 
 		// Filter by search in name or email
 		$search = $this->getState('filter.search');
-		
+
 		if (!empty($search))
 		{
 			$search = $db->Quote('%' . $db->escape($search, true) . '%');
@@ -73,16 +80,38 @@ class JCommentsModelSmilies extends JCommentsModelList
 		return $query;
 	}
 
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'js.ordering', $direction = 'asc')
 	{
 		$app = Factory::getApplication();
 
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$state = $app->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
-		$this->setState('filter.state', $state);
+		$published = $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '');
+		$this->setState('filter.published', $published);
 
-		parent::populateState('js.ordering', 'asc');
+		parent::populateState($ordering, $direction);
+	}
+
+	/**
+	 * Method to get a store id based on model configuration state.
+	 *
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param   string  $id  A prefix for the store id.
+	 *
+	 * @return  string  A store id.
+	 *
+	 * @since   1.6
+	 */
+	protected function getStoreId($id = '')
+	{
+		// Compile the store id.
+		$id .= ':' . $this->getState('filter.search');
+		$id .= ':' . $this->getState('filter.published');
+
+		return parent::getStoreId($id);
 	}
 }

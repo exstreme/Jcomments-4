@@ -78,7 +78,7 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 								<?php echo Text::_('A_CUSTOM_BBCODE_BUTTON_ICON'); ?>
 							</th>
 							<th scope="col" class="w-5 d-none d-md-table-cell">
-								<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ID', 'jcb.id', $listDirection, $listOrder); ?>
+								<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'jcb.id', $listDirection, $listOrder); ?>
 							</th>
 						</tr>
 						</thead>
@@ -125,7 +125,7 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 									<?php endif; ?>
 								</td>
 								<td class="text-center">
-									<?php echo JHtml::_('jgrid.published', $item->published, $i, 'custombbcodes.', $canChange); ?>
+									<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'custombbcodes.', $canChange); ?>
 								</td>
 								<td class="has-context">
 									<div class="break-word">
@@ -136,7 +136,7 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 											<a href="<?php echo Route::_('index.php?option=com_jcomments&task=custombbcode.edit&id=' . $item->id); ?>" title="<?php echo Text::_('JACTION_EDIT'); ?> <?php echo $this->escape($item->name); ?>">
 												<?php echo $this->escape($item->name); ?></a>
 										<?php else : ?>
-											<span title="<?php echo Text::sprintf('JFIELD_ALIAS_LABEL', $this->escape($item->alias)); ?>"><?php echo $this->escape($item->name); ?></span>
+											<span><?php echo $this->escape($item->name); ?></span>
 										<?php endif; ?>
 									</div>
 								</td>
@@ -144,7 +144,7 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 									<?php echo $item->simple_pattern; ?>
 								</td>
 								<td class="text-center hidden-phone">
-									<?php echo JHtml::_('custombbcodes.buttonstate', $item->button_enabled, $i, $canChange, 'cb'); ?>
+									<?php echo HTMLHelper::_('custombbcodes.buttonstate', $item->button_enabled, $i, $canChange, 'cb'); ?>
 								</td>
 								<td class="text-center hidden-phone">
 									<?php echo $icon; ?>

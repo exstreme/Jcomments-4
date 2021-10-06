@@ -156,7 +156,7 @@ class JCommentsControllerList extends BaseController
 
 			if ($result === false)
 			{
-				$app->enqueueMessage(Text::_('A_CUSTOM_BBCODE_N_ITEMS_CHECKED_IN_0'));
+				$app->enqueueMessage(Text::_('A_N_ITEMS_CHECKED_IN_0'));
 				$this->setRedirect(
 					Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false),
 					$model->getError(),
@@ -167,7 +167,7 @@ class JCommentsControllerList extends BaseController
 			}
 			else
 			{
-				$msg = Text::plural('A_CUSTOM_BBCODE_N_ITEMS_CHECKED_IN', $result);
+				$msg = Text::plural('A_N_ITEMS_CHECKED_IN', $result);
 			}
 		}
 

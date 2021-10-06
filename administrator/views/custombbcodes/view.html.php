@@ -48,12 +48,12 @@ class JCommentsViewCustombbcodes extends HtmlView
 
 		ToolbarHelper::title(JText::_('A_SUBMENU_CUSTOM_BBCODE'));
 
-		if (($canDo->get('core.create')))
+		if ($canDo->get('core.create'))
 		{
 			ToolbarHelper::addNew('custombbcode.add');
 		}
 
-		if (($canDo->get('core.edit')))
+		if ($canDo->get('core.edit'))
 		{
 			ToolbarHelper::editList('custombbcode.edit');
 		}
@@ -79,7 +79,7 @@ class JCommentsViewCustombbcodes extends HtmlView
 			$childBar->checkin('custombbcodes.checkin')->listCheck(true);
 		}
 
-		if (($canDo->get('core.delete')))
+		if ($canDo->get('core.delete'))
 		{
 			$childBar->delete('custombbcodes.delete')
 				->message('JGLOBAL_CONFIRM_DELETE')

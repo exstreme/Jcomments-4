@@ -13,11 +13,12 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Folder;
+use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 
-class JFormFieldSmileyImage extends JFormField
+class JFormFieldSmileyImage extends FormField
 {
 	protected $type = 'SmileyImage';
 
@@ -56,8 +57,6 @@ class JFormFieldSmileyImage extends JFormField
 
 		$html = array();
 
-		$html[] = '<div class="input-prepend input-append">';
-
 		// Images list
 		$listAttr = '';
 		$listAttr .= $this->element['class'] ? ' class="' . (string) $this->element['class'] . '"' : '';
@@ -88,7 +87,7 @@ class JFormFieldSmileyImage extends JFormField
 			'class' => 'media-preview',
 			'style' => $style,
 		);
-		$img             = HTMLHelper::image($src, JText::_('JLIB_FORM_MEDIA_PREVIEW_ALT'), $imgAttr);
+		$img             = HTMLHelper::image($src, Text::_('JLIB_FORM_MEDIA_PREVIEW_ALT'), $imgAttr);
 		$previewImg      = '<div id="' . $this->id . '_preview_img"' . ($src ? '' : ' style="display:none"') . '>' . $img . '</div>';
 		$previewImgEmpty = '<div id="' . $this->id . '_preview_empty"' . ($src ? ' style="display:none"' : '') . '>'
 			. Text::_('JLIB_FORM_MEDIA_PREVIEW_EMPTY') . '</div>';
@@ -96,8 +95,6 @@ class JFormFieldSmileyImage extends JFormField
 		$html[] = '<div class="media-preview add-on">';
 		$html[] = ' ' . $previewImgEmpty;
 		$html[] = ' ' . $previewImg;
-		$html[] = '</div>';
-
 		$html[] = '</div>';
 
 		return implode("\n", $html);

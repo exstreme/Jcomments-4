@@ -11,11 +11,13 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Table\Table;
+
 /**
  * JComments smilies table
  *
  */
-class JCommentsTableSmiley extends JTable
+class JCommentsTableSmiley extends Table
 {
 	public function __construct($_db)
 	{

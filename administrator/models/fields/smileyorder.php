@@ -11,9 +11,10 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 
-class JFormFieldSmileyOrder extends JFormField
+class JFormFieldSmileyOrder extends FormField
 {
 	protected $type = 'SmileyOrder';
 
