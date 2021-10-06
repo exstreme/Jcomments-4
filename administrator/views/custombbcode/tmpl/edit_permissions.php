@@ -10,7 +10,9 @@
  */
 
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
 ?>
 <div class="col-lg-12">
-	<?php echo JHtml::_('jcomments.usergroups', 'jform[button_acl]', $this->groups, true); ?>
+	<?php echo HTMLHelper::_('jcomments.usergroups', 'jform[button_acl]', $this->groups, true); ?>
 </div>

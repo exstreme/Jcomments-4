@@ -15,9 +15,9 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
 HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
-JHtml::_('jquery.framework');
-JHtml::_('script', 'media/com_jcomments/js/jcomments.progressbar.js');
-JHtml::_('script', 'media/com_jcomments/js/jcomments.objects.js');
+HTMLHelper::_('jquery.framework');
+HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.progressbar.js');
+HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.objects.js');
 ?>
 <script type="text/javascript">
     (function ($) {

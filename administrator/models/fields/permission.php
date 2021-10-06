@@ -12,9 +12,10 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Form\FormField;
 use Joomla\CMS\Language\Text;
 
-class JFormFieldPermission extends JFormField
+class JFormFieldPermission extends FormField
 {
 	public $type = 'Permission';
 
@@ -68,7 +69,9 @@ class JFormFieldPermission extends JFormField
 
 		if (!empty($this->description))
 		{
-			$title = ' title="' . htmlspecialchars(trim($text, ':') . '::' . ($this->translateDescription ? Text::_($this->description) : $this->description), ENT_COMPAT, 'UTF-8') . '"';
+			$title = ' title="' . htmlspecialchars(trim($text, ':') . '::' . ($this->translateDescription
+				? Text::_($this->description)
+				: $this->description), ENT_COMPAT, 'UTF-8') . '"';
 		}
 
 		$html   = array();

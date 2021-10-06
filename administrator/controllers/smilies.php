@@ -70,35 +70,6 @@ class JCommentsControllerSmilies extends JCommentsControllerList
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
 	}
 
-	public function reorder()
-	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
-
-		$ids = $this->input->post->get('cid', array(), 'array');
-		$inc = ($this->getTask() == 'orderup') ? -1 : +1;
-
-		$model  = $this->getModel();
-		$return = $model->reorder($ids, $inc);
-
-		if ($return === false)
-		{
-			$message = Text::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError());
-			$this->setRedirect(
-				Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false),
-				$message, 'error'
-			);
-
-			return false;
-		}
-		else
-		{
-			$this->setMessage(Text::_('JLIB_APPLICATION_SUCCESS_ITEM_REORDERED'));
-			$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
-
-			return true;
-		}
-	}
-
 	public function saveorder()
 	{
 		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
@@ -147,7 +118,7 @@ class JCommentsControllerSmilies extends JCommentsControllerList
 		if ($return)
 		{
 			$this->getModel('smiley')->saveLegacy();
-			echo "1";
+			echo '1';
 		}
 
 		Factory::getApplication()->close();

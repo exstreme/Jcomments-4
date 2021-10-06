@@ -26,7 +26,7 @@ class JCommentsModelSmiley extends JCommentsModelForm
 	public function getForm($data = array(), $loadData = true)
 	{
 		$form = $this->loadForm('com_jcomments.smiley', 'smiley', array('control' => 'jform', 'load_data' => $loadData));
-		
+
 		if (empty($form))
 		{
 			return false;

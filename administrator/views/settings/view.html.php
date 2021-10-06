@@ -16,6 +16,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
 class JCommentsViewSettings extends HtmlView
 {
@@ -83,7 +84,7 @@ class JCommentsViewSettings extends HtmlView
     {
         require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
-        $canDo = JCommentsHelper::getActions();
+	    $canDo = ContentHelper::getActions('com_jcomments', 'component');
 
         ToolbarHelper::title(JText::_('A_SETTINGS'));
 

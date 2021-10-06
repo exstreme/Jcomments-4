@@ -4,7 +4,6 @@
 		<field
 				name="code"
 				type="text"
-				class="inputbox"
 				size="40"
 				label="A_SMILIES_FIELD_CODE_LABEL"
 				description="A_SMILIES_FIELD_CODE_DESC"
@@ -13,7 +12,6 @@
 		<field
 				name="name"
 				type="text"
-				class="inputbox"
 				size="40"
 				label="A_SMILIES_FIELD_NAME_LABEL"
 				description="A_SMILIES_FIELD_NAME_DESC"/>
@@ -25,6 +23,7 @@
 				hide_none="1"
 				label="A_SMILIES_FIELD_IMAGE_LABEL"
 				size="40"
+				class="form-select"
 				description="A_SMILIES_FIELD_IMAGE_DESC"
 				required="true"/>
 
@@ -32,10 +31,10 @@
 				name="published"
 				type="list"
 				label="JSTATUS"
-				description=""
-				class="inputbox"
+				default="0"
+				class="form-select-color-state"
 				size="1"
-				default="1"
+				validate="options"
 		>
 			<option value="1">JPUBLISHED</option>
 			<option value="0">JUNPUBLISHED</option>
@@ -44,7 +43,7 @@
 		<field
 				name="ordering"
 				type="smileyorder"
-				class="inputbox"
+				class="form-select"
 				label="JFIELD_ORDERING_LABEL"
 				description="JFIELD_ORDERING_DESC"/>
 
@@ -57,6 +56,7 @@
 				label="JGLOBAL_FIELD_ID_LABEL"
 				description="JGLOBAL_FIELD_ID_DESC"/>
 
+		<!-- Used in view to internal access checking -->
 		<field
 				name="checked_out"
 				type="hidden"

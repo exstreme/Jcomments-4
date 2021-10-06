@@ -10,26 +10,21 @@
  */
 
 defined('_JEXEC') or die;
-?>
-<script type="text/javascript">
-Joomla.submitbutton = function(task)
-{
-	if (task == 'smiley.cancel' || document.formvalidator.isValid(document.getElementById('smiley-form'))) {
-		Joomla.submitform(task, document.getElementById('smiley-form'));
-	}
-}
-</script>
 
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=smiley&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="smiley-form" class="form-validate options-form">
-	<?php if(!empty($this->bootstrap)): ?>
-	<ul class="nav nav-tabs">
-		<li class="active"><a href="#general" data-toggle="tab"><?php echo JText::_('A_SMILIES_SMILEY_DETAILS');?></a></li>
-	</ul>
-	<?php endif;?>
-	<div class="tab-content">
-		<div class="tab-pane active" id="general">
-			<div class="row-fluid">
-				<div class="span6">
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Router\Route;
+
+/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')
+	->useScript('form.validate');
+?>
+<form action="<?php echo Route::_('index.php?option=com_jcomments&view=smiley&layout=edit&id='. (int) $this->item->id); ?>"
+	  method="post" name="adminForm" id="item-form" class="form-validate">
+	<div class="main-card">
+		<div class="row">
+			<div class="col-12">
+				<fieldset id="fieldset-edit" class="options-form">
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('code'); ?>
@@ -78,10 +73,10 @@ Joomla.submitbutton = function(task)
 							<?php echo $this->form->getInput('id'); ?>
 						</div>
 					</div>
-				</div>
+				</fieldset>
 			</div>
 		</div>
 		<input type="hidden" name="task" value="" />
-		<?php echo JHtml::_('form.token'); ?>
+		<?php echo HTMLHelper::_('form.token'); ?>
 	</div>
 </form>

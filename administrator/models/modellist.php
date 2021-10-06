@@ -33,140 +33,6 @@ class JCommentsModelList extends ListModel
 		$this->tableName = substr($this->getName(), 0, -1);
 	}
 
-	/*public function getItems()
-	{
-		$store = $this->getStoreId();
-
-		if (isset($this->cache[$store]))
-		{
-			return $this->cache[$store];
-		}
-
-		$query = $this->_getListQuery();
-
-		try
-		{
-			$items = $this->_getList($query, $this->getStart(), $this->getState('list.limit'));
-		}
-		catch (RuntimeException $e)
-		{
-			$this->setError($e->getMessage());
-
-			return false;
-		}
-
-		$this->cache[$store] = $items;
-
-		return $this->cache[$store];
-	}
-
-	public function getPagination()
-	{
-		$store = $this->getStoreId('getPagination');
-
-		if (isset($this->cache[$store]))
-		{
-			return $this->cache[$store];
-		}
-
-		$limit = (int) $this->getState('list.limit');
-		$page = new Pagination($this->getTotal(), $this->getStart(), $limit);
-
-		$this->cache[$store] = $page;
-
-		return $this->cache[$store];
-	}
-
-	/*protected function getListQuery()
-	{
-		return $this->getDbo()->getQuery(true);
-	}*/
-
-	/*protected function getStoreId($id = '')
-	{
-		// Add the list state to the store id.
-		$id .= ':' . $this->getState('list.start');
-		$id .= ':' . $this->getState('list.limit');
-		$id .= ':' . $this->getState('list.ordering');
-		$id .= ':' . $this->getState('list.direction');
-
-		return md5($this->context . ':' . $id);
-	}
-
-	public function getTotal()
-	{
-		$store = $this->getStoreId('getTotal');
-
-		if (isset($this->cache[$store]))
-		{
-			return $this->cache[$store];
-		}
-
-		$query = $this->_getListQuery();
-
-		try
-		{
-			$total = (int) $this->_getListCount($query);
-		}
-		catch (RuntimeException $e)
-		{
-			$this->setError($e->getMessage());
-
-			return false;
-		}
-
-		$this->cache[$store] = $total;
-
-		return $this->cache[$store];
-	}
-
-	public function getStart()
-	{
-		$store = $this->getStoreId('getStart');
-
-		if (isset($this->cache[$store]))
-		{
-			return $this->cache[$store];
-		}
-
-		$start = $this->getState('list.start');
-		$limit = $this->getState('list.limit');
-		$total = $this->getTotal();
-		if ($start > $total - $limit)
-		{
-			$start = max(0, (int) (ceil($total / $limit) - 1) * $limit);
-		}
-
-		$this->cache[$store] = $start;
-
-		return $this->cache[$store];
-	}
-
-
-	protected function _getListQuery()
-	{
-		static $lastStoreId;
-
-		$currentStoreId = $this->getStoreId();
-
-		if ($lastStoreId != $currentStoreId || empty($this->query))
-		{
-			$lastStoreId = $currentStoreId;
-			$this->query = $this->getListQuery();
-		}
-
-		return $this->query;
-	}
-
-	protected function _getListCount($query)
-	{
-		$db = $this->getDbo();
-		$db->setQuery($query);
-		$db->execute();
-
-		return $db->getNumRows();
-	}*/
-
 	public function delete(&$pks)
 	{
 		$table = $this->getTable($this->tableName, $this->tablePrefix);
@@ -253,6 +119,7 @@ class JCommentsModelList extends ListModel
 
 					return false;
 				}
+
 				if (!$table->publish(array($pk), $value, $user->get('id')))
 				{
 					$this->setError($table->getError());
@@ -271,13 +138,15 @@ class JCommentsModelList extends ListModel
 		$checkin = property_exists($table, 'checked_out');
 		$count   = 0;
 
-		if ($checkin === false) {
+		if ($checkin === false)
+		{
 			return $count;
 		}
 
 		foreach ($pks as $pk)
 		{
-			if (!$table->load($pk) || !$table->checkin($pk)) {
+			if (!$table->load($pk) || !$table->checkin($pk))
+			{
 				$this->setError($table->getError());
 
 				return false;
@@ -289,6 +158,15 @@ class JCommentsModelList extends ListModel
 		return $count;
 	}
 
+	/**
+	 * A protected method to get a set of ordering conditions.
+	 *
+	 * @param   Table  $table  A \Table object.
+	 *
+	 * @return  array  An array of conditions to add to ordering queries.
+	 *
+	 * @since   1.6
+	 */
 	protected function getReorderConditions($table)
 	{
 		return array();
@@ -298,7 +176,6 @@ class JCommentsModelList extends ListModel
 	{
 		if (!empty($pks))
 		{
-			/* @var Table $table */
 			$table      = $this->getTable($this->tableName, $this->tablePrefix);
 			$conditions = array();
 			$ordering   = property_exists($table, 'ordering');
@@ -320,7 +197,7 @@ class JCommentsModelList extends ListModel
 							return false;
 						}
 
-						$reorderCondition = $this->getReorderConditions($table);
+						$reorderCondition = $this->getReorderConditions();
 						$found            = false;
 
 						foreach ($conditions as $condition)
@@ -349,63 +226,6 @@ class JCommentsModelList extends ListModel
 		}
 
 		return true;
-	}
-
-	public function reorder($pks, $delta = 0)
-	{
-		$table  = $this->getTable($this->tableName, $this->tablePrefix);
-		$pks    = (array) $pks;
-		$result = true;
-
-		$allowed = true;
-
-		foreach ($pks as $i => $pk)
-		{
-			$table->reset();
-
-			if ($table->load($pk) && $this->checkout($pk))
-			{
-				// Access checks.
-				if (!Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option))
-				{
-					// Prune items that you can't change.
-					unset($pks[$i]);
-					$this->checkin($pk);
-					Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
-					$allowed = false;
-					continue;
-				}
-
-				$where = $this->getReorderConditions($table);
-
-				if (!$table->move($delta, $where))
-				{
-					$this->setError($table->getError());
-					unset($pks[$i]);
-					$result = false;
-				}
-
-				$this->checkin($pk);
-			}
-			else
-			{
-				$this->setError($table->getError());
-				unset($pks[$i]);
-				$result = false;
-			}
-		}
-
-		if ($allowed === false && empty($pks))
-		{
-			$result = null;
-		}
-
-		if ($result == true)
-		{
-			$this->cleanCache();
-		}
-
-		return $result;
 	}
 
 
@@ -439,6 +259,7 @@ class JCommentsModelList extends ListModel
 				$value = $direction;
 				$app->setUserState($this->context . '.filter.order_Dir', $value);
 			}
+
 			$this->setState('list.direction', $value);
 		}
 		else
