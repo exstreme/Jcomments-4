@@ -45,6 +45,12 @@
 		<folder>tpl</folder>
 		<folder>views</folder>
 	</files>
+
+	<media destination="com_jcomments" folder="media">
+		<folder>css</folder>
+		<folder>images</folder>
+		<folder>js</folder>
+	</media>
  
 	<languages folder="site/languages">
 		<language tag="ar-AA">ar-AA.com_jcomments.ini</language>
@@ -136,19 +142,18 @@
 	<administration>
 		<menu img="components/com_jcomments/assets/images/icon-16-jcomments.png" view="comments">COM_JCOMMENTS</menu>
 		<submenu>
-			<menu view="comments" img="class:jcomments-comments" link="option=com_jcomments&amp;view=comments">COM_JCOMMENTS_COMMENTS</menu>
-			<menu view="settings" img="class:jcomments-settings" link="option=com_jcomments&amp;view=settings">COM_JCOMMENTS_SETTINGS</menu>
-			<menu view="smilies" img="class:jcomments-smilies" link="option=com_jcomments&amp;view=smilies">COM_JCOMMENTS_SMILIES</menu>
-			<menu view="subscriptions" img="class:jcomments-subscriptions" link="option=com_jcomments&amp;view=subscriptions">COM_JCOMMENTS_SUBSCRIPTIONS</menu>
-			<menu view="custombbcodes" img="class:jcomments-custombbcodes" link="option=com_jcomments&amp;view=custombbcodes">COM_JCOMMENTS_CUSTOM_BBCODE</menu>
-			<menu view="blacklists" img="class:jcomments-blacklist" link="option=com_jcomments&amp;view=blacklists">COM_JCOMMENTS_BLACKLIST</menu>
-			<menu view="mailq" img="class:jcomments-mailq" link="option=com_jcomments&amp;view=mailq">COM_JCOMMENTS_MAILQ</menu>
-			<menu view="import" img="class:jcomments-import" link="option=com_jcomments&amp;view=import">COM_JCOMMENTS_IMPORT</menu>
-			<menu view="about" img="class:jcomments-about" link="option=com_jcomments&amp;view=about">COM_JCOMMENTS_ABOUT</menu>
+			<menu view="comments" link="option=com_jcomments&amp;view=comments">COM_JCOMMENTS_COMMENTS</menu>
+			<menu view="settings" link="option=com_jcomments&amp;view=settings">COM_JCOMMENTS_SETTINGS</menu>
+			<menu view="smilies" link="option=com_jcomments&amp;view=smilies">COM_JCOMMENTS_SMILIES</menu>
+			<menu view="subscriptions" link="option=com_jcomments&amp;view=subscriptions">COM_JCOMMENTS_SUBSCRIPTIONS</menu>
+			<menu view="custombbcodes" link="option=com_jcomments&amp;view=custombbcodes">COM_JCOMMENTS_CUSTOM_BBCODE</menu>
+			<menu view="blacklists" link="option=com_jcomments&amp;view=blacklists">COM_JCOMMENTS_BLACKLIST</menu>
+			<menu view="mailqueues" link="option=com_jcomments&amp;view=mailqueues">COM_JCOMMENTS_MAILQ</menu>
+			<menu view="import" link="option=com_jcomments&amp;view=import">COM_JCOMMENTS_IMPORT</menu>
+			<menu view="about" link="option=com_jcomments&amp;view=about">COM_JCOMMENTS_ABOUT</menu>
 		</submenu>
 
 		<files folder="administrator">
-			<folder>assets</folder>
 			<folder>controllers</folder>
 			<folder>classes</folder>
 			<folder>helpers</folder>

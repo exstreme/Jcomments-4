@@ -13,14 +13,14 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseDriver;
-use Joomla\Event\DispatcherInterface;
 
 /**
  * JComments comments table
  *
  */
-class JCommentsTableComment extends JTable
+class JCommentsTableComment extends Table
 {
 	/** @var int Primary key */
 	var $id = null;
@@ -36,8 +36,6 @@ class JCommentsTableComment extends JTable
 	var $object_id = null;
 	/** @var string */
 	var $object_group = null;
-	/** @var string */
-	var $object_params = null;
 	/** @var string */
 	var $lang = null;
 	/** @var int */
@@ -85,7 +83,6 @@ class JCommentsTableComment extends JTable
 	 *
 	 * @param   DatabaseDriver  $table  Name of the table to model.
 	 *
-	 * @return  JCommentsTableComment
 	 * @since   1.7.0
 	 */
 	public function __construct($table)
@@ -138,6 +135,7 @@ class JCommentsTableComment extends JTable
 		if ($this->parent > 0)
 		{
 			$parent = new JCommentsTableComment($this->_db);
+
 			if ($parent->load($this->parent))
 			{
 				if (empty($this->title) && $config->getInt('comment_title') == 1)
@@ -189,20 +187,21 @@ class JCommentsTableComment extends JTable
 
 	public function delete($oid = null)
 	{
-		$k  = $this->_tbl_key;
-		$id = $oid ? $oid : $this->$k;
-
+		$db     = $this->getDbo();
+		$id     = $oid ? $oid : $this->{$this->getKeyName()};
 		$result = parent::delete($oid);
 
 		if ($result)
 		{
-			// process nested comments (threaded mode)
-			$query = "SELECT id, parent"
-				. "\n FROM #__jcomments"
-				. "\n WHERE `object_group` = " . $this->_db->Quote($this->object_group)
-				. "\n AND `object_id`= " . $this->object_id;
-			$this->_db->setQuery($query);
-			$rows = $this->_db->loadObjectList();
+			// Process nested comments (threaded mode).
+			$query = $db->getQuery(true)
+				->select($db->quoteName(array('id', 'parent')))
+				->from($db->quoteName('#__jcomments'))
+				->where($db->quoteName('object_group') . ' = ' . $db->Quote($this->object_group))
+				->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id);
+
+			$db->setQuery($query);
+			$rows = $db->loadObjectList();
 
 			require_once(JCOMMENTS_LIBRARIES . '/joomlatune/tree.php');
 
@@ -213,31 +212,42 @@ class JCommentsTableComment extends JTable
 
 			if (count($descendants))
 			{
-				$query = "DELETE FROM #__jcomments WHERE id IN (" . implode(',', $descendants) . ')';
-				$this->_db->setQuery($query);
-				$this->_db->execute();
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments'))
+					->where($db->quoteName('id') . ' IN (' . implode(',', $descendants) . ')');
+				$db->setQuery($query);
+				$db->execute();
 
 				$descendants[] = $id;
-				$query         = "DELETE FROM #__jcomments_votes WHERE commentid IN (" . implode(',', $descendants) . ')';
-				$this->_db->setQuery($query);
-				$this->_db->execute();
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_votes'))
+					->where($db->quoteName('commentid') . ' IN (' . implode(',', $descendants) . ')');
+				$db->setQuery($query);
+				$db->execute();
 
-				$query = "DELETE FROM #__jcomments_reports WHERE commentid IN (" . implode(',', $descendants) . ')';
-				$this->_db->setQuery($query);
-				$this->_db->execute();
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_reports'))
+					->where($db->quoteName('commentid') . ' IN (' . implode(',', $descendants) . ')');
+				$db->setQuery($query);
+				$db->execute();
 			}
 			else
 			{
 				// delete comment's vote info
-				$query = "DELETE FROM #__jcomments_votes WHERE commentid = " . $id;
-				$this->_db->setQuery($query);
-				$this->_db->execute();
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_votes'))
+					->where($db->quoteName('commentid') . ' = ' . (int) $id);
+				$db->setQuery($query);
+				$db->execute();
 
 				// delete comment's reports info
-				$query = "DELETE FROM #__jcomments_reports WHERE commentid = " . $id;
-				$this->_db->setQuery($query);
-				$this->_db->execute();
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_reports'))
+					->where($db->quoteName('commentid') . ' = ' . (int) $id);
+				$db->setQuery($query);
+				$db->execute();
 			}
+
 			unset($descendants);
 		}
 

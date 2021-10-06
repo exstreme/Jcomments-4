@@ -11,8 +11,6 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\HTML\Helpers\Sidebar;
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\Toolbar;
@@ -29,16 +27,11 @@ class JCommentsViewComments extends HtmlView
 
 	function display($tpl = null)
 	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
 		$this->items         = $this->get('Items');
 		$this->pagination    = $this->get('Pagination');
 		$this->filterForm    = $this->get('FilterForm');
 		$this->activeFilters = $this->get('ActiveFilters');
 		$this->state         = $this->get('State');
-
-		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-		Sidebar::setAction('index.php?option=com_jcomments&view=comments');
 
 		$this->addToolbar();
 
@@ -49,7 +42,7 @@ class JCommentsViewComments extends HtmlView
 	{
 		$canDo = ContentHelper::getActions('com_jcomments', 'component');
 
-		ToolbarHelper::title(Text::_('A_SUBMENU_COMMENTS'), 'jcomments-comments');
+		ToolbarHelper::title(Text::_('A_SUBMENU_COMMENTS'));
 
 		if ($canDo->get('core.edit.state'))
 		{

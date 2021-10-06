@@ -44,11 +44,11 @@ abstract class JHtmlCustomBBCodes
 
 	public static function sample($text)
 	{
-		$html = '<div class="jcomments-sample span4">';
-		$html .= '<div class="jcomments-sample-heading">' . Text::_('A_CUSTOM_BBCODE_EXAMPLE') . '</div>';
-		$html .= '<div class="jcomments-sample-text">' . $text . '</div>';
-		$html .= '</div>';
-
-		return $html;
+		return '<div class="card">
+			<div class="card-body">
+				<h5 class="card-title">' . Text::_('A_CUSTOM_BBCODE_EXAMPLE') . '</h5>
+				<p class="card-text">' . $text . '</p>
+			</div>
+		</div>';
 	}
 }

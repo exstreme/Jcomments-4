@@ -29,8 +29,6 @@ class JCommentsViewBlacklist extends HtmlView
 		$this->form  = $this->get('Form');
 		$this->state = $this->get('State');
 
-		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
 		$this->addToolbar();
 
 		parent::display($tpl);
@@ -38,8 +36,6 @@ class JCommentsViewBlacklist extends HtmlView
 
 	protected function addToolbar()
 	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
 		$userId     = Factory::getApplication()->getIdentity()->get('id');
 		$canDo      = ContentHelper::getActions('com_jcomments', 'component');
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
@@ -56,7 +52,7 @@ class JCommentsViewBlacklist extends HtmlView
 
 		if (!$isNew && $canDo->get('core.create'))
 		{
-			JToolbarHelper::save2new('blacklist.save2new');
+			ToolbarHelper::save2new('blacklist.save2new');
 		}
 
 		if ($isNew)

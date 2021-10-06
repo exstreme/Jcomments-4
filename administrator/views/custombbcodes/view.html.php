@@ -2,114 +2,88 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-class JCommentsViewCustombbcodes extends JCommentsViewLegacy
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\Component\Content\Administrator\Helper\ContentHelper;
+
+class JCommentsViewCustombbcodes extends HtmlView
 {
 	protected $items;
 	protected $pagination;
 	protected $state;
+	public $filterForm;
+	public $activeFilters;
 
-	function display($tpl = null)
+	public function display($tpl = null)
 	{
+		$this->items         = $this->get('Items');
+		$this->pagination    = $this->get('Pagination');
+		$this->filterForm    = $this->get('FilterForm');
+		$this->activeFilters = $this->get('ActiveFilters');
+		$this->state         = $this->get('State');
 
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
-		$this->items = $this->get('Items');
-		$this->pagination = $this->get('Pagination');
-		$this->state = $this->get('State');
-
-		$filter_state = $this->state->get('filter.state');
-
-		// Filter by published state
-		$filter_state_options = array();
-		$filter_state_options[] = JHTML::_('select.option', '1', JText::_('A_FILTER_STATE_PUBLISHED'));
-		$filter_state_options[] = JHTML::_('select.option', '0', JText::_('A_FILTER_STATE_UNPUBLISHED'));
-
-		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-		JHtml::_('jcomments.stylesheet');
-
-		// Use frontend template's stylesheet for icons
-		$document = JFactory::getDocument();
-		$document->addStylesheet(JURI::root(true) . '/components/com_jcomments/tpl/default/style.css?v=3002', 'text/css', null);
-
-		if (version_compare(JVERSION, '3.0', 'ge')) {
-			JHtml::_('bootstrap.tooltip');
-			JHtml::_('formbehavior.chosen', 'select');
-
-			JCommentsHelper::addSubmenu('custombbcodes');
-
-			JHtmlSidebar::setAction('index.php?option=com_jcomments&view=custombbcodes');
-			JHtmlSidebar::addFilter(
-				JText::_('A_FILTER_STATE'),
-				'filter_state',
-				JHtml::_('select.options', $filter_state_options, 'value', 'text', $filter_state, true)
-			);
-
-			$this->bootstrap = true;
-			$this->sidebar = JHtmlSidebar::render();
-		} else {
-			JCommentsHelper::addSubmenu('custombbcodes');
-
-			array_unshift($filter_state_options, JHTML::_('select.option', '', JText::_('A_FILTER_STATE')));
-			$filter = JHTML::_('select.genericlist', $filter_state_options, 'filter_state', 'onchange="Joomla.submitform();"', 'value', 'text', $filter_state);
-
-			$this->assignRef('filter', $filter);
-		}
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
 		$this->addToolbar();
 
-		// Include the component HTML helpers.
-		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 		parent::display($tpl);
 
 	}
 
 	protected function addToolbar()
 	{
-		$canDo = JCommentsHelper::getActions();
+		$toolbar = Toolbar::getInstance('toolbar');
+		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
 
-		JToolBarHelper::title(JText::_('A_SUBMENU_CUSTOM_BBCODE'), 'jcomments-custombbcodes');
+		ToolbarHelper::title(JText::_('A_SUBMENU_CUSTOM_BBCODE'));
 
-		if (($canDo->get('core.create'))) {
-			JToolBarHelper::addNew('custombbcode.add');
+		if (($canDo->get('core.create')))
+		{
+			ToolbarHelper::addNew('custombbcode.add');
 		}
 
-		if (($canDo->get('core.edit'))) {
-			JToolBarHelper::editList('custombbcode.edit');
+		if (($canDo->get('core.edit')))
+		{
+			ToolbarHelper::editList('custombbcode.edit');
 		}
 
-		if ($canDo->get('core.create')) {
-			JToolbarHelper::custom('custombbcodes.duplicate', 'copy.png', 'copy_f2.png', 'JTOOLBAR_DUPLICATE', true);
+		if ($canDo->get('core.create'))
+		{
+			ToolbarHelper::custom('custombbcodes.duplicate', 'copy', '', 'JTOOLBAR_DUPLICATE', true);
 		}
 
-		if ($canDo->get('core.edit.state')) {
-			JToolBarHelper::publishList('custombbcodes.publish');
-			JToolBarHelper::unpublishList('custombbcodes.unpublish');
-			JToolbarHelper::checkin('custombbcodes.checkin');
+		$dropdown = $toolbar->dropdownButton('status-group')
+			->text('JTOOLBAR_CHANGE_STATUS')
+			->toggleSplit(false)
+			->icon('icon-ellipsis-h')
+			->buttonClass('btn btn-action')
+			->listCheck(true);
+
+		$childBar = $dropdown->getChildToolbar();
+
+		if ($canDo->get('core.edit.state'))
+		{
+			$childBar->publish('custombbcodes.publish')->listCheck(true);
+			$childBar->unpublish('custombbcodes.unpublish')->listCheck(true);
+			$childBar->checkin('custombbcodes.checkin')->listCheck(true);
 		}
 
-		if (($canDo->get('core.delete'))) {
-			JToolBarHelper::deletelist('', 'custombbcodes.delete');
+		if (($canDo->get('core.delete')))
+		{
+			$childBar->delete('custombbcodes.delete')
+				->message('JGLOBAL_CONFIRM_DELETE')
+				->listCheck(true);
 		}
-	}
-
-	protected function getSortFields()
-	{
-		return array(
-			'ordering' => JText::_('JGRID_HEADING_ORDERING'),
-			'jcb.published' => JText::_('JSTATUS'),
-			'jcb.name' => JText::_('A_CUSTOM_BBCODE_NAME'),
-			'jcb.button_enabled' => JText::_('A_CUSTOM_BBCODE_BUTTON'),
-			'jcb.id' => JText::_('JGRID_HEADING_ID')
-		);
 	}
 }

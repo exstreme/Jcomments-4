@@ -11,16 +11,18 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
+use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerList extends BaseController
 {
 	protected $context;
 	protected $option;
-	protected $view_list;
+	protected $view;
 	protected $text_prefix;
 
 	public function __construct($config = array())
@@ -47,14 +49,14 @@ class JCommentsControllerList extends BaseController
 			$this->context = strtolower($r[2]);
 		}
 
-		if (empty($this->view_list))
+		if (empty($this->view))
 		{
 			$r = null;
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
 			{
 				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
 			}
-			$this->view_list = strtolower($r[2]);
+			$this->view = strtolower($r[2]);
 		}
 	}
 
@@ -68,18 +70,107 @@ class JCommentsControllerList extends BaseController
 		return parent::getModel($name, $prefix, $config);
 	}
 
+	public function publish()
+	{
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+
+		$ids = $this->input->post->get('cid', array(), 'array');
+
+		if (empty($ids))
+		{
+			$this->app->enqueueMessage(Text::_('JERROR_NO_ITEMS_SELECTED'), 'error');
+		}
+		else
+		{
+			$ids   = (array) $ids;
+			$ids   = ArrayHelper::toInteger($ids);
+			$model = $this->getModel();
+			$data  = array('publish' => 1, 'unpublish' => 0);
+			$task  = $this->getTask();
+			$value = ArrayHelper::getValue($data, $task, 0, 'int');
+
+			if (!$model->publish($ids, $value))
+			{
+				$this->setRedirect(
+					Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false),
+					$model->getError(),
+					'error'
+				);
+
+				return;
+			}
+		}
+
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+	}
+
 	public function delete()
 	{
 		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
 
-		$cid = $this->input->get('cid', array(), 'array');
+		$ids = $this->input->post->get('cid', array(), 'array');
 
-		if (!empty($cid))
+		if (empty($ids))
 		{
+			$this->app->enqueueMessage(Text::_('JERROR_NO_ITEMS_SELECTED'), 'error');
+		}
+		else
+		{
+			$ids   = (array) $ids;
+			$ids   = ArrayHelper::toInteger($ids);
 			$model = $this->getModel();
-			$model->delete($cid);
+
+			if (!$model->delete($ids))
+			{
+				$this->setRedirect(
+					Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false),
+					$model->getError(),
+					'error'
+				);
+
+				return;
+			}
 		}
 
-		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+	}
+
+	public function checkin()
+	{
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+
+		$ids = $this->input->post->get('cid', array(), 'array');
+		$msg = '';
+
+		if (empty($ids))
+		{
+			$this->app->enqueueMessage(Text::_('JERROR_NO_ITEMS_SELECTED'), 'error');
+		}
+		else
+		{
+			$app    = Factory::getApplication();
+			$ids    = (array) $ids;
+			$ids    = ArrayHelper::toInteger($ids);
+			$model  = $this->getModel();
+			$result = $model->checkin($ids);
+
+			if ($result === false)
+			{
+				$app->enqueueMessage(Text::_('A_CUSTOM_BBCODE_N_ITEMS_CHECKED_IN_0'));
+				$this->setRedirect(
+					Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false),
+					$model->getError(),
+					'error'
+				);
+
+				return;
+			}
+			else
+			{
+				$msg = Text::plural('A_CUSTOM_BBCODE_N_ITEMS_CHECKED_IN', $result);
+			}
+		}
+
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false), $msg);
 	}
 }

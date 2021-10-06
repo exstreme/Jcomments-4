@@ -15,73 +15,70 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
-HTMLHelper::_('jcomments.stylesheet');
-HTMLHelper::_('bootstrap.tooltip');
-HTMLHelper::_('formbehavior.chosen', 'select');
-
-$containerClass = empty($this->sidebar) ? '' : 'span10';
+HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 ?>
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=import'); ?>" method="post" name="adminForm"
 	  id="adminForm">
-	<div id="j-main-container" class="<?php echo $containerClass; ?>">
-		<div id="jc">
-			<table class="adminlist table table-striped" id="adminlist" cellspacing="1">
-				<thead>
-				<tr>
-					<th width="50%" class="left nowrap">
-						<?php echo Text::_('A_IMPORT_HEADING_COMPONENT'); ?>
-					</th>
-					<th width="20%" class="center hidden-phone">
-						<?php echo Text::_('A_IMPORT_HEADING_AUTHOR'); ?>
-					</th>
-					<th width="20%" class="center nowrap hidden-phone">
-						<?php echo Text::_('A_IMPORT_HEADING_LICENSE'); ?>
-					</th>
-					<th width="5%" class="center nowrap">
-						<?php echo Text::_('A_IMPORT_HEADING_COMMENTS'); ?>
-					</th>
-					<th width="5%" class="center nowrap">
-					</th>
-				</tr>
-				</thead>
-				<tbody>
-				<?php if (count($this->items)) : ?>
-					<?php foreach ($this->items as $i => $item) : ?>
-						<tr class="row<?php echo $i % 2; ?>">
-							<td class="nowrap has-context">
-								<?php echo $this->escape($item->name); ?>
-							</td>
-							<td class="center hidden-phone">
-								<a href="<?php echo $item->siteUrl; ?>">
-									<?php echo $item->author; ?>
-								</a>
-							</td>
-							<td class="center hidden-phone">
-								<a href="<?php echo $item->licenseUrl; ?>">
-									<?php echo $item->license; ?>
-								</a>
-							</td>
-							<td class="center nowrap">
-								<?php echo $item->comments; ?>
-							</td>
-							<td class="center nowrap">
-								<?php
-								echo HTMLHelper::_('jcomments.modal', 'jcomments-import-' . $i, 'A_IMPORT_BUTTON_IMPORT',
-									'index.php?option=com_jcomments&task=import.modal&source=' . $item->code . '&tmpl=component',
-									'A_COMMENTS', 'window.location.reload();', 'download', 'btn-micro', 500, 210);
-								?>
-							</td>
-						</tr>
-					<?php endforeach; ?>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="j-main-container">
+				<?php if (empty($this->items)): ?>
+					<div class="alert alert-info">
+						<span class="icon-info-circle" aria-hidden="true"></span><span class="visually-hidden"><?php echo Text::_('INFO'); ?></span>
+						<?php echo Text::_('A_IMPORT_NO_SOURCES'); ?>
+					</div>
 				<?php else: ?>
-					<tr>
-						<td colspan="5" class="center">
-							<?php echo Text::_('A_IMPORT_NO_SOURCES'); ?>
-						</td>
-					</tr>
+					<table class="adminlist table">
+						<thead>
+						<tr>
+							<th scope="col" class="w-50 d-md-table-cell">
+								<?php echo Text::_('A_IMPORT_HEADING_COMPONENT'); ?>
+							</th>
+							<th scope="col" class="w-20 d-none d-md-table-cell">
+								<?php echo Text::_('A_IMPORT_HEADING_AUTHOR'); ?>
+							</th>
+							<th scope="col" class="w-20 d-none d-md-table-cell">
+								<?php echo Text::_('A_IMPORT_HEADING_LICENSE'); ?>
+							</th>
+							<th scope="col" class="w-5 d-md-table-cell">
+								<?php echo Text::_('A_IMPORT_HEADING_COMMENTS'); ?>
+							</th>
+							<th scope="col" class="w-5 d-md-table-cell">
+							</th>
+						</tr>
+						</thead>
+						<tbody>
+						<?php foreach ($this->items as $i => $item): ?>
+							<tr class="row<?php echo $i % 2; ?>">
+								<td class="nowrap has-context">
+									<?php echo $this->escape($item->name); ?>
+								</td>
+								<td class="text-center hidden-phone">
+									<a href="<?php echo $item->siteUrl; ?>">
+										<?php echo $item->author; ?>
+									</a>
+								</td>
+								<td class="text-center hidden-phone">
+									<a href="<?php echo $item->licenseUrl; ?>">
+										<?php echo $item->license; ?>
+									</a>
+								</td>
+								<td class="text-center nowrap">
+									<?php echo $item->comments; ?>
+								</td>
+								<td class="text-center nowrap">
+									<?php
+									echo HTMLHelper::_('jcomments.modal', 'jcomments-import-' . $i, 'A_IMPORT_BUTTON_IMPORT',
+										'index.php?option=com_jcomments&task=import.modal&source=' . $item->code . '&tmpl=component',
+										'A_COMMENTS', 'window.location.reload();', 'download', 'btn-micro', 500, 210);
+									?>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+						</tbody>
+					</table>
 				<?php endif; ?>
-				</tbody>
-			</table>
+			</div>
 		</div>
 
 		<input type="hidden" name="task" value=""/>

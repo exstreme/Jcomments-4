@@ -14,11 +14,10 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
-use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
-class JCommentsModelComments extends ListModel
+class JCommentsModelComments extends JCommentsModelList
 {
 	/**
 	 * Context string for the model type.  This is used to handle uniqueness
@@ -157,104 +156,24 @@ class JCommentsModelComments extends ListModel
 		return $query;
 	}
 
-	public function checkin($pks = array())
-	{
-		$pks     = (array) $pks;
-		$table   = $this->getTable('Comment', 'JCommentsTable');
-		$checkin = property_exists($table, 'checked_out');
-		$count   = 0;
-
-		if ($checkin && !empty($pks))
-		{
-			foreach ($pks as $pk)
-			{
-				if ($table->load($pk))
-				{
-					if ($table->checked_out > 0)
-					{
-						if (!$table->checkin($pk))
-						{
-							$this->setError($table->getError());
-
-							return false;
-						}
-						$count++;
-					}
-				}
-				else
-				{
-					$this->setError($table->getError());
-
-					return false;
-				}
-			}
-		}
-
-		return $count;
-	}
-
-	public function delete(&$pks)
-	{
-		$pks       = (array) $pks;
-		$table     = $this->getTable('Comment', 'JCommentsTable');
-		$total     = count($pks);
-		$canDelete = Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
-
-		foreach ($pks as $i => $pk)
-		{
-			if ($table->load($pk))
-			{
-				if ($canDelete)
-				{
-					$config = JCommentsFactory::getConfig();
-
-					if ($config->getInt('delete_mode') == 0)
-					{
-						if (!$table->delete($pk))
-						{
-							$this->setError($table->getError());
-
-							return false;
-						}
-					}
-					else
-					{
-						$table->markAsDeleted();
-						Factory::getApplication()->enqueueMessage(Text::plural('A_COMMENTS_HAS_BEEN_MARKED_N_DELETED', $total));
-					}
-				}
-				else
-				{
-					unset($pks[$i]);
-					$error = $this->getError();
-
-					if ($error)
-					{
-						Log::add($error, Log::WARNING, 'jerror');
-
-						return false;
-					}
-					else
-					{
-						Log::add(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), Log::WARNING, 'jerror');
-
-						return false;
-					}
-				}
-			}
-		}
-
-		$this->cleanCache('com_jcomments');
-
-		return true;
-	}
-
+	/**
+	 * Method to change the published state of one or more records.
+	 *
+	 * This is necessary because the component need to trigger some events.
+	 *
+	 * @param   array  $pks    Primary keys array.
+	 * @param   int    $value  Publishing state.
+	 *
+	 * @return  string  A store id.
+	 *
+	 * @throws  Exception
+	 * @since   1.6
+	 */
 	public function publish(&$pks, $value = 1)
 	{
-		$pks          = (array) $pks;
 		$user         = Factory::getApplication()->getIdentity();
 		$language     = Factory::getApplication()->getLanguage();
-		$table        = $this->getTable('Comment', 'JCommentsTable');
+		$table        = $this->getTable($this->tableName, $this->tablePrefix);
 		$canEditState = Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option);
 
 		$lastLanguage = '';

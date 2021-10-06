@@ -2,52 +2,60 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
-?>
-<script type="text/javascript">
-	Joomla.submitbutton = function (task) {
-		if (task == 'custombbcode.cancel' || document.formvalidator.isValid(document.getElementById('custombbcode-form'))) {
-			Joomla.submitform(task, document.getElementById('custombbcode-form'));
-		}
-	}
-</script>
 
-<form
-	action="<?php echo JRoute::_('index.php?option=com_jcomments&view=custombbcode&layout=edit&id=' . (int)$this->item->id); ?>"
-	method="post" name="adminForm" id="custombbcode-form" class="form-validate options-form">
-	<ul class="nav nav-tabs">
-		<li class="active"><a href="#general" data-toggle="tab"><?php echo JText::_('A_CUSTOM_BBCODE_EDIT'); ?></a></li>
-		<li><a href="#simple" data-toggle="tab"><?php echo JText::_('A_CUSTOM_BBCODE_SIMPLE'); ?></a></li>
-		<li><a href="#advanced" data-toggle="tab"><?php echo JText::_('A_CUSTOM_BBCODE_ADVANCED'); ?></a></li>
-		<li><a href="#button" data-toggle="tab"><?php echo JText::_('A_CUSTOM_BBCODE_BUTTON'); ?></a></li>
-		<li><a href="#permissions" data-toggle="tab"><?php echo JText::_('A_CUSTOM_BBCODE_PERMISSIONS'); ?></a></li>
-	</ul>
-	<div class="tab-content">
-		<div class="tab-pane active" id="general">
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+
+/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')
+	->useScript('form.validate');
+?>
+<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=custombbcode&layout=edit&id=' . (int) $this->item->id); ?>"
+	  method="post" name="adminForm" id="item-form" class="form-validate">
+	<div class="main-card">
+		<?php echo HTMLHelper::_('uitab.startTabSet', 'myTab', ['active' => 'general', 'recall' => true, 'breakpoint' => 768]); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'general', Text::_('A_CUSTOM_BBCODE_EDIT')); ?>
+		<div class="row">
 			<?php echo $this->loadTemplate('general'); ?>
 		</div>
-		<div class="tab-pane" id="simple">
+
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_SIMPLE')); ?>
+		<div class="row">
 			<?php echo $this->loadTemplate('simple'); ?>
 		</div>
-		<div class="tab-pane" id="advanced">
+
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_ADVANCED')); ?>
+		<div class="row">
 			<?php echo $this->loadTemplate('advanced'); ?>
 		</div>
-		<div class="tab-pane" id="button">
+
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_BUTTON')); ?>
+		<div class="row">
 			<?php echo $this->loadTemplate('button'); ?>
 		</div>
-		<div class="tab-pane" id="permissions">
+
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_PERMISSIONS')); ?>
+		<div class="row">
 			<?php echo $this->loadTemplate('permissions'); ?>
 		</div>
+
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.endTabSet'); ?>
 	</div>
-	<div>
-		<input type="hidden" name="task" value=""/>
-		<?php echo JHtml::_('form.token'); ?>
-	</div>
+
+	<input type="hidden" name="task" value=""/>
+	<?php echo JHtml::_('form.token'); ?>
 </form>

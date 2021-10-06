@@ -597,7 +597,7 @@ class com_jcommentsInstallerScript
 			}
 		}
 
-		$files = Folder::files(JPATH_ROOT . '/administrator/components/com_jcomments/assets/', '\.(png|gif|css|js)',
+		$files = Folder::files(JPATH_ROOT . '/media/com_jcomments/', '\.(png|gif|css|js)',
 			false, true);
 
 		foreach ($files as $file)

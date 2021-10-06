@@ -15,17 +15,15 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 
-if (!Factory::getApplication()->getIdentity()->authorise('core.manage', 'com_jcomments'))
+$app = Factory::getApplication();
+
+if (!$app->getIdentity()->authorise('core.manage', 'com_jcomments'))
 {
 	throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 404);
 }
 
-if (!defined('JPATH_COMPONENT'))
-{
-	define('JPATH_COMPONENT', dirname(__FILE__));
-}
-
-$language = Factory::getApplication()->getLanguage();
+// TODO Shoud be removed after checks.
+$language = $app->getLanguage();
 $language->load('com_jcomments', JPATH_ROOT . '/administrator', 'en-GB', true);
 $language->load('com_jcomments', JPATH_ROOT . '/administrator', null, true);
 
@@ -40,5 +38,5 @@ JLoader::register('JCommentsModelList', JPATH_COMPONENT . '/models/modellist.php
 JLoader::register('JCommentsViewLegacy', JPATH_COMPONENT . '/views/view.php');
 
 $controller = BaseController::getInstance('JComments');
-$controller->execute(Factory::getApplication()->input->get('task'));
+$controller->execute($app->input->get('task'));
 $controller->redirect();

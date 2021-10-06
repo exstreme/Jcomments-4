@@ -18,56 +18,6 @@ use Joomla\CMS\Uri\Uri;
 
 abstract class JHtmlJComments
 {
-	protected static $loaded = array();
-
-	public static function stylesheet()
-	{
-		if (!empty(self::$loaded[__METHOD__]))
-		{
-			return;
-		}
-
-		$document = Factory::getApplication()->getDocument();
-		$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/style.css', 'text/css', null);
-
-		if (Factory::getApplication()->getLanguage()->isRTL())
-		{
-			$document->addStylesheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/style_rtl.css', 'text/css', null);
-		}
-
-		self::$loaded[__METHOD__] = true;
-
-		return;
-	}
-
-	public static function jquery()
-	{
-		if (!empty(self::$loaded[__METHOD__]))
-		{
-			return;
-		}
-
-		HTMLHelper::_('jquery.framework');
-
-		self::$loaded[__METHOD__] = true;
-
-		return;
-	}
-
-	public static function bootstrap()
-	{
-		if (!empty(self::$loaded[__METHOD__]))
-		{
-			return;
-		}
-
-		HTMLHelper::_('bootstrap.framework');
-
-		self::$loaded[__METHOD__] = true;
-
-		return;
-	}
-
 	public static function modal($name = '', $text = '', $url = '', $title = '', $onClose = '', $iconClass = 'out-2', $buttonClass = 'btn-small', $width = 500, $height = 300)
 	{
 

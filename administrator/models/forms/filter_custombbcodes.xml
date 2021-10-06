@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields name="filter">
+		<field
+				name="search"
+				type="text"
+				inputmode="search"
+				label="JSEARCH_FILTER_LABEL"
+				hint="JSEARCH_FILTER"
+		/>
+
+		<field
+				name="published"
+				type="list"
+				label="JOPTION_SELECT_PUBLISHED"
+				onchange="this.form.submit();"
+		>
+			<option value="">JOPTION_SELECT_PUBLISHED</option>
+			<option value="1">A_FILTER_STATE_PUBLISHED</option>
+			<option value="0">A_FILTER_STATE_UNPUBLISHED</option>
+		</field>
+	</fields>
+
+	<fields name="list">
+		<field
+				name="fullordering"
+				type="list"
+				label="JGLOBAL_SORT_BY"
+				default="ordering ASC"
+				onchange="this.form.submit();"
+				validate="options"
+		>
+			<option value="">JGLOBAL_SORT_BY</option>
+			<option value="ordering ASC">JGRID_HEADING_ORDERING_ASC</option>
+			<option value="ordering DESC">JGRID_HEADING_ORDERING_DESC</option>
+			<option value="jcb.published ASC">JSTATUS_ASC</option>
+			<option value="jcb.published DESC">JSTATUS_DESC</option>
+			<option value="jcb.name ASC">A_CUSTOM_BBCODE_SORT_NAME_ASC</option>
+			<option value="jcb.name DESC">A_CUSTOM_BBCODE_SORT_NAME_DESC</option>
+			<option value="jcb.button_enabled ASC">A_CUSTOM_BBCODE_SORT_BUTTON_ASC</option>
+			<option value="jcb.button_enabled DESC">A_CUSTOM_BBCODE_SORT_BUTTON_DESC</option>
+			<option value="jcb.id ASC">JGRID_HEADING_ID_ASC</option>
+			<option value="jcb.id DESC">JGRID_HEADING_ID_DESC</option>
+		</field>
+
+		<field
+				name="limit"
+				type="limitbox"
+				label="JGLOBAL_LIST_LIMIT"
+				default="25"
+				onchange="this.form.submit();"
+		/>
+	</fields>
+</form>

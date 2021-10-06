@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields name="filter">
+		<field
+				name="search"
+				type="text"
+				inputmode="search"
+				label="JSEARCH_FILTER_LABEL"
+				hint="JSEARCH_FILTER"
+		/>
+	</fields>
+
+	<fields name="list">
+		<field
+				name="fullordering"
+				type="list"
+				label="JGLOBAL_SORT_BY"
+				default="created DESC"
+				onchange="this.form.submit();"
+				validate="options"
+		>
+			<option value="">JGLOBAL_SORT_BY</option>
+			<option value="name ASC">A_MAILQ_SORT_NAME_ASC</option>
+			<option value="name DESC">A_MAILQ_SORT_NAME_DESC</option>
+			<option value="email ASC">A_MAILQ_SORT_EMAIL_ASC</option>
+			<option value="email DESC">A_MAILQ_SORT_EMAIL_DESC</option>
+			<option value="subject ASC">A_MAILQ_SORT_SUBJECT_ASC</option>
+			<option value="subject DESC">A_MAILQ_SORT_SUBJECT_DESC</option>
+			<option value="priority ASC">A_MAILQ_SORT_PRIORITY_ASC</option>
+			<option value="priority DESC">A_MAILQ_SORT_PRIORITY_DESC</option>
+			<option value="attempts ASC">A_MAILQ_SORT_ATTEMPTS_ASC</option>
+			<option value="attempts DESC">A_MAILQ_SORT_ATTEMPTS_DESC</option>
+			<option value="created ASC">JDATE_ASC</option>
+			<option value="created DESC">JDATE_DESC</option>
+			<option value="id ASC">JGRID_HEADING_ID_ASC</option>
+			<option value="id DESC">JGRID_HEADING_ID_DESC</option>
+		</field>
+
+		<field
+				name="limit"
+				type="limitbox"
+				label="JGLOBAL_LIST_LIMIT"
+				default="25"
+				onchange="this.form.submit();"
+		/>
+	</fields>
+</form>

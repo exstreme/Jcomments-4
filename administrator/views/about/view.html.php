@@ -11,8 +11,6 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\HTML\Helpers\Sidebar;
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 
@@ -20,11 +18,9 @@ class JCommentsViewAbout extends HtmlView
 {
 	function display($tpl = null)
 	{
-		require_once(JPATH_COMPONENT . '/helpers/jcomments.php');
 		require_once(JPATH_COMPONENT . '/version.php');
 
 		$this->version = new JCommentsVersion();
-		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 		ToolbarHelper::title(JText::_('A_SUBMENU_ABOUT'));
 
 		parent::display($tpl);

@@ -11,25 +11,12 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
-
-class JCommentsControllerBlacklists extends BaseController
+/**
+ * Blacklists list controller class.
+ * This class is just placeholder for tasks blacklists.{method}.
+ *
+ * @since  1.6
+ */
+class JCommentsControllerBlacklists extends JCommentsControllerList
 {
-	public function delete()
-	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
-
-		$cid = $this->input->get('cid', array(), 'array');
-
-		if (!empty($cid))
-		{
-			$model = $this->getModel('blacklists');
-			$model->delete($cid);
-		}
-
-		$this->setRedirect(Route::_('index.php?option=com_jcomments&view=blacklists', false));
-	}
 }

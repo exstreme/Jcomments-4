@@ -14,7 +14,6 @@
 		<field
 				name="reason"
 				type="text"
-				class="inputbox"
 				size="40"
 				label="A_BLACKLIST_REASON"
 				description="A_BLACKLIST_REASON_DESC"
@@ -24,7 +23,6 @@
 		<field
 				name="notes"
 				type="text"
-				class="inputbox"
 				size="40"
 				label="A_BLACKLIST_NOTES"
 				description="A_BLACKLIST_NOTES_DESC"
@@ -51,6 +49,7 @@
 				label="JGLOBAL_FIELD_ID_LABEL"
 				description="JGLOBAL_FIELD_ID_DESC"/>
 
+		<!-- Used in view to internal access checking -->
 		<field
 				name="checked_out"
 				type="hidden"
