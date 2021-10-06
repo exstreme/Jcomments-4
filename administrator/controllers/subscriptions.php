@@ -46,6 +46,6 @@ class JCommentsControllerSubscriptions extends JCommentsControllerList
 			$model->publish($cid, $value);
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+		$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
 	}
 }

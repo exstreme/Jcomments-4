@@ -49,8 +49,8 @@ class JCommentsHelper
 		);
 		JHtmlSidebar::addEntry(
 			JText::_('A_SUBMENU_MAILQ'),
-			'index.php?option=com_jcomments&view=mailq',
-			$vName == 'mailq'
+			'index.php?option=com_jcomments&view=mailqueues',
+			$vName == 'mailqueues'
 		);
 		JHtmlSidebar::addEntry(
 			JText::_('A_SUBMENU_IMPORT'),

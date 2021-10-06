@@ -14,35 +14,26 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\Pagination\Pagination;
-use Joomla\CMS\Table\Table;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
+use Joomla\CMS\MVC\Model\ListModel;
 
-class JCommentsModelList extends BaseDatabaseModel
+class JCommentsModelList extends ListModel
 {
-	protected $cache = array();
 	protected $context = null;
-	protected $query = array();
-	protected $filter_fields = array();
+	protected $tableName = null;
+	protected $tablePrefix = 'JCommentsTable';
 
-	public function __construct($config = array())
+	public function __construct($config = array(), MVCFactoryInterface $factory = null)
 	{
-		parent::__construct($config);
+		parent::__construct($config, $factory);
 
-		Table::addIncludePath(JPATH_COMPONENT . '/tables');
+		parent::addIncludePath(JPATH_BASE . '/components/com_jcomments/tables');
 
-		if (isset($config['filter_fields']))
-		{
-			$this->filter_fields = $config['filter_fields'];
-		}
-
-		if (empty($this->context))
-		{
-			$this->context = strtolower($this->option . '.' . $this->getName());
-		}
+		// Get table name
+		$this->tableName = substr($this->getName(), 0, -1);
 	}
 
-	public function getItems()
+	/*public function getItems()
 	{
 		$store = $this->getStoreId();
 
@@ -86,12 +77,12 @@ class JCommentsModelList extends BaseDatabaseModel
 		return $this->cache[$store];
 	}
 
-	protected function getListQuery()
+	/*protected function getListQuery()
 	{
 		return $this->getDbo()->getQuery(true);
-	}
+	}*/
 
-	protected function getStoreId($id = '')
+	/*protected function getStoreId($id = '')
 	{
 		// Add the list state to the store id.
 		$id .= ':' . $this->getState('list.start');
@@ -174,12 +165,12 @@ class JCommentsModelList extends BaseDatabaseModel
 		$db->execute();
 
 		return $db->getNumRows();
-	}
+	}*/
 
 	public function delete(&$pks)
 	{
-		$pks   = (array) $pks;
-		$table = $this->getTable();
+		$table = $this->getTable($this->tableName, $this->tablePrefix);
+		$total = count($pks);
 
 		foreach ($pks as $i => $pk)
 		{
@@ -187,11 +178,34 @@ class JCommentsModelList extends BaseDatabaseModel
 			{
 				if (Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option))
 				{
-					if (!$table->delete($pk))
+					// Comments can be marked as deleted.
+					if ($this->context == 'com_jcomments.comments')
 					{
-						$this->setError($table->getError());
+						$config = JCommentsFactory::getConfig();
 
-						return false;
+						if ($config->getInt('delete_mode') == 0)
+						{
+							if (!$table->delete($pk))
+							{
+								$this->setError($table->getError());
+
+								return false;
+							}
+						}
+						else
+						{
+							$table->markAsDeleted();
+							Factory::getApplication()->enqueueMessage(Text::plural('A_COMMENTS_HAS_BEEN_MARKED_N_DELETED', $total));
+						}
+					}
+					else
+					{
+						if (!$table->delete($pk))
+						{
+							$this->setError($table->getError());
+
+							return false;
+						}
 					}
 				}
 				else
@@ -215,6 +229,8 @@ class JCommentsModelList extends BaseDatabaseModel
 			}
 		}
 
+		$this->cleanCache('com_jcomments');
+
 		return true;
 	}
 
@@ -222,7 +238,7 @@ class JCommentsModelList extends BaseDatabaseModel
 	{
 		$pks   = (array) $pks;
 		$user  = Factory::getApplication()->getIdentity();
-		$table = $this->getTable();
+		$table = $this->getTable($this->tableName, $this->tablePrefix);
 
 		foreach ($pks as $i => $pk)
 		{
@@ -251,35 +267,23 @@ class JCommentsModelList extends BaseDatabaseModel
 
 	public function checkin($pks = array())
 	{
-		$pks     = (array) $pks;
-		$table   = $this->getTable();
+		$table   = $this->getTable($this->tableName, $this->tablePrefix);
 		$checkin = property_exists($table, 'checked_out');
 		$count   = 0;
 
-		if ($checkin && !empty($pks))
+		if ($checkin === false) {
+			return $count;
+		}
+
+		foreach ($pks as $pk)
 		{
-			foreach ($pks as $pk)
-			{
-				if ($table->load($pk))
-				{
-					if ($table->checked_out > 0)
-					{
-						if (!$table->checkin($pk))
-						{
-							$this->setError($table->getError());
+			if (!$table->load($pk) || !$table->checkin($pk)) {
+				$this->setError($table->getError());
 
-							return false;
-						}
-						$count++;
-					}
-				}
-				else
-				{
-					$this->setError($table->getError());
-
-					return false;
-				}
+				return false;
 			}
+
+			$count++;
 		}
 
 		return $count;
@@ -294,7 +298,8 @@ class JCommentsModelList extends BaseDatabaseModel
 	{
 		if (!empty($pks))
 		{
-			$table      = $this->getTable();
+			/* @var Table $table */
+			$table      = $this->getTable($this->tableName, $this->tablePrefix);
 			$conditions = array();
 			$ordering   = property_exists($table, 'ordering');
 
@@ -348,7 +353,7 @@ class JCommentsModelList extends BaseDatabaseModel
 
 	public function reorder($pks, $delta = 0)
 	{
-		$table  = $this->getTable();
+		$table  = $this->getTable($this->tableName, $this->tablePrefix);
 		$pks    = (array) $pks;
 		$result = true;
 

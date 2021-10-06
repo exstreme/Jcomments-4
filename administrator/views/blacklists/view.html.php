@@ -26,16 +26,11 @@ class JCommentsViewBlacklists extends HtmlView
 
 	function display($tpl = null)
 	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
 		$this->items         = $this->get('Items');
 		$this->pagination    = $this->get('Pagination');
 		$this->filterForm    = $this->get('FilterForm');
 		$this->activeFilters = $this->get('ActiveFilters');
 		$this->state         = $this->get('State');
-
-		JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-		JHtmlSidebar::setAction('index.php?option=com_jcomments&view=blacklists');
 
 		$this->addToolbar();
 
@@ -47,11 +42,16 @@ class JCommentsViewBlacklists extends HtmlView
 	{
 		$canDo = ContentHelper::getActions('com_jcomments', 'component');
 
-		ToolbarHelper::title(Text::_('A_SUBMENU_BLACKLIST'), 'jcomments-blacklist');
+		ToolbarHelper::title(Text::_('A_SUBMENU_BLACKLIST'));
 
 		if (($canDo->get('core.create')))
 		{
 			ToolbarHelper::addNew('blacklist.add');
+		}
+
+		if ($canDo->get('core.edit.state'))
+		{
+			ToolbarHelper::checkin('blacklists.checkin');
 		}
 
 		if (($canDo->get('core.delete')))

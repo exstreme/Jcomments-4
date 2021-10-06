@@ -35,11 +35,6 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		parent::display($cachable, $urlparams);
 	}
 
-	public function getModel($name = 'CustomBBCodes', $prefix = 'JCommentsModel', $config = array('ignore_request' => true))
-	{
-		return parent::getModel($name, $prefix, $config);
-	}
-
 	public function duplicate()
 	{
 		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
@@ -50,134 +45,51 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 
 		if (!empty($pks))
 		{
-			$model = $this->getModel();
+			$model = $this->getModel('CustomBBCodes', 'JCommentsModel', $config = array('ignore_request' => true));
 			$model->duplicate($pks);
 		}
 
-		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
-	}
-
-	public function publish()
-	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
-
-		$pks  = $this->input->get('cid', array(), 'array');
-		$data = array('publish' => 1, 'unpublish' => 0);
-		$task = $this->getTask();
-
-		$value = ArrayHelper::getValue($data, $task, 0, 'int');
-
-		if (!empty($pks))
-		{
-			$model = $this->getModel();
-			$model->publish($pks, $value);
-		}
-
-		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
 	}
 
 	public function changeButtonState()
 	{
 		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
 
-		$pks  = $this->input->get('cid', array(), 'array');
-		$data = array('button_enable' => 1, 'button_disable' => 0);
-		$task = $this->getTask();
-
+		$ids   = $this->input->get('cid', array(), 'array');
+		$data  = array('button_enable' => 1, 'button_disable' => 0);
+		$task  = $this->getTask();
 		$value = ArrayHelper::getValue($data, $task, 0, 'int');
 
-		if (!empty($pks))
+		if (empty($ids))
 		{
-			$model = $this->getModel();
-			$model->changeButtonState($pks, $value);
-		}
-
-		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false));
-	}
-
-	public function reorder()
-	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
-
-		$pks = $this->input->post->get('cid', array(), 'array');
-		$inc = ($this->getTask() == 'orderup') ? -1 : +1;
-
-		ArrayHelper::toInteger($pks);
-
-		$model  = $this->getModel();
-		$return = $model->reorder($pks, $inc);
-
-		if ($return === false)
-		{
-			$this->setRedirect(
-				Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false),
-				Text::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError()),
-				'error'
-			);
-
-			return false;
+			$this->app->enqueueMessage(Text::_('JERROR_NO_ITEMS_SELECTED'), 'error');
 		}
 		else
 		{
-			$this->setRedirect(
-				Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false),
-				Text::_('JLIB_APPLICATION_SUCCESS_ITEM_REORDERED')
-			);
-
-			return true;
+			$ids   = (array) $ids;
+			$ids   = ArrayHelper::toInteger($ids);
+			$model = $this->getModel('CustomBBCodes', 'JCommentsModel', $config = array('ignore_request' => true));
+			$model->changeButtonState($ids, $value);
 		}
-	}
 
-	public function saveorder()
-	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
-
-		$pks   = $this->input->post->get('cid', array(), 'array');
-		$order = $this->input->post->get('order', array(), 'array');
-
-		ArrayHelper::toInteger($pks);
-		ArrayHelper::toInteger($order);
-
-		$model  = $this->getModel();
-		$return = $model->saveorder($pks, $order);
-
-		if ($return === false)
-		{
-			$this->setRedirect(
-				Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false),
-				Text::sprintf('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError()),
-				'error'
-			);
-
-			return false;
-		}
-		else
-		{
-			$this->setRedirect(
-				Route::_('index.php?option=' . $this->option . '&view=' . $this->view_list, false),
-				Text::_('JLIB_APPLICATION_SUCCESS_ORDERING_SAVED')
-			);
-
-			return true;
-		}
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
 	}
 
 	public function saveOrderAjax()
 	{
+		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+
 		$pks   = $this->input->post->get('cid', array(), 'array');
 		$order = $this->input->post->get('order', array(), 'array');
 
 		ArrayHelper::toInteger($pks);
 		ArrayHelper::toInteger($order);
 
-		$model = $this->getModel();
-
+		$model  = $this->getModel('CustomBBCodes', 'JCommentsModel', $config = array('ignore_request' => true));
 		$return = $model->saveorder($pks, $order);
 
-		if ($return)
-		{
-			echo "1";
-		}
+		echo (string) $return;
 
 		Factory::getApplication()->close();
 	}

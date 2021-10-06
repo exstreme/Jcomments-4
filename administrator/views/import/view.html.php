@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class JCommentsViewImport extends HtmlView
@@ -31,32 +32,21 @@ class JCommentsViewImport extends HtmlView
 
 		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 		JCommentsHelper::addSubmenu('import');
-		ToolbarHelper::title(Text::_('A_IMPORT'), 'jcomments-import');
+		ToolbarHelper::title(Text::_('A_IMPORT'));
 
-		// Include the component HTML helpers.
-		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 		parent::display($tpl);
 
 	}
 
 	public function modal($tpl = null)
 	{
-		$this->state = $this->get('State');
-
+		$this->state      = $this->get('State');
 		$this->importUrl  = 'index.php?option=com_jcomments&task=import.ajax&tmpl=component';
-		$this->objectsUrl = str_replace('/administrator', '', JRoute::_('index.php?option=com_jcomments&task=refreshObjectsAjax&amp;tmpl=component'));
+		$this->objectsUrl = str_replace('/administrator', '', Route::_('index.php?option=com_jcomments&task=refreshObjectsAjax&amp;tmpl=component'));
 		$this->hash       = md5(Factory::getApplication()->get('secret'));
 
 		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-		HTMLHelper::_('jcomments.stylesheet');
-		HTMLHelper::_('jcomments.jquery');
-
-		$document = Factory::getApplication()->getDocument();
-		$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jcomments.progressbar.js');
-		$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jcomments.import.js');
-		$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jcomments.objects.js');
 
 		parent::display($tpl);
-
 	}
 }

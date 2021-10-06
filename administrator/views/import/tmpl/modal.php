@@ -14,9 +14,11 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
-HTMLHelper::_('jcomments.stylesheet');
-HTMLHelper::_('bootstrap.tooltip');
-HTMLHelper::_('formbehavior.chosen', 'select');
+HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
+HTMLHelper::_('jquery.framework');
+HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.progressbar.js');
+HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.import.js');
+HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.objects.js');
 
 $source   = $this->state->get('import.source');
 $language = $this->state->get('import.language');
@@ -26,11 +28,13 @@ $language = $this->state->get('import.language');
 		$(document).ready(function () {
 			JCommentsImport.setup('<?php echo $this->importUrl; ?>');
 			JCommentsImport.onSuccess = function () {
-				var oldHeader = $('#jcomments-modal-header').html();
-				var oldMessage = $('#jcomments-modal-message').html();
+				var header     = $('#jcomments-modal-header');
+				var message    = $('#jcomments-modal-message');
+				var oldHeader  = header.html();
+				var oldMessage = message.html();
 
-				$('#jcomments-modal-header').html('<?php echo Text::_('A_REFRESH_OBJECTS_INFO'); ?>');
-				$('#jcomments-modal-message').html('');
+                header.html('<?php echo Text::_('A_REFRESH_OBJECTS_INFO'); ?>');
+                message.html('');
 
 				JCommentsObjects.setup('<?php echo $this->objectsUrl; ?>');
 				JCommentsObjects.onSuccess = function () {
@@ -46,12 +50,9 @@ $language = $this->state->get('import.language');
 	})(jQuery);
 </script>
 
-<div id="jcomments-modal-container">
+<div class="main-card">
 	<br/>
-
-	<h1 id="jcomments-modal-header"><?php echo Text::_('A_IMPORT'); ?></h1>
-
+	<h1 class="text-center" id="jcomments-modal-header"><?php echo Text::_('A_IMPORT'); ?></h1>
 	<p id="jcomments-modal-message">&nbsp;</p>
-
-	<div id="jcomments-progress-container" class="jcomments-progressbar"></div>
+	<div id="jcomments-progress-container" class="jcomments-progressbar bg-success text-white"></div>
 </div>

@@ -12,10 +12,18 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Table\Table;
 
 class JCommentsModelCustomBBCodes extends JCommentsModelList
 {
+	/**
+	 * Context string for the model type.  This is used to handle uniqueness
+	 * when dealing with the getStoreId() method and caching data structures.
+	 *
+	 * @var    string
+	 * @since  1.6
+	 */
+	protected $context = 'com_jcomments.custombbcodes';
+
 	public function __construct($config = array())
 	{
 		if (empty($config['filter_fields']))
@@ -32,16 +40,17 @@ class JCommentsModelCustomBBCodes extends JCommentsModelList
 		parent::__construct($config);
 	}
 
-	public function getTable($type = 'CustomBBCode', $prefix = 'JCommentsTable', $config = array())
-	{
-		return Table::getInstance($type, $prefix, $config);
-	}
-
 	protected function getListQuery()
 	{
 		$db = $this->getDbo();
 		$query = $db->getQuery(true);
-		$query->select("jcb.*");
+
+		$query->select(
+			$this->getState(
+				'list.select',
+				'jcb.*'
+			)
+		);
 		$query->from($db->quoteName('#__jcomments_custom_bbcodes') . ' AS jcb');
 
 		// Join over the users
@@ -49,7 +58,8 @@ class JCommentsModelCustomBBCodes extends JCommentsModelList
 		$query->join('LEFT', $db->quoteName('#__users') . ' AS u ON u.id = jcb.checked_out');
 
 		// Filter by published state
-		$state = $this->getState('filter.state');
+		$state = $this->getState('filter.published');
+
 		if (is_numeric($state))
 		{
 			$query->where('jcb.published = ' . (int) $state);
@@ -57,6 +67,7 @@ class JCommentsModelCustomBBCodes extends JCommentsModelList
 
 		// Filter by search in name or email
 		$search = $this->getState('filter.search');
+
 		if (!empty($search))
 		{
 			$search = $db->Quote('%' . $db->escape($search, true) . '%');
@@ -72,15 +83,14 @@ class JCommentsModelCustomBBCodes extends JCommentsModelList
 
 	public function changeButtonState(&$pks, $state = 1)
 	{
-		$pks   = (array) $pks;
-		$table = $this->getTable();
+		$table = $this->getTable('CustomBBCode', 'JCommentsTable');
 		$key   = $table->getKeyName();
 		$db    = $this->getDbo();
-		$query = $db->getQuery(true);
 
-		$query->update($table->getTableName());
-		$query->set('button_enabled = ' . (int) $state);
-		$query->where($key . ' = ' . implode(' OR ' . $key . ' = ', $pks));
+		$query = $db->getQuery(true)
+			->update($table->getTableName())
+			->set('button_enabled = ' . (int) $state)
+			->where($key . ' = ' . implode(' OR ' . $key . ' = ', $pks));
 
 		$db->setQuery($query);
 		$db->execute();
@@ -88,9 +98,9 @@ class JCommentsModelCustomBBCodes extends JCommentsModelList
 		return true;
 	}
 
-	public function duplicate(&$pks)
+	public function duplicate($pks)
 	{
-		$table = $this->getTable();
+		$table = $this->getTable('CustomBBCode', 'JCommentsTable');
 
 		foreach ($pks as $pk)
 		{
@@ -126,16 +136,38 @@ class JCommentsModelCustomBBCodes extends JCommentsModelList
 		return true;
 	}
 
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'ordering', $direction = 'asc')
 	{
 		$app = Factory::getApplication();
 
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$state = $app->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
-		$this->setState('filter.state', $state);
+		$published = $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '');
+		$this->setState('filter.published', $published);
 
-		parent::populateState('ordering', 'asc');
+		parent::populateState($ordering, $direction);
+	}
+
+	/**
+	 * Method to get a store id based on model configuration state.
+	 *
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param   string  $id  A prefix for the store id.
+	 *
+	 * @return  string  A store id.
+	 *
+	 * @since   1.6
+	 */
+	protected function getStoreId($id = '')
+	{
+		// Compile the store id.
+		$id .= ':' . $this->getState('filter.search');
+		$id .= ':' . $this->getState('filter.published');
+
+		return parent::getStoreId($id);
 	}
 }

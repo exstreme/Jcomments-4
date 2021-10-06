@@ -12,12 +12,9 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
-use Joomla\CMS\MVC\Model\ListModel;
 
-class JCommentsModelBlacklists extends ListModel
+class JCommentsModelBlacklists extends JCommentsModelList
 {
 	protected $context = 'com_jcomments.blacklists';
 
@@ -102,7 +99,7 @@ class JCommentsModelBlacklists extends ListModel
 			$this->context .= '.' . $layout;
 		}
 
-		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
+		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
 		// List state information.
@@ -128,48 +125,5 @@ class JCommentsModelBlacklists extends ListModel
 		$id .= ':' . $this->getState('filter.search');
 
 		return parent::getStoreId($id);
-	}
-
-	public function delete(&$pks)
-	{
-		$pks       = (array) $pks;
-		$table     = $this->getTable('Blacklist', 'JCommentsTable');
-		$canDelete = Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
-
-		foreach ($pks as $i => $pk)
-		{
-			if ($table->load($pk))
-			{
-				if ($canDelete)
-				{
-					if (!$table->delete($pk))
-					{
-						$this->setError($table->getError());
-
-						return false;
-					}
-				}
-				else
-				{
-					unset($pks[$i]);
-					$error = $this->getError();
-
-					if ($error)
-					{
-						Log::add($error, Log::WARNING, 'jerror');
-
-						return false;
-					}
-					else
-					{
-						Log::add(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), Log::WARNING, 'jerror');
-
-						return false;
-					}
-				}
-			}
-		}
-
-		return true;
 	}
 }

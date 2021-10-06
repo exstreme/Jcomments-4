@@ -11,15 +11,13 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
-HTMLHelper::_('jcomments.stylesheet');
-
-$document = Factory::getDocument();
-$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jcomments.progressbar.js');
-$document->addScript(JURI::root(true) . '/administrator/components/com_jcomments/assets/js/jcomments.objects.js?v=5');
+HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
+JHtml::_('jquery.framework');
+JHtml::_('script', 'media/com_jcomments/js/jcomments.progressbar.js');
+JHtml::_('script', 'media/com_jcomments/js/jcomments.objects.js');
 ?>
 <script type="text/javascript">
     (function ($) {
@@ -33,6 +31,5 @@ $document->addScript(JURI::root(true) . '/administrator/components/com_jcomments
 	<br/>
 	<h1 class="text-center"><?php echo Text::_('A_REFRESH_OBJECTS_INFO'); ?></h1>
 	<p id="jcomments-modal-message">&nbsp;</p>
-
 	<div id="jcomments-progress-container" class="jcomments-progressbar bg-success text-white"></div>
 </div>
