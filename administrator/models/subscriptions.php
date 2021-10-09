@@ -12,7 +12,6 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Table\Table;
 
 class JCommentsModelSubscriptions extends JCommentsModelList
 {
@@ -22,28 +21,29 @@ class JCommentsModelSubscriptions extends JCommentsModelList
 		{
 			$config['filter_fields'] = array(
 				'id', 'js.id',
-				'title', 'js.title',
+				'title', 'jo.title',
 				'name', 'js.name',
 				'email', 'js.email',
 				'published', 'js.published',
 				'object_group', 'js.object_group',
-				'lang', 'js.lang',
+				'lang', 'js.lang'
 			);
 		}
 
 		parent::__construct($config);
 	}
 
-	public function getTable($type = 'Subscription', $prefix = 'JCommentsTable', $config = array())
-	{
-		return Table::getInstance($type, $prefix, $config);
-	}
-
 	protected function getListQuery()
 	{
-		$db = $this->getDbo();
+		$db    = $this->getDbo();
 		$query = $db->getQuery(true);
-		$query->select("js.*");
+
+		$query->select(
+			$this->getState(
+				'list.select',
+				'js.*'
+			)
+		);
 		$query->from($db->quoteName('#__jcomments_subscriptions') . ' AS js');
 
 		// Join over the objects
@@ -54,20 +54,24 @@ class JCommentsModelSubscriptions extends JCommentsModelList
 		$query->select('u.name AS editor');
 		$query->join('LEFT', $db->quoteName('#__users') . ' AS u ON u.id = js.checked_out');
 
-		// Filter by published state
-		$state = $this->getState('filter.state');
+		// Join over the language
+		$query->select($db->quoteName('l.title', 'language_title'))
+			->join('LEFT', $db->quoteName('#__languages', 'l') . ' ON ' . $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('js.lang'));
 
-		if (is_numeric($state))
+		// Filter by published state
+		$published = $this->getState('filter.published');
+
+		if (is_numeric($published))
 		{
-			$query->where('js.published = ' . (int) $state);
+			$query->where('js.published = ' . (int) $published);
 		}
 
 		// Filter by component (object group)
-		$object_group = $this->getState('filter.object_group');
+		$objectGroup = $this->getState('filter.object_group');
 
-		if ($object_group != '')
+		if ($objectGroup != '')
 		{
-			$query->where('js.object_group = ' . $db->Quote($db->escape($object_group)));
+			$query->where('js.object_group = ' . $db->Quote($db->escape($objectGroup)));
 		}
 
 		// Filter by language
@@ -101,35 +105,7 @@ class JCommentsModelSubscriptions extends JCommentsModelList
 		return $query;
 	}
 
-	public function getFilterLanguages()
-	{
-		$db = $this->getDbo();
-		$query = $db->getQuery(true)
-			->select('DISTINCT(lang) AS name')
-			->from('#__jcomments_subscriptions')
-			->order('lang ASC');
-
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
-
-		return is_array($rows) ? $rows : array();
-	}
-
-	public function getFilterObjectGroups()
-	{
-		$db = $this->getDbo();
-		$query = $db->getQuery(true)
-			->select('DISTINCT(object_group) AS name')
-			->from('#__jcomments_subscriptions')
-			->order('object_group ASC');
-
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
-
-		return is_array($rows) ? $rows : array();
-	}
-
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'js.name', $direction = 'asc')
 	{
 		$app = Factory::getApplication();
 
@@ -139,12 +115,36 @@ class JCommentsModelSubscriptions extends JCommentsModelList
 		$state = $app->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
 		$this->setState('filter.state', $state);
 
-		$object_group = $app->getUserStateFromRequest($this->context . '.filter.object_group', 'filter_object_group', '');
-		$this->setState('filter.object_group', $object_group);
+		$objectGroup = $app->getUserStateFromRequest($this->context . '.filter.object_group', 'filter_object_group', '');
+		$this->setState('filter.object_group', $objectGroup);
 
 		$language = $app->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '');
 		$this->setState('filter.language', $language);
 
-		parent::populateState('js.name', 'asc');
+		parent::populateState($ordering, $direction);
+	}
+
+	/**
+	 * Method to get a store id based on model configuration state.
+	 *
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param   string  $id  A prefix for the store id.
+	 *
+	 * @return  string  A store id.
+	 *
+	 * @since   1.6
+	 */
+	protected function getStoreId($id = '')
+	{
+		// Compile the store id.
+		$id .= ':' . $this->getState('filter.search');
+		$id .= ':' . $this->getState('filter.published');
+		$id .= ':' . $this->getState('filter.object_group');
+		$id .= ':' . $this->getState('filter.language');
+
+		return parent::getStoreId($id);
 	}
 }

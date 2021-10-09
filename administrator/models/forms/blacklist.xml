@@ -7,7 +7,6 @@
 				class="inputbox"
 				size="40"
 				label="A_BLACKLIST_IP"
-				description=""
 				validate="ip"
 				required="true"/>
 

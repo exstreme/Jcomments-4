@@ -106,17 +106,19 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 								<td class="small text-center">
 									<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'comments.', $canChange); ?>
 								</td>
-								<td class="has-context">
-									<?php if ($item->checked_out) : ?>
-										<?php echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'comments.', $canCheckin); ?>
-									<?php endif; ?>
-									<?php if ($canEdit && $canCheckin) : ?>
-										<a href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.edit&id=' . (int) $item->id); ?>">
-											<?php echo $this->escape($title); ?></a>
-									<?php else : ?>
-										<?php echo $this->escape($title); ?>
-									<?php endif; ?>
-								</td>
+								<th scope="row" class="has-context">
+									<div class="break-word">
+										<?php if ($item->checked_out) : ?>
+											<?php echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'comments.', $canCheckin); ?>
+										<?php endif; ?>
+										<?php if ($canEdit && $canCheckin) : ?>
+											<a href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.edit&id=' . (int) $item->id); ?>" title="<?php echo Text::_('JACTION_EDIT'); ?> <?php echo $this->escape($title); ?>">
+												<?php echo $this->escape($title); ?></a>
+										<?php else : ?>
+											<?php echo $this->escape($title); ?>
+										<?php endif; ?>
+									</div>
+								</th>
 								<td class="small d-none d-md-table-cell">
 									<?php echo $item->name; ?>
 								</td>
