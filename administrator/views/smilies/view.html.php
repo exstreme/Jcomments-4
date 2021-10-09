@@ -11,7 +11,6 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\Toolbar;
@@ -38,8 +37,6 @@ class JCommentsViewSmilies extends HtmlView
 		$this->state         = $this->get('State');
 
 		$this->liveSmiliesPath = str_replace('\\', '/', JCommentsHelper::getSmiliesPath());
-
-		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
 		$this->addToolbar();
 

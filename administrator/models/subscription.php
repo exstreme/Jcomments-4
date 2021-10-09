@@ -25,8 +25,8 @@ class JCommentsModelSubscription extends JCommentsModelForm
 
 	public function getForm($data = array(), $loadData = true)
 	{
-		$form = $this->loadForm('com_jcomments.subscription', 'subscription', array('control'   => 'jform',
-		                                                                            'load_data' => $loadData));
+		$form = $this->loadForm('com_jcomments.subscription', 'subscription', array('control' => 'jform', 'load_data' => $loadData));
+
 		if (empty($form))
 		{
 			return false;

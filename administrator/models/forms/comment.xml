@@ -16,7 +16,6 @@
 				type="text"
 				size="40"
 				label="A_COMMENT_TITLE"
-				description=""
 				filter="string"
 		/>
 
@@ -27,7 +26,6 @@
 				cols="30"
 				filter="raw"
 				label="A_COMMENT_TEXT"
-				description=""
 				required="true"
 		/>
 
@@ -38,7 +36,6 @@
 				class="readonly"
 				size="22"
 				label="A_COMMENT_DATE"
-				description=""
 				format="%Y-%m-%d %H:%M:%S"
 				filter="user_utc"
 				labelclass="control-label"
@@ -52,11 +49,19 @@
 		/>
 
 		<field
+				name="lang"
+				type="contentlanguage"
+				label="JFIELD_LANGUAGE_LABEL"
+				description="A_COMMENT_FIELD_LANGUAGE_DESC"
+		>
+			<option value="*">JALL</option>
+		</field>
+
+		<field
 				name="name"
 				type="text"
 				size="40"
 				label="A_COMMENT_NAME"
-				description=""
 		/>
 
 		<field
@@ -64,7 +69,6 @@
 				type="email"
 				size="40"
 				label="A_COMMENT_EMAIL"
-				description=""
 				validate="email"
 		/>
 
@@ -73,7 +77,6 @@
 				type="url"
 				size="40"
 				label="A_COMMENT_HOMEPAGE"
-				description=""
 				validate="url"
 				required="false"
 		/>
