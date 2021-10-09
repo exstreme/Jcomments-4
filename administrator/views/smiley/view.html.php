@@ -12,6 +12,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
@@ -28,6 +29,8 @@ class JCommentsViewSmiley extends HtmlView
 		$this->item  = $this->get('Item');
 		$this->form  = $this->get('Form');
 		$this->state = $this->get('State');
+
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
 		$this->addToolbar();
 

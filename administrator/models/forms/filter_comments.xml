@@ -97,8 +97,6 @@
 			<option value="jc.ip DESC">A_BLACKLIST_SORT_IP_DESC</option>
 			<option value="jc.object_group ASC">A_COMMENTS_SORT_COPM_ASC</option>
 			<option value="jc.object_group DESC">A_COMMENTS_SORT_COPM_DESC</option>
-			<option value="jo.title ASC">A_COMMENTS_SORT_OBJECT_TITLE_ASC</option>
-			<option value="jo.title DESC">A_COMMENTS_SORT_OBJECT_TITLE_DESC</option>
 			<option value="jc.date ASC">A_COMMENTS_SORT_DATE_CREATE_ASC</option>
 			<option value="jc.date DESC">A_COMMENTS_SORT_DATE_CREATE_DESC</option>
 			<option value="jc.lang ASC">JGRID_HEADING_LANGUAGE_ASC</option>

@@ -12,14 +12,12 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Table\Table;
-use Joomla\Database\DatabaseDriver;
 
 /**
  * JComments subscriptions table
  *
  */
-class JCommentsTableSubscription extends Table
+class JCommentsTableSubscription extends JTable
 {
 	/** @var int Primary key */
 	var $id = null;
@@ -47,9 +45,6 @@ class JCommentsTableSubscription extends Table
 
 	public function store($updateNulls = false)
 	{
-		/** @var DatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
 		if ($this->userid != 0 && empty($this->email))
 		{
 			// TODO How to get user object by user ID in J4?
@@ -59,10 +54,12 @@ class JCommentsTableSubscription extends Table
 
 		if ($this->userid == 0 && !empty($this->email))
 		{
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
 			$query = $db->getQuery(true)
 				->select('*')
 				->from($db->quoteName('#__users'))
-				->where($db->quoteName('email') . ' = ' . $db->quote($this->email));
+				->where($db->quoteName('email') . ' = ' . $db->Quote($db->escape($this->email, true)));
 
 			$db->setQuery($query);
 			$users = $db->loadObjectList();
@@ -77,28 +74,6 @@ class JCommentsTableSubscription extends Table
 		if (empty($this->lang))
 		{
 			$this->lang = JCommentsMultilingual::getLanguage();
-		}
-		// Update 'lang' in #__jcomments_objects, #__jcomments tables. If you do not change the value, this will lead
-		// to a loss of connection in the tables.
-		else
-		{
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__jcomments'))
-				->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-				->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-				->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-			$db->setQuery($query);
-			$db->execute();
-
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__jcomments_objects'))
-				->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-				->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-				->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-			$db->setQuery($query);
-			$db->execute();
 		}
 
 		$this->hash = $this->getHash();

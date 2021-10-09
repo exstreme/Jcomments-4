@@ -22,12 +22,6 @@ if (!$app->getIdentity()->authorise('core.manage', 'com_jcomments'))
 	throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 404);
 }
 
-// Define component path. This constatnt will be removed without replacement in J5.
-if (!defined('JPATH_COMPONENT'))
-{
-	define('JPATH_COMPONENT', JPATH_BASE . '/components/com_jcomments');
-}
-
 // TODO Shoud be removed after checks.
 $language = $app->getLanguage();
 $language->load('com_jcomments', JPATH_ROOT . '/administrator', 'en-GB', true);

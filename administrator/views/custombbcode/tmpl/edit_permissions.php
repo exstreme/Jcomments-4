@@ -11,23 +11,8 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\MVC\View\HtmlView;
-use Joomla\CMS\Router\Route;
-
-class JCommentsViewObjects extends HtmlView
-{
-	function display($tpl = null)
-	{
-		if ($this->getLayout() == 'modal')
-		{
-			$this->url  = str_replace('/administrator', '', Route::_('index.php?option=com_jcomments&task=refreshObjectsAjax&tmpl=component'));
-			$this->hash = md5(Factory::getApplication()->get('secret'));
-
-			HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-		}
-
-		parent::display($tpl);
-	}
-}
+?>
+<div class="col-lg-12">
+	<?php echo HTMLHelper::_('jcomments.usergroups', 'jform[button_acl]', $this->groups, true); ?>
+</div>

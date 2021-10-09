@@ -99,11 +99,11 @@ class JCommentsModelComments extends JCommentsModelList
 		}
 
 		// Filter by component (object group)
-		$objectGroup = $this->getState('filter.object_group');
+		$object_group = $this->getState('filter.object_group');
 
-		if ($objectGroup != '')
+		if ($object_group != '')
 		{
-			$query->where('jc.object_group = ' . $db->Quote($db->escape($objectGroup)));
+			$query->where('jc.object_group = ' . $db->Quote($db->escape($object_group)));
 		}
 
 		// Filter by user
@@ -132,12 +132,12 @@ class JCommentsModelComments extends JCommentsModelList
 			{
 				$query->where('jc.id = ' . (int) StringHelper::substr($search, 3));
 			}
-			elseif (stripos($search, 'user:') === 0)
+			else if (stripos($search, 'user:') === 0)
 			{
 				$escaped = $db->Quote('%' . $db->escape(StringHelper::substr($search, 5), true) . '%');
 				$query->where('(jc.email LIKE ' . $escaped . ' OR jc.name LIKE ' . $escaped . ' OR jc.username LIKE ' . $escaped . ')');
 			}
-			elseif (stripos($search, 'object:') === 0)
+			else if (stripos($search, 'object:') === 0)
 			{
 				$escaped = $db->Quote('%' . $db->escape(StringHelper::substr($search, 7), true) . '%');
 				$query->where('jo.title LIKE ' . $escaped);
@@ -193,7 +193,6 @@ class JCommentsModelComments extends JCommentsModelList
 				if ($table->published != $value)
 				{
 					$result = JCommentsEventHelper::trigger('onJCommentsCommentBeforePublish', array(&$table));
-
 					if (!in_array(false, $result, true))
 					{
 						if (!$table->publish(array($pk), $value, $user->get('id')))

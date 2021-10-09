@@ -110,9 +110,6 @@ class JCommentsTableComment extends Table
 
 	public function store($updateNulls = false)
 	{
-		/** @var DatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
 		$config = JCommentsFactory::getConfig();
 		$app    = Factory::getApplication();
 
@@ -166,7 +163,6 @@ class JCommentsTableComment extends Table
 			if (empty($this->title) && $config->getInt('comment_title') == 1)
 			{
 				$title = JCommentsObjectHelper::getTitle($this->object_id, $this->object_group, $this->lang);
-
 				if (!empty($title))
 				{
 					$this->title = Text::_('COMMENT_TITLE_RE') . ' ' . $title;
@@ -175,26 +171,6 @@ class JCommentsTableComment extends Table
 
 			$this->path = '0';
 		}
-
-		// Update language in objects table
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__jcomments_objects'))
-			->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-			->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-			->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		// Update language in subscriptions table
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__jcomments_subscriptions'))
-			->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-			->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-			->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-		$db->setQuery($query);
-		$db->execute();
 
 		if (isset($this->datetime))
 		{
@@ -211,9 +187,7 @@ class JCommentsTableComment extends Table
 
 	public function delete($oid = null)
 	{
-		/** @var DatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
+		$db     = $this->getDbo();
 		$id     = $oid ? $oid : $this->{$this->getKeyName()};
 		$result = parent::delete($oid);
 
@@ -223,7 +197,7 @@ class JCommentsTableComment extends Table
 			$query = $db->getQuery(true)
 				->select($db->quoteName(array('id', 'parent')))
 				->from($db->quoteName('#__jcomments'))
-				->where($db->quoteName('object_group') . ' = ' . $db->quote($this->object_group))
+				->where($db->quoteName('object_group') . ' = ' . $db->Quote($this->object_group))
 				->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id);
 
 			$db->setQuery($query);
@@ -259,14 +233,14 @@ class JCommentsTableComment extends Table
 			}
 			else
 			{
-				// Delete comment's vote info
+				// delete comment's vote info
 				$query = $db->getQuery(true)
 					->delete($db->quoteName('#__jcomments_votes'))
 					->where($db->quoteName('commentid') . ' = ' . (int) $id);
 				$db->setQuery($query);
 				$db->execute();
 
-				// Delete comment's reports info
+				// delete comment's reports info
 				$query = $db->getQuery(true)
 					->delete($db->quoteName('#__jcomments_reports'))
 					->where($db->quoteName('commentid') . ' = ' . (int) $id);

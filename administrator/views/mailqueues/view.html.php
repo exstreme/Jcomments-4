@@ -9,6 +9,7 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
@@ -34,9 +35,12 @@ class JCommentsViewMailqueues extends HtmlView
 		$this->activeFilters = $this->get('ActiveFilters');
 		$this->state         = $this->get('State');
 
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
+
 		$this->addToolbar();
 
 		parent::display($tpl);
+
 	}
 
 	protected function addToolbar()

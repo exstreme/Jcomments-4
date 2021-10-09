@@ -111,7 +111,7 @@ if ($saveOrder)
 								<td class="text-center">
 									<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'smilies.', $canChange); ?>
 								</td>
-								<th scope="row" class="has-context">
+								<td class="has-context">
 									<div class="break-word">
 										<?php if ($item->checked_out) : ?>
 											<?php echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'smilies.', $canCheckin); ?>
@@ -123,7 +123,7 @@ if ($saveOrder)
 											<span><?php echo $this->escape($item->name); ?></span>
 										<?php endif; ?>
 									</div>
-								</th>
+								</td>
 								<td class="d-md-table-cell">
 									<?php echo $item->code; ?>1
 								</td>

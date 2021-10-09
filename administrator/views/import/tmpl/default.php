@@ -50,7 +50,7 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 						<tbody>
 						<?php foreach ($this->items as $i => $item): ?>
 							<tr class="row<?php echo $i % 2; ?>">
-								<td class="nowrap">
+								<td class="nowrap has-context">
 									<?php echo $this->escape($item->name); ?>
 								</td>
 								<td class="text-center hidden-phone">
@@ -68,12 +68,9 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 								</td>
 								<td class="text-center nowrap">
 									<?php
-									echo HTMLHelper::_(
-										'jcomments.modal',
-										'jcomments-import-' . $i, 'A_IMPORT_BUTTON_IMPORT',
+									echo HTMLHelper::_('jcomments.modal', 'jcomments-import-' . $i, 'A_IMPORT_BUTTON_IMPORT',
 										'index.php?option=com_jcomments&task=import.modal&source=' . $item->code . '&tmpl=component',
-										'A_COMMENTS', 'window.location.reload();', 'download', 'btn-micro', 500, 210
-									);
+										'A_COMMENTS', 'window.location.reload();', 'download', 'btn-micro', 500, 210);
 									?>
 								</td>
 							</tr>

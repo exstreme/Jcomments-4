@@ -36,13 +36,30 @@ $wa->useScript('keepalive')
                             <?php echo $this->form->getInput('ip'); ?>
                         </div>
                     </div>
-
-	                <?php echo $this->form->renderField('reason'); ?>
-
-	                <?php echo $this->form->renderField('notes'); ?>
-
-	                <?php echo $this->form->renderField('created'); ?>
-
+                    <div class="control-group">
+                        <div class="control-label">
+                            <?php echo $this->form->getLabel('reason'); ?>
+                        </div>
+                        <div class="controls">
+                            <?php echo $this->form->getInput('reason'); ?>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <?php echo $this->form->getLabel('notes'); ?>
+                        </div>
+                        <div class="controls">
+                            <?php echo $this->form->getInput('notes'); ?>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <?php echo $this->form->getLabel('created'); ?>
+                        </div>
+                        <div class="controls">
+                            <?php echo $this->form->getInput('created'); ?>
+                        </div>
+                    </div>
                     <div class="control-group">
                         <div class="control-label">
                             <?php echo $this->form->getLabel('id'); ?>

@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
@@ -31,6 +32,8 @@ class JCommentsViewCustombbcodes extends HtmlView
 		$this->filterForm    = $this->get('FilterForm');
 		$this->activeFilters = $this->get('ActiveFilters');
 		$this->state         = $this->get('State');
+
+		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
 		$this->addToolbar();
 

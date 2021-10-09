@@ -22,29 +22,29 @@ $wa->useScript('jquery')
 	->useScript('form.validate');
 ?>
 <script type="text/javascript">
-	(function ($) {
-		$(document).ready(function () {
-			$('a.cmd-delete-report').click(function (e) {
-				e.preventDefault();
+    (function ($) {
+        $(document).ready(function () {
+            $('a.cmd-delete-report').click(function (e) {
+                e.preventDefault();
 
-				var id = $(this).data('report-id');
-				var row = $(this).closest('tr');
+                var id = $(this).data('report-id');
+                var row = $(this).closest('tr');
 
-				if (id) {
-					$.post('index.php?option=com_jcomments&task=comment.deleteReportAjax&tmpl=component', {id: id})
-						.done(function (result) {
-							if (result === '0') {
-								document.location.reload();
-							} else if (result > 0) {
-								if (row) {
-									row.remove();
-								}
-							}
-						});
-				}
-			});
-		});
-	})(jQuery);
+                if (id) {
+                    $.post('index.php?option=com_jcomments&task=comment.deleteReportAjax&tmpl=component', {id: id})
+                        .done(function (result) {
+                            if (result === '0') {
+                                document.location.reload();
+                            } else if (result > 0) {
+                                if (row) {
+                                    row.remove();
+                                }
+                            }
+                        });
+                }
+            });
+        });
+    })(jQuery);
 </script>
 
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=comment&layout=edit&id=' . (int) $this->item->id); ?>"
@@ -130,13 +130,11 @@ $wa->useScript('jquery')
 						<?php endif; ?>
 					</div>
 				</div>
-
-				<?php echo $this->form->renderField('lang'); ?>
 			</div>
 		</div>
 
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>
-		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'reports', Text::_('A_REPORTS_LIST')); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'general', Text::_('A_REPORTS_LIST')); ?>
 		<table class="adminlist table">
 			<thead>
 			<tr>

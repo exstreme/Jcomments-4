@@ -31,37 +31,25 @@ $wa->useScript('keepalive')
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>
 		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_SIMPLE')); ?>
 		<div class="row">
-			<div class="col-lg-12">
-				<?php echo $this->form->renderField('simple_pattern'); ?>
-
-				<?php echo $this->form->renderField('simple_replacement_html'); ?>
-
-				<?php echo $this->form->renderField('simple_replacement_text'); ?>
-			</div>
+			<?php echo $this->loadTemplate('simple'); ?>
 		</div>
 
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>
-		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'advanced', Text::_('A_CUSTOM_BBCODE_ADVANCED')); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_ADVANCED')); ?>
 		<div class="row">
-			<div class="col-lg-12">
-				<?php echo $this->form->renderFieldset('advanced'); ?>
-			</div>
+			<?php echo $this->loadTemplate('advanced'); ?>
 		</div>
 
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>
-		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'button', Text::_('A_CUSTOM_BBCODE_BUTTON')); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_BUTTON')); ?>
 		<div class="row">
-			<div class="col-lg-12">
-				<?php echo $this->form->renderFieldset('button'); ?>
-			</div>
+			<?php echo $this->loadTemplate('button'); ?>
 		</div>
 
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>
-		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'permissions', Text::_('A_CUSTOM_BBCODE_PERMISSIONS')); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'simple', Text::_('A_CUSTOM_BBCODE_PERMISSIONS')); ?>
 		<div class="row">
-			<div class="col-lg-12">
-				<?php echo HTMLHelper::_('jcomments.usergroups', 'jform[button_acl]', $this->groups, true); ?>
-			</div>
+			<?php echo $this->loadTemplate('permissions'); ?>
 		</div>
 
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>

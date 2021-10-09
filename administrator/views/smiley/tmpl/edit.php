@@ -25,12 +25,30 @@ $wa->useScript('keepalive')
 		<div class="row">
 			<div class="col-12">
 				<fieldset id="fieldset-edit" class="options-form">
-					<?php echo $this->form->renderField('code'); ?>
-
-					<?php echo $this->form->renderField('name'); ?>
-
-					<?php echo $this->form->renderField('image'); ?>
-
+					<div class="control-group">
+						<div class="control-label">
+							<?php echo $this->form->getLabel('code'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('code'); ?>
+						</div>
+					</div>
+					<div class="control-group">
+						<div class="control-label">
+							<?php echo $this->form->getLabel('name'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('name'); ?>
+						</div>
+					</div>
+					<div class="control-group">
+						<div class="control-label">
+							<?php echo $this->form->getLabel('image'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('image'); ?>
+						</div>
+					</div>
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('published'); ?>
@@ -39,9 +57,14 @@ $wa->useScript('keepalive')
 							<?php echo $this->form->getInput('published'); ?>
 						</div>
 					</div>
-
-					<?php echo $this->form->renderField('ordering'); ?>
-
+					<div class="control-group">
+						<div class="control-label">
+							<?php echo $this->form->getLabel('ordering'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('ordering'); ?>
+						</div>
+					</div>
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('id'); ?>

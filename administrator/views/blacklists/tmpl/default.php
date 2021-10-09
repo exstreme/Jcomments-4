@@ -77,19 +77,17 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 								<td class="text-center">
 									<?php echo HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->ip); ?>
 								</td>
-								<th scope="row" class="has-context">
-									<div class="break-word">
-										<?php if ($item->checked_out) : ?>
-											<?php echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'blacklists.', $canCheckin); ?>
-										<?php endif; ?>
-										<?php if ($canEdit && $canCheckin) : ?>
-											<a href="<?php echo Route::_('index.php?option=com_jcomments&task=blacklist.edit&id=' . (int) $item->id); ?>" title="<?php echo Text::_('JACTION_EDIT'); ?> <?php echo $this->escape($item->ip); ?>">
-												<?php echo $this->escape($item->ip); ?></a>
-										<?php else : ?>
-											<?php echo $this->escape($item->ip); ?>
-										<?php endif; ?>
-									</div>
-								</th>
+								<td class="nowrap has-context">
+									<?php if ($item->checked_out) : ?>
+										<?php echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'blacklists.', $canCheckin); ?>
+									<?php endif; ?>
+									<?php if ($canEdit && $canCheckin) : ?>
+										<a href="<?php echo Route::_('index.php?option=com_jcomments&task=blacklist.edit&id=' . (int) $item->id); ?>">
+											<?php echo $this->escape($item->ip); ?></a>
+									<?php else : ?>
+										<?php echo $this->escape($item->ip); ?>
+									<?php endif; ?>
+								</td>
 								<td class="small d-md-table-cell">
 									<?php echo $item->reason; ?>
 								</td>

@@ -2,29 +2,34 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version       4.0
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version 4.0
+ * @package JComments
+ * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
-
-use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Router\Route;
-
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
-$wa = $this->document->getWebAssetManager();
-$wa->useScript('keepalive')
-	->useScript('form.validate');
 ?>
-<form action="<?php echo Route::_('index.php?option=com_jcomments&view=subscription&layout=edit&id=' . (int) $this->item->id); ?>"
-      method="post" name="adminForm" id="item-form" class="form-validate">
-	<div class="main-card">
-		<div class="row">
-			<div class="col-12">
-				<fieldset id="fieldset-edit" class="options-form">
+<script type="text/javascript">
+Joomla.submitbutton = function(task)
+{
+	if (task == 'subscription.cancel' || document.formvalidator.isValid(document.getElementById('subscription-form'))) {
+		Joomla.submitform(task, document.getElementById('subscription-form'));
+	}
+}
+</script>
+
+<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=subscription&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="subscription-form" class="form-validate options-form">
+	<?php if(!empty($this->bootstrap)): ?>
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="#general" data-toggle="tab"><?php echo empty($this->item->id) ? JText::_('A_SUBSCRIPTION_NEW') : JText::sprintf('A_SUBSCRIPTION_EDIT', $this->item->id);?></a></li>
+	</ul>
+	<?php endif;?>
+	<div class="tab-content">
+		<div class="tab-pane active" id="general">
+			<div class="row-fluid">
+				<div class="span6">
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('object_id'); ?>
@@ -57,9 +62,6 @@ $wa->useScript('keepalive')
 							<?php echo $this->form->getInput('email'); ?>
 						</div>
 					</div>
-
-					<?php echo $this->form->renderField('lang'); ?>
-
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('published'); ?>
@@ -76,11 +78,10 @@ $wa->useScript('keepalive')
 							<?php echo $this->form->getInput('id'); ?>
 						</div>
 					</div>
-				</fieldset>
+				</div>
 			</div>
 		</div>
+		<input type="hidden" name="task" value="" />
+		<?php echo JHtml::_('form.token'); ?>
 	</div>
-
-	<input type="hidden" name="task" value=""/>
-	<?php echo HTMLHelper::_('form.token'); ?>
 </form>
