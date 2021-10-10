@@ -26,6 +26,26 @@ $listOrder      = $this->escape($this->state->get('list.ordering'));
 $listDirection  = $this->escape($this->state->get('list.direction'));
 $canOrder       = $user->authorise('core.edit.state', 'com_jcomments');
 $saveOrder      = $listOrder == 'ordering';
+$buttonStates   = array(
+	1 => array(
+		'button_disable',
+		'JENABLED',
+		'A_DISABLE',
+		'JENABLED',
+		true,
+		'publish',
+		'publish'
+	),
+	0 => array(
+		'button_enable',
+		'JDISABLED',
+		'A_ENABLE',
+		'JDISABLED',
+		true,
+		'unpublish',
+		'unpublish'
+	),
+);
 
 if ($saveOrder)
 {
@@ -127,7 +147,7 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 								<td class="text-center">
 									<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'custombbcodes.', $canChange); ?>
 								</td>
-								<td class="has-context">
+								<th scope="row" class="has-context">
 									<div class="break-word">
 										<?php if ($item->checked_out) : ?>
 											<?php echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'custombbcodes.', $canCheckin); ?>
@@ -139,12 +159,14 @@ HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 											<span><?php echo $this->escape($item->name); ?></span>
 										<?php endif; ?>
 									</div>
-								</td>
+								</th>
 								<td class="left hidden-phone">
 									<?php echo $item->simple_pattern; ?>
 								</td>
 								<td class="text-center hidden-phone">
-									<?php echo HTMLHelper::_('custombbcodes.buttonstate', $item->button_enabled, $i, $canChange, 'cb'); ?>
+									<?php echo HTMLHelper::_(
+										'jgrid.state', $buttonStates, $item->button_enabled, $i, 'custombbcodes.', true, true, 'cb'
+									); ?>
 								</td>
 								<td class="text-center hidden-phone">
 									<?php echo $icon; ?>

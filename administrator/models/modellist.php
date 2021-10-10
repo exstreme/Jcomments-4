@@ -16,6 +16,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\CMS\Table\Table;
 
 class JCommentsModelList extends ListModel
 {
@@ -226,45 +227,5 @@ class JCommentsModelList extends ListModel
 		}
 
 		return true;
-	}
-
-
-	protected function populateState($ordering = null, $direction = null)
-	{
-		if ($this->context)
-		{
-			$app = Factory::getApplication();
-
-			$value = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit'), 'uint');
-			$limit = $value;
-			$this->setState('list.limit', $limit);
-
-			$value = $app->getUserStateFromRequest($this->context . '.list.start', 'limitstart', 0);
-			$start = ($limit != 0 ? (floor($value / $limit) * $limit) : 0);
-			$this->setState('list.start', $start);
-
-			$value = $app->getUserStateFromRequest($this->context . '.filter.order', 'filter_order', $ordering);
-
-			if (!in_array($value, $this->filter_fields))
-			{
-				$value = $ordering;
-				$app->setUserState($this->context . '.filter.order', $value);
-			}
-
-			$this->setState('list.ordering', $value);
-			$value = $app->getUserStateFromRequest($this->context . '.filter.order', 'filter_order_Dir', $direction);
-
-			if (!in_array(strtoupper($value), array('ASC', 'DESC', '')))
-			{
-				$value = $direction;
-				$app->setUserState($this->context . '.filter.order_Dir', $value);
-			}
-
-			$this->setState('list.direction', $value);
-		}
-		else
-		{
-			$this->setState('list.start', 0);
-		}
 	}
 }
