@@ -5,17 +5,16 @@
 		<description>JComments lets your users comment on content items</description>
 		<element>com_jcomments</element>
 		<type>component</type>
-		<version>4.0.1</version>
-		<infourl title="JComments">https://github.com/exstreme/Jcomments-Recaptcha2</infourl>
+		<version>4.0.2</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/Develop/com_jcomments_v4.0.1.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/Develop/com_jcomments_v4.0.2.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>Stable</tag>
 		</tags>
-		<maintainer>smart</maintainer>
-		<maintainerurl>http://www.joomlatune.ru</maintainerurl>
-		<section></section>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
 		<client_id>1</client_id>
 		<targetplatform name="joomla" version="4.[0123456789]|10"/>
 	</update>				

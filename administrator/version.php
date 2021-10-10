@@ -18,13 +18,13 @@ class JCommentsVersion
 	/** @var int Main Release Level */
 	var $RELEASE = '4.0';
 	/** @var int Sub Release Level */
-	var $DEV_LEVEL = '1';
+	var $DEV_LEVEL = '2';
 	/** @var string Development Status */
 	var $DEV_STATUS = '';
 	/** @var int Build Number */
 	var $BUILD = '';
 	/** @var string Date */
-	var $RELDATE = '30/09/2021';
+	var $RELDATE = '10/10/2021';
 
 	/**
 	 * @return string Long format version

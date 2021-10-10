@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
 	<name>JComments</name>
-	<creationDate>18/09/2021</creationDate>
+	<creationDate>10/10/2021</creationDate>
 	<author>smart</author>
 	<authorEmail>smart@joomlatune.ru</authorEmail>
-	<authorUrl>http://www.joomlatune.ru</authorUrl>
-	<copyright>Copyright 2006-2018 JoomlaTune.ru All rights reserved!</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<copyright>Copyright 2006-2021 JoomlaTune.ru All rights reserved!</copyright>
 	<license>http://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.1</version>
+	<version>4.0.2</version>
 	<description><![CDATA[JComments lets your users comment on content items.]]></description>
 
 	<scriptfile>script.jcomments.php</scriptfile>

@@ -58,7 +58,7 @@ class JCommentsViewSettings extends HtmlView
 
 
 		HTMLHelper::_('formbehavior.chosen', 'select:not(.jcommentscategories)');
-		
+
 		Sidebar::setAction('index.php?option=com_jcomments&view=settings');
 
 		if (count($languages))

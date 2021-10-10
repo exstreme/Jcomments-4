@@ -13,6 +13,10 @@ defined('_JEXEC') or die;
 Changelog
 ------------
 
+4.0.2
+# see commits in Github
+! Adapt assets to use with WebAssets manager
+
 4.0.1
 ! First beta release
 # Adapted templates
