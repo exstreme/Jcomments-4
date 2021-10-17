@@ -13,14 +13,33 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Controller\BaseController;
 
+/**
+ * Component Controller
+ *
+ * @since  1.5
+ */
 class JCommentsController extends BaseController
 {
+	/**
+	 * The default view.
+	 *
+	 * @var    string
+	 * @since  1.6
+	 */
 	protected $default_view = 'comments';
 
-	public function display($cachable = false, $urlparams = false)
+	/**
+	 * Method to display a view.
+	 *
+	 * @param   boolean  $cachable   If true, the view output will be cached
+	 * @param   array    $urlparams  An array of safe URL parameters and their variable types, for valid values see {@link JFilterInput::clean()}.
+	 *
+	 * @return  BaseController|boolean  This object to support chaining.
+	 *
+	 * @since   1.5
+	 */
+	public function display($cachable = false, $urlparams = array())
 	{
-		parent::display();
-
-		return $this;
+		return parent::display();
 	}
 }

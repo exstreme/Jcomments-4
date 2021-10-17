@@ -12,108 +12,207 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
 
+/**
+ * Settings controller.
+ *
+ * @since  1.5
+ */
 class JCommentsControllerSettings extends BaseController
 {
-	function display($cachable = false, $urlparams = array())
-	{
-		Factory::getApplication()->input->set('view', 'default');
-
-		parent::display($cachable, $urlparams);
-	}
-
+	/**
+	 * Method to save a record.
+	 *
+	 * @return  void|boolean  Void on success. Boolean false on fail.
+	 *
+	 * @since   3.0
+	 * @throws  Exception
+	 */
 	public function save()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
-		$app    = Factory::getApplication();
-		$base64 = $app->input->get('base64', '');
+		$app  = Factory::getApplication();
+		$user = $app->getIdentity();
 
-		if (!empty($base64))
+		// Check if the user is authorized to do this.
+		if (!$user->authorise('core.admin', 'com_jcomments') && !$user->authorise('core.manage', 'com_jcomments'))
 		{
-			$base64 = base64_decode(urldecode($base64));
-			parse_str($base64, $data);
-
-			foreach ($data as $k => $v)
-			{
-				$app->input->post->set($k, $v);
-			}
+			$this->setRedirect(Route::_('index.php', false), Text::_('JERROR_ALERTNOAUTHOR'), 'error');
 		}
 
+		$returnUri = $this->input->post->get('return', null, 'base64');
+		$redirect  = !empty($returnUri) ? '&return=' . urlencode($returnUri) : '';
+		$data      = $this->input->post->get('jform', array(), 'array');
+		$context   = 'com_jcomments.edit.settings';
+
+		/** @var JCommentsModelSettings $model */
 		$model = $this->getModel('Settings', 'JCommentsModel', array('ignore_request' => true));
-		$data  = $app->input->post->get('jform', array(), 'array');
+		$model->setState('component.option', 'com_jcomments');
+		$form  = $model->getForm();
 
-		$language = $app->input->post->get('language', '', 'string');
-		$model->setState($model->getName() . '.language', $language);
+		// Validate the posted data.
+		$return = $model->validate($form, $data);
 
-		if ($model->save($data) === false)
+		// Check for validation errors.
+		if ($return === false)
 		{
+			// Save the data in the session.
+			$this->app->setUserState($context . '.data', $data);
+
+			// Redirect back to the edit screen.
 			$this->setRedirect(
-				Route::_('index.php?option=com_jcomments&view=settings', false),
-				Text::sprintf('JLIB_APPLICATION_ERROR_SAVE_FAILED', $model->getError()),
+				Route::_('index.php?option=com_jcomments&view=settings' . $redirect, false),
+				$model->getError(),
 				'error'
 			);
 
 			return false;
+		}
+
+		if ($data['captcha_engine'] == 'kcaptcha' && (!extension_loaded('gd') || !function_exists('imagecreatefrompng')))
+		{
+			$this->app->enqueueMessage(Text::_('A_WARNINGS_PHP_GD'), 'warning');
+		}
+
+		$result = $model->save($data);
+
+		if (!$result)
+		{
+			// Save failed, go back to the screen and display a notice.
+			$this->setRedirect(Route::_('index.php?option=com_jcomments&view=settings' . $redirect, false));
+
+			return false;
+		}
+
+		// Clear session data.
+		$this->app->setUserState($context . '.data', null);
+
+		$this->app->enqueueMessage(Text::_('A_SETTINGS_SAVED'), 'message');
+		$this->setRedirect(Route::_('index.php?option=com_jcomments&view=settings', false));
+
+		return true;
+	}
+
+	/**
+	 * Method to cancel an edit.
+	 *
+	 * @param   string  $key  The name of the primary key of the URL variable.
+	 *
+	 * @return  boolean  True if access level checks pass, false otherwise.
+	 *
+	 * @since   1.6
+	 */
+	public function cancel($key = null)
+	{
+		$this->setRedirect(Route::_('index.php?option=com_jcomments', false));
+
+		return true;
+	}
+
+	/**
+	 * Method to restore component configuration from json file.
+	 *
+	 * @return  boolean
+	 *
+	 * @since  3.0
+	 */
+	public function restore()
+	{
+		$this->checkToken();
+
+		$app = Factory::getApplication();
+
+		// Check if the user is authorized to do this.
+		if (!$app->getIdentity()->authorise('core.admin', 'com_jcomments'))
+		{
+			$app->redirect('index.php', Text::_('JERROR_ALERTNOAUTHOR'));
+
+			return false;
+		}
+
+		/** @var JCommentsModelSettings $model */
+		$model = $this->getModel('settings');
+		$file = $this->input->files->get('form_upload_config', '', 'array');
+		$file['name'] = File::makeSafe($file['name']);
+		$url = 'index.php?option=com_jcomments&view=settings';
+
+		if ($this->detectMime($file['tmp_name']) != 'application/json' || File::getExt($file['name']) != 'json')
+		{
+			$this->setRedirect($url, Text::_('A_SETTINGS_RESTORE_INVALID_REQUEST'), 'error');
+
+			return false;
+		}
+
+		if (isset($file['name']))
+		{
+			$fc     = file_get_contents($file['tmp_name']);
+			$data   = json_decode($fc);
+			$errors = json_last_error();
+
+			if ($errors === JSON_ERROR_NONE)
+			{
+				if ($model->restoreConfig($data))
+				{
+					$this->setRedirect($url, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_SUCCESS'));
+				}
+				else
+				{
+					$this->setRedirect($url, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_ERROR'), 'error');
+				}
+
+				return false;
+			}
+			else
+			{
+				$this->setRedirect($url, Text::_('A_SETTINGS_RESTORE_INVALID_FILE'), 'error');
+			}
 		}
 		else
 		{
-			$this->getModel('Smiley')->saveLegacy();
+			$this->setRedirect($url, Text::_('A_SETTINGS_RESTORE_INVALID_REQUEST'), 'error');
 		}
 
-		$captchaEngine = JCommentsFactory::getConfig()->get('captcha_engine', 'kcaptcha');
+		return true;
+	}
 
-		if ($captchaEngine == 'kcaptcha')
+	/**
+	 * Get MIME-type of the file.
+	 *
+	 * @param   string  $path  Path to a file.
+	 *
+	 * @return  string
+	 *
+	 * @since   3.1
+	 */
+	public function detectMime($path)
+	{
+		if (!empty($path) && is_file($path))
 		{
-			if (!extension_loaded('gd') || !function_exists('imagecreatefrompng'))
+			// We should suppress all errors here to avoid broken data due to bug in PHP >7 with mime database.
+			if (function_exists('finfo_open'))
 			{
-				Factory::getApplication()->enqueueMessage(Text::_('A_WARNINGS_PHP_GD'), 'warning');
+				$finfo = new finfo(FILEINFO_MIME_TYPE);
+				$mime = @$finfo->file($path);
+			}
+			elseif (function_exists('mime_content_type'))
+			{
+				$mime = @mime_content_type($path);
+			}
+			else
+			{
+				$mime = 'text/plain';
 			}
 		}
-
-		$cache = Factory::getCache('com_jcomments');
-		$cache->clean();
-
-		$this->setRedirect(Route::_('index.php?option=com_jcomments&view=settings', false), Text::_('A_SETTINGS_SAVED'));
-
-		return true;
-	}
-
-	public function cancel()
-	{
-		$this->setRedirect(Route::_('index.php?option=com_jcomments', false));
-	}
-
-	public function reset()
-	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
-
-		$app      = Factory::getApplication();
-		$language = $app->input->post->get('language', '', 'string');
-
-		$model = $this->getModel('Settings', 'JCommentsModel', array('ignore_request' => true));
-		$model->setState($model->getName() . '.language', $language);
-
-		if ($model->reset() === false)
+		else
 		{
-			$this->setRedirect(
-				Route::_('index.php?option=com_jcomments&view=settings', false),
-				Text::sprintf('JLIB_APPLICATION_ERROR_SAVE_FAILED', $model->getError()),
-				'error'
-			);
-
-			return false;
+			throw new RuntimeException('File not found at ' . $path);
 		}
 
-		$cache = Factory::getCache('com_jcomments');
-		$cache->clean();
-
-		$this->setRedirect(Route::_('index.php?option=com_jcomments&view=settings', false), Text::_('A_SETTINGS_RESTORED'));
-
-		return true;
+		return $mime;
 	}
 }

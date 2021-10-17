@@ -26,7 +26,7 @@ class JFormFieldSmileyImage extends FormField
 
 	protected function getInput()
 	{
-		require_once(JPATH_COMPONENT . '/helpers/jcomments.php');
+		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
 
 		$smiliesPath = JCommentsHelper::getSmiliesPath();
 		$livePath    = str_replace('\\', '/', $smiliesPath);

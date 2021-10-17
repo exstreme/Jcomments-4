@@ -24,14 +24,14 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 
 	public function getForm($data = array(), $loadData = true)
 	{
-		$form = $this->loadForm('com_jcomments.custombbcode', 'custombbcode', array('control'   => 'jform',
-		                                                                            'load_data' => $loadData));
+		$form = $this->loadForm('com_jcomments.custombbcode', 'custombbcode', array('control' => 'jform', 'load_data' => $loadData));
+
 		if (empty($form))
 		{
 			return false;
 		}
 
-		if (!$this->canEditState())
+		if (!$this->canEditState((object) $data))
 		{
 			$form->setFieldAttribute('published', 'disabled', 'true');
 			$form->setFieldAttribute('published', 'filter', 'unset');

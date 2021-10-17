@@ -21,6 +21,7 @@ class JFormRuleIp extends FormRule
 	public function test(SimpleXMLElement $element, $value, $group = null, Registry $input = null, Form $form = null)
 	{
 		$required = ((string) $element['required'] == 'true' || (string) $element['required'] == 'required');
+
 		if (!$required && empty($value))
 		{
 			return true;
@@ -83,6 +84,7 @@ class JFormRuleIp extends FormRule
 
 		// If any of the "octets" are longer than 4 characters it's not valid
 		$segments = preg_split("/[:\/]/", $value);
+
 		foreach ($segments as $segment)
 		{
 			if (strlen($segment) > 4)

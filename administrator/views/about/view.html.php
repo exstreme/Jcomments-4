@@ -16,12 +16,19 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class JCommentsViewAbout extends HtmlView
 {
+	/**
+	 * @var   JCommentsVersion
+	 * @since 4.0
+	 */
+	protected $version;
+
 	function display($tpl = null)
 	{
-		require_once(JPATH_COMPONENT . '/version.php');
+		require_once JPATH_BASE . '/components/com_jcomments/version.php';
 
-		$this->version = new JCommentsVersion();
+		$this->version = new JCommentsVersion;
 		ToolbarHelper::title(JText::_('A_SUBMENU_ABOUT'));
+		ToolbarHelper::preferences('com_jcomments');
 
 		parent::display($tpl);
 	}

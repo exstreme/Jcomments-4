@@ -36,8 +36,6 @@ class JCommentsViewSubscription extends HtmlView
 
 	protected function addToolbar()
 	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
 		$userId     = Factory::getApplication()->getIdentity()->get('id');
 		$canDo      = ContentHelper::getActions('com_jcomments', 'component');
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);

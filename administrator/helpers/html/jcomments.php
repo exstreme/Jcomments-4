@@ -11,10 +11,12 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Access;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\String\StringHelper;
 
 abstract class JHtmlJComments
 {
@@ -37,7 +39,7 @@ abstract class JHtmlJComments
 		// Build the options array for the modal
 		$params           = array();
 		$params['title']  = $title;
-		$params['url']    = (substr($url, 0, 4) !== 'http') ? Uri::base() . $url : $url;
+		$params['url']    = (StringHelper::substr($url, 0, 4) !== 'http') ? Uri::base() . $url : $url;
 		$params['height'] = $height;
 		$params['width']  = $width;
 		$html             .= HTMLHelper::_('bootstrap.renderModal', 'modal-' . $name, $params);
@@ -82,17 +84,19 @@ abstract class JHtmlJComments
 			$item = &$groups[$i];
 
 			// If checkSuperAdmin is true, only add item if the user is superadmin or the group is not super admin
-			if ((!$checkSuperAdmin) || $isSuperAdmin || (!JAccess::checkGroup($item->id, 'core.admin')))
+			if ((!$checkSuperAdmin) || $isSuperAdmin || (!Access::checkGroup($item->id, 'core.admin')))
 			{
 				// Setup  the variable attributes.
 				$eid = $count . 'group_' . $item->id;
 
 				// Don't call in_array unless something is selected
 				$checked = '';
+
 				if ($selected)
 				{
 					$checked = in_array($item->id, $selected) ? ' checked="checked"' : '';
 				}
+
 				$rel = ($item->parent_id > 0) ? ' rel="' . $count . 'group_' . $item->parent_id . '"' : '';
 
 				// Build the HTML for the item.
@@ -100,8 +104,8 @@ abstract class JHtmlJComments
 				$html[] = '		<div class="controls">';
 				$html[] = '			<label class="checkbox" for="' . $eid . '">';
 				$html[] = '			<input type="checkbox" name="' . $name . '[]" value="' . $item->id . '" id="' . $eid . '"';
-				$html[] = '					' . $checked . $rel . ' />';
-				$html[] = '			' . str_repeat('<span class="gi">|&mdash;</span>', $item->level) . $item->title;
+				$html[] = '					' . $checked . $rel . ' class="form-check-input" />';
+				$html[] = '			' . str_repeat('<span class="gi text-muted">⋮&nbsp;&nbsp;&nbsp;</span>', $item->level) . ' &mdash; ' . $item->title;
 				$html[] = '			</label>';
 				$html[] = '		</div>';
 				$html[] = '	</div>';

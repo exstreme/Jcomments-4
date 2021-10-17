@@ -14,7 +14,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
 use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerSmilies extends JCommentsControllerList
@@ -35,7 +34,7 @@ class JCommentsControllerSmilies extends JCommentsControllerList
 
 	public function publish()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$cid   = $this->input->get('cid', array(), 'array');
 		$data  = array('publish' => 1, 'unpublish' => 0);
@@ -46,16 +45,16 @@ class JCommentsControllerSmilies extends JCommentsControllerList
 		{
 			$model = $this->getModel();
 			$model->publish($cid, $value);
-
-			$this->getModel('smiley')->saveLegacy();
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 
 	public function delete()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$cid = $this->input->get('cid', array(), 'array');
 
@@ -63,16 +62,16 @@ class JCommentsControllerSmilies extends JCommentsControllerList
 		{
 			$model = $this->getModel();
 			$model->delete($cid);
-
-			$this->getModel('smiley')->saveLegacy();
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 
 	public function saveorder()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$pks   = $this->input->post->get('cid', array(), 'array');
 		$order = $this->input->post->get('order', array(), 'array');
@@ -117,7 +116,6 @@ class JCommentsControllerSmilies extends JCommentsControllerList
 
 		if ($return)
 		{
-			$this->getModel('smiley')->saveLegacy();
 			echo '1';
 		}
 

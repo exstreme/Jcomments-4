@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
@@ -110,10 +111,12 @@ class JCommentsTableComment extends Table
 
 	public function store($updateNulls = false)
 	{
+		require_once JPATH_ROOT . '/components/com_jcomments/helpers/object.php';
+
 		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 		$app    = Factory::getApplication();
 
 		if (JCommentsSystemPluginHelper::isAdmin($app))
@@ -141,7 +144,7 @@ class JCommentsTableComment extends Table
 
 			if ($parent->load($this->parent))
 			{
-				if (empty($this->title) && $config->getInt('comment_title') == 1)
+				if (empty($this->title) && (int) $config->get('comment_title') == 1)
 				{
 					if (!empty($parent->title))
 					{
@@ -163,7 +166,7 @@ class JCommentsTableComment extends Table
 		}
 		else
 		{
-			if (empty($this->title) && $config->getInt('comment_title') == 1)
+			if (empty($this->title) && (int) $config->get('comment_title') == 1)
 			{
 				$title = JCommentsObjectHelper::getTitle($this->object_id, $this->object_group, $this->lang);
 
@@ -229,7 +232,7 @@ class JCommentsTableComment extends Table
 			$db->setQuery($query);
 			$rows = $db->loadObjectList();
 
-			require_once(JCOMMENTS_LIBRARIES . '/joomlatune/tree.php');
+			require_once JPATH_ROOT . '/components/com_jcomments/libraries/joomlatune/tree.php';
 
 			$tree        = new JoomlaTuneTree($rows);
 			$descendants = $tree->descendants($id);
@@ -289,7 +292,9 @@ class JCommentsTableComment extends Table
 
 	protected function clearComment($value)
 	{
-		// change \n to <br />
+		require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
+
+		// Change \n to <br />
 		$matches = array();
 		preg_match_all('#(\[code\=?([a-z0-9]*?)\].*\[\/code\])#isUu', trim($value), $matches);
 

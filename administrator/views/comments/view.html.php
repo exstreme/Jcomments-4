@@ -60,5 +60,7 @@ class JCommentsViewComments extends HtmlView
 		$bar->appendButton('Popup', 'refresh', 'A_REFRESH_OBJECTS_INFO',
 			'index.php?option=com_jcomments&amp;task=objects.refresh&amp;tmpl=component',
 			500, 210, null, null, 'window.location.reload();', Text::_('A_COMMENTS'));
+
+		ToolbarHelper::preferences('com_jcomments');
 	}
 }

@@ -2,235 +2,116 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Router\Route;
 
 defined('_JEXEC') or die;
 
-$containerClass = empty($this->sidebar) ? '' : 'span10';
+/** @var JCommentsViewSettings $this */
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
+
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('keepalive')
+	->useScript('form.validate')
+	->useScript('bootstrap.modal');
 ?>
 <script type="text/javascript">
-	jQuery(document).ready(function (val) {
-		function toggleReports(val) {
-			var controls = ['jform[reports_per_comment]', 'jform[reports_before_unpublish]', 'jform[report_reason_required]'];
-			var checked = jQuery('input[name="jform[enable_reports]"]:radio:checked').first();
-			if (checked) {
-				val = checked.val();
-			}
-			jQuery.each(controls, function () {
-				jQuery('input[name="' + this + '"]').each(function () {
-					var group = jQuery(this).closest('.control-group');
-					if (group) {
-						if (val == 1) {
-							group.show();
-						} else {
-							group.hide();
-						}
-					}
-				});
-			});
+	Joomla.submitbutton = function(task) {
+		if (task === 'settings.saveConfig') {
+			window.location = '<?php echo Uri::base(); ?>index.php?option=com_jcomments&task=settings.saveConfig&format=raw';
+		} else if (task === 'settings.restoreConfig') {
+			Joomla.submitform(task, document.getElementById('adminRestoreConfig'));
+		} else {
+			Joomla.submitform(task, document.getElementById('item-form'));
 		}
 
-		function toggleNotifications(val) {
-			var controls = ['jform[notification_type][]', 'jform[notification_email]', 'jform[enable_quick_moderation]'];
-			var checked = jQuery('input[name="jform[enable_notification]"]:radio:checked').first();
-			if (checked) {
-				val = checked.val();
-			}
-			jQuery.each(controls, function () {
-				jQuery('[name="' + this + '"]').each(function () {
-					var group = jQuery(this).closest('.control-group');
-					if (group) {
-						if (val == 1) {
-							group.show();
-						} else {
-							group.hide();
-						}
-					}
-				});
-			});
-		}
-
-		function toggleListLayout(val) {
-			var controls = {};
-			controls['tree'] = ['jform[comments_tree_order]'];
-			controls['list'] = ['jform[comments_list_order]', 'jform[comments_per_page]', 'jform[comments_page_limit]', 'jform[comments_pagination]'];
-
-			var selected = jQuery('select[name="jform[template_view]"]').find(':selected').first();
-			if (selected) {
-				val = selected.val();
-			}
-
-			jQuery.each(controls, function (key, values) {
-				jQuery.each(values, function () {
-					jQuery('[name="' + this + '"]').each(function () {
-						var group = jQuery(this).closest('.control-group');
-						if (group) {
-							if (key == val) {
-								group.show();
-							} else {
-								group.hide();
-							}
-						}
-					});
-				});
-			});
-		}
-
-		jQuery('input[name="jform[enable_reports]"]:radio').click(function () {
-			toggleReports(jQuery(this).val());
-		});
-
-		jQuery('input[name="jform[enable_notification]"]:radio').click(function () {
-			toggleNotifications(jQuery(this).val());
-		});
-
-		jQuery('select[name="jform[template_view]"]').change(function () {
-			toggleListLayout(jQuery(this).val());
-		});
-
-		toggleReports();
-		toggleNotifications();
-		toggleListLayout();
-
-		Joomla.submitbutton = function (task) {
-			if (task == 'settings.cancel') {
-				Joomla.submitform(task, document.getElementById('settings-form'));
-			} else if (document.formvalidator.isValid(document.getElementById('settings-form'))) {
-				var base64 = '';
-				try {
-					var query = [];
-					jQuery('#settings-form').find(':input').each(function () {
-						if (this.name) {
-							if (this.type && ('radio' == this.type || 'checkbox' == this.type) && false === this.checked) {
-								return;
-							}
-
-							var val = jQuery(this).val();
-							if (!('undefined' == val || null == val)) {
-							} else {
-								return;
-							}
-
-							query.push(this.name + '=' + encodeURIComponent(val));
-						}
-					});
-
-					if (query.length > 0) {
-						query = query.join('&').replace(/\r\n/g, "\n");
-
-						var a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-						var o = '', u = '', i = 0, chr1, chr2, chr3, enc1, enc2, enc3, enc4;
-
-						for (var n = 0; n < query.length; n++) {
-							var c = query.charCodeAt(n);
-							if (c < 128) {
-								u += String.fromCharCode(c);
-							} else if ((c > 127) && (c < 2048)) {
-								u += String.fromCharCode((c >> 6) | 192);
-								u += String.fromCharCode((c & 63) | 128);
-							} else {
-								u += String.fromCharCode((c >> 12) | 224);
-								u += String.fromCharCode(((c >> 6) & 63) | 128);
-								u += String.fromCharCode((c & 63) | 128);
-							}
-						}
-						while (i < u.length) {
-							chr1 = u.charCodeAt(i++);
-							chr2 = u.charCodeAt(i++);
-							chr3 = u.charCodeAt(i++);
-							enc1 = chr1 >> 2;
-							enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-							enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-							enc4 = chr3 & 63;
-							if (isNaN(chr2)) {
-								enc3 = enc4 = 64;
-							} else if (isNaN(chr3)) {
-								enc4 = 64;
-							}
-							o = o + a.charAt(enc1) + a.charAt(enc2) + a.charAt(enc3) + a.charAt(enc4);
-						}
-						base64 = o;
-					}
-				} catch (e) {
-				}
-
-				if (base64 != '') {
-					var form = jQuery('#settings-save-form');
-					if (form) {
-						form.find("#base64").val(base64);
-						form.submit();
-
-						return;
-					}
-				}
-
-				Joomla.submitform(task, document.getElementById('settings-form'));
-			}
-		}
-	});
+		return false;
+	}
 </script>
+<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post" name="adminForm"
+	  id="item-form" class="form-validate">
+	<div class="main-card">
+		<?php echo HTMLHelper::_('uitab.startTabSet', 'myTab', ['active' => 'general', 'recall' => true, 'breakpoint' => 768]); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'common', Text::_('A_COMMON')); ?>
+			<?php echo $this->loadTemplate('general'); ?>
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'layout', Text::_('A_LAYOUT')); ?>
+			<?php echo $this->loadTemplate('layout'); ?>
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'restrictions', Text::_('A_RESTRICTIONS')); ?>
+			<div class="row">
+				<div class="col-lg-6">
+					<fieldset class="options-form">
+						<legend><?php echo Text::_('A_RESTRICTIONS'); ?></legend>
+						<?php echo $this->form->renderFieldset('restrictions'); ?>
+					</fieldset>
+				</div>
 
-<form
-	action="<?php echo Route::_('index.php?option=com_jcomments&view=settings'); ?>"
-	method="post" name="adminForm" id="settings-form" class="form-validate options-form">
-	<?php if (!empty($this->sidebar)): ?>
-		<div id="j-sidebar-container" class="span2">
-			<?php echo $this->sidebar; ?>
-		</div>
-	<?php endif; ?>
-	<div id="j-main-container" class="<?php echo $containerClass; ?>">
-		<?php echo $this->loadTemplate('filter'); ?>
-        <?php echo HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'general')); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'general', Text::_('A_COMMON')); ?>
-        <?php echo $this->loadTemplate('general'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'layout', Text::_('A_LAYOUT')); ?>
-        <?php echo $this->loadTemplate('layout'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'permissions', Text::_('A_RIGHTS')); ?>
-        <?php echo $this->loadTemplate('permissions'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'restrictions', Text::_('A_RESTRICTIONS')); ?>
-        <?php echo $this->loadTemplate('restrictions'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'censor', Text::_('A_CENSOR')); ?>
-        <?php echo $this->loadTemplate('censor'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'messages', Text::_('A_MESSAGES')); ?>
-        <?php echo $this->loadTemplate('messages'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.endTabSet'); ?>
-
-		<div>
-			<input type="hidden" name="task" value=""/>
-			<?php echo HTMLHelper::_('form.token'); ?>
-		</div>
+				<div class="col-lg-6">
+					<fieldset class="options-form">
+						<legend><?php echo Text::_('A_SECURITY'); ?></legend>
+						<?php echo $this->form->renderFieldset('security'); ?>
+					</fieldset>
+				</div>
+			</div>
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'censor', Text::_('A_CENSOR')); ?>
+			<div class="row">
+				<div class="col-lg-12">
+					<fieldset class="options-form">
+						<legend><?php echo Text::_('A_CENSOR'); ?></legend>
+						<?php echo $this->form->renderFieldset('censor'); ?>
+					</fieldset>
+				</div>
+			</div>
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'messages', Text::_('A_MESSAGES')); ?>
+			<div class="row">
+				<div class="col-lg-12">
+					<fieldset class="options-form">
+						<legend><?php echo Text::_('A_MESSAGES'); ?></legend>
+						<?php echo $this->form->renderFieldset('messages'); ?>
+					</fieldset>
+				</div>
+			</div>
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'rules', Text::_('JCONFIG_PERMISSIONS_LABEL')); ?>
+		<?php
+			// Due to unable save permissions via ajax with native Joomla functions it's better to use component settings in com_config.
+			// But user can change permission in dropdown - just save the settings.
+			echo $this->form->renderFieldset('rules');
+		?>
+		<?php echo HTMLHelper::_('uitab.endTab'); ?>
+		<?php echo HTMLHelper::_('uitab.endTabSet'); ?>
 	</div>
+
+	<input type="hidden" name="return" value="<?php echo Factory::getApplication()->input->getBase64('return'); ?>">
+	<input type="hidden" name="task" value=""/>
+	<?php echo HTMLHelper::_('form.token'); ?>
 </form>
 
-<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post" id="settings-save-form">
-	<div>
-		<input type="hidden" name="base64" id="base64" value=""/>
-		<input type="hidden" name="task" value="settings.save"/>
-		<?php echo HTMLHelper::_('form.token'); ?>
-	</div>
-</form>
-
-
+<?php // File Modal
+$fileModalData = array(
+	'selector' => 'fileModal',
+	'params'   => array(
+		'title'      => Text::_('A_SETTINGS_BUTTON_RESTORECONFIG'),
+		'footer'     => '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">' . Text::_('JLIB_HTML_BEHAVIOR_CLOSE') . '</button>',
+		'height'     => '400px',
+		'width'      => '800px',
+		'bodyHeight' => 70,
+		'modalWidth' => 80,
+	),
+	'body' => $this->loadTemplate('modal_file_body')
+);
+?>
+<?php echo LayoutHelper::render('libraries.html.bootstrap.modal.main', $fileModalData);

@@ -14,22 +14,27 @@ defined('_JEXEC') or die;
 class JCommentsVersion
 {
 	/** @var string Product */
-	var $PRODUCT = 'JComments';
+	public $PRODUCT = 'JComments';
+
 	/** @var int Main Release Level */
-	var $RELEASE = '4.0';
+	public $RELEASE = '4.0';
+
 	/** @var int Sub Release Level */
-	var $DEV_LEVEL = '2';
+	public $DEV_LEVEL = '1';
+
 	/** @var string Development Status */
-	var $DEV_STATUS = '';
+	public $DEV_STATUS = '';
+
 	/** @var int Build Number */
-	var $BUILD = '';
+	public $BUILD = '';
+
 	/** @var string Date */
-	var $RELDATE = '10/10/2021';
+	public $RELDATE = '30/09/2021';
 
 	/**
 	 * @return string Long format version
 	 */
-	function getLongVersion()
+	public function getLongVersion()
 	{
 		return trim($this->PRODUCT . ' ' . $this->RELEASE . '.' . $this->DEV_LEVEL . ($this->BUILD ? '.' . $this->BUILD : '') . ' ' . $this->DEV_STATUS);
 	}
@@ -37,7 +42,7 @@ class JCommentsVersion
 	/**
 	 * @return string Short version format
 	 */
-	function getShortVersion()
+	public function getShortVersion()
 	{
 		return $this->RELEASE . '.' . $this->DEV_LEVEL;
 	}
@@ -45,7 +50,7 @@ class JCommentsVersion
 	/**
 	 * @return string Version
 	 */
-	function getVersion()
+	public function getVersion()
 	{
 		return trim($this->RELEASE . '.' . $this->DEV_LEVEL . ($this->BUILD ? '.' . $this->BUILD : '') . ' ' . $this->DEV_STATUS);
 	}
@@ -53,7 +58,7 @@ class JCommentsVersion
 	/**
 	 * @return string Release date
 	 */
-	function getReleaseDate()
+	public function getReleaseDate()
 	{
 		return $this->RELDATE;
 	}

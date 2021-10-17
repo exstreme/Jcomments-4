@@ -18,6 +18,8 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\String\StringHelper;
 
+require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
+
 HTMLHelper::_('behavior.multiselect');
 
 $user           = Factory::getApplication()->getIdentity();

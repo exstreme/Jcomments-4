@@ -11,9 +11,10 @@
 
 defined('_JEXEC') or die;
 
+/** @var JCommentsViewAbout $this */
+
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
-
 ?>
 <div class="main-card">
 	<div class="row">
@@ -28,7 +29,7 @@ use Joomla\CMS\Uri\Uri;
 						<span class="extension-name"><?php echo $this->version->getLongVersion(); ?></span>
 						<span class="extension-date">[<?php echo $this->version->getReleaseDate(); ?>]</span>
 						<br><br>
-						<span><?php echo Text::_('A_ABOUT_JCOMMENTS_GITHUB_PROJECT'); ?></span>
+						<span><?php echo Text::sprintf('A_ABOUT_JCOMMENTS_GITHUB_PROJECT', $this->version->PRODUCT, $this->version->RELEASE); ?></span>
 
 						<div class="extension-copyright">
 							&copy; 2006-<?php echo date('Y'); ?> smart (<a

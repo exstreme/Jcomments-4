@@ -15,7 +15,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
 use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerList extends BaseController
@@ -72,7 +71,7 @@ class JCommentsControllerList extends BaseController
 
 	public function publish()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$ids = $this->input->post->get('cid', array(), 'array');
 
@@ -97,16 +96,18 @@ class JCommentsControllerList extends BaseController
 					'error'
 				);
 
-				return;
+				return false;
 			}
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 
 	public function delete()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$ids = $this->input->post->get('cid', array(), 'array');
 
@@ -128,16 +129,18 @@ class JCommentsControllerList extends BaseController
 					'error'
 				);
 
-				return;
+				return false;
 			}
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 
 	public function checkin()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$ids = $this->input->post->get('cid', array(), 'array');
 		$msg = '';
@@ -163,7 +166,7 @@ class JCommentsControllerList extends BaseController
 					'error'
 				);
 
-				return;
+				return false;
 			}
 			else
 			{
@@ -172,5 +175,7 @@ class JCommentsControllerList extends BaseController
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false), $msg);
+
+		return true;
 	}
 }

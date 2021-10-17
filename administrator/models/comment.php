@@ -40,7 +40,7 @@ class JCommentsModelComment extends JCommentsModelForm
 
 	public function deleteReport($id)
 	{
-		$db = $this->getDbo();
+		$db    = $this->getDbo();
 		$query = $db->getQuery(true)
 			->delete()
 			->from($db->quoteName('#__jcomments_reports'))
@@ -54,14 +54,14 @@ class JCommentsModelComment extends JCommentsModelForm
 
 	public function getForm($data = array(), $loadData = true)
 	{
-		$form = $this->loadForm('com_jcomments.comment', 'comment', array('control'   => 'jform',
-		                                                                  'load_data' => $loadData));
+		$form = $this->loadForm('com_jcomments.comment', 'comment', array('control' => 'jform', 'load_data' => $loadData));
+
 		if (empty($form))
 		{
 			return false;
 		}
 
-		if (!$this->canEditState())
+		if (!$this->canEditState((object) $data))
 		{
 			$form->setFieldAttribute('published', 'disabled', 'true');
 			$form->setFieldAttribute('published', 'filter', 'unset');
@@ -85,9 +85,14 @@ class JCommentsModelComment extends JCommentsModelForm
 
 	public function save($data)
 	{
-		$table  = $this->getTable();
-		$pkName = $table->getKeyName();
-		$pk     = (!empty($data[$pkName])) ? $data[$pkName] : (int) $this->getState($this->getName() . '.id');
+		require_once JPATH_ROOT . '/components/com_jcomments/classes/bbcode.php';
+		require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
+		require_once JPATH_ROOT . '/components/com_jcomments/helpers/notification.php';
+
+		$bbcodes = new JCommentsBBCode;
+		$table   = $this->getTable();
+		$pkName  = $table->getKeyName();
+		$pk      = (!empty($data[$pkName])) ? $data[$pkName] : (int) $this->getState($this->getName() . '.id');
 
 		try
 		{
@@ -112,7 +117,7 @@ class JCommentsModelComment extends JCommentsModelForm
 			}
 			else
 			{
-				$user            = JFactory::getUser($table->userid);
+				$user            = Factory::getUser($table->userid);
 				$table->name     = $user->name;
 				$table->username = $user->username;
 				$table->email    = $user->email;
@@ -125,7 +130,7 @@ class JCommentsModelComment extends JCommentsModelForm
 			}
 
 			$table->comment = JCommentsText::nl2br($table->comment);
-			$table->comment = JCommentsFactory::getBBCode()->filter($table->comment);
+			$table->comment = $bbcodes->filter($table->comment);
 
 			if (!$table->check())
 			{

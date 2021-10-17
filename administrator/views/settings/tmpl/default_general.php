@@ -2,72 +2,42 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Language\Text;
-
 defined('_JEXEC') or die;
+
+/** @var JCommentsViewSettings $this */
+
+use Joomla\CMS\Language\Text;
 ?>
-<div class="row-fluid">
-	<div class="span6">
-		<fieldset class="options-form">
+<div class="row">
+	<div class="col-12">
+		<fieldset id="fieldset-categories" class="options-form">
 			<legend><?php echo Text::_('A_CATEGORIES'); ?></legend>
-            <?php foreach ($this->form->getFieldset('categories') as $field) : ?>
-                <div class="control-group">
-                    <div class="control-label">
-                        <?php echo $field->label; ?>
-                    </div>
-                    <div class="controls">
-                        <?php echo $field->input; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-		</fieldset>
-		<fieldset class="options-form">
-			<legend><?php echo Text::_('A_MISC'); ?></legend>
-            <?php foreach ($this->form->getFieldset('misc') as $field) : ?>
-                <div class="control-group">
-                    <div class="control-label">
-                        <?php echo $field->label; ?>
-                    </div>
-                    <div class="controls">
-                        <?php echo $field->input; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+			<?php echo $this->form->renderFieldset('categories'); ?>
 		</fieldset>
 	</div>
-	<div class="span6">
-		<fieldset class="options-form">
-			<legend><?php echo Text::_('A_NOTIFICATIONS'); ?></legend>
-			<?php foreach ($this->form->getFieldset('notifications') as $field) : ?>
-				<div class="control-group">
-					<div class="control-label">
-						<?php echo $field->label; ?>
-					</div>
-					<div class="controls">
-						<?php echo $field->input; ?>
-					</div>
-				</div>
-			<?php endforeach; ?>
+	<div class="col-12">
+		<fieldset id="fieldset-misc" class="options-form">
+			<legend><?php echo Text::_('A_MISC'); ?></legend>
+			<?php echo $this->form->renderFieldset('misc'); ?>
 		</fieldset>
-		<fieldset class="options-form">
+	</div>
+	<div class="col-12">
+		<fieldset id="fieldset-notify" class="options-form">
+			<legend><?php echo Text::_('A_NOTIFICATIONS'); ?></legend>
+			<?php echo $this->form->renderFieldset('notifications'); ?>
+		</fieldset>
+	</div>
+	<div class="col-12">
+		<fieldset id="fieldset-reports" class="options-form">
 			<legend><?php echo Text::_('A_REPORTS'); ?></legend>
-			<?php foreach ($this->form->getFieldset('reports') as $field) : ?>
-				<div class="control-group">
-					<div class="control-label">
-						<?php echo $field->label; ?>
-					</div>
-					<div class="controls">
-						<?php echo $field->input; ?>
-					</div>
-				</div>
-			<?php endforeach; ?>
+			<?php echo $this->form->renderFieldset('reports'); ?>
 		</fieldset>
 	</div>
 </div>

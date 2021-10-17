@@ -20,6 +20,8 @@ $wa = $this->document->getWebAssetManager();
 $wa->useScript('jquery')
 	->useScript('keepalive')
 	->useScript('form.validate');
+
+HTMLHelper::_('bootstrap.tooltip', '.hasTip');
 ?>
 <script type="text/javascript">
 	(function ($) {
@@ -32,21 +34,20 @@ $wa->useScript('jquery')
 
 				if (id) {
 					$.post('index.php?option=com_jcomments&task=comment.deleteReportAjax&tmpl=component', {id: id})
-						.done(function (result) {
-							if (result === '0') {
-								document.location.reload();
-							} else if (result > 0) {
-								if (row) {
-									row.remove();
-								}
+					.done(function (result) {
+						if (result === '0') {
+							document.location.reload();
+						} else if (result > 0) {
+							if (row) {
+								row.remove();
 							}
-						});
+						}
+					});
 				}
 			});
 		});
 	})(jQuery);
 </script>
-
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=comment&layout=edit&id=' . (int) $this->item->id); ?>"
 	  method="post" name="adminForm" id="item-form" class="form-validate">
 	<div class="main-card">
@@ -143,6 +144,7 @@ $wa->useScript('jquery')
 				<td class="w-1 text-center">#</td>
 				<th scope="col"><?php echo Text::_('A_REPORTS_REPORT_REASON'); ?></th>
 				<th scope="col" class="w-20 d-none d-md-table-cell"><?php echo Text::_('A_REPORTS_REPORT_NAME'); ?></th>
+				<th scope="col" class="w-20 d-none d-md-table-cell"><?php echo Text::_('A_BLACKLIST_IP'); ?></th>
 				<th scope="col" class="w-20 d-none d-md-table-cell"><?php echo Text::_('A_REPORTS_REPORT_DATE'); ?></th>
 				<td class="w-1 text-center"></td>
 			</tr>
@@ -153,21 +155,16 @@ $wa->useScript('jquery')
 
 			foreach ($this->reports as $report): ?>
 				<tr>
-					<td>
-						<?php echo $i; ?>
-					</td>
-					<td>
-						<?php echo $report->reason; ?>
-					</td>
-					<td>
-						<?php echo $report->name; ?><br/ ><?php echo $report->ip; ?>
-					</td>
+					<td><?php echo $i; ?></td>
+					<td><?php echo $report->reason; ?></td>
+					<td><?php echo $report->name; ?></td>
+					<td><?php echo $report->ip; ?></td>
 					<td>
 						<?php echo HTMLHelper::_('date', $report->date, 'Y-m-d H:i:s'); ?>
 					</td>
 					<td>
 						<a title="<?php echo Text::_('A_REPORTS_REMOVE_REPORT'); ?>" href="#"
-						   data-report-id="<?php echo $report->id; ?>" class="cmd-delete-report">
+						   data-report-id="<?php echo $report->id; ?>" class="cmd-delete-report hasTip">
 							<i class="icon-remove"></i>
 						</a>
 					</td>

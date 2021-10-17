@@ -58,5 +58,7 @@ class JCommentsViewBlacklists extends HtmlView
 		{
 			ToolbarHelper::deletelist('', 'blacklists.delete');
 		}
+
+		ToolbarHelper::preferences('com_jcomments');
 	}
 }

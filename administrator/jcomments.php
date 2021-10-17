@@ -22,20 +22,16 @@ if (!$app->getIdentity()->authorise('core.manage', 'com_jcomments'))
 	throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 404);
 }
 
-// TODO Shoud be removed after checks.
-$language = $app->getLanguage();
-$language->load('com_jcomments', JPATH_ROOT . '/administrator', 'en-GB', true);
-$language->load('com_jcomments', JPATH_ROOT . '/administrator', null, true);
-
-require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.legacy.php');
-require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.class.php');
+// Define component path. This constant will be removed without replacement in J5.
+if (!defined('JPATH_COMPONENT'))
+{
+	define('JPATH_COMPONENT', JPATH_BASE . '/components/com_jcomments');
+}
 
 JLoader::register('JCommentsControllerForm', JPATH_COMPONENT . '/controllers/controllerform.php');
 JLoader::register('JCommentsControllerList', JPATH_COMPONENT . '/controllers/controllerlist.php');
-JLoader::register('JCommentsModelLegacy', JPATH_COMPONENT . '/models/model.php');
 JLoader::register('JCommentsModelForm', JPATH_COMPONENT . '/models/modelform.php');
 JLoader::register('JCommentsModelList', JPATH_COMPONENT . '/models/modellist.php');
-JLoader::register('JCommentsViewLegacy', JPATH_COMPONENT . '/views/view.php');
 
 $controller = BaseController::getInstance('JComments');
 $controller->execute($app->input->get('task'));

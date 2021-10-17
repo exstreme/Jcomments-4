@@ -26,8 +26,6 @@ class JCommentsViewSubscriptions extends HtmlView
 
 	function display($tpl = null)
 	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
 		$this->items         = $this->get('Items');
 		$this->pagination    = $this->get('Pagination');
 		$this->filterForm    = $this->get('FilterForm');
@@ -78,5 +76,7 @@ class JCommentsViewSubscriptions extends HtmlView
 				->message('JGLOBAL_CONFIRM_DELETE')
 				->listCheck(true);
 		}
+
+		ToolbarHelper::preferences('com_jcomments');
 	}
 }

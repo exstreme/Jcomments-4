@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
@@ -171,6 +172,9 @@ class JCommentsModelComments extends JCommentsModelList
 	 */
 	public function publish(&$pks, $value = 1)
 	{
+		require_once JPATH_ROOT . '/components/com_jcomments/helpers/event.php';
+		require_once JPATH_ROOT . '/components/com_jcomments/helpers/notification.php';
+
 		$user         = Factory::getApplication()->getIdentity();
 		$language     = Factory::getApplication()->getLanguage();
 		$table        = $this->getTable($this->tableName, $this->tablePrefix);
@@ -226,7 +230,7 @@ class JCommentsModelComments extends JCommentsModelList
 	protected function populateState($ordering = 'jc.date', $direction = 'desc')
 	{
 		$app    = Factory::getApplication();
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
@@ -243,7 +247,7 @@ class JCommentsModelComments extends JCommentsModelList
 		$language = $app->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '');
 		$this->setState('filter.language', $language);
 
-		$this->setState('config.comment_title', $config->getInt('comment_title'));
+		$this->setState('config.comment_title', (int) $config->get('comment_title'));
 
 		parent::populateState($ordering, $direction);
 	}
