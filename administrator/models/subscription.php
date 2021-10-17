@@ -32,7 +32,7 @@ class JCommentsModelSubscription extends JCommentsModelForm
 			return false;
 		}
 
-		if (!$this->canEditState())
+		if (!$this->canEditState((object) $data))
 		{
 			$form->setFieldAttribute('published', 'disabled', 'true');
 			$form->setFieldAttribute('published', 'filter', 'unset');

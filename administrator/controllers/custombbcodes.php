@@ -14,7 +14,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
 use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerCustombbcodes extends JCommentsControllerList
@@ -37,7 +36,7 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 
 	public function duplicate()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$pks = $this->input->post->get('cid', array(), 'array');
 
@@ -50,11 +49,13 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 
 	public function changeButtonState()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$ids   = $this->input->get('cid', array(), 'array');
 		$data  = array('button_enable' => 1, 'button_disable' => 0);
@@ -74,11 +75,13 @@ class JCommentsControllerCustombbcodes extends JCommentsControllerList
 		}
 
 		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 
 	public function saveOrderAjax()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$pks   = $this->input->post->get('cid', array(), 'array');
 		$order = $this->input->post->get('order', array(), 'array');

@@ -83,5 +83,7 @@ class JCommentsViewSmilies extends HtmlView
 				->message('JGLOBAL_CONFIRM_DELETE')
 				->listCheck(true);
 		}
+
+		ToolbarHelper::preferences('com_jcomments');
 	}
 }

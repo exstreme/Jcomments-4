@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
+use Joomla\String\StringHelper;
 
 class JCommentsModelBlacklists extends JCommentsModelList
 {
@@ -65,13 +66,13 @@ class JCommentsModelBlacklists extends JCommentsModelList
 		{
 			if (stripos($search, 'reason:') === 0)
 			{
-				$search = trim(substr($search, 7));
+				$search = trim(StringHelper::substr($search, 7));
 				$search = $db->quote('%' . $db->escape($search, true) . '%');
 				$query->where('jb.reason LIKE ' . $search);
 			}
 			elseif (stripos($search, 'notes:') === 0)
 			{
-				$search = trim(substr($search, 5));
+				$search = trim(StringHelper::substr($search, 5));
 				$search = $db->quote('%' . $db->escape($search, true) . '%');
 				$query->where('jb.notes LIKE ' . $search);
 			}

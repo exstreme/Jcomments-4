@@ -31,7 +31,6 @@ class JCommentsViewImport extends HtmlView
 		$this->state = $this->get('State');
 
 		HTMLHelper::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-		JCommentsHelper::addSubmenu('import');
 		ToolbarHelper::title(Text::_('A_IMPORT'));
 
 		parent::display($tpl);

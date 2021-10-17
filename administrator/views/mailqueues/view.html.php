@@ -26,8 +26,6 @@ class JCommentsViewMailqueues extends HtmlView
 
 	function display($tpl = null)
 	{
-		require_once JPATH_COMPONENT . '/helpers/jcomments.php';
-
 		$this->items         = $this->get('Items');
 		$this->pagination    = $this->get('Pagination');
 		$this->filterForm    = $this->get('FilterForm');
@@ -51,5 +49,7 @@ class JCommentsViewMailqueues extends HtmlView
 			ToolbarHelper::divider();
 			ToolbarHelper::custom('mailqueues.purge', 'purge', '', 'A_MAILQ_PURGE_ITEMS', false);
 		}
+
+		ToolbarHelper::preferences('com_jcomments');
 	}
 }

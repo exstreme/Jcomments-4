@@ -13,7 +13,6 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
 
 class JCommentsControllerMailqueues extends JCommentsControllerList
 {
@@ -26,11 +25,13 @@ class JCommentsControllerMailqueues extends JCommentsControllerList
 
 	public function purge()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$model = $this->getModel('mailqueues');
 		$model->purge();
 
 		$this->setRedirect(Route::_('index.php?option=com_jcomments&view=mailqueues', false), Text::_('A_MAILQ_EMAILS_PURGED'));
+
+		return true;
 	}
 }

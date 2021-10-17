@@ -1,11 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <access component="com_jcomments">
 	<section name="component">
-		<action name="core.admin" title="JACTION_ADMIN" description="JACTION_ADMIN_COMPONENT_DESC"/>
-		<action name="core.manage" title="JACTION_MANAGE" description="JACTION_MANAGE_COMPONENT_DESC"/>
-		<action name="core.create" title="JACTION_CREATE" description="JACTION_CREATE_COMPONENT_DESC"/>
-		<action name="core.delete" title="JACTION_DELETE" description="JACTION_DELETE_COMPONENT_DESC"/>
-		<action name="core.edit" title="JACTION_EDIT" description="JACTION_EDIT_COMPONENT_DESC"/>
-		<action name="core.edit.state" title="JACTION_EDITSTATE" description="JACTION_EDITSTATE_COMPONENT_DESC"/>
+		<action name="comment.comment" title="AP_CAN_COMMENT" description="AP_CAN_COMMENT_DESC"/>
+		<action name="comment.reply" title="AP_CAN_REPLY" description="AP_CAN_REPLY_DESC"/>
+		<action name="comment.autopublish" title="AP_AUTOPUBLISH" description="AP_AUTOPUBLISH_DESC"/>
+		<action name="comment.captcha" title="AP_ENABLE_CAPTCHA" description="AP_ENABLE_CAPTCHA_DESC"/>
+		<action name="comment.flood" title="AP_ENABLE_FLOODPROTECTION" description="AP_ENABLE_FLOODPROTECTION_DESC"/>
+		<action name="comment.length_check" title="AP_ENABLE_COMMENT_LENGTH_CHECK" description="AP_ENABLE_COMMENT_LENGTH_CHECK_DESC"/>
+		<action name="comment.subscribe" title="AP_ENABLE_SUBSCRIBE" description="AP_ENABLE_SUBSCRIBE_DESC"/>
+		<action name="comment.terms_of_use" title="AP_ENABLE_ACCEPT_TERMS_OF_USE" description="AP_ENABLE_ACCEPT_TERMS_OF_USE_DESC"/>
+		<action name="comment.vote" title="AP_CAN_VOTE" description="AP_CAN_VOTE_DESC"/>
+		<action name="comment.report" title="AP_CAN_REPORT" description="AP_CAN_REPORT_DESC"/>
+		<action name="comment.ban" title="AP_CAN_BAN" description="AP_CAN_BAN_DESC"/>
+		<action name="comment.edit" title="AP_CAN_EDIT" description="AP_CAN_EDIT_DESC"/>
+		<action name="comment.edit.own" title="AP_CAN_EDIT_OWN" description="AP_CAN_EDIT_OWN_DESC"/>
+		<action name="comment.edit.own.articles" title="AP_CAN_EDIT_FOR_MY_OBJECT" description="AP_CAN_EDIT_FOR_MY_OBJECT_DESC"/>
+		<action name="comment.publish" title="AP_CAN_PUBLISH" description="AP_CAN_PUBLISH_DESC"/>
+		<action name="comment.publish.own" title="AP_CAN_PUBLISH_FOR_MY_OBJECT" description="AP_CAN_PUBLISH_FOR_MY_OBJECT_DESC"/>
+		<action name="comment.delete" title="AP_CAN_DELETE" description="AP_CAN_DELETE_DESC"/>
+		<action name="comment.delete.own" title="AP_CAN_DELETE_OWN" description="AP_CAN_DELETE_OWN_DESC"/>
+		<action name="comment.delete.own.articles" title="AP_CAN_DELETE_FOR_MY_OBJECT" description="AP_CAN_DELETE_FOR_MY_OBJECT_DESC"/>
+		<action name="comment.bbcode.bold" title="AP_ENABLE_BBCODE_B" description="AP_ENABLE_BBCODE_B_DESC"/>
+		<action name="comment.bbcode.italic" title="AP_ENABLE_BBCODE_I" description="AP_ENABLE_BBCODE_I_DESC"/>
+		<action name="comment.bbcode.underline" title="AP_ENABLE_BBCODE_U" description="AP_ENABLE_BBCODE_U_DESC"/>
+		<action name="comment.bbcode.strike" title="AP_ENABLE_BBCODE_S" description="AP_ENABLE_BBCODE_S_DESC"/>
+		<action name="comment.bbcode.url" title="AP_ENABLE_BBCODE_URL" description="AP_ENABLE_BBCODE_URL_DESC"/>
+		<action name="comment.bbcode.img" title="AP_ENABLE_BBCODE_IMG" description="AP_ENABLE_BBCODE_IMG_DESC"/>
+		<action name="comment.bbcode.list" title="AP_ENABLE_BBCODE_LIST" description="AP_ENABLE_BBCODE_LIST_DESC"/>
+		<action name="comment.bbcode.hide" title="AP_ENABLE_BBCODE_HIDE" description="AP_ENABLE_BBCODE_HIDE_DESC"/>
+		<action name="comment.bbcode.quote" title="AP_ENABLE_BBCODE_QUOTE" description="AP_ENABLE_BBCODE_QUOTE_DESC"/>
+		<action name="comment.autolink" title="AP_ENABLE_AUTOLINKURLS" description="AP_ENABLE_AUTOLINKURLS_DESC"/>
+		<action name="comment.email.protect" title="AP_ENABLE_EMAILPROTECTION" description="AP_ENABLE_EMAILPROTECTION_DESC"/>
+		<action name="comment.gravatar" title="AP_ENABLE_GRAVATAR" description="AP_ENABLE_GRAVATAR_DESC"/>
+		<action name="comment.view.email" title="AP_CAN_VIEW_AUTHOR_EMAIL" description="AP_CAN_VIEW_AUTHOR_EMAIL_DESC"/>
+		<action name="comment.view.site" title="AP_CAN_VIEW_AUTHOR_HOMEPAGE" description="AP_CAN_VIEW_AUTHOR_HOMEPAGE_DESC"/>
+		<action name="comment.view.ip" title="AP_CAN_VIEW_AUTHOR_IP" description="AP_CAN_VIEW_AUTHOR_IP_DESC"/>
+
+		<action name="core.admin" title="JACTION_ADMIN"/>
+		<action name="core.manage" title="JACTION_MANAGE"/>
+		<action name="core.create" title="JACTION_CREATE"/>
+		<action name="core.delete" title="JACTION_DELETE"/>
+		<action name="core.edit" title="JACTION_EDIT"/>
+		<action name="core.edit.state" title="JACTION_EDITSTATE"/>
 	</section>
 </access>

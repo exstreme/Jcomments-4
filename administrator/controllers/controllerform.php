@@ -15,7 +15,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Session\Session;
 
 class JCommentsControllerForm extends BaseController
 {
@@ -134,6 +133,8 @@ class JCommentsControllerForm extends BaseController
 		$app->setUserState($context . '.data', null);
 
 		$this->setRedirect(Route::_($this->getRedirectToItem(), false));
+
+		return true;
 	}
 
 	public function edit($key = null, $urlVar = null)
@@ -189,7 +190,7 @@ class JCommentsControllerForm extends BaseController
 
 	public function save()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$app      = Factory::getApplication();
 		$language = $app->getLanguage();
@@ -327,7 +328,7 @@ class JCommentsControllerForm extends BaseController
 
 	public function cancel()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$app     = Factory::getApplication();
 		$model   = $this->getModel();

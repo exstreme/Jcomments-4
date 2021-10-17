@@ -11,8 +11,6 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Session\Session;
 use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerSubscriptions extends JCommentsControllerList
@@ -33,7 +31,7 @@ class JCommentsControllerSubscriptions extends JCommentsControllerList
 
 	public function publish()
 	{
-		Session::checkToken() or jexit(Text::_('JINVALID_TOKEN'));
+		$this->checkToken();
 
 		$cid   = $this->input->get('cid', array(), 'array');
 		$data  = array('publish' => 1, 'unpublish' => 0);
@@ -47,5 +45,7 @@ class JCommentsControllerSubscriptions extends JCommentsControllerList
 		}
 
 		$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+
+		return true;
 	}
 }

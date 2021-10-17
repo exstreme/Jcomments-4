@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
@@ -36,8 +37,9 @@ class JCommentsModelList extends ListModel
 
 	public function delete(&$pks)
 	{
-		$table = $this->getTable($this->tableName, $this->tablePrefix);
-		$total = count($pks);
+		$table  = $this->getTable($this->tableName, $this->tablePrefix);
+		$total  = count($pks);
+		$config = ComponentHelper::getParams('com_jcomments');
 
 		foreach ($pks as $i => $pk)
 		{
@@ -48,9 +50,7 @@ class JCommentsModelList extends ListModel
 					// Comments can be marked as deleted.
 					if ($this->context == 'com_jcomments.comments')
 					{
-						$config = JCommentsFactory::getConfig();
-
-						if ($config->getInt('delete_mode') == 0)
+						if ((int) $config->get('delete_mode') == 0)
 						{
 							if (!$table->delete($pk))
 							{

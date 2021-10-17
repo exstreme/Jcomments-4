@@ -76,7 +76,7 @@ class JCommentsTableSubscription extends Table
 
 		if (empty($this->lang))
 		{
-			$this->lang = JCommentsMultilingual::getLanguage();
+			$this->lang = Factory::getApplication()->getLanguage()->getTag();
 		}
 		// Update 'lang' in #__jcomments_objects, #__jcomments tables. If you do not change the value, this will lead
 		// to a loss of connection in the tables.

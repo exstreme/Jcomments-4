@@ -12,94 +12,19 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Form\Form;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\Utilities\ArrayHelper;
+use Joomla\CMS\MVC\Model\AdminModel;
 
-abstract class JCommentsModelForm extends BaseDatabaseModel
+abstract class JCommentsModelForm extends AdminModel
 {
-	protected $_forms = array();
-
-	public function getItem($pk = null)
-	{
-		$pk    = (!empty($pk)) ? $pk : (int) $this->getState($this->getName() . '.id');
-		$table = $this->getTable();
-
-		if ($pk > 0)
-		{
-			$return = $table->load($pk);
-
-			if ($return === false && $table->getError())
-			{
-				$this->setError($table->getError());
-
-				return false;
-			}
-		}
-
-		$properties = $table->getProperties(1);
-
-		return ArrayHelper::toObject($properties, 'JObject');
-	}
-
-	abstract public function getForm($data = array(), $loadData = true);
-
-	protected function loadForm($name, $source = null, $options = array(), $clear = false, $xpath = false)
-	{
-		$options['control'] = ArrayHelper::getValue($options, 'control', false);
-		$hash               = md5($source . serialize($options));
-
-		if (isset($this->_forms[$hash]) && !$clear)
-		{
-			return $this->_forms[$hash];
-		}
-
-		Form::addFormPath(JPATH_COMPONENT . '/models/forms');
-		Form::addFieldPath(JPATH_COMPONENT . '/models/fields');
-
-		try
-		{
-			$form = Form::getInstance($name, $source, $options, false, $xpath);
-
-			if (isset($options['load_data']) && $options['load_data'])
-			{
-				$data = $this->loadFormData();
-			}
-			else
-			{
-				$data = array();
-			}
-
-			$form->bind($data);
-
-		}
-		catch (Exception $e)
-		{
-			$this->setError($e->getMessage());
-
-			return false;
-		}
-
-		$this->_forms[$hash] = $form;
-
-		return $form;
-	}
-
-	protected function loadFormData()
-	{
-		return array();
-	}
-
-	protected function canDelete()
-	{
-		return Factory::getApplication()->getIdentity()->authorise('core.delete', $this->option);
-	}
-
-	protected function canEditState()
-	{
-		return Factory::getApplication()->getIdentity()->authorise('core.edit.state', $this->option);
-	}
-
+	/**
+	 * Method to save the form data.
+	 *
+	 * @param   array  $data  The form data.
+	 *
+	 * @return  boolean  True on success, False on error.
+	 *
+	 * @since   1.6
+	 */
 	public function save($data)
 	{
 		$table  = $this->getTable();
@@ -149,107 +74,17 @@ abstract class JCommentsModelForm extends BaseDatabaseModel
 		return true;
 	}
 
-	public function validate($form, $data, $group = null)
-	{
-		$data   = $form->filter($data);
-		$return = $form->validate($data, $group);
-
-		if ($return instanceof Exception)
-		{
-			$this->setError($return->getMessage());
-
-			return false;
-		}
-
-		if ($return === false)
-		{
-			foreach ($form->getErrors() as $message)
-			{
-				$this->setError($message);
-			}
-
-			return false;
-		}
-
-		return $data;
-	}
-
-	public function checkin($pk = null)
-	{
-		if ($pk)
-		{
-			$table   = $this->getTable();
-			$checkin = property_exists($table, 'checked_out');
-			if ($checkin)
-			{
-				if (!$table->load($pk))
-				{
-					$this->setError($table->getError());
-
-					return false;
-				}
-
-				$user = Factory::getApplication()->getIdentity();
-
-				if ($table->checked_out > 0 && $table->checked_out != $user->get('id') && !$user->authorise('core.admin', 'com_checkin'))
-				{
-					$this->setError(JText::_('JLIB_APPLICATION_ERROR_CHECKIN_USER_MISMATCH'));
-
-					return false;
-				}
-
-				if (!$table->checkin($pk))
-				{
-					$this->setError($table->getError());
-
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
-	public function checkout($pk = null)
-	{
-		if ($pk)
-		{
-			$table   = $this->getTable();
-			$checkin = property_exists($table, 'checked_out');
-			if ($checkin)
-			{
-				if (!$table->load($pk))
-				{
-					$this->setError($table->getError());
-
-					return false;
-				}
-
-				$user = Factory::getApplication()->getIdentity();
-
-				if ($table->checked_out > 0 && $table->checked_out != $user->get('id'))
-				{
-					$this->setError(JText::_('JLIB_APPLICATION_ERROR_CHECKOUT_USER_MISMATCH'));
-
-					return false;
-				}
-
-				if (!$table->checkout($user->get('id'), $pk))
-				{
-					$this->setError($table->getError());
-
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.6
+	 */
 	protected function populateState()
 	{
 		$table = $this->getTable();
-		$key   = $table->getKeyName();
+		$key = $table->getKeyName();
 
 		$pk = Factory::getApplication()->input->getInt($key);
 		$this->setState($this->getName() . '.id', $pk);
