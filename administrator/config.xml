@@ -235,6 +235,7 @@
 			<option value="name">AP_DISPLAY_AUTHOR_NAME</option>
 			<option value="username">AP_DISPLAY_AUTHOR_USERNAME</option>
 		</field>
+
 	</fieldset>
 
 	<fieldset name="list" label="A_LIST_PARAMS">
@@ -422,14 +423,6 @@
 		</field>
 
 		<field
-				name="smilies_path"
-				type="text"
-				default="media/com_jcomments/images/smilies/"
-				label="AP_FORM_FIELD_SMILIES_PATH"
-				filter="path"
-		/>
-
-		<field
 				name="captcha_engine"
 				type="plugins"
 				folder="captcha"
@@ -438,129 +431,6 @@
 			<option value="kcaptcha">KCAPTCHA</option>
 		</field>
 
-		<field
-				name="kcaptcha_alphabet"
-				type="text"
-				label="AP_FORM_FIELD_KPT_ALPHABET"
-				showon="captcha_engine:kcaptcha"
-				filter="string"
-				default="0123456789abcdefghijklmnopqrstuvwxyz"
-		/>
-
-		<field
-				name="kcaptcha_allowedSymbols"
-				type="text"
-				label="AP_FORM_FIELD_KPT_SYMBOLS"
-				showon="captcha_engine:kcaptcha"
-				filter="string"
-				default="23456789abcdeghkmnpqsuvxyz"
-		/>
-
-		<field
-				name="kcaptcha_fontsDir"
-				type="text"
-				label="AP_FORM_FIELD_KPT_FONTS"
-				showon="captcha_engine:kcaptcha"
-				filter="path"
-				default="media/com_jcomments/images/fonts"
-		/>
-
-		<field
-				name="kcaptcha_length"
-				type="text"
-				label="AP_FORM_FIELD_KPT_LENGTH"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="5"
-		/>
-
-		<field
-				name="kcaptcha_width"
-				type="text"
-				label="AP_FORM_FIELD_KPT_WIDTH"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="121"
-		/>
-
-		<field
-				name="kcaptcha_height"
-				type="text"
-				label="AP_FORM_FIELD_KPT_HEIGHT"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="60"
-		/>
-
-		<field
-				name="kcaptcha_fluctuationAmplitude"
-				type="text"
-				label="AP_FORM_FIELD_KPT_AMP"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="5"
-		/>
-
-		<field
-				name="kcaptcha_noSpaces"
-				type="radio"
-				class="btn-group"
-				label="AP_FORM_FIELD_KPT_SPACES"
-				showon="captcha_engine:kcaptcha"
-				default="1"
-				filter="integer"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field
-				name="kcaptcha_showCredits"
-				type="radio"
-				class="btn-group"
-				label="AP_FORM_FIELD_KPT_CREDITS"
-				showon="captcha_engine:kcaptcha"
-				default="0"
-				filter="integer"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field
-				name="kcaptcha_credits"
-				type="text"
-				label="AP_FORM_FIELD_KPT_CREDITS_TEXT"
-				showon="captcha_engine:kcaptcha"
-				filter="string"
-		/>
-
-		<field
-				name="kcaptcha_foregroundColor"
-				type="text"
-				label="AP_FORM_FIELD_KPT_FG_COLOR"
-				showon="captcha_engine:kcaptcha"
-				default="180, 180, 180"
-				filter="string"
-		/>
-
-		<field
-				name="kcaptcha_backgroundColor"
-				type="text"
-				label="AP_FORM_FIELD_KPT_BG_COLOR"
-				showon="captcha_engine:kcaptcha"
-				default="246, 246, 246"
-				filter="string"
-		/>
-
-		<field
-				name="kcaptcha_jpegQuality"
-				type="number"
-				label="AP_FORM_FIELD_KPT_QUALITY"
-				showon="captcha_engine:kcaptcha"
-				default="90"
-				filter="integer"
-		/>
 	</fieldset>
 
 	<fieldset name="restrictions" label="A_RESTRICTIONS">
@@ -648,6 +518,7 @@
 				label="AP_MAX_COMMENTS_PER_OBJECT"
 				description="AP_MAX_COMMENTS_PER_OBJECT_DESC"
 		/>
+
 	</fieldset>
 
 	<fieldset name="security" label="A_SECURITY">

@@ -94,17 +94,6 @@
 			<option value="0">JUNPUBLISHED</option>
 		</field>
 
-		<field
-				name="deleted"
-				type="radio"
-				layout="joomla.form.field.radio.switcher"
-				label="A_COMMENT_FIELD_DELETED_LABEL"
-				description="A_COMMENTS_HAS_BEEN_MARKED_AS_DELETED"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
 		<!-- Used in view to internal access checking -->
 		<field
 				name="checked_out"

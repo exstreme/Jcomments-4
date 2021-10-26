@@ -19,31 +19,23 @@ use Joomla\CMS\Table\Table;
 class JCommentsTableMailqueue extends Table
 {
 	/** @var int Primary key */
-	public $id = null;
-
+	var $id = null;
 	/** @var string */
-	public $name = null;
-
+	var $name = null;
 	/** @var string */
-	public $email = null;
-
+	var $email = null;
 	/** @var string */
-	public $subject = null;
-
+	var $subject = null;
 	/** @var string */
-	public $body = null;
-
+	var $body = null;
 	/** @var datetime */
-	public $created = null;
-
+	var $created = null;
 	/** @var int */
-	public $attempts = null;
-
+	var $attempts = null;
 	/** @var int */
-	public $priority = null;
-
+	var $priority = null;
 	/** @var string */
-	public $session_id = null;
+	var $session_id = null;
 
 	public function __construct($_db)
 	{
