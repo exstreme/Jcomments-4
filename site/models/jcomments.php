@@ -2,28 +2,35 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseDriver;
+
 /**
  * JComments model
+ *
+ * @since   3.0
  */
 class JCommentsModel
 {
 	/**
 	 * Returns a comments count for given object
 	 *
-	 * @param array $options
-	 * @param boolean $noCache
-	 * @return int
+	 * @param   array    $options  Array with columns from comments table.
+	 * @param   boolean  $noCache  Use cached result or not.
+	 *
+	 * @return  integer
+	 *
+	 * @since   3.0
 	 */
 	public static function getCommentsCount($options = array(), $noCache = false)
 	{
@@ -31,9 +38,11 @@ class JCommentsModel
 
 		$key = md5(serialize($options));
 
-		if (!isset($cache[$key]) || $noCache == true) {
+		if (!isset($cache[$key]) || $noCache == true)
+		{
+			/** @var DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
-			$db->setQuery(self::_getCommentsCountQuery($options));
+			$db->setQuery(self::getCommentsCountQuery($options));
 			$cache[$key] = (int) $db->loadResult();
 		}
 
@@ -43,67 +52,79 @@ class JCommentsModel
 	/**
 	 * Returns list of comments
 	 *
-	 * @param array $options
-	 * @return array
+	 * @param   array  $options  Array with options.
+	 *
+	 * @return  array
+	 *
+	 * @since   3.0
 	 */
 	public static function getCommentsList($options = array())
 	{
-		if (!isset($options['orderBy'])) {
-			$options['orderBy'] = self::_getDefaultOrder();
+		if (!isset($options['orderBy']))
+		{
+			$options['orderBy'] = self::getDefaultOrder();
 		}
 
+		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$pagination = isset($options['pagination']) ? $options['pagination'] : '';
+		$pagination = $options['pagination'] ?? '';
 
-		if (isset($options['limit']) && $pagination == 'tree') {
-
+		if (isset($options['limit']) && $pagination == 'tree')
+		{
 			$options['level'] = 0;
-			
-			$db->setQuery(self::_getCommentsQuery($options));
+
+			$db->setQuery(self::getCommentsQuery($options));
 			$rows = $db->loadObjectList();
 
-			if (count($rows)) {
+			if (count($rows))
+			{
 				$threads = array();
-				foreach ($rows as $row){
+
+				foreach ($rows as $row)
+				{
 					$threads[] = $row->id;
 				}
 
 				unset($options['level']);
 				unset($options['limit']);
 
-				$options['filter'] = ($options['filter'] ? $options['filter'] . ' AND ' : '') . 'c.thread_id IN (' . join(', ', $threads). ')';
+				$options['filter'] = ($options['filter'] ? $options['filter'] . ' AND ' : '') . 'c.thread_id IN (' . implode(', ', $threads) . ')';
 
-				$db->setQuery(self::_getCommentsQuery($options));
+				$db->setQuery(self::getCommentsQuery($options));
 				$rows = array_merge($rows, $db->loadObjectList());
 			}
-		} else {
-			$db->setQuery(self::_getCommentsQuery($options));
+		}
+		else
+		{
+			$db->setQuery(self::getCommentsQuery($options));
 			$rows = $db->loadObjectList();
 		}
 
 		return $rows;
 	}
 
-	public static function getLastComment($object_id, $object_group = 'com_content', $parent = 0)
+	public static function getLastComment($objectID, $objectGroup = 'com_content', $parent = 0)
 	{
+		/** @var DatabaseDriver $db */
+		$db      = Factory::getContainer()->get('DatabaseDriver');
+		$config  = ComponentHelper::getParams('com_jcomments');
 		$comment = null;
 
-		$db = Factory::getContainer()->get('DatabaseDriver');
-		$config = JCommentsFactory::getConfig();
+		$options['object_id']    = (int) $objectID;
+		$options['object_group'] = trim($objectGroup);
+		$options['parent']       = (int) $parent;
+		$options['published']    = 1;
+		$options['orderBy']      = 'c.date DESC';
+		$options['limit']        = 1;
+		$options['limitStart']   = 0;
+		$options['votes']        = (int) $config->get('enable_voting');
 
-		$options['object_id'] = (int) $object_id;
-		$options['object_group'] = trim($object_group);
-		$options['parent'] = (int) $parent;
-		$options['published'] = 1;
-		$options['orderBy'] = 'c.date DESC';
-		$options['limit'] = 1;
-		$options['limitStart'] = 0;
-		$options['votes'] = $config->getInt('enable_voting');
-
-		$db->setQuery(self::_getCommentsQuery($options));
+		$db->setQuery(self::getCommentsQuery($options));
 		$rows = $db->loadObjectList();
-		if (count($rows)) {
+
+		if (count($rows))
+		{
 			$comment = $rows[0];
 		}
 
@@ -113,213 +134,311 @@ class JCommentsModel
 	/**
 	 * Delete all comments for given ids
 	 *
-	 * @param  $ids Array of comments ids
-	 * @return void
+	 * @param   array  $ids  Array of comments ids.
+	 *
+	 * @return  void
+	 *
+	 * @since   3.0
 	 */
 	public static function deleteCommentsByIds($ids)
 	{
-		if (is_array($ids)) {
-			if (count($ids)) {
+		if (is_array($ids))
+		{
+			if (count($ids))
+			{
+				/** @var DatabaseDriver $db */
 				$db = Factory::getContainer()->get('DatabaseDriver');
-				$db->setQuery("SELECT DISTINCT object_group, object_id FROM #__jcomments WHERE parent IN (" . implode(',', $ids) . ")");
+
+				$query = $db->getQuery(true)
+					->select('DISTINCT object_group, object_id')
+					->from($db->quoteName('#__jcomments'))
+					->where($db->quoteName('parent') . ' IN (' . implode(',', $ids) . ')');
+
+				$db->setQuery($query);
 				$objects = $db->loadObjectList();
 
-				if (count($objects)) {
-					require_once (JCOMMENTS_LIBRARIES . '/joomlatune/tree.php');
+				if (count($objects))
+				{
+					require_once JPATH_ROOT . '/components/com_jcomments/libraries/joomlatune/tree.php';
 
 					$descendants = array();
 
-					foreach ($objects as $o) {
-						$query = "SELECT id, parent"
-								. "\nFROM #__jcomments"
-								. "\nWHERE `object_group` = " . $db->Quote($o->object_group)
-								. "\nAND `object_id` = " . $db->Quote($o->object_id);
+					foreach ($objects as $o)
+					{
+						$query = $db->getQuery(true)
+							->select($db->quoteName(array('id', 'parent')))
+							->from($db->quoteName('#__jcomments'))
+							->where($db->quoteName('object_group') . ' = ' . $db->quote($o->object_group))
+							->where($db->quoteName('object_id') . ' = ' . (int) $o->object_id);
+
 						$db->setQuery($query);
 						$comments = $db->loadObjectList();
 
 						$tree = new JoomlaTuneTree($comments);
 
-						foreach ($ids as $id) {
+						foreach ($ids as $id)
+						{
 							$descendants = array_merge($descendants, $tree->descendants((int) $id));
 						}
+
 						unset($tree);
 						$descendants = array_unique($descendants);
 					}
+
 					$ids = array_merge($ids, $descendants);
 				}
+
 				unset($descendants);
 
 				$ids = implode(',', $ids);
 
-				$db->setQuery("DELETE FROM #__jcomments WHERE id IN (" . $ids . ")");
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments'))
+					->where($db->quoteName('id') . ' IN (' . $ids . ')');
+
+				$db->setQuery($query);
 				$db->execute();
 
-				$db->setQuery("DELETE FROM #__jcomments_votes WHERE commentid IN (" . $ids . ")");
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_votes'))
+					->where($db->quoteName('commentid') . ' IN (' . $ids . ')');
+
+				$db->setQuery($query);
 				$db->execute();
 
-				$db->setQuery("DELETE FROM #__jcomments_reports WHERE commentid IN (" . $ids . ")");
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_reports'))
+					->where($db->quoteName('commentid') . ' IN (' . $ids . ')');
+
+				$db->setQuery($query);
 				$db->execute();
 			}
 		}
 	}
 
-	public static function deleteComments($object_id, $object_group = 'com_content')
+	public static function deleteComments($objectID, $objectGroup = 'com_content')
 	{
-		$object_group = trim($object_group);
-		$oids = is_array($object_id) ? implode(',', $object_id) : $object_id;
+		$objectGroup = trim($objectGroup);
+		$objectIDs   = is_array($objectID) ? implode(',', $objectID) : $objectID;
 
+		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$query = "SELECT id FROM #__jcomments "
-				. "\n WHERE object_group = " . $db->Quote($object_group)
-				. "\n AND object_id IN (" . $oids . ")";
+		$query = $db->getQuery(true)
+			->select($db->quoteName('id'))
+			->from($db->quoteName('#__jcomments'))
+			->where($db->quoteName('object_group') . ' = ' . $db->quote($objectGroup))
+			->where($db->quoteName('object_id') . ' IN (' . $objectIDs . ')');
+
 		$db->setQuery($query);
 		$cids = $db->loadColumn();
 
-		JCommentsModel::deleteCommentsByIds($cids);
+		self::deleteCommentsByIds($cids);
 
-		$query = "DELETE FROM #__jcomments_objects "
-			. " WHERE object_group = " . $db->Quote($object_group)
-			. " AND object_id = " . $db->Quote($object_id);
+		$query = $db->getQuery(true)
+			->delete($db->quoteName('#__jcomments_objects'))
+			->where($db->quoteName('object_group') . ' = ' . $db->quote($objectGroup))
+			->where($db->quoteName('object_id') . ' = ' . (int) $objectGroup);
+
 		$db->setQuery($query);
-		$db->execute();
 
-		return true;
+		return $db->execute();
 	}
 
-	protected static function _getCommentsCountQuery(&$options)
+	protected static function getCommentsCountQuery($options)
 	{
+		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$object_id = @$options['object_id'];
-		$object_group = @$options['object_group'];
-		$published = @$options['published'];
-		$userid = @$options['userid'];
-		$parent = @$options['parent'];
-		$level = @$options['level'];
-		$filter = @$options['filter'];
+		$objectID    = @$options['object_id'];
+		$objectGroup = @$options['object_group'];
+		$published   = @$options['published'];
+		$userid      = @$options['userid'];
+		$parent      = @$options['parent'];
+		$level       = @$options['level'];
 
-		$where = array();
+		// See JCommentsPagination::getCommentPage() for example
+		$filter      = @$options['filter'];
 
-		if (!empty($object_id)) {
-			$where[] = "c.object_id = " . (int) $object_id;
+		$query = $db->getQuery(true)
+			->select('COUNT(*)')
+			->from($db->quoteName('#__jcomments', 'c'));
+
+		if (!empty($objectID))
+		{
+			$query->where($db->quoteName('c.object_id') . ' = ' . (int) $objectID);
 		}
 
-		if (!empty($object_group)) {
-			$where[] = "c.object_group = " . $db->Quote($object_group);
+		if (!empty($objectGroup))
+		{
+			$query->where($db->quoteName('c.object_group') . ' = ' . $db->quote($objectGroup));
 		}
 
-		if ($parent !== null) {
-			$where[] = "c.parent = " . (int) $parent;
+		if ($parent !== null)
+		{
+			$query->where($db->quoteName('c.parent') . ' = ' . (int) $parent);
 		}
 
-		if ($level !== null) {
-			$where[] = "c.level = " . (int) $level;
+		if ($level !== null)
+		{
+			$query->where($db->quoteName('c.level') . ' = ' . (int) $level);
 		}
 
-		if ($published !== null) {
-			$where[] = "c.published = " . (int) $published;
+		if ($published !== null)
+		{
+			$query->where($db->quoteName('c.published') . ' = ' . (int) $published);
 		}
 
-		if ($userid !== null) {
-			$where[] = "c.userid = " . (int) $userid;
+		if ($userid !== null)
+		{
+			$query->where($db->quoteName('c.userid') . ' = ' . (int) $userid);
 		}
 
-		if ($filter != "") {
-			$where[] = $filter;
+		if (JCommentsFactory::getLanguageFilter())
+		{
+			$query->where($db->quoteName('c.lang') . ' = ' . $db->quote(Factory::getApplication()->getLanguage()->getTag()));
 		}
 
-		if (JCommentsMultilingual::isEnabled()) {
-			$where[] = "c.lang = '" . JCommentsMultilingual::getLanguage() . "'";
+		if ($filter != '')
+		{
+			$query->where($filter);
 		}
-
-		$query = "SELECT count(*)"
-				. "\nFROM #__jcomments AS c"
-				. (count($where) ? ("\nWHERE " . implode(' AND ', $where)) : "");
 
 		return $query;
 	}
 
-	protected static function _getCommentsQuery(&$options)
+	protected static function getCommentsQuery($options)
 	{
-		$acl = JCommentsFactory::getACL();
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		/** @var DatabaseDriver $db */
+		$db   = Factory::getContainer()->get('DatabaseDriver');
+		$user = Factory::getApplication()->getIdentity();
 
-		$object_id = @$options['object_id'];
-		$object_group = @$options['object_group'];
-		$parent = @$options['parent'];
-		$level = @$options['level'];
-		$published = @$options['published'];
-		$userid = @$options['userid'];
-		$filter = @$options['filter'];
+		$objectID    = @$options['object_id'];
+		$objectGroup = @$options['object_group'];
+		$parent      = @$options['parent'];
+		$level       = @$options['level'];
+		$published   = @$options['published'];
+		$userid      = @$options['userid'];
+		$filter      = @$options['filter'];
+		$orderBy     = @$options['orderBy'];
+		$limitStart  = $options['limitStart'] ?? 0;
+		$limit       = @$options['limit'];
+		$votes       = $options['votes'] ?? true;
+		$objectinfo  = $options['objectinfo'] ?? false;
 
-		$orderBy = @$options['orderBy'];
-		$limitStart = isset($options['limitStart']) ? $options['limitStart'] : 0;
-		$limit = @$options['limit'];
+		$query = $db->getQuery(true)
+			->select(
+				$db->quoteName(
+					array(
+						'c.id', 'c.parent', 'c.object_id', 'c.object_group', 'c.userid', 'c.name', 'c.username',
+						'c.title', 'c.comment', 'c.email', 'c.homepage', 'c.date', 'c.ip', 'c.published', 'c.deleted',
+						'c.checked_out', 'c.checked_out_time', 'c.isgood', 'c.ispoor'
+					)
+				)
+			)
+			->select($db->quoteName('c.date', 'datetime'));
 
-		$votes = isset($options['votes']) ? $options['votes'] : true;
-		$objectinfo = isset($options['objectinfo']) ? $options['objectinfo'] : false;
+		if ($votes)
+		{
+			$query->select($db->quoteName('v.value', 'voted'));
 
-		$where = array();
-
-		if (!empty($object_id)) {
-			$where[] = "c.object_id = " . $object_id;
+			$query->leftJoin($db->quoteName('#__jcomments_votes', 'v') . ' ON c.id = v.commentid '
+				. ($user->get('id')
+					? " AND  v.userid = " . $user->get('id')
+					: " AND v.userid = 0 AND v.ip = '" . $_SERVER['REMOTE_ADDR'] . "'")
+			);
+		}
+		else
+		{
+			$query->select('1 AS voted');
 		}
 
-		if (!empty($object_group)) {
-			if (is_array($object_group)) {
-				$where[] = "(c.object_group = '" . implode("' OR c.object_group = '", $object_group) . "')";
-			} else {
-				$where[] = "c.object_group = " . $db->Quote($object_group);
+		$query->select('CASE WHEN c.parent = 0 THEN UNIX_TIMESTAMP(c.date) ELSE 0 END AS threaddate');
+
+		if ($objectinfo)
+		{
+			$query->select($db->quoteName('jo.title', 'object_title'))
+				->select($db->quoteName('jo.link', 'object_link'))
+				->select($db->quoteName('jo.access', 'object_access'));
+
+			$query->leftJoin($db->quoteName('#__jcomments_objects', 'jo') . ' ON jo.object_id = c.object_id AND jo.object_group = c.object_group AND jo.lang = c.lang');
+		}
+		else
+		{
+			$query->select('CAST(NULL AS CHAR(0)) AS object_title')
+				->select('CAST(NULL AS CHAR(0)) AS object_link')
+				->select('0 AS object_access')
+				->select('0 AS object_owner');
+		}
+
+		$query->from($db->quoteName('#__jcomments', 'c'));
+
+		if (!empty($objectID))
+		{
+			$query->where($db->quoteName('c.object_id') . ' = ' . (int) $objectID);
+		}
+
+		if (!empty($objectGroup))
+		{
+			if (is_array($objectGroup))
+			{
+				$query->where('(' . $db->quoteName('c.object_group') . " = '" . implode("' OR c.object_group = '", $objectGroup) . "')");
+			}
+			else
+			{
+				$query->where($db->quoteName('c.object_group') . ' = ' . $db->quote($objectGroup));
 			}
 		}
 
-		if ($parent !== null) {
-			$where[] = "c.parent = " . $parent;
+		if ($parent !== null)
+		{
+			$query->where($db->quoteName('c.parent') . ' = ' . $parent);
 		}
 
-		if ($level !== null) {
-			$where[] = "c.level = " . (int) $level;
+		if ($level !== null)
+		{
+			$query->where($db->quoteName('c.level') . ' = ' . (int) $level);
 		}
 
-		if ($published !== null) {
-			$where[] = "c.published = " . $published;
+		if ($published !== null)
+		{
+			$query->where($db->quoteName('c.published') . ' = ' . (int) $published);
 		}
 
-		if ($userid !== null) {
-			$where[] = "c.userid = " . $userid;
+		if ($userid !== null)
+		{
+			$query->where($db->quoteName('c.userid') . ' = ' . (int) $userid);
 		}
 
-		if (JCommentsMultilingual::isEnabled()) {
-			$language = isset($options['lang']) ? $options['lang'] : JCommentsMultilingual::getLanguage();
-			$where[] = "c.lang = " . $db->Quote($language);
+		if (JCommentsFactory::getLanguageFilter())
+		{
+			$language = $options['lang'] ?? Factory::getApplication()->getLanguage()->getTag();
+			$query->where($db->quoteName('c.lang') . ' = ' . $db->quote($language));
 		}
 
-		if ($objectinfo && isset($options['access'])) {
-			if (is_array($options['access'])) {
-				$access = implode(',', $options['access']);
-				$where[] = "jo.access IN (" . $access . ")";
-			} else {
-				$where[] = "jo.access <= " . (int) $options['access'];
+		if ($objectinfo && isset($options['access']))
+		{
+			if (is_array($options['access']))
+			{
+				$query->where($db->quoteName('jo.access') . ' IN (' . implode(',', $options['access']) . ')');
+			}
+			else
+			{
+				$query->where($db->quoteName('jo.access') . ' <= ' . (int) $options['access']);
 			}
 		}
 
-		if ($filter != "") {
-			$where[] = $filter;
+		if ($filter != '')
+		{
+			$query->where($filter);
 		}
 
-		$query = "SELECT c.id, c.parent, c.object_id, c.object_group, c.userid, c.name, c.username, c.title, c.comment"
-				. "\n, c.email, c.homepage, c.date, c.date as datetime, c.ip, c.published, c.deleted, c.checked_out, c.checked_out_time"
-				. "\n, c.isgood, c.ispoor"
-				. ($votes ? "\n, v.value as voted" : "\n, 1 as voted")
-				. "\n, case when c.parent = 0 then unix_timestamp(c.date) else 0 end as threaddate"
-				. ($objectinfo ? "\n, jo.title AS object_title, jo.link AS object_link, jo.access AS object_access" : ", '' AS object_title, '' AS object_link, 0 AS object_access, 0 AS object_owner")
-				. "\nFROM #__jcomments AS c"
-				. ($votes ? "\nLEFT JOIN #__jcomments_votes AS v ON c.id = v.commentid " . ($acl->getUserId() ? " AND  v.userid = " . $acl->getUserId() : " AND v.userid = 0 AND v.ip = '" . $acl->getUserIP() . "'") : "")
-				. ($objectinfo ? "\n LEFT JOIN #__jcomments_objects AS jo ON jo.object_id = c.object_id AND jo.object_group = c.object_group AND jo.lang=c.lang" : "")
-				. (count($where) ? ("\nWHERE " . implode(' AND ', $where)) : "")
-				. "\nORDER BY " . $orderBy
-				. (($limit > 0) ? "\nLIMIT $limitStart, $limit" : "");
+		$query->order($orderBy);
+
+		if ($limit > 0)
+		{
+			$query->setLimit($limit, $limitStart);
+		}
 
 		return $query;
 	}
@@ -327,14 +446,18 @@ class JCommentsModel
 	/**
 	 * Returns default order for comments list
 	 *
-	 * @return string
+	 * @return  string
+	 *
+	 * @since   3.0
 	 */
-	protected static function _getDefaultOrder()
+	protected static function getDefaultOrder()
 	{
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 
-		if ($config->get('template_view') == 'tree') {
-			switch($config->getInt('comments_tree_order')) {
+		if ($config->get('template_view') == 'tree')
+		{
+			switch ((int) $config->get('comments_tree_order'))
+			{
 				case 2:
 					$result = 'threadDate DESC, c.date ASC';
 					break;
@@ -345,7 +468,9 @@ class JCommentsModel
 					$result = 'c.parent, c.date ASC';
 					break;
 			}
-		} else {
+		}
+		else
+		{
 			$result = 'c.date ' . $config->get('comments_list_order');
 		}
 

@@ -2,310 +2,446 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Access;
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+
 /**
  * JComments ACL
+ *
+ * @since  3.0
  */
 class JCommentsACL
 {
-	var $canDelete = 0;
-	var $canDeleteOwn = 0;
-	var $canDeleteForMyObject = 0;
-	var $canEdit = 0;
-	var $canEditOwn = 0;
-	var $canEditForMyObject = 0;
-	var $canPublish = 0;
-	var $canPublishForMyObject = 0;
-	var $canViewIP = 0;
-	var $canViewEmail = 0;
-	var $canViewHomepage = 0;
-	var $canComment = 0;
-	var $canQuote = 0;
-	var $canReply = 0;
-	var $canVote = 0;
-	var $canReport = 0;
-	var $canBan = 0;
-	var $userID = 0;
-	var $userIP = 0;
-	var $deleteMode = 0;
-	var $userBlocked = 0;
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canDelete = 0;
 
-	function __construct()
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canDeleteOwn = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canDeleteForMyObject = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canEdit = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canEditOwn = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canEditForMyObject = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canPublish = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canPublishForMyObject = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canViewIP = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canViewEmail = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canViewHomepage = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canQuote = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canReply = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canVote = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canReport = 0;
+
+	/**
+	 * @var    boolean|integer
+	 * @since  3.0
+	 */
+	public $canBan = 0;
+
+	/**
+	 * @var    integer
+	 * @since  3.0
+	 */
+	protected $userID = 0;
+
+	/**
+	 * @var    integer
+	 * @since  3.0
+	 */
+	protected $deleteMode = 0;
+
+	/**
+	 * @var    integer
+	 * @since  3.0
+	 */
+	protected $userBlocked = 0;
+
+	/**
+	 * @throws Exception
+	 * @since  3.0
+	 */
+	public function __construct()
 	{
-		$user = JFactory::getUser();
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
+		$user   = Factory::getApplication()->getIdentity();
 
-		$this->canDelete = $this->check('can_delete');
-		$this->canDeleteOwn = $this->check('can_delete_own');
-		$this->canDeleteForMyObject = $this->check('can_delete_for_my_object');
-		$this->canEdit = $this->check('can_edit');
-		$this->canEditOwn = $this->check('can_edit_own');
-		$this->canEditForMyObject = $this->check('can_edit_for_my_object');
-		$this->canPublish = $this->check('can_publish');
-		$this->canPublishForMyObject = $this->check('can_publish_for_my_object');
-		$this->canViewIP = $this->check('can_view_ip');
-		$this->canViewEmail = $this->check('can_view_email');
-		$this->canViewHomepage = $this->check('can_view_homepage');
-		$this->canComment = $this->check('can_comment');
-		$this->canVote = $this->check('can_vote');
-		$this->canReport = intval($this->check('can_report') && $config->getInt('enable_reports'));
-		$this->canBan = 0;
-		$this->canQuote = intval($this->canComment && $this->check('enable_bbcode_quote'));
-		$this->canReply = intval($this->canComment && $this->check('can_reply') && $config->get('template_view') == 'tree');
+		$this->canDelete             = $user->authorise('comment.delete', 'com_jcomments');
+		$this->canDeleteOwn          = $user->authorise('comment.delete.own', 'com_jcomments');
+		$this->canDeleteForMyObject  = $user->authorise('comment.delete.own.articles', 'com_jcomments');
+		$this->canEdit               = $user->authorise('comment.edit', 'com_jcomments');
+		$this->canEditOwn            = $user->authorise('comment.edit.own', 'com_jcomments');
+		$this->canEditForMyObject    = $user->authorise('comment.edit.own.articles', 'com_jcomments');
+		$this->canPublish            = $user->authorise('comment.publish', 'com_jcomments');
+		$this->canPublishForMyObject = $user->authorise('comment.publish.own', 'com_jcomments');
+		$this->canViewIP             = $user->authorise('comment.view.ip', 'com_jcomments');
+		$this->canViewEmail          = $user->authorise('comment.view.email', 'com_jcomments');
+		$this->canViewHomepage       = $user->authorise('comment.view.site', 'com_jcomments');
+		$this->canVote               = $user->authorise('comment.vote', 'com_jcomments');
+		$this->canReport             = $user->authorise('comment.report', 'com_jcomments')
+											&& (int) $config->get('enable_reports')
+											&& ($config->get('enable_notification') != 0
+												|| $config->get('notification_type', 2) == true);
+		$this->canBan                = 0;
+		$this->canQuote              = $user->authorise('comment.comment', 'com_jcomments')
+											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
+		$this->canReply              = $user->authorise('comment.comment', 'com_jcomments')
+											&& $user->authorise('comment.reply', 'com_jcomments')
+											&& $config->get('template_view') == 'tree';
+		$this->userID                = $user->get('id');
+		$this->userBlocked           = 0;
+		$this->deleteMode            = (int) $config->get('delete_mode');
+		$this->commentsLocked        = false;
 
-		$this->userID = (int)$user->id;
-		$this->userIP = $_SERVER['REMOTE_ADDR'];
-		$this->userBlocked = 0;
+		if ((int) $config->get('enable_blacklist', 0) == 1)
+		{
+			$options           = array();
+			$options['ip']     = $_SERVER['REMOTE_ADDR'];
+			$options['userid'] = $user->get('id');
 
-		$this->deleteMode = $config->getInt('delete_mode');
-
-		$this->commentsLocked = false;
-
-		if ($config->getInt('enable_blacklist', 0) == 1) {
-			$options = array();
-			$options['ip'] = $this->getUserIP();
-			$options['userid'] = $this->getUserID();
-			if (!JCommentsSecurity::checkBlacklist($options)) {
+			if (!JCommentsSecurity::checkBlacklist($options))
+			{
 				$this->userBlocked = 1;
-				$this->canComment = 0;
-				$this->canQuote = 0;
-				$this->canReply = 0;
-				$this->canVote = 0;
-				$this->canBan = 0;
-			} else {
-				$this->canBan = $this->check('can_ban');
+				$this->canQuote    = 0;
+				$this->canReply    = 0;
+				$this->canVote     = 0;
+				$this->canBan      = 0;
+			}
+			else
+			{
+				$this->canBan = $user->authorise('comment.ban', 'com_jcomments');
 			}
 		}
 	}
 
-	public static function check($str, $isName = true)
+	/**
+	 * Check if need to use autocensor on current user group.
+	 *
+	 * @return boolean   True if user must be autocensored.
+	 *
+	 * @since  4.0
+	 */
+	public function enableAutocensor()
 	{
-		static $group = null;
+		$config       = ComponentHelper::getParams('com_jcomments');
+		$user         = Factory::getApplication()->getIdentity();
+		$userGroups   = $user->getAuthorisedGroups();
+		$censorGroups = $config->get('enable_autocensor');
 
-		if ($isName) {
-			$str = JCommentsFactory::getConfig()->get($str);
-		}
-
-		if (!empty($str)) {
-			$user = JFactory::getUser();
-
-			$list = explode(',', $str);
-
-			if ($group === null) {
-				if ($user->id) {
-					$db = Factory::getContainer()->get('DatabaseDriver');
-					// get highest group
-					$query = $db->getQuery(true);
-					$query->select('a.id');
-					$query->from('#__user_usergroup_map AS map');
-					$query->leftJoin('#__usergroups AS a ON a.id = map.group_id');
-					$query->where('map.user_id = ' . (int)$user->id);
-					$query->order('a.lft desc');
-					$db->setQuery($query, 0, 1);
-
-					$group = $db->loadResult();
-				} else {
-					$group = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
-				}
-			}
-
-			if (in_array($group, $list)) {
-				return 1;
+		foreach ($userGroups as $userGroup)
+		{
+			if (in_array($userGroup, $censorGroups))
+			{
+				// Current usergroup must be censored.
+				return true;
 			}
 		}
 
-		return 0;
+		return false;
 	}
 
-	function getUserIP()
+	/**
+	 * Check if user allowed to see custom bbcode button.
+	 *
+	 * @param   string  $buttonACL  Comma separated string with usergroup IDs.
+	 *
+	 * @return  boolean   True if can see.
+	 *
+	 * @since   4.0
+	 */
+	public function enableCustomBBCode($buttonACL)
 	{
-		return $this->userIP;
+		$user       = Factory::getApplication()->getIdentity();
+		$userGroups = $user->getAuthorisedGroups();
+
+		foreach ($userGroups as $userGroup)
+		{
+			if (in_array($userGroup, explode(',', $buttonACL)))
+			{
+				// Can see the button.
+				return true;
+			}
+		}
+
+		return false;
 	}
 
-	function getUserId()
-	{
-		return $this->userID;
-	}
-
-	function getUserBlocked()
+	/**
+	 * Check if user is blocked
+	 *
+	 * @return integer
+	 *
+	 * @since  3.0
+	 */
+	public function getUserBlocked()
 	{
 		return $this->userBlocked;
 	}
 
-	function getUserAccess()
+	public function getUserAccess()
 	{
 		static $access = null;
 
-		if (!isset($access)) {
-			$user = JFactory::getUser();
-			$access = array_unique(JAccess::getAuthorisedViewLevels($user->get('id')));
+		if (!isset($access))
+		{
+			$user     = Factory::getApplication()->getIdentity();
+			$access   = array_unique(Access::getAuthorisedViewLevels($user->get('id')));
 			$access[] = 0; // for backward compatibility
 		}
 
 		return $access;
 	}
 
-	function isLocked($obj)
+	public function isLocked($object)
 	{
-		if (isset($obj) && ($obj != null)) {
-			return ($obj->checked_out && $obj->checked_out != $this->userID) ? 1 : 0;
+		if (isset($object) && ($object != null))
+		{
+			return ($object->checked_out && $object->checked_out != $this->userID) ? 1 : 0;
 		}
 
 		return 0;
 	}
 
-	function isDeleted($obj)
+	public function isDeleted($object)
 	{
-		if (isset($obj) && ($obj != null)) {
-			return $obj->deleted ? 1 : 0;
+		if (isset($object) && ($object != null))
+		{
+			return $object->deleted ? 1 : 0;
 		}
 
 		return 0;
 	}
 
-	function isObjectOwner($obj)
+	public function isObjectOwner($object)
 	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return false;
-		} else {
-			$objectOwner = $this->userID ? JCommentsObjectHelper::getOwner($obj->object_id, $obj->object_group) : 0;
+		}
+		else
+		{
+			$objectOwner = $this->userID ? JCommentsObject::getOwner($object->object_id, $object->object_group) : 0;
 
 			return $this->userID ? ($this->userID == $objectOwner) : false;
 		}
 	}
 
-	function canDelete($obj)
+	public function canDelete($object)
 	{
-		return (($this->canDelete || ($this->canDeleteForMyObject && $this->isObjectOwner($obj))
-				|| ($this->canDeleteOwn && ($obj->userid == $this->userID)))
-			&& (!$this->isLocked($obj)) && (!$this->isDeleted($obj) || $this->deleteMode == 0)) ? 1 : 0;
+		return (($this->canDelete || ($this->canDeleteForMyObject && $this->isObjectOwner($object))
+				|| ($this->canDeleteOwn && ($object->userid == $this->userID)))
+			&& (!$this->isLocked($object)) && (!$this->isDeleted($object) || $this->deleteMode == 0)) ? 1 : 0;
 	}
 
-	function canEdit($obj)
+	public function canEdit($object)
 	{
-		return (($this->canEdit || ($this->canEditForMyObject && $this->isObjectOwner($obj))
-				|| ($this->canEditOwn && ($obj->userid == $this->userID)))
-			&& (!$this->isLocked($obj)) && (!$this->isDeleted($obj))) ? 1 : 0;
+		return (($this->canEdit || ($this->canEditForMyObject && $this->isObjectOwner($object))
+				|| ($this->canEditOwn && ($object->userid == $this->userID)))
+			&& (!$this->isLocked($object)) && (!$this->isDeleted($object))) ? 1 : 0;
 	}
 
-	function canPublish($obj = null)
+	public function canPublish($object = null)
 	{
-		return (($this->canPublish || ($this->canPublishForMyObject && $this->isObjectOwner($obj)))
-			&& (!$this->isLocked($obj)) && (!$this->isDeleted($obj))) ? 1 : 0;
+		return (($this->canPublish || ($this->canPublishForMyObject && $this->isObjectOwner($object)))
+			&& (!$this->isLocked($object)) && (!$this->isDeleted($object))) ? 1 : 0;
 	}
 
-	function canPublishForObject($object_id, $object_group)
+	public function canPublishForObject($objectID, $objectGroup)
 	{
 		return ($this->userID
 			&& $this->canPublishForMyObject
-			&& $this->userID == JCommentsObjectHelper::getOwner($object_id, $object_group)) ? 1 : 0;
+			&& $this->userID == JCommentsObject::getOwner($objectID, $objectGroup)) ? 1 : 0;
 	}
 
-	function canViewIP($obj = null)
+	public function canViewIP($object = null)
 	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return ($this->canViewIP) ? 1 : 0;
-		} else {
-			return ($this->canViewIP && ($obj->ip != '') && (!$this->isDeleted($obj))) ? 1 : 0;
+		}
+		else
+		{
+			return ($this->canViewIP && ($object->ip != '') && (!$this->isDeleted($object))) ? 1 : 0;
 		}
 	}
 
-	function canViewEmail($obj = null)
+	public function canViewEmail($object = null)
 	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return ($this->canViewEmail) ? 1 : 0;
-		} else {
-			return ($this->canViewEmail && ($obj->email != '')) ? 1 : 0;
+		}
+		else
+		{
+			return ($this->canViewEmail && ($object->email != '')) ? 1 : 0;
 		}
 	}
 
-	function canViewHomepage($obj = null)
+	public function canViewHomepage($object = null)
 	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return ($this->canViewHomepage) ? 1 : 0;
-		} else {
-			return ($this->canViewHomepage && ($obj->homepage != '')) ? 1 : 0;
+		}
+		else
+		{
+			return ($this->canViewHomepage && ($object->homepage != '')) ? 1 : 0;
 		}
 	}
 
-	function canComment()
+	public function canQuote($object = null)
 	{
-		return $this->canComment;
-	}
-
-	function canQuote($obj = null)
-	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return $this->canQuote && !$this->commentsLocked;
-		} else {
-			return ($this->canQuote && !$this->commentsLocked && (!isset($obj->_disable_quote)) && (!$this->isDeleted($obj))) ? 1 : 0;
+		}
+		else
+		{
+			return ($this->canQuote && !$this->commentsLocked && (!isset($object->_disable_quote)) && (!$this->isDeleted($object))) ? 1 : 0;
 		}
 	}
 
-	function canReply($obj = null)
+	public function canReply($object = null)
 	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return $this->canReply && !$this->commentsLocked;
-		} else {
-			return ($this->canReply && !$this->commentsLocked && (!isset($obj->_disable_reply)) && (!$this->isDeleted($obj))) ? 1 : 0;
+		}
+		else
+		{
+			return ($this->canReply && !$this->commentsLocked && (!isset($object->_disable_reply)) && (!$this->isDeleted($object))) ? 1 : 0;
 		}
 	}
 
-	function canVote($obj)
+	public function canVote($object)
 	{
-		if ($this->userID) {
-			return ($this->canVote && $obj->userid != $this->userID && !isset($obj->voted) && (!$this->isDeleted($obj)));
-		} else {
-			return ($this->canVote && $obj->ip != $this->userIP && !isset($obj->voted) && (!$this->isDeleted($obj)));
+		if ($this->userID)
+		{
+			return ($this->canVote && $object->userid != $this->userID && !isset($object->voted) && (!$this->isDeleted($object)));
 		}
-
+		else
+		{
+			return ($this->canVote && $object->ip != $_SERVER['REMOTE_ADDR'] && !isset($object->voted) && (!$this->isDeleted($object)));
+		}
 	}
 
-	function canReport($obj = null)
+	public function canReport($object = null)
 	{
-		if (is_null($obj)) {
+		if (is_null($object))
+		{
 			return $this->canReport;
-		} else {
-			return ($this->canReport && (!isset($obj->_disable_report)) && (!$this->isDeleted($obj))) ? 1 : 0;
+		}
+		else
+		{
+			return ($this->canReport && (!isset($object->_disable_report)) && (!$this->isDeleted($object))) ? 1 : 0;
 		}
 	}
 
-	function canModerate($obj)
+	public function canModerate($object)
 	{
-		return ($this->canEdit($obj) || $this->canDelete($obj)
-			|| $this->canPublish($obj) || $this->canViewIP($obj) || $this->canBan($obj)) && (!$this->isDeleted($obj) || $this->deleteMode == 0);
+		return ($this->canEdit($object) || $this->canDelete($object) || $this->canPublish($object)
+			|| $this->canViewIP($object) || $this->canBan($object)) && (!$this->isDeleted($object) || $this->deleteMode == 0);
 	}
 
-	function canBan($obj = null)
+	public function canBan($obj = null)
 	{
-		if (is_null($obj)) {
+		if (is_null($obj))
+		{
 			return $this->canBan;
-		} else {
+		}
+		else
+		{
 			return ($this->canBan && (!$this->isDeleted($obj))) ? 1 : 0;
 		}
 	}
 
-	function setCommentsLocked($value)
+	public function setCommentsLocked($value)
 	{
 		$this->commentsLocked = $value;
 
-		//$this->canComment = $this->canComment && !$this->commentsLocked;
+		// TODO Line bellow for that?
+		// $this->canComment = $this->canComment && !$this->commentsLocked;
+
 		$this->canQuote = $this->canQuote && !$this->commentsLocked;
 		$this->canReply = $this->canReply && !$this->commentsLocked;
-	}
-
-	function isCommentsLocked()
-	{
-		return $this->commentsLocked;
 	}
 }

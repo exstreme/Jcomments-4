@@ -8,23 +8,6 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-#settings-form label {
-	max-width: 150px;
-}
-
-#settings-form #permissions label {
-	max-width: initial;
-}
-
-#settings-form select#lang {
-	margin: 5px;
-	float: inherit;
-}
-
-#settings-form #permissions .controls {
-	margin-left: 0 !important;
-}
-
 /* Progressbar */
 .jcomments-progressbar {
 	margin: 0 auto;
@@ -54,43 +37,7 @@ span.gi {
 	margin-right: 5px;
 }
 
-/* Filter */
-fieldset#filter-bar {
-	min-height: 35px;
-	border: 0;
-	border-bottom: 1px solid #d5d5d5;
-}
-
-.fltlft {
-	float: left
-}
-
-.fltrt {
-	float: right
-}
-
-td.left,
-th.left {
-	text-align: left;
-}
-
-td.center,
-th.center,
-.center {
-	text-align: center;
-	float: none;
-}
-
-td.center img,
-th.center img {
-	float: none;
-}
-
-td.right, th.right {
-	text-align: right;
-}
-
-/* Set styles for custom bbcode icons. Do ot use styles from frontend as it will be broke table. */
+/* Set styles for custom bbcode icons. Do not use styles from frontend as it will be broke table. */
 #jc .bbcode a, #jc .bbcode a:focus, #jc .bbcode a:active, #jc .bbcode a:hover {
 	width: 23px;
 	height: 23px;
@@ -99,77 +46,77 @@ td.right, th.right {
 	background-repeat: no-repeat;
 	background-image: url(../images/tpl/jc_bbcodes.gif);
 	text-decoration: none;
-	border: none !important
+	border: none !important;
 }
 
 #jc a.bbcode-empty {
-	background-position: 0 0
+	background-position: 0 0;
 }
 
 #jc a.bbcode-b {
-	background-position: -30px 0 !important
+	background-position: -30px 0 !important;
 }
 
 #jc a.bbcode-i {
-	background-position: -60px 0 !important
+	background-position: -60px 0 !important;
 }
 
 #jc a.bbcode-u {
-	background-position: -90px 0 !important
+	background-position: -90px 0 !important;
 }
 
 #jc a.bbcode-s {
-	background-position: -120px 0 !important
+	background-position: -120px 0 !important;
 }
 
 #jc a.bbcode-url {
-	background-position: -150px 0 !important
+	background-position: -150px 0 !important;
 }
 
 #jc a.bbcode-img {
-	background-position: -180px 0 !important
+	background-position: -180px 0 !important;
 }
 
 #jc a.bbcode-list {
-	background-position: -210px 0 !important
+	background-position: -210px 0 !important;
 }
 
 #jc a.bbcode-hide {
-	background-position: -240px 0 !important
+	background-position: -240px 0 !important;
 }
 
 #jc a.bbcode-quote {
-	background-position: -270px 0 !important
+	background-position: -270px 0 !important;
 }
 
 #jc a.bbcode-smile {
-	background-position: -300px 0 !important
+	background-position: -300px 0 !important;
 }
 
 #jc a.bbcode-youtube {
-	background-position: -330px 0 !important
+	background-position: -330px 0 !important;
 }
 
 #jc a.bbcode-google {
-	background-position: -360px 0 !important
+	background-position: -360px 0 !important;
 }
 
 #jc a.bbcode-wiki {
-	background-position: -390px 0 !important
+	background-position: -390px 0 !important;
 }
 
 #jc a.bbcode-facebook {
-	background-position: -420px 0 !important
+	background-position: -420px 0 !important;
 }
 
 #jc a.bbcode-flickr {
-	background-position: -450px 0 !important
+	background-position: -450px 0 !important;
 }
 
 #jc a.bbcode-instagram {
-	background-position: -480px 0 !important
+	background-position: -480px 0 !important;
 }
 
 #jc a.bbcode-vimeo {
-	background-position: -510px 0 !important
+	background-position: -510px 0 !important;
 }

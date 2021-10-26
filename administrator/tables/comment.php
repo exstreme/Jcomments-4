@@ -24,58 +24,82 @@ use Joomla\Database\DatabaseDriver;
 class JCommentsTableComment extends Table
 {
 	/** @var int Primary key */
-	var $id = null;
-	/** @var int */
-	var $parent = null;
-	/** @var int */
-	var $thread_id = null;
-	/** @var string */
-	var $path = null;
-	/** @var int */
-	var $level = null;
-	/** @var int */
-	var $object_id = null;
-	/** @var string */
-	var $object_group = null;
-	/** @var string */
-	var $lang = null;
-	/** @var int */
-	var $userid = null;
-	/** @var string */
-	var $name = null;
-	/** @var string */
-	var $username = null;
-	/** @var string */
-	var $title = null;
-	/** @var string */
-	var $comment = null;
-	/** @var string */
-	var $email = null;
-	/** @var string */
-	var $homepage = null;
-	/** @var datetime */
-	var $date = null;
-	/** @var string */
-	var $ip = null;
-	/** @var int */
-	var $isgood = null;
-	/** @var int */
-	var $ispoor = null;
-	/** @var boolean */
-	var $published = null;
-	/** @var boolean */
-	var $deleted = null;
-	/** @var boolean */
-	var $subscribe = null;
-	/** @var string */
-	var $source = null;
-	/** @var boolean */
-	var $checked_out = 0;
-	/** @var datetime */
-	var $checked_out_time = 0;
-	/** @var string */
-	var $editor = '';
+	public $id = null;
 
+	/** @var int */
+	public $parent = null;
+
+	/** @var int */
+	public $thread_id = null;
+
+	/** @var string */
+	public $path = null;
+
+	/** @var int */
+	public $level = null;
+
+	/** @var int */
+	public $object_id = null;
+
+	/** @var string */
+	public $object_group = null;
+
+	/** @var string */
+	public $lang = null;
+
+	/** @var int */
+	public $userid = null;
+
+	/** @var string */
+	public $name = null;
+
+	/** @var string */
+	public $username = null;
+
+	/** @var string */
+	public $title = null;
+
+	/** @var string */
+	public $comment = null;
+
+	/** @var string */
+	public $email = null;
+
+	/** @var string */
+	public $homepage = null;
+
+	/** @var datetime */
+	public $date = null;
+
+	/** @var string */
+	public $ip = null;
+
+	/** @var int */
+	public $isgood = null;
+
+	/** @var int */
+	public $ispoor = null;
+
+	/** @var boolean */
+	public $published = null;
+
+	/** @var boolean */
+	public $deleted = null;
+
+	/** @var boolean */
+	public $subscribe = null;
+
+	/** @var string */
+	public $source = null;
+
+	/** @var boolean */
+	public $checked_out = 0;
+
+	/** @var datetime */
+	public $checked_out_time = 0;
+
+	/** @var string */
+	public $editor = '';
 
 	/**
 	 * Object constructor to set table and key fields.  In most cases this will
@@ -117,9 +141,8 @@ class JCommentsTableComment extends Table
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$config = ComponentHelper::getParams('com_jcomments');
-		$app    = Factory::getApplication();
 
-		if (JCommentsSystemPluginHelper::isAdmin($app))
+		if (Factory::getApplication()->isClient('administrator'))
 		{
 			$language = Factory::getApplication()->getLanguage();
 			$language->load('com_jcomments', JPATH_SITE);
@@ -159,7 +182,7 @@ class JCommentsTableComment extends Table
 					}
 				}
 
-				$this->thread_id = $parent->thread_id ? $parent->thread_id : $parent->id;
+				$this->thread_id = $parent->thread_id ?: $parent->id;
 				$this->level     = $parent->level + 1;
 				$this->path      = $parent->path . ',' . $parent->id;
 			}
@@ -168,7 +191,7 @@ class JCommentsTableComment extends Table
 		{
 			if (empty($this->title) && (int) $config->get('comment_title') == 1)
 			{
-				$title = JCommentsObjectHelper::getTitle($this->object_id, $this->object_group, $this->lang);
+				$title = JCommentsObject::getTitle($this->object_id, $this->object_group, $this->lang);
 
 				if (!empty($title))
 				{
@@ -217,7 +240,7 @@ class JCommentsTableComment extends Table
 		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$id     = $oid ? $oid : $this->{$this->getKeyName()};
+		$id     = $oid ?: $this->{$this->getKeyName()};
 		$result = parent::delete($oid);
 
 		if ($result)
@@ -315,7 +338,7 @@ class JCommentsTableComment extends Table
 			$value = preg_replace('#' . preg_quote($key, '#') . '#isUu', $code, $value);
 		}
 
-		// strip bbcodes
+		// Strip bbcodes
 		$patterns = array(
 			'/\[font=(.*?)\](.*?)\[\/font\]/i'
 		, '/\[size=(.*?)\](.*?)\[\/size\]/i'
@@ -352,9 +375,8 @@ class JCommentsTableComment extends Table
 		, '[/url]'
 		, '[youtube]\\1[/youtube]'
 		);
-		$value        = preg_replace($patterns, $replacements, $value);
 
-		return $value;
+		return preg_replace($patterns, $replacements, $value);
 	}
 
 	protected function clearName($value)

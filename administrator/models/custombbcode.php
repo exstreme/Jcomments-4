@@ -92,15 +92,12 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 			$table->button_image     = trim(strip_tags($table->button_image));
 			$table->button_css       = trim(strip_tags($table->button_css));
 
-			if (!function_exists('get_magic_quotes_gpc') || get_magic_quotes_gpc() == 1)
-			{
-				$table->pattern                 = stripslashes($table->pattern);
-				$table->replacement_html        = stripslashes($table->replacement_html);
-				$table->replacement_text        = stripslashes($table->replacement_text);
-				$table->simple_pattern          = stripslashes($table->simple_pattern);
-				$table->simple_replacement_html = stripslashes($table->simple_replacement_html);
-				$table->simple_replacement_text = stripslashes($table->simple_replacement_text);
-			}
+			$table->pattern                 = stripslashes($table->pattern);
+			$table->replacement_html        = stripslashes($table->replacement_html);
+			$table->replacement_text        = stripslashes($table->replacement_text);
+			$table->simple_pattern          = stripslashes($table->simple_pattern);
+			$table->simple_replacement_html = stripslashes($table->simple_replacement_html);
+			$table->simple_replacement_text = stripslashes($table->simple_replacement_text);
 
 			if ($table->simple_replacement_text == '')
 			{

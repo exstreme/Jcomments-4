@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\Component\ComponentHelper;
+
 defined('_JEXEC') or die;
 
 class JoomlaTuneFeedItem
@@ -98,7 +100,7 @@ class JoomlaTuneFeed
 	{
 		if (!headers_sent()) {
 			header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 900) . ' GMT');
-			header('Content-Type: application/xml');
+			header('Content-Type: application/rss+xml');
 		}
 		echo $this->render();
 	}
@@ -111,14 +113,14 @@ class JCommentsRSS
 {
 	public static function showObjectComments()
 	{
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 
 		if ($config->get('enable_rss') == '1') {
 
-			$app = JFactory::getApplication('site');
+			$app = JFactory::getApplication();
 			$object_id = $app->input->getInt('object_id', 0);
 			$object_group = JCommentsSecurity::clearObjectGroup($app->input->get('object_group', 'com_content'));
-			$limit = $app->input->getInt('limit', $config->getInt('feed_limit', 100));
+			$limit = $app->input->getInt('limit', (int) $config->get('feed_limit', 100));
 
 			// if no group or id specified - return 404
 			if ($object_id == 0 || $object_group == '') {
@@ -127,10 +129,10 @@ class JCommentsRSS
 				return;
 			}
 
-			$lm = $limit != $config->getInt('feed_limit') ? ('&amp;limit=' . $limit) : '';
+			$lm = $limit != (int) $config->get('feed_limit') ? ('&amp;limit=' . $limit) : '';
 
-			if (JCommentsMultilingual::isEnabled()) {
-				$language = JCommentsMultilingual::getLanguage();
+			if (JCommentsFactory::getLanguageFilter()) {
+				$language = $app->getLanguage()->getTag();
 				$lp = '&amp;lang=' . $language;
 			} else {
 				$language = null;
@@ -140,8 +142,8 @@ class JCommentsRSS
 			$liveSite = trim(str_replace(JURI::root(true), '', str_replace('/administrator', '', JURI::root())), '/');
 			$syndicationURL = $liveSite . JRoute::_('index.php?option=com_jcomments&amp;task=rss&amp;object_id=' . $object_id . '&amp;object_group=' . $object_group . $lm . $lp . '&amp;format=raw');
 
-			$object_title = JCommentsObjectHelper::getTitle($object_id, $object_group, $language);
-			$object_link = JCommentsObjectHelper::getLink($object_id, $object_group, $language);
+			$object_title = JCommentsObject::getTitle($object_id, $object_group, $language);
+			$object_link = JCommentsObject::getLink($object_id, $object_group, $language);
 			$object_link = str_replace('amp;', '', JCommentsFactory::getAbsLink($object_link));
 
 			$rss = new JoomlaTuneFeed();
@@ -163,7 +165,7 @@ class JCommentsRSS
 
 			$rows = JCommentsModel::getCommentsList($options);
 
-			$word_maxlength = $config->getInt('word_maxlength');
+			$word_maxlength = (int) $config->get('word_maxlength');
 
 			foreach ($rows as $row) {
 				$comment = JCommentsText::cleanText($row->comment);
@@ -203,20 +205,20 @@ class JCommentsRSS
 
 	public static function showAllComments()
 	{
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 
 		if ($config->get('enable_rss') == '1') {
 
-			$app = JFactory::getApplication('site');
+			$app = JFactory::getApplication();
 			$acl = JCommentsFactory::getACL();
 			$object_group = JCommentsSecurity::clearObjectGroup($app->input->get('object_group', 'com_content'));
-			$limit = $app->input->getInt('limit', $config->getInt('feed_limit', 100));
+			$limit = $app->input->getInt('limit', (int) $config->get('feed_limit', 100));
 
 			$og = $object_group ? ('&amp;object_group=' . $object_group) : '';
-			$lm = $limit != $config->getInt('feed_limit') ? ('&amp;limit=' . $limit) : '';
+			$lm = $limit != (int) $config->get('feed_limit') ? ('&amp;limit=' . $limit) : '';
 
-			if (JCommentsMultilingual::isEnabled()) {
-				$language = JCommentsMultilingual::getLanguage();
+			if (JCommentsFactory::getLanguageFilter()) {
+				$language = $app->getLanguage()->getTag();
 				$lp = '&amp;lang=' . $language;
 			} else {
 				$language = null;
@@ -252,7 +254,7 @@ class JCommentsRSS
 
 			$rows = JCommentsModel::getCommentsList($options);
 
-			$word_maxlength = $config->getInt('word_maxlength');
+			$word_maxlength = (int) $config->get('word_maxlength');
 
 			foreach ($rows as $row) {
 				$comment = JCommentsText::cleanText($row->comment);
@@ -296,14 +298,14 @@ class JCommentsRSS
 
 	public static function showUserComments()
 	{
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 
 		if ($config->get('enable_rss') == '1') {
 
-			$app = JFactory::getApplication('site');
+			$app = JFactory::getApplication();
 			$acl = JCommentsFactory::getACL();
 			$userid = $app->input->getInt('userid', 0);
-			$limit = $app->input->getInt('limit', $config->getInt('feed_limit', 100));
+			$limit = $app->input->getInt('limit', (int) $config->get('feed_limit', 100));
 
 			$user = JFactory::getUser($userid);
 			if (!isset($user->id)) {
@@ -312,10 +314,10 @@ class JCommentsRSS
 				return;
 			}
 
-			$lm = $limit != $config->getInt('feed_limit') ? ('&amp;limit=' . $limit) : '';
+			$lm = $limit != (int) $config->get('feed_limit') ? ('&amp;limit=' . $limit) : '';
 
-			if (JCommentsMultilingual::isEnabled()) {
-				$language = JCommentsMultilingual::getLanguage();
+			if (JCommentsFactory::getLanguageFilter()) {
+				$language = $app->getLanguage()->getTag();
 				$lp = '&amp;lang=' . $language;
 			} else {
 				$language = null;
@@ -348,7 +350,7 @@ class JCommentsRSS
 
 			$rows = JCommentsModel::getCommentsList($options);
 
-			$word_maxlength = $config->getInt('word_maxlength');
+			$word_maxlength = (int) $config->get('word_maxlength');
 
 			foreach ($rows as $row) {
 				$comment = JCommentsText::cleanText($row->comment);
