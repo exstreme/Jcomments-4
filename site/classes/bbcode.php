@@ -2,23 +2,36 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Uri\Uri;
+
 /**
  * JComments BBCode
+ *
+ * @since  3.0
  */
 class JCommentsBBCode
 {
-	var $_codes = array();
+	/**
+	 * Array of bbcodes
+	 *
+	 * @var    array
+	 * @since  3.0
+	 */
+	protected $codes = array();
 
-	function __construct()
+	public function __construct()
 	{
 		ob_start();
 		$this->registerCode('b');
@@ -34,24 +47,26 @@ class JCommentsBBCode
 		ob_end_clean();
 	}
 
-	function registerCode($str)
+	public function registerCode($str)
 	{
-		$acl = JCommentsFactory::getACL();
-		$this->_codes[$str] = $acl->check('enable_bbcode_' . $str);
+		$this->codes[$str] = Factory::getApplication()->getIdentity()->authorise('comment.bbcode.' . $str, 'com_jcomments');
 	}
 
-	function getCodes()
+	public function getCodes()
 	{
-		return array_keys($this->_codes);
+		return array_keys($this->codes);
 	}
 
-	function enabled()
+	public function enabled()
 	{
 		static $enabled = null;
 
-		if ($enabled == null) {
-			foreach ($this->_codes as $code => $_enabled) {
-				if ($_enabled == 1 && $code != 'quote') {
+		if ($enabled == null)
+		{
+			foreach ($this->codes as $code => $_enabled)
+			{
+				if ($_enabled == 1 && $code != 'quote')
+				{
 					$enabled = $_enabled;
 					break;
 				}
@@ -61,131 +76,164 @@ class JCommentsBBCode
 		return $enabled;
 	}
 
-	function canUse($str)
+	public function canUse($str)
 	{
-		return $this->_codes[$str] ? 1 : 0;
+		return $this->codes[$str] ? 1 : 0;
 	}
 
-	function filter($str, $forceStrip = false)
+	public function filter($str, $forceStrip = false)
 	{
 		ob_start();
-		$patterns = array();
+		$patterns     = array();
 		$replacements = array();
 
-		// disabled BBCodes
-		$patterns[] = '/\[email\](.*?)\[\/email\]/iu';
+		// Disabled BBCodes
+		$patterns[]     = '/\[email\](.*?)\[\/email\]/iu';
 		$replacements[] = ' \\1';
-		$patterns[] = '/\[sup\](.*?)\[\/sup\]/iu';
+		$patterns[]     = '/\[sup\](.*?)\[\/sup\]/iu';
 		$replacements[] = ' \\1';
-		$patterns[] = '/\[sub\](.*?)\[\/sub\]/iu';
+		$patterns[]     = '/\[sub\](.*?)\[\/sub\]/iu';
 		$replacements[] = ' \\1';
 
-		//empty tags
-		foreach ($this->_codes as $code => $enabled) {
-			$patterns[] = '/\[' . $code . '\]\[\/' . $code . '\]/iu';
+		// Empty tags
+		foreach ($this->codes as $code => $enabled)
+		{
+			$patterns[]     = '/\[' . $code . '\]\[\/' . $code . '\]/iu';
 			$replacements[] = '';
 		}
+
 		// B
-		if (($this->canUse('b') == 0) || ($forceStrip)) {
-			$patterns[] = '/\[b\](.*?)\[\/b\]/iu';
+		if (($this->canUse('b') == 0) || ($forceStrip))
+		{
+			$patterns[]     = '/\[b\](.*?)\[\/b\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// I
-		if (($this->canUse('i') == 0) || ($forceStrip)) {
-			$patterns[] = '/\[i\](.*?)\[\/i\]/iu';
+		if (($this->canUse('i') == 0) || ($forceStrip))
+		{
+			$patterns[]     = '/\[i\](.*?)\[\/i\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// U
-		if (($this->canUse('u') == 0) || ($forceStrip)) {
-			$patterns[] = '/\[u\](.*?)\[\/u\]/iu';
+		if (($this->canUse('u') == 0) || ($forceStrip))
+		{
+			$patterns[]     = '/\[u\](.*?)\[\/u\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// S
-		if (($this->canUse('s') == 0) || ($forceStrip)) {
-			$patterns[] = '/\[s\](.*?)\[\/s\]/iu';
+		if (($this->canUse('s') == 0) || ($forceStrip))
+		{
+			$patterns[]     = '/\[s\](.*?)\[\/s\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// URL
-		if (($this->canUse('url') == 0) || ($forceStrip)) {
-			$patterns[] = '/\[url\](.*?)\[\/url\]/iu';
+		if (($this->canUse('url') == 0) || ($forceStrip))
+		{
+			$patterns[]     = '/\[url\](.*?)\[\/url\]/iu';
 			$replacements[] = '\\1';
-			$patterns[] = '/\[url=([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
+			$patterns[]     = '/\[url=([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
 			$replacements[] = '\\2: \\1';
 		}
 
 		// IMG
-		if (($this->canUse('img') == 0) || ($forceStrip)) {
-			$patterns[] = '/\[img\](.*?)\[\/img\]/iu';
+		if (($this->canUse('img') == 0) || ($forceStrip))
+		{
+			$patterns[]     = '/\[img\](.*?)\[\/img\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// HIDE
-		if (($this->canUse('hide') == 0) || ($forceStrip)) {
+		if (($this->canUse('hide') == 0) || ($forceStrip))
+		{
 			$patterns[] = '/\[hide\](.*?)\[\/hide\]/iu';
-			$user = JFactory::getUser();
-			if ($user->id) {
+
+			if (Factory::getApplication()->getIdentity()->get('id'))
+			{
 				$replacements[] = '\\1';
-			} else {
+			}
+			else
+			{
 				$replacements[] = '';
 			}
 		}
 
 		// CODE
-		if ($forceStrip) {
-			$codePattern = '#\[code\=?([a-z0-9]*?)\](.*?)\[\/code\]#ismu';
-			$patterns[] = $codePattern;
+		if ($forceStrip)
+		{
+			$codePattern    = '#\[code\=?([a-z0-9]*?)\](.*?)\[\/code\]#ismu';
+			$patterns[]     = $codePattern;
 			$replacements[] = '\\2';
 		}
 
 		$str = preg_replace($patterns, $replacements, $str);
 
 		// LIST
-		if (($this->canUse('list') == 0) || ($forceStrip)) {
-			$matches = array();
-			$matchCount = preg_match_all('/\[list\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]/isu',
-				$str, $matches);
-			for ($i = 0; $i < $matchCount; $i++) {
+		if (($this->canUse('list') == 0) || ($forceStrip))
+		{
+			$matches    = array();
+			$matchCount = preg_match_all('/\[list\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]/isu', $str, $matches);
+
+			for ($i = 0; $i < $matchCount; $i++)
+			{
 				$textBefore = preg_quote($matches[2][$i]);
-				$textAfter = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "<br />",
-					$matches[2][$i]);
-				$textAfter = preg_replace('#^<br />#isu', '', $textAfter);
-				$textAfter = preg_replace('#(<br\s?\/?\>)+#isu', '<br />', $textAfter);
-				$str = preg_replace('#\[list\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu',
-					"\n$textAfter\n", $str);
+				$textAfter  = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', '<br />', $matches[2][$i]);
+				$textAfter  = preg_replace('#^<br />#isu', '', $textAfter);
+				$textAfter  = preg_replace('#(<br\s?\/?\>)+#isu', '<br />', $textAfter);
+				$str        = preg_replace(
+					'#\[list\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu',
+					"\n$textAfter\n",
+					$str
+				);
 			}
-			$matches = array();
-			$matchCount = preg_match_all('#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]#isu',
-				$str, $matches);
-			for ($i = 0; $i < $matchCount; $i++) {
+
+			$matches    = array();
+			$matchCount = preg_match_all(
+				'#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]#isu',
+				$str,
+				$matches
+			);
+
+			for ($i = 0; $i < $matchCount; $i++)
+			{
 				$textBefore = preg_quote($matches[3][$i]);
-				$textAfter = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', '<br />',
-					$matches[3][$i]);
-				$textAfter = preg_replace('#^<br />#u', "", $textAfter);
-				$textAfter = preg_replace('#(<br\s?\/?\>)+#u', '<br />', $textAfter);
-				$str = preg_replace('#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu',
-					"\n$textAfter\n", $str);
+				$textAfter  = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', '<br />', $matches[3][$i]);
+				$textAfter  = preg_replace('#^<br />#u', "", $textAfter);
+				$textAfter  = preg_replace('#(<br\s?\/?\>)+#u', '<br />', $textAfter);
+				$str        = preg_replace(
+					'#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu',
+					"\n$textAfter\n",
+					$str
+				);
 			}
 		}
 
-		if ($forceStrip) {
+		if ($forceStrip)
+		{
 			// QUOTE
 			$quotePattern = '#\[quote\s?name=\"([^\"\'\<\>\(\)]+)+\"\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/quote\]#iu';
 			$quoteReplace = ' ';
-			while (preg_match($quotePattern, $str)) {
+
+			while (preg_match($quotePattern, $str))
+			{
 				$str = preg_replace($quotePattern, $quoteReplace, $str);
 			}
 			$quotePattern = '#\[quote[^\]]*?\](<br\s?\/?\>)*([^\[]+)(<br\s?\/?\>)*\[\/quote\]#iu';
 			$quoteReplace = ' ';
-			while (preg_match($quotePattern, $str)) {
+
+			while (preg_match($quotePattern, $str))
+			{
 				$str = preg_replace($quotePattern, $quoteReplace, $str);
 			}
 
-			$str = preg_replace('#\[\/?(b|strong|i|em|u|s|del|sup|sub|url|img|list|quote|code|hide)\]#isu',
-				'', $str);
+			$str = preg_replace(
+				'#\[\/?(b|strong|i|em|u|s|del|sup|sub|url|img|list|quote|code|hide)\]#isu',
+				'',
+				$str
+			);
 		}
 
 		$str = trim(preg_replace('#( ){2,}#iu', '\\1', $str));
@@ -195,123 +243,130 @@ class JCommentsBBCode
 		return $str;
 	}
 
-
-	function replace($str)
+	public function replace($str)
 	{
 		ob_start();
 
-		$config = JCommentsFactory::getConfig();
+		$config = ComponentHelper::getParams('com_jcomments');
 
-		$patterns = array();
+		$patterns     = array();
 		$replacements = array();
 
 		// B
-		$patterns[] = '/\[b\](.*?)\[\/b\]/iu';
+		$patterns[]     = '/\[b\](.*?)\[\/b\]/iu';
 		$replacements[] = '<strong>\\1</strong>';
 
 		// I
-		$patterns[] = '/\[i\](.*?)\[\/i\]/iu';
+		$patterns[]     = '/\[i\](.*?)\[\/i\]/iu';
 		$replacements[] = '<em>\\1</em>';
 
 		// U
-		$patterns[] = '/\[u\](.*?)\[\/u\]/iu';
+		$patterns[]     = '/\[u\](.*?)\[\/u\]/iu';
 		$replacements[] = '<u>\\1</u>';
 
 		// S
-		$patterns[] = '/\[s\](.*?)\[\/s\]/iu';
+		$patterns[]     = '/\[s\](.*?)\[\/s\]/iu';
 		$replacements[] = '<del>\\1</del>';
 
 		// SUP
-		$patterns[] = '/\[sup\](.*?)\[\/sup\]/iu';
+		$patterns[]     = '/\[sup\](.*?)\[\/sup\]/iu';
 		$replacements[] = '<sup>\\1</sup>';
 
 		// SUB
-		$patterns[] = '/\[sub\](.*?)\[\/sub\]/iu';
+		$patterns[]     = '/\[sub\](.*?)\[\/sub\]/iu';
 		$replacements[] = '<sub>\\1</sub>';
 
 		// URL (local)
-		$liveSite = JURI::base();
+		$liveSite = Uri::base();
 
-		$patterns[] = '#\[url\](' . preg_quote($liveSite, '#') . '[^\s<\"\']*?)\[\/url\]#iu';
+		$patterns[]     = '#\[url\](' . preg_quote($liveSite, '#') . '[^\s<\"\']*?)\[\/url\]#iu';
 		$replacements[] = '<a href="\\1" target="_blank">\\1</a>';
 
-		$patterns[] = '#\[url=(' . preg_quote($liveSite, '#') . '[^\s<\"\'\]]*?)\](.*?)\[\/url\]#iu';
+		$patterns[]     = '#\[url=(' . preg_quote($liveSite, '#') . '[^\s<\"\'\]]*?)\](.*?)\[\/url\]#iu';
 		$replacements[] = '<a href="\\1" target="_blank">\\2</a>';
 
-		$patterns[] = '/\[url=(\#|\/)([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
+		$patterns[]     = '/\[url=(\#|\/)([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
 		$replacements[] = '<a href="\\1\\2" target="_blank">\\3</a>';
 
-
 		// URL (external)
-		$patterns[] = '#\[url\](http:\/\/)?([^\s<\"\']*?)\[\/url\]#iu';
+		$patterns[]     = '#\[url\](http:\/\/)?([^\s<\"\']*?)\[\/url\]#iu';
 		$replacements[] = '<a href="http://\\2" rel="external nofollow" target="_blank">\\2</a>';
 
-		$patterns[] = '/\[url=([a-z]*\:\/\/)([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
+		$patterns[]     = '/\[url=([a-z]*\:\/\/)([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
 		$replacements[] = '<a href="\\1\\2" rel="external nofollow" target="_blank">\\3</a>';
 
-		$patterns[] = '/\[url=([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
+		$patterns[]     = '/\[url=([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
 		$replacements[] = '<a href="http://\\1" rel="external nofollow" target="_blank">\\2</a>';
 
-		$patterns[] = '#\[url\](.*?)\[\/url\]#iu';
+		$patterns[]     = '#\[url\](.*?)\[\/url\]#iu';
 		$replacements[] = '\\1';
 
 		// EMAIL
-		$patterns[] = '#\[email\]([^\s\<\>\(\)\"\'\[\]]*?)\[\/email\]#iu';
+		$patterns[]     = '#\[email\]([^\s\<\>\(\)\"\'\[\]]*?)\[\/email\]#iu';
 		$replacements[] = '\\1';
 
 		// IMG
-		$patterns[] = '#\[img\]([a-z]*\:\/\/)([^\s\<\>\(\)\"\']*?)\[\/img\]#iu';
-		$replacements[] = '<img class="img" src="\\1\\2" alt="" border="0" />';
+		$patterns[]     = '#\[img\]([a-z]*\:\/\/)([^\s\<\>\(\)\"\']*?)\[\/img\]#iu';
+		$replacements[] = '<img class="img" src="\\1\\2" alt="" style="border:none;" />';
 
-		$patterns[] = '#\[img\](.*?)\[\/img\]#iu';
+		$patterns[]     = '#\[img\](.*?)\[\/img\]#iu';
 		$replacements[] = '\\1';
 
 		// HIDE
 		$patterns[] = '/\[hide\](.*?)\[\/hide\]/iu';
-		$user = JFactory::getUser();
-		if ($user->id) {
+
+		if (Factory::getApplication()->getIdentity()->get('id'))
+		{
 			$replacements[] = '\\1';
-		} else {
-			$replacements[] = '<span class="hidden">' . JText::_('BBCODE_MESSAGE_HIDDEN_TEXT') . '</span>';
+		}
+		else
+		{
+			$replacements[] = '<span class="hidden">' . Text::_('BBCODE_MESSAGE_HIDDEN_TEXT') . '</span>';
 		}
 
+		// TODO Geshi removed in J3.
 		// CODE
-		$geshiEnabled = $config->getInt('enable_geshi', 0);
-		$codePattern = '#\[code\=?([a-z0-9]*?)\](.*?)\[\/code\]#ismu';
+		$geshiEnabled = (int) $config->get('enable_geshi', 0);
+		$codePattern  = '#\[code\=?([a-z0-9]*?)\](.*?)\[\/code\]#ismu';
 		$geshiLibrary = JPATH_SITE . '/plugins/content/geshi/geshi/geshi.php';
 
 		$geshiEnabled = $geshiEnabled && is_file($geshiLibrary);
 
-		if ($geshiEnabled) {
+		if ($geshiEnabled)
+		{
 			require_once($geshiLibrary);
 
-			if (!function_exists('jcommentsProcessGeSHi')) {
+			if (!function_exists('jcommentsProcessGeSHi'))
+			{
 				function jcommentsProcessGeSHi($matches)
 				{
-					$lang = $matches[1] != '' ? $matches[1] : 'php';
-					$text = $matches[2];
-					$html_entities_match = array('#\<br \/\>#', "#<#", "#>#", "|&#39;|", '#&quot;#', '#&nbsp;#');
+					$lang                  = $matches[1] != '' ? $matches[1] : 'php';
+					$text                  = $matches[2];
+					$html_entities_match   = array('#\<br \/\>#', "#<#", "#>#", "|&#39;|", '#&quot;#', '#&nbsp;#');
 					$html_entities_replace = array("\n", '&lt;', '&gt;', "'", '"', ' ');
-					$text = preg_replace($html_entities_match, $html_entities_replace, $text);
-					$text = preg_replace('#(\r|\n)*?$#ism', '', $text);
-					$text = str_replace('&lt;', '<', $text);
-					$text = str_replace('&gt;', '>', $text);
+					$text                  = preg_replace($html_entities_match, $html_entities_replace, $text);
+					$text                  = preg_replace('#(\r|\n)*?$#ism', '', $text);
+					$text                  = str_replace('&lt;', '<', $text);
+					$text                  = str_replace('&gt;', '>', $text);
 
 					$geshi = new GeSHi($text, $lang);
-					$text = $geshi->parse_code();
+					$text  = $geshi->parse_code();
 
 					return '[code]' . $text . '[/code]';
 				}
 			}
 
-			$patterns[] = $codePattern;
-			$replacements[] = '<span class="code">' . JText::_('COMMENT_TEXT_CODE') . '</span>\\2';
-			$str = preg_replace_callback($codePattern, 'jcommentsProcessGeSHi', $str);
-		} else {
-			$patterns[] = $codePattern;
-			$replacements[] = '<span class="code">' . JText::_('COMMENT_TEXT_CODE') . '</span><code>\\2</code>';
+			$patterns[]     = $codePattern;
+			$replacements[] = '<span class="code">' . Text::_('COMMENT_TEXT_CODE') . '</span>\\2';
+			$str            = preg_replace_callback($codePattern, 'jcommentsProcessGeSHi', $str);
+		}
+		else
+		{
+			$patterns[]     = $codePattern;
+			$replacements[] = '<span class="code">' . Text::_('COMMENT_TEXT_CODE') . '</span><code>\\2</code>';
 
-			if (!function_exists('jcommentsProcessCode')) {
+			if (!function_exists('jcommentsProcessCode'))
+			{
 				function jcommentsProcessCode($matches)
 				{
 					$text = htmlspecialchars(trim($matches[0]));
@@ -321,6 +376,7 @@ class JCommentsBBCode
 					return $text;
 				}
 			}
+
 			$str = preg_replace_callback($codePattern, 'jcommentsProcessCode', $str);
 		}
 
@@ -328,37 +384,48 @@ class JCommentsBBCode
 
 		// QUOTE
 		$quotePattern = '#\[quote\s?name=\"([^\"\<\>\(\)]*?)\"\](<br\s?\/?\>)*?(.*?)(<br\s?\/?\>)*\[\/quote\](<br\s?\/?\>)*?#ismu';
-		$quoteReplace = '<span class="quote">' . JText::sprintf('COMMENT_TEXT_QUOTE_EXTENDED', '\\1') . '</span><blockquote><div>\\3</div></blockquote>';
+		$quoteReplace = '<span class="quote">' . Text::sprintf('COMMENT_TEXT_QUOTE_EXTENDED', '\\1') . '</span><blockquote><div>\\3</div></blockquote>';
 
-		while (preg_match($quotePattern, $str)) {
+		while (preg_match($quotePattern, $str))
+		{
 			$str = preg_replace($quotePattern, $quoteReplace, $str);
 		}
 
 		$quotePattern = '#\[quote[^\]]*?\](<br\s?\/?\>)*([^\[]+)(<br\s?\/?\>)*\[\/quote\](<br\s?\/?\>)*?#ismUu';
-		$quoteReplace = '<span class="quote">' . JText::_('COMMENT_TEXT_QUOTE') . '</span><blockquote><div>\\2</div></blockquote>';
-		while (preg_match($quotePattern, $str)) {
+		$quoteReplace = '<span class="quote">' . Text::_('COMMENT_TEXT_QUOTE') . '</span><blockquote><div>\\2</div></blockquote>';
+
+		while (preg_match($quotePattern, $str))
+		{
 			$str = preg_replace($quotePattern, $quoteReplace, $str);
 		}
 
 		// LIST
-		$matches = array();
+		$matches    = array();
 		$matchCount = preg_match_all('#\[list\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]#iu', $str, $matches);
-		for ($i = 0; $i < $matchCount; $i++) {
+
+		for ($i = 0; $i < $matchCount; $i++)
+		{
 			$textBefore = preg_quote($matches[2][$i]);
-			$textAfter = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "</li><li>", $matches[2][$i]);
-			$textAfter = preg_replace('#^</?li>#u', '', $textAfter);
-			$textAfter = str_replace("\n</li>", "</li>", $textAfter . "</li>");
-			$str = preg_replace('#\[list\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu', "<ul>$textAfter</ul>", $str);
+			$textAfter  = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "</li><li>", $matches[2][$i]);
+			$textAfter  = preg_replace('#^</?li>#u', '', $textAfter);
+			$textAfter  = str_replace("\n</li>", "</li>", $textAfter . "</li>");
+			$str        = preg_replace('#\[list\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu', "<ul>$textAfter</ul>", $str);
 		}
 
-		$matches = array();
+		$matches    = array();
 		$matchCount = preg_match_all('#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]#isu', $str, $matches);
-		for ($i = 0; $i < $matchCount; $i++) {
+
+		for ($i = 0; $i < $matchCount; $i++)
+		{
 			$textBefore = preg_quote($matches[3][$i]);
-			$textAfter = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "</li><li>", $matches[3][$i]);
-			$textAfter = preg_replace('#^</?li>#u', '', $textAfter);
-			$textAfter = str_replace("\n</li>", "</li>", $textAfter . "</li>");
-			$str = preg_replace('#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu', "<ol type=\\1>$textAfter</ol>", $str);
+			$textAfter  = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "</li><li>", $matches[3][$i]);
+			$textAfter  = preg_replace('#^</?li>#u', '', $textAfter);
+			$textAfter  = str_replace("\n</li>", "</li>", $textAfter . "</li>");
+			$str        = preg_replace(
+				'#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu',
+				"<ol type=\\1>$textAfter</ol>",
+				$str
+			);
 		}
 
 		$str = preg_replace('#\[\/?(b|i|u|s|sup|sub|url|img|list|quote|code|hide)\]#iu', '', $str);
@@ -367,19 +434,17 @@ class JCommentsBBCode
 		return $str;
 	}
 
-	function removeQuotes($text)
+	public function removeQuotes($text)
 	{
 		$text = preg_replace(array('#\n?\[quote.*?\].+?\[\/quote\]\n?#isu', '#\[\/quote\]#isu'), '', $text);
-		$text = preg_replace('#<br />+#is', '', $text);
 
-		return $text;
+		return preg_replace('#<br />+#is', '', $text);
 	}
 
-	function removeHidden($text)
+	public function removeHidden($text)
 	{
 		$text = preg_replace('#\[hide\](.*?)\[\/hide\]#isu', '', $text);
-		$text = preg_replace('#<br />+#is', '', $text);
 
-		return $text;
+		return preg_replace('#<br />+#is', '', $text);
 	}
 }
