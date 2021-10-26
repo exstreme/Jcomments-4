@@ -1,163 +1,131 @@
 <?php
 /**
  * JComments - Joomla Comment System
- *
- * @version       4.0
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * 
+ * @version 4.0
+ * @package JComments
+ * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Cache\Cache;
-use Joomla\CMS\Cache\CacheControllerFactoryInterface;
-use Joomla\CMS\Cache\Controller\CallbackController;
-use Joomla\CMS\Factory;
-
-require_once JPATH_ROOT . '/components/com_jcomments/models/object.php';
-require_once JPATH_ROOT . '/components/com_jcomments/classes/objectinfo.php';
+require_once (JCOMMENTS_MODELS.'/object.php');
+require_once (JCOMMENTS_CLASSES.'/objectinfo.php');
 
 /**
  * JComments objects frontend helper
- *
- * @since  3.0
  */
-class JCommentsObject
+class JCommentsObjectHelper
 {
 	/**
 	 * Returns title for given object
 	 *
-	 * @param   integer  $objectID     Object ID.
-	 * @param   string   $objectGroup  Object group, e.g. com_content
-	 * @param   string   $language     Language tag
-	 *
-	 * @return  string
-	 *
-	 * @since   3.0
+	 * @param int $object_id
+	 * @param string $object_group
+	 * @param string $language 
+	 * @return string
 	 */
-	public static function getTitle($objectID, $objectGroup = 'com_content', $language = null)
+	public static function getTitle( $object_id, $object_group = 'com_content', $language = null )
 	{
-		$info = self::getObjectInfo($objectID, $objectGroup, $language);
-
+		$info = self::getObjectInfo($object_id, $object_group, $language);
 		return $info->title;
 	}
-
+	
 	/**
 	 * Returns URI for given object
 	 *
-	 * @param   integer  $objectID     Object ID.
-	 * @param   string   $objectGroup  Object group, e.g. com_content
-	 * @param   string   $language     Language tag
-	 *
-	 * @return  string
-	 *
-	 * @since   3.0
+	 * @param int $object_id
+	 * @param string $object_group
+	 * @param string $language
+	 * @return string
 	 */
-	public static function getLink($objectID, $objectGroup = 'com_content', $language = null)
+	public static function getLink( $object_id, $object_group = 'com_content', $language = null )
 	{
-		$info = self::getObjectInfo($objectID, $objectGroup, $language);
-
+		$info = self::getObjectInfo($object_id, $object_group, $language);
 		return $info->link;
 	}
 
 	/**
 	 * Returns identifier of user who is owner of an object
 	 *
-	 * @param   integer  $objectID     Object ID.
-	 * @param   string   $objectGroup  Object group, e.g. com_content
-	 * @param   string   $language     Language tag
-	 *
-	 * @return  integer
-	 *
-	 * @since   3.0
+	 * @param int $object_id
+	 * @param string $object_group
+	 * @param string $language
+	 * @return string
 	 */
-	public static function getOwner($objectID, $objectGroup = 'com_content', $language = null)
+	public static function getOwner( $object_id, $object_group = 'com_content', $language = null )
 	{
-		$info = self::getObjectInfo($objectID, $objectGroup, $language);
-
+		$info = self::getObjectInfo($object_id, $object_group, $language);
 		return $info->userid;
 	}
 
 	protected static function _call($class, $methodName, $args = array())
 	{
-		if (!is_callable(array($class, $methodName)))
-		{
+		if (!is_callable(array($class, $methodName))) {
 			$class = new JCommentsPlugin;
 		}
 
 		return call_user_func_array(array($class, $methodName), $args);
 	}
 
-	protected static function _loadObjectInfo($objectID, $objectGroup = 'com_content', $language = null)
+	protected static function _loadObjectInfo($object_id, $object_group = 'com_content', $language = null)
 	{
 		static $plugins = array();
-		$objectGroup = JCommentsSecurity::clearObjectGroup($objectGroup);
+		$object_group = JCommentsSecurity::clearObjectGroup($object_group);
 
-		// Get object information via plugins
-		if (!isset($plugins[$objectGroup]))
-		{
+		// get object information via plugins
+		if (!isset($plugins[$object_group])) {
 			ob_start();
-			include_once JPATH_ROOT . '/components/com_jcomments/plugins/' . $objectGroup . '.plugin.php';
+			include_once (JCOMMENTS_SITE.'/plugins/'.$object_group.'.plugin.php');
 			ob_end_clean();
 
-			$className = 'jc_' . $objectGroup;
+			$className = 'jc_' . $object_group;
 
-			if (class_exists($className))
-			{
-				$plugins[$objectGroup] = $className;
-			}
-			else
-			{
-				$plugins[$objectGroup] = 'JCommentsPlugin';
+			if (class_exists($className)) {
+				$plugins[$object_group] = $className;
+			} else {
+				$plugins[$object_group] = 'JCommentsPlugin';
 			}
 		}
 
-		$className = $plugins[$objectGroup];
-		$class     = new $className;
+		$className = $plugins[$object_group];
+		$class = new $className;
 
-		if (is_callable(array($class, 'getObjectInfo')))
-		{
-			// Retrieve object information via getObjectInfo plugin's method
-			$info = self::_call($class, 'getObjectInfo', array($objectID, $language));
-		}
-		else
-		{
-			// Retrieve object information via separate plugin's methods (old plugins)
-			$info = new JCommentsObjectInfo;
+		if (is_callable(array($class, 'getObjectInfo'))) {
+			// retrieve object information via getObjectInfo plugin's method
+			$info = self::_call($class, 'getObjectInfo', array($object_id, $language));
+		} else {
+			// retrieve object information via separate plugin's methods (old plugins)
+			$info = new JCommentsObjectInfo();
 
-			$info->title  = self::_call($class, 'getObjectTitle', array($objectID, $language));
-			$info->link   = self::_call($class, 'getObjectLink', array($objectID, $language));
-			$info->userid = self::_call($class, 'getObjectOwner', array($objectID, $language));
+			$info->title = self::_call($class, 'getObjectTitle', array($object_id, $language));
+			$info->link = self::_call($class, 'getObjectLink', array($object_id, $language));
+			$info->userid = self::_call($class, 'getObjectOwner', array($object_id, $language));
 		}
 
-		$info->lang         = $language;
-		$info->object_id    = $objectID;
-		$info->object_group = $objectGroup;
+		$info->lang = $language;
+		$info->object_id = $object_id;
+		$info->object_group = $object_group;
 
 		return $info;
 	}
 
-	public static function fetchObjectInfo($objectID, $objectGroup = 'com_content', $language = null)
+	public static function fetchObjectInfo($object_id, $object_group = 'com_content', $language = null)
 	{
-		$object = JCommentsModelObject::getObjectInfo($objectID, $objectGroup, $language);
+		$object = JCommentsModelObject::getObjectInfo($object_id, $object_group, $language);
 
-		if ($object !== false)
-		{
-			// Use object information stored in database
+		if ($object !== false) {
+			// use object information stored in database
 			$info = new JCommentsObjectInfo($object);
-		}
-		else
-		{
-			// Get object information via plugins
-			$info = self::_loadObjectInfo($objectID, $objectGroup, $language);
-
-			if (!JCommentsModelObject::isEmpty($info))
-			{
-				if (!Factory::getApplication()->isClient('administrator'))
-				{
-					// Insert object information
+		} else {
+			// get object information via plugins
+			$info = self::_loadObjectInfo($object_id, $object_group, $language);
+			if (!JCommentsModelObject::IsEmpty($info)) {
+				$app = JFactory::getApplication();
+				if (!JCommentsSystemPluginHelper::isAdmin($app)) {
+					// insert object information
 					JCommentsModelObject::setObjectInfo(0, $info);
 				}
 			}
@@ -169,102 +137,78 @@ class JCommentsObject
 	/**
 	 * Returns object information
 	 *
-	 * @param   integer  $objectID     Object ID.
-	 * @param   string   $objectGroup  Object group, e.g. com_content
-	 * @param   string   $language     Language tag
-	 * @param   boolean  $useCache     Use cache
-	 *
-	 * @return  JCommentsObjectInfo
-	 *
-	 * @since   3.0
+	 * @param int $object_id
+	 * @param string $object_group
+	 * @param string $language 
+	 * @param boolean $useCache
+	 * @return	JCommentsObjectInfo
 	 */
-	public static function getObjectInfo($objectID, $objectGroup = 'com_content', $language = null, $useCache = true)
+	public static function getObjectInfo($object_id, $object_group = 'com_content', $language = null, $useCache = true)
 	{
 		static $info = array();
 
-		if (empty($language))
-		{
-			$language = Factory::getApplication()->getLanguage()->getTag();
+		if (empty($language)) {
+			$language = JCommentsMultilingual::getLanguage();
 		}
 
-		$key = md5($objectGroup . '_' . $objectID . '_' . ($language ?: ''));
+		$key = md5($object_group.'_'.$object_id.'_'.($language ? $language : ''));
 
-		if (!isset($info[$key]))
-		{
-			if ($useCache)
-			{
-				/** @var CallbackController $cache */
-				$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-					->createCacheController('callback', ['defaultgroup' => 'com_jcomments_objects_' . strtolower($objectGroup)]);
-				$info[$key] = $cache->get(array('JCommentsObject', 'fetchObjectInfo'), array($objectID, $objectGroup, $language));
-			}
-			else
-			{
-				$info[$key] = self::fetchObjectInfo($objectID, $objectGroup, $language);
+		if (!isset($info[$key])) {
+			if ($useCache) {
+				$cache = JFactory::getCache('com_jcomments_objects_'.strtolower($object_group), 'callback');
+				$info[$key] = $cache->get(array('JCommentsObjectHelper', 'fetchObjectInfo'), array($object_id, $object_group, $language));
+			} else {
+				$info[$key] = self::fetchObjectInfo($object_id, $object_group, $language);
 			}
 		}
-
 		return $info[$key];
 	}
 
 	/**
 	 * Stores object information (inserts new or updates existing)
 	 *
-	 * @param   integer  $objectID     Object ID.
-	 * @param   string   $objectGroup  Object group, e.g. com_content
-	 * @param   string   $language     Language tag
-	 * @param   boolean  $cleanCache
-	 * @param   boolean  $allowEmpty
-	 *
-	 * @return  JCommentsObjectInfo
-	 *
-	 * @since   3.0
+	 * @param int $object_id
+	 * @param string $object_group
+	 * @param string $language 
+	 * @param boolean $cleanCache
+	 * @param boolean $allowEmpty
+	 * @return JCommentsObjectInfo
 	 */
-	public static function storeObjectInfo($objectID, $objectGroup = 'com_content', $language = null, $cleanCache = false, $allowEmpty = false)
+	public static function storeObjectInfo($object_id, $object_group = 'com_content', $language = null, $cleanCache = false, $allowEmpty = false)
 	{
-		$app = Factory::getApplication();
-
-		if (empty($language))
-		{
-			$language = $app->getLanguage()->getTag();
+		if (empty($language)) {
+			$language = JCommentsMultilingual::getLanguage();
 		}
 
-		// Try to load object information from database
-		$object   = JCommentsModelObject::getObjectInfo($objectID, $objectGroup, $language);
+		$app = JFactory::getApplication();
+
+		// try to load object information from database
+		$object = JCommentsModelObject::getObjectInfo($object_id, $object_group, $language);
 		$objectId = $object === false ? 0 : $object->id;
 
-		if ($objectId == 0 && $app->isClient('administrator'))
-		{
-			// Return empty object because we can not create link in backend
-			return new JCommentsObjectInfo;
+		if ($objectId == 0 && JCommentsSystemPluginHelper::isAdmin($app)) {
+			// return empty object because we can not create link in backend
+			return new JCommentsObjectInfo();
 		}
 
-		// Get object information via plugins
-		$info = self::_loadObjectInfo($objectID, $objectGroup, $language);
+		// get object information via plugins
+		$info = self::_loadObjectInfo($object_id, $object_group, $language);
 
-		if (!JCommentsModelObject::isEmpty($info) || $allowEmpty)
-		{
-			if ($app->isClient('administrator'))
-			{
-				// We do not have to update object's link from backend
+		if (!JCommentsModelObject::IsEmpty($info) || $allowEmpty) {
+			if (JCommentsSystemPluginHelper::isAdmin($app)){
+				// we do not have to update object's link from backend
 				$info->link = null;
 			}
 
-			// Insert/update object information
+			// insert/update object information
 			JCommentsModelObject::setObjectInfo($objectId, $info);
 
-			if ($cleanCache)
-			{
-				// Clean cache for given object group
-				/** @var CallbackController $cache */
-				$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-					->createCacheController('callback', ['defaultgroup' => 'com_jcomments_objects_' . strtolower($objectGroup)]);
-
-				/** @var Cache $cache */
+			if ($cleanCache) {
+				// clean cache for given object group
+				$cache = JFactory::getCache('com_jcomments_objects_'.strtolower($object_group));
 				$cache->clean();
 			}
 		}
-
 		return $info;
 	}
 }

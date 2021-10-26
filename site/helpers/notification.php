@@ -2,72 +2,50 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version       4.0
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version 4.0
+ * @package JComments
+ * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
+
+use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Log\Log;
-use Joomla\CMS\Router\Route;
-use Joomla\CMS\Table\Table;
-use Joomla\CMS\Uri\Uri;
-use Joomla\Database\DatabaseDriver;
-
 /**
  * JComments Notification Helper
- *
- * @since  3.0
  */
-class JCommentsNotification
+class JCommentsNotificationHelper
 {
 	/**
 	 * Pushes the email notification to the mail queue
 	 *
-	 * @param   array   $data  An associative array of notification data
-	 * @param   string  $type  Type of notification
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0
+	 * @param array $data An associative array of notification data
+	 * @param string $type Type of notification
 	 */
 	public static function push($data, $type = 'comment-new')
 	{
-		if (isset($data['comment']))
-		{
-			$subscribers = self::getSubscribers(
-				$data['comment']->object_id,
-				$data['comment']->object_group,
-				$data['comment']->lang,
-				$type
-			);
+		if (isset($data['comment'])) {
+			$subscribers = self::getSubscribers($data['comment']->object_id, $data['comment']->object_group,
+				$data['comment']->lang, $type);
 
-			if (count($subscribers))
-			{
-				Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
+			if (count($subscribers)) {
+				JTable::addIncludePath(JCOMMENTS_TABLES);
 
-				$email = Factory::getApplication()->getIdentity()->get('email');
+				$user = JFactory::getUser();
 				$data = self::prepareData($data, $type);
 
-				foreach ($subscribers as $subscriber)
-				{
-					if (($data['comment']->email <> $subscriber->email) && ($email <> $subscriber->email))
-					{
-						if ($data['comment']->userid == 0 || $data['comment']->userid <> $subscriber->userid)
-						{
-							$table           = Table::getInstance('Mailqueue', 'JCommentsTable');
-							$table->name     = $subscriber->name;
-							$table->email    = $subscriber->email;
-							$table->subject  = self::getMessageSubject($data);
-							$table->body     = self::getMessageBody($data, $subscriber);
+				foreach ($subscribers as $subscriber) {
+					if (($data['comment']->email <> $subscriber->email) && ($user->email <> $subscriber->email)) {
+						if ($data['comment']->userid == 0 || $data['comment']->userid <> $subscriber->userid) {
+							$table = JTable::getInstance('Mailq', 'JCommentsTable');
+							$table->name = $subscriber->name;
+							$table->email = $subscriber->email;
+							$table->subject = self::getMessageSubject($data);
+							$table->body = self::getMessageBody($data, $subscriber);
 							$table->priority = self::getMessagePriority($type);
-							$table->created  = Factory::getDate()->toSql();
+							$table->created = JFactory::getDate()->toSql();
 							$table->store();
 						}
 					}
@@ -81,54 +59,40 @@ class JCommentsNotification
 	/**
 	 * Sends notifications from the mail queue to recipients
 	 *
-	 * @param   integer  $limit  The number of messages to be sent
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0
+	 * @param int $limit The number of messages to be sent
 	 */
 	public static function send($limit = 10)
 	{
-		$app         = Factory::getApplication();
-		$senderEmail = $app->get('mailfrom');
-		$senderName  = $app->get('fromname');
+		$app = JFactory::getApplication('site');
 
-		if (!empty($senderEmail) && !empty($senderName))
-		{
-			/** @var DatabaseDriver $db */
+		$senderEmail = $app->getCfg('mailfrom');
+		$senderName = $app->getCfg('fromname');
+
+		if (!empty($senderEmail) && !empty($senderName)) {
 			$db = Factory::getContainer()->get('DatabaseDriver');
 
-			$query = $db->getQuery(true)
-				->select($db->quoteName('id'))
-				->from($db->quoteName('#__jcomments_mailq'))
-				->order($db->quoteName('priority') . ' DESC');
-
+			$query = $db->getQuery(true);
+			$query->select($db->quoteName('id'));
+			$query->from($db->quoteName('#__jcomments_mailq'));
+			$query->order($db->quoteName('priority') . ' desc');
 			$db->setQuery($query, 0, $limit);
+
 			$items = $db->loadObjectList('id');
 
-			if (!empty($items))
-			{
-				Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
+			if (!empty($items)) {
+				JTable::addIncludePath(JCOMMENTS_TABLES);
 
 				self::lock(array_keys($items));
 
-				foreach ($items as $item)
-				{
-					$table = Table::getInstance('Mailqueue', 'JCommentsTable');
-
-					if ($table->load($item->id))
-					{
-						if (empty($table->session_id) || $table->session_id == $app->getSession()->getId())
-						{
+				foreach ($items as $item) {
+					$table = JTable::getInstance('Mailq', 'JCommentsTable');
+					if ($table->load($item->id)) {
+						if (empty($table->session_id) || $table->session_id == self::getSessionId()) {
 							$result = self::sendMail($senderEmail, $senderName, $table->email, $table->subject, $table->body);
-
-							if ($result)
-							{
+							if ($result) {
 								$table->delete();
-							}
-							else
-							{
-								$table->attempts   = $table->attempts + 1;
+							} else {
+								$table->attempts = $table->attempts + 1;
 								$table->session_id = null;
 								$table->store();
 							}
@@ -141,19 +105,13 @@ class JCommentsNotification
 
 	/**
 	 * Purges all notifications from the mail queue
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0
 	 */
 	public static function purge()
 	{
-		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$query = $db->getQuery(true)
-			->delete($db->quoteName('#__jcomments_mailq'));
-
+		$query = $db->getQuery(true);
+		$query->delete($db->quoteName('#__jcomments_mailq'));
 		$db->setQuery($query);
 		$db->execute();
 	}
@@ -161,27 +119,18 @@ class JCommentsNotification
 	/**
 	 * Set lock to mail queue items by current session
 	 *
-	 * @param   array  $keys  Array of IDs
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0
+	 * @param array $keys Array of IDs
 	 */
 	private static function lock($keys)
 	{
-		if (is_array($keys))
-		{
-			$app = Factory::getApplication();
-
-			/** @var DatabaseDriver $db */
+		if (is_array($keys)) {
 			$db = Factory::getContainer()->get('DatabaseDriver');
 
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__jcomments_mailq'))
-				->set($db->quoteName('session_id') . ' = ' . $db->Quote($app->getSession()->getId()))
-				->where($db->quoteName('session_id') . ' IS NULL')
-				->where($db->quoteName('id') . ' IN (' . implode(',', $keys) . ')');
-
+			$query = $db->getQuery(true);
+			$query->update($db->quoteName('#__jcomments_mailq'));
+			$query->set($db->quoteName('session_id') . ' = ' . $db->Quote(self::getSessionId()));
+			$query->where($db->quoteName('session_id') . ' IS NULL');
+			$query->where($db->quoteName('id') . ' IN (' . implode(',', $keys) . ')');
 			$db->setQuery($query);
 			$db->execute();
 		}
@@ -190,31 +139,27 @@ class JCommentsNotification
 	/**
 	 * Prepares data for notification
 	 *
-	 * @param   array   $data  An associative array of notification data
-	 * @param   string  $type  Type of notification
+	 * @param array $data An associative array of notification data
+	 * @param string $type Type of notification
 	 *
-	 * @return  array
-	 *
-	 * @since   3.0
+	 * @return mixed
 	 */
 	private static function prepareData($data, $type)
 	{
-		require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
 
-		$object = JCommentsObject::getObjectInfo($data['comment']->object_id, $data['comment']->object_group, $data['comment']->lang);
-		$config = ComponentHelper::getParams('com_jcomments');
+		$object = JCommentsObjectHelper::getObjectInfo($data['comment']->object_id, $data['comment']->object_group, $data['comment']->lang);
 
 		$data['notification-type'] = $type;
-		$data['object_title']      = $object->title;
-		$data['object_link']       = JCommentsFactory::getAbsLink($object->link);
+		$data['object_title'] = $object->title;
+		$data['object_link'] = JCommentsFactory::getAbsLink($object->link);
 
-		$data['comment']->author  = JComments::getCommentAuthorName($data['comment']);
-		$data['comment']->title   = JCommentsText::censor($data['comment']->title);
+		$data['comment']->author = JComments::getCommentAuthorName($data['comment']);
+		$data['comment']->title = JCommentsText::censor($data['comment']->title);
 		$data['comment']->comment = JCommentsText::censor($data['comment']->comment);
 		$data['comment']->comment = JCommentsFactory::getBBCode()->replace($data['comment']->comment);
 
-		if ($config->get('enable_custom_bbcode'))
-		{
+		if (JCommentsFactory::getConfig()->getInt('enable_custom_bbcode')) {
 			$data['comment']->comment = JCommentsFactory::getCustomBBCode()->replace($data['comment']->comment, true);
 		}
 
@@ -226,16 +171,13 @@ class JCommentsNotification
 	/**
 	 * Returns priority of the message
 	 *
-	 * @param   string  $type  Type of notification
+	 * @param string $type Type of notification
 	 *
-	 * @return  integer
-	 *
-	 * @since   3.0
+	 * @return int
 	 */
 	private static function getMessagePriority($type)
 	{
-		switch ($type)
-		{
+		switch ($type) {
 			case 'moderate-new':
 			case 'moderate-update':
 				$priority = 10;
@@ -259,30 +201,27 @@ class JCommentsNotification
 	/**
 	 * Returns message subject
 	 *
-	 * @param   array  $data  An associative array of notification data
+	 * @param array $data An associative array of notification data
 	 *
-	 * @return  string
-	 *
-	 * @since   3.0
+	 * @return string
 	 */
 	private static function getMessageSubject($data)
 	{
-		switch ($data['notification-type'])
-		{
+		switch ($data['notification-type']) {
 			case 'report':
-				$subject = Text::sprintf('REPORT_NOTIFICATION_SUBJECT', $data['comment']->author);
+				$subject = JText::sprintf('REPORT_NOTIFICATION_SUBJECT', $data['comment']->author);
 				break;
 
 			case 'comment-new':
 			case 'moderate-new':
-				$subject = Text::sprintf('NOTIFICATION_SUBJECT_NEW', $data['object_title']);
+				$subject = JText::sprintf('NOTIFICATION_SUBJECT_NEW', $data['object_title']);
 				break;
 
 			case 'comment-reply':
 			case 'comment-update':
 			case 'moderate-update':
 			default:
-				$subject = Text::sprintf('NOTIFICATION_SUBJECT_UPDATED', $data['object_title']);
+				$subject = JText::sprintf('NOTIFICATION_SUBJECT_UPDATED', $data['object_title']);
 				break;
 		}
 
@@ -292,17 +231,14 @@ class JCommentsNotification
 	/**
 	 * Returns message body
 	 *
-	 * @param   array   $data        An associative array of notification data
-	 * @param   object  $subscriber  An object with information about subscriber
+	 * @param array $data An associative array of notification data
+	 * @param object $subscriber An object with information about subscriber
 	 *
-	 * @return  string
-	 *
-	 * @since   3.0
+	 * @return string
 	 */
 	private static function getMessageBody($data, $subscriber)
 	{
-		switch ($data['notification-type'])
-		{
+		switch ($data['notification-type']) {
 			case 'moderate-new':
 			case 'moderate-update':
 				$templateName = 'tpl_email_administrator';
@@ -322,18 +258,13 @@ class JCommentsNotification
 
 		$tmpl = JCommentsFactory::getTemplate($data['comment']->object_id, $data['comment']->object_group);
 
-		if ($tmpl->load($templateName))
-		{
-			$config = ComponentHelper::getParams('com_jcomments');
+		if ($tmpl->load($templateName)) {
+			$config = JCommentsFactory::getConfig();
 
-			foreach ($data as $key => $value)
-			{
-				if (is_scalar($value))
-				{
+			foreach ($data as $key => $value) {
+				if (is_scalar($value)) {
 					$tmpl->addVar($templateName, $key, $value);
-				}
-				else
-				{
+				} else {
 					$tmpl->addObject($templateName, $key, $value);
 				}
 			}
@@ -345,13 +276,12 @@ class JCommentsNotification
 			if ($data['notification-type'] == 'report'
 				|| $data['notification-type'] == 'moderate-new'
 				|| $data['notification-type'] == 'moderate-update'
-			)
-			{
-				$tmpl->addVar($templateName, 'quick-moderation', (int) $config->get('enable_quick_moderation'));
-				$tmpl->addVar($templateName, 'enable-blacklist', (int) $config->get('enable_blacklist'));
+			) {
+				$tmpl->addVar($templateName, 'quick-moderation', $config->getInt('enable_quick_moderation'));
+				$tmpl->addVar($templateName, 'enable-blacklist', $config->getInt('enable_blacklist'));
 			}
 
-			// Backward compatibility only
+			// backward compatibility only
 			$tmpl->addVar($templateName, 'hash', $subscriber->hash);
 			$tmpl->addVar($templateName, 'comment-isnew', ($data['notification-type'] == 'new') ? 1 : 0);
 
@@ -364,25 +294,19 @@ class JCommentsNotification
 	/**
 	 * Returns link for canceling the user's subscription for notifications about new comments
 	 *
-	 * @param   string  $hash  Unique subscriber's hash value
+	 * @param string $hash Unique subscriber's hash value
 	 *
-	 * @return  string
-	 *
-	 * @since   3.0
+	 * @return string
 	 */
 	public static function getUnsubscribeLink($hash)
 	{
-		$link = 'index.php?option=com_jcomments&task=unsubscribe&hash=' . $hash . '&format=raw';
-		$app  = Factory::getApplication();
-
-		if ($app->isClient('administrator'))
-		{
-			$link = trim(str_replace('/administrator', '', Uri::root()), '/') . '/' . $link;
-		}
-		else
-		{
-			$liveSite = trim(str_replace(Uri::root(true), '', str_replace('/administrator', '', Uri::root())), '/');
-			$link     = $liveSite . Route::_($link);
+		$link = 'index.php?option=com_jcomments&amp;task=unsubscribe&amp;hash=' . $hash . '&amp;format=raw';
+		$app = JFactory::getApplication();
+		if (JCommentsSystemPluginHelper::isAdmin($app)) {
+			$link = trim(str_replace('/administrator', '', JURI::root()), '/') . '/' . $link;
+		} else {
+			$liveSite = trim(str_replace(JURI::root(true), '', str_replace('/administrator', '', JURI::root())), '/');
+			$link = $liveSite . JRoute::_($link);
 		}
 
 		return $link;
@@ -391,50 +315,37 @@ class JCommentsNotification
 	/**
 	 * Returns list of subscribers for given object and subscription type
 	 *
-	 * @param   int     $objectID     Object ID
-	 * @param   string  $objectGroup  Object group, e.g. com_content
-	 * @param   string  $lang         The language tag, e.g. en-GB
-	 * @param   string  $type         The subscription type
+	 * @param int $object_id
+	 * @param string $object_group
+	 * @param string $lang The language
+	 * @param string $type The subscription type
 	 *
-	 * @return  array
-	 *
-	 * @since   3.0
+	 * @return array
 	 */
-	private static function getSubscribers($objectID, $objectGroup, $lang, $type)
+	private static function getSubscribers($object_id, $object_group, $lang, $type)
 	{
-		/** @var DatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
 		$subscribers = array();
 
-		switch ($type)
-		{
+		switch ($type) {
 			case 'moderate-new':
 			case 'moderate-update':
 			case 'report':
-				$config = ComponentHelper::getParams('com_jcomments');
-
-				if ($config->get('notification_email') != '')
-				{
+				$config = JCommentsFactory::getConfig();
+				if ($config->get('notification_email') != '') {
 					$emails = explode(',', $config->get('notification_email'));
 
-					$query = $db->getQuery(true)
-						->select('*')
-						->from($db->quoteName('#__users'))
-						->where($db->quoteName('email') . " IN ('" . implode("', '", $emails) . "')");
-
-					$db->setQuery($query);
+					$db = Factory::getContainer()->get('DatabaseDriver');
+					$db->setQuery('SELECT * FROM #__users WHERE email IN ("' . implode('", "', $emails) . '")');
 					$users = $db->loadObjectList('email');
 
-					foreach ($emails as $email)
-					{
+					foreach ($emails as $email) {
 						$email = trim($email);
 
-						$subscriber        = new stdClass;
-						$subscriber->id    = isset($users[$email]) ? $users[$email]->id : 0;
-						$subscriber->name  = isset($users[$email]) ? $users[$email]->name : '';
+						$subscriber = new stdClass();
+						$subscriber->id = isset($users[$email]) ? $users[$email]->id : 0;
+						$subscriber->name = isset($users[$email]) ? $users[$email]->name : '';
 						$subscriber->email = $email;
-						$subscriber->hash  = md5($email);
+						$subscriber->hash = md5($email);
 
 						$subscribers[] = $subscriber;
 					}
@@ -445,34 +356,18 @@ class JCommentsNotification
 			case 'comment-reply':
 			case 'comment-update':
 			default:
-				$query = $db->getQuery(true)
-					->select('DISTINCTROW js.name, js.email, js.hash, js.userid')
-					->from($db->quoteName('#__jcomments_subscriptions', 'js'))
-					->join(
-						'INNER',
-						$db->quoteName('#__jcomments_objects', 'jo'),
-						' js.object_id = jo.object_id AND js.object_group = jo.object_group'
-					)
-					->where($db->quoteName('js.object_group') . ' = ' . $db->quote($objectGroup))
-					->where($db->quoteName('js.object_id') . ' = ' . (int) $objectID)
-					->where($db->quoteName('js.published') . ' = 1');
+				$db = Factory::getContainer()->get('DatabaseDriver');
 
-				if (JCommentsFactory::getLanguageFilter())
-				{
-					$query->where($db->quoteName('js.lang') . ' = ' . $db->quote($lang))
-						->where($db->quoteName('jo.lang') . ' = ' . $db->quote($lang));
-				}
-
-				try
-				{
-					$db->setQuery($query);
-					$subscribers = $db->loadObjectList();
-				}
-				catch (RuntimeException $e)
-				{
-					Log::add($e->getMessage(), 'warning', 'com_jcomments-notifications');
-				}
-
+				$query = "SELECT DISTINCTROW js.`name`, js.`email`, js.`hash`, js.`userid` "
+					. " FROM #__jcomments_subscriptions AS js"
+					. " JOIN #__jcomments_objects AS jo ON js.object_id = jo.object_id AND js.object_group = jo.object_group"
+					. " WHERE js.`object_group` = " . $db->Quote($object_group)
+					. " AND js.`object_id` = " . intval($object_id)
+					. " AND js.`published` = 1 "
+					. (JCommentsMultilingual::isEnabled() ? " AND js.`lang` = " . $db->Quote($lang) : '')
+					. (JCommentsMultilingual::isEnabled() ? " AND jo.`lang` = " . $db->Quote($lang) : '');
+				$db->setQuery($query);
+				$subscribers = $db->loadObjectList();
 				break;
 		}
 
@@ -482,36 +377,39 @@ class JCommentsNotification
 	/**
 	 * Function to send an email
 	 *
-	 * @param   string  $from       From email address
-	 * @param   string  $fromName   From name
-	 * @param   mixed   $recipient  Recipient email address(es)
-	 * @param   string  $subject    Email subject
-	 * @param   string  $body       Message body
+	 * @param string $from From email address
+	 * @param string $fromName From name
+	 * @param mixed $recipient Recipient email address(es)
+	 * @param string $subject Email subject
+	 * @param string $body Message body
 	 *
 	 * @return  boolean  True on success
-	 *
-	 * @since   3.0
 	 */
 	private static function sendMail($from, $fromName, $recipient, $subject, $body)
 	{
-		try
-		{
-			$mailer = Factory::getMailer()
-				->setSender(array($from, $fromName))
-				->addRecipient($recipient)
-				->setSubject($subject)
-				->setBody($body)
-				->isHtml(true);
+		$mailer = JFactory::getMailer();
+		$mailer->setSender(array($from, $fromName));
+		$mailer->addRecipient($recipient);
+		$mailer->setSubject($subject);
+		$mailer->setBody($body);
+		$mailer->IsHTML(true);
 
-			$result = $mailer->Send();
+		return $mailer->Send();
+	}
+
+	/**
+	 * Returns current session id
+	 *
+	 * @return string
+	 */
+	private static function getSessionId()
+	{
+		static $sessionId = null;
+
+		if ($sessionId === null) {
+			$sessionId = JFactory::getSession()->getId();
 		}
-		catch (Exception $e)
-		{
-			Log::add($e->getMessage(), 'error', 'com_jcomments-notifications');
 
-			return false;
-		}
-
-		return $result;
+		return $sessionId;
 	}
 }

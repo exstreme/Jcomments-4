@@ -196,7 +196,7 @@ class JCommentsModelComments extends JCommentsModelList
 
 				if ($table->published != $value)
 				{
-					$result = JCommentsEvent::trigger('onJCommentsCommentBeforePublish', array(&$table));
+					$result = JCommentsEventHelper::trigger('onJCommentsCommentBeforePublish', array(&$table));
 
 					if (!in_array(false, $result, true))
 					{
@@ -207,7 +207,7 @@ class JCommentsModelComments extends JCommentsModelList
 							return false;
 						}
 
-						JCommentsEvent::trigger('onJCommentsCommentAfterPublish', array(&$table));
+						JCommentsEventHelper::trigger('onJCommentsCommentAfterPublish', array(&$table));
 
 						if ($table->published)
 						{
@@ -217,7 +217,7 @@ class JCommentsModelComments extends JCommentsModelList
 								$language->load('com_jcomments', JPATH_SITE, $table->lang);
 							}
 
-							JCommentsNotification::push(array('comment' => $table));
+							JCommentsNotificationHelper::push(array('comment' => $table));
 						}
 					}
 				}
