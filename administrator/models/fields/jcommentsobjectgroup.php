@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\Database\DatabaseDriver;
 
 class JFormFieldJCommentsObjectGroup extends ListField
 {
@@ -22,13 +23,12 @@ class JFormFieldJCommentsObjectGroup extends ListField
 
 	protected function getInput()
 	{
-		$attr = '';
-		$attr .= $this->element['class'] ? ' class="' . (string) $this->element['class'] . '"' : '';
+		$attr = $this->element['class'] ? ' class="' . $this->element['class'] . '"' : '';
 		$attr .= $this->element['size'] ? ' size="' . (int) $this->element['size'] . '"' : '';
-		$attr .= $this->element['onchange'] ? ' onchange="' . (string) $this->element['onchange'] . '"' : '';
+		$attr .= $this->element['onchange'] ? ' onchange="' . $this->element['onchange'] . '"' : '';
 		$attr .= $this->multiple ? ' multiple="multiple"' : '';
 
-		$options = (array) $this->getOptions();
+		$options = $this->getOptions();
 
 		return HTMLHelper::_('select.genericlist', $options, $this->name, trim($attr), 'value', 'text', $this->value, $this->id);
 	}
@@ -37,8 +37,8 @@ class JFormFieldJCommentsObjectGroup extends ListField
 	{
 		$options = array();
 
-		/* @var JDatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		/** @var DatabaseDriver $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
 		$query = $db->getQuery(true)
 			->select('DISTINCT ' . $db->qn('element'))
 			->from($db->qn('#__extensions'))
@@ -55,6 +55,7 @@ class JFormFieldJCommentsObjectGroup extends ListField
 			foreach ($plugins as $plugin)
 			{
 				$pluginName = str_replace('.plugin.php', '', $plugin);
+
 				foreach ($components as $component)
 				{
 					if ($pluginName == $component || strpos($pluginName, $component . '_') !== false)
