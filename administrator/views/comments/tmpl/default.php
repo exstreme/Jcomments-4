@@ -120,6 +120,11 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 											<?php echo $this->escape($title); ?>
 										<?php endif; ?>
 									</div>
+									<?php if ($item->deleted): ?>
+										<span class="badge bg-secondary" aria-hidden="true">
+											<?php echo Text::_('A_COMMENTS_HAS_BEEN_MARKED_AS_DELETED'); ?>
+										</span>
+									<?php endif; ?>
 								</th>
 								<td class="small d-none d-md-table-cell">
 									<?php echo $item->name; ?>

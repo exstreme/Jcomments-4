@@ -63,7 +63,7 @@ class JCommentsSubscriptionManager
 		$result = false;
 
 		if ($lang == '') {
-			$lang = JCommentsMultilingual::getLanguage();
+			$lang = Factory::getApplication()->getLanguage()->getTag();
 		}
 
 		$db = Factory::getContainer()->get('DatabaseDriver');
@@ -82,14 +82,14 @@ class JCommentsSubscriptionManager
 		$query->where($db->quoteName('object_group') . ' = ' . $db->Quote($object_group));
 		$query->where($db->quoteName('email') . ' = ' . $db->Quote($email));
 
-		if (JCommentsMultilingual::isEnabled()) {
-			$query->where($db->quoteName('lang') . ' = ' . $db->Quote(JCommentsMultilingual::getLanguage()));
+		if (JCommentsFactory::getLanguageFilter()) {
+			$query->where($db->quoteName('lang') . ' = ' . $db->Quote(Factory::getApplication()->getLanguage()->getTag()));
 		}
 
 		$db->setQuery($query);
 		$rows = $db->loadObjectList();
 
-		JTable::addIncludePath(JCOMMENTS_TABLES);
+		JTable::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
 
 		if (count($rows) == 0) {
 			$subscription = JTable::getInstance('Subscription', 'JCommentsTable');
@@ -177,8 +177,8 @@ class JCommentsSubscriptionManager
 			$query->where($db->quoteName('object_group') . ' = ' . $db->Quote($object_group));
 			$query->where($db->quoteName('userid') . ' = ' . (int)$userid);
 
-			if (JCommentsMultilingual::isEnabled()) {
-				$query->where($db->quoteName('lang') . ' = ' . $db->Quote(JCommentsMultilingual::getLanguage()));
+			if (JCommentsFactory::getLanguageFilter()) {
+				$query->where($db->quoteName('lang') . ' = ' . $db->Quote(Factory::getApplication()->getLanguage()->getTag()));
 			}
 
 			$db->setQuery($query);
@@ -250,7 +250,7 @@ class JCommentsSubscriptionManager
 	function _isSubscribed($object_id, $object_group, $userid, $email = '', $language = '')
 	{
 		if (empty($language)) {
-			$language = JCommentsMultilingual::getLanguage();
+			$language = Factory::getApplication()->getLanguage()->getTag();
 		}
 
 		$db = Factory::getContainer()->get('DatabaseDriver');
@@ -266,7 +266,7 @@ class JCommentsSubscriptionManager
 			$query->where($db->quoteName('email') . ' = ' . $db->Quote($email));
 		}
 
-		if (JCommentsMultilingual::isEnabled()) {
+		if (JCommentsFactory::getLanguageFilter()) {
 			$query->where($db->quoteName('lang') . ' = ' . $db->Quote($language));
 		}
 

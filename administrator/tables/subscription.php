@@ -21,24 +21,32 @@ use Joomla\Database\DatabaseDriver;
  */
 class JCommentsTableSubscription extends Table
 {
-	/** @var int Primary key */
-	var $id = null;
-	/** @var int */
-	var $object_id = null;
+	/** @var integer Primary key */
+	public $id = null;
+
+	/** @var integer */
+	public $object_id = null;
+
 	/** @var string */
-	var $object_group = null;
+	public $object_group = null;
+
 	/** @var string */
-	var $lang = null;
-	/** @var int */
-	var $userid = null;
+	public $lang = null;
+
+	/** @var integer */
+	public $userid = null;
+
 	/** @var string */
-	var $name = null;
+	public $name = null;
+
 	/** @var string */
-	var $email = null;
+	public $email = null;
+
 	/** @var string */
-	var $hash = null;
+	public $hash = null;
+
 	/** @var boolean */
-	var $published = null;
+	public $published = null;
 
 	public function __construct($_db)
 	{

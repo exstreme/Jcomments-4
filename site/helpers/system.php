@@ -2,73 +2,62 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @version       4.0
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
+
 /**
  * JComments System Plugin Helper
+ *
+ * @since  3.0
  */
-class JCommentsSystemPluginHelper
+class JCommentsSystem
 {
-	public static function getBaseUrl()
-	{
-		return JURI::root(true);
-	}
-
 	public static function getCoreJS()
 	{
-		return JURI::root(true) . '/components/com_jcomments/js/jcomments-v2.3.js?v=12';
+		return Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js';
 	}
 
 	public static function getAjaxJS()
 	{
-		return JURI::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4';
+		return Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4';
 	}
 
 	public static function getCSS($isRTL = false, $template = '')
 	{
-		$app = JFactory::getApplication('site');
+		$app = Factory::getApplication();
 
-		if (empty($template)) {
-			$config = JCommentsCfg::getInstance();
+		if (empty($template))
+		{
+			$config   = ComponentHelper::getParams('com_jcomments');
 			$template = $config->get('template');
 		}
 
 		$cssName = $isRTL ? 'style_rtl.css' : 'style.css';
-		$cssFile = $cssName . '?v=3002';
 
-		$cssPath = JPATH_SITE.'/templates/'.$app->getTemplate().'/html/com_jcomments/'.$template.'/'.$cssName;
-		$cssUrl = JURI::root(true).'/templates/'.$app->getTemplate().'/html/com_jcomments/'.$template.'/'.$cssFile;
+		$cssPath = JPATH_SITE . '/templates/' . $app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName;
+		$cssUrl  = Uri::root(true) . '/templates/' . $app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName;
 
-		if (!is_file($cssPath)) {
-			$cssPath = JPATH_SITE . '/components/com_jcomments/tpl/'.$template.'/'.$cssName;
-			$cssUrl = JURI::root(true) . '/components/com_jcomments/tpl/'.$template.'/'.$cssFile;
-			if ($isRTL && !is_file($cssPath)) {
+		if (!is_file($cssPath))
+		{
+			$cssPath = JPATH_SITE . '/components/com_jcomments/tpl/' . $template . '/' . $cssName;
+			$cssUrl  = Uri::root(true) . '/components/com_jcomments/tpl/' . $template . '/' . $cssName;
+
+			if ($isRTL && !is_file($cssPath))
+			{
 				$cssUrl = '';
 			}
 		}
 
 		return $cssUrl;
-	}
-	
-	public static function isAdmin($app) {
-		if (version_compare(JVERSION, '4.0', 'lt')){
-			return $app->isAdmin();
-		} else {
-			return $app->isClient('administrator');
-		}
-	}
-	public static function isSite($app) {
-		if (version_compare(JVERSION, '4.0', 'lt')){
-			return $app->isSite();
-		} else {
-			return $app->isClient('site');
-		}
 	}
 }

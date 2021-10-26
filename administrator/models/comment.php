@@ -86,6 +86,7 @@ class JCommentsModelComment extends JCommentsModelForm
 	public function save($data)
 	{
 		require_once JPATH_ROOT . '/components/com_jcomments/classes/bbcode.php';
+		require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
 		require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
 		require_once JPATH_ROOT . '/components/com_jcomments/helpers/notification.php';
 
@@ -123,12 +124,8 @@ class JCommentsModelComment extends JCommentsModelForm
 				$table->email    = $user->email;
 			}
 
-			if (!function_exists('get_magic_quotes_gpc') || get_magic_quotes_gpc() == 1)
-			{
-				$table->title   = stripslashes($table->title);
-				$table->comment = stripslashes($table->comment);
-			}
-
+			$table->title   = stripslashes($table->title);
+			$table->comment = stripslashes($table->comment);
 			$table->comment = JCommentsText::nl2br($table->comment);
 			$table->comment = $bbcodes->filter($table->comment);
 
@@ -148,7 +145,7 @@ class JCommentsModelComment extends JCommentsModelForm
 
 			if ($table->published && $prevPublished != $table->published)
 			{
-				JCommentsNotificationHelper::push(array('comment' => $table), 'comment-new');
+				JCommentsNotification::push(array('comment' => $table), 'comment-new');
 			}
 
 			$this->cleanCache('com_jcomments');
