@@ -176,6 +176,7 @@ class JCommentsSecurity
 		return $result;
 	}
 
+	// TODO Replace with InputFilter::clean()
 	public static function clearObjectGroup($str)
 	{
 		return trim(preg_replace('#[^0-9A-Za-z\-\_\,\.]#is', '', strip_tags($str)));

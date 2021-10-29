@@ -12,6 +12,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
 use Joomla\String\StringHelper;
 
 /**
@@ -194,10 +195,11 @@ class JCommentsText
 		if (!empty($text))
 		{
 			ob_start();
-			$config = ComponentHelper::getParams('com_jcomments');
 
+			$config      = ComponentHelper::getParams('com_jcomments');
+			$lang        = Factory::getApplication()->getLanguage();
 			$words       = $config->get('badwords');
-			$replaceWord = $config->get('censor_replace_word', '***');
+			$replaceWord = self::getCensorReplace($config->get('censor_replace_fields'), $lang->getTag());
 
 			if (!empty($words))
 			{
@@ -260,5 +262,59 @@ class JCommentsText
 		$text = htmlspecialchars($text);
 
 		return html_entity_decode($text);
+	}
+
+	/**
+	 * Get language aware message strings for comment rules, no access rights for comment, comments closed, user banned.
+	 *
+	 * @param   array   $messages  Array in subform format. E.g. array(subform => array(form => value, ...))
+	 * @param   string  $field     Field name with parameter.
+	 * @param   string  $lang      Language tag.
+	 *
+	 * @return  string  Returns the string according to current frontend language.
+	 *
+	 * @since   4.0
+	 */
+	public static function getMessagesBasedOnLanguage($messages, $field, $lang = '')
+	{
+		$data = array();
+
+		foreach ($messages as $_message)
+		{
+			$data[$_message->lang] = $_message;
+		}
+
+		if (empty($lang) || $lang == '*')
+		{
+			$message = $data['*']->$field;
+		}
+		else
+		{
+			$message = $data[$lang]->$field;
+		}
+
+		return $message;
+	}
+
+	/**
+	 * Get replacement string for current language.
+	 *
+	 * @param   array   $replaces  Array in subform format. E.g. array(subform => array(form => value, ...))
+	 * @param   string  $lang      Language tag.
+	 *
+	 * @return  string  Returns the string according to current frontend language.
+	 *
+	 * @since   4.0
+	 */
+	private static function getCensorReplace($replaces, $lang)
+	{
+		$data = array();
+
+		foreach ($replaces as $replacement)
+		{
+			$data[$replacement->lang] = $replacement->censor_replace_word;
+		}
+
+		return (empty($lang) || $lang == '*') ? $data['*'] : $data[$lang];
 	}
 }

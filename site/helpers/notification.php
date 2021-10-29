@@ -208,7 +208,7 @@ class JCommentsNotification
 		$data['object_title']      = $object->title;
 		$data['object_link']       = JCommentsFactory::getAbsLink($object->link);
 
-		$data['comment']->author  = JComments::getCommentAuthorName($data['comment']);
+		$data['comment']->author  = JCommentsContent::getCommentAuthorName($data['comment']);
 		$data['comment']->title   = JCommentsText::censor($data['comment']->title);
 		$data['comment']->comment = JCommentsText::censor($data['comment']->comment);
 		$data['comment']->comment = JCommentsFactory::getBBCode()->replace($data['comment']->comment);

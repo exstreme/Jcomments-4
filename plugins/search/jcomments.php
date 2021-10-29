@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -145,7 +146,7 @@ class plgSearchJComments extends CMSPlugin
 				. " WHERE c.published=1"
 				. " AND c.deleted=0"
 				. " AND jo.link <> ''"
-				. (JCommentsMultilingual::isEnabled() ? " AND c.lang = '" . JCommentsMultilingual::getLanguage() . "'" : "")
+				. (Factory::getApplication()->getLanguageFilter() ? " AND c.lang = '" . Factory::getApplication()->getLanguage()->getTag() . "'" : "")
 				. " AND ($where) "
 				. $accessCondition
 				. " ORDER BY c.object_id, $order";
@@ -157,9 +158,9 @@ class plgSearchJComments extends CMSPlugin
 
 			if ($cnt > 0)
 			{
-				$config         = JCommentsFactory::getConfig();
-				$enableCensor   = $acl->check('enable_autocensor');
-				$word_maxlength = $config->getInt('word_maxlength');
+				$config         = ComponentHelper::getParams('com_jcomments');
+				$enableCensor   = $acl->enableAutocensor();
+				$word_maxlength = (int) $config->get('word_maxlength');
 
 				for ($i = 0; $i < $cnt; $i++)
 				{
@@ -184,6 +185,7 @@ class plgSearchJComments extends CMSPlugin
 					}
 				}
 			}
+
 			unset($rows);
 		}
 
