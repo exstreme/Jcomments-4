@@ -15,9 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\Utilities\ArrayHelper;
 
-define('JCOMMENTS_SITE', JPATH_ROOT . '/components/com_jcomments');
-define('JCOMMENTS_HELPERS', JCOMMENTS_SITE . '/helpers');
-include_once(JCOMMENTS_HELPERS . '/system.php');
+include_once(JPATH_ROOT . '/components/com_jcomments/helpers/system.php');
 
 /**
  * System plugin for attaching JComments CSS & JavaScript to HEAD tag
@@ -137,7 +135,7 @@ class plgSystemJComments extends CMSPlugin
 
 		if ($document->getType() == 'html')
 		{
-			if (JCommentsSystemPluginHelper::isAdmin($app))
+			if ($app->isClient('administrator'))
 			{
 				$document->addStyleSheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/icon.css?v=2');
 				$app->getLanguage()->load('com_jcomments.sys', JPATH_ROOT . '/administrator', 'en-GB', true);
@@ -169,12 +167,12 @@ class plgSystemJComments extends CMSPlugin
 					// include JComments CSS
 					if ($this->params->get('disable_template_css', 0) == 0)
 					{
-						$document->addStyleSheet(JCommentsSystemPluginHelper::getCSS());
+						$document->addStyleSheet(JCommentsSystem::getCSS());
 						$language = $app->getLanguage();
 
 						if ($language->isRTL())
 						{
-							$rtlCSS = JCommentsSystemPluginHelper::getCSS(true);
+							$rtlCSS = JCommentsSystem::getCSS(true);
 
 							if ($rtlCSS != '')
 							{
@@ -189,11 +187,11 @@ class plgSystemJComments extends CMSPlugin
 					}
 
 					// include JComments JavaScript library
-					$document->addScript(JCommentsSystemPluginHelper::getCoreJS());
+					$document->addScript(JCommentsSystem::getCoreJS());
 
 					if (!defined('JOOMLATUNE_AJAX_JS'))
 					{
-						$document->addScript(JCommentsSystemPluginHelper::getAjaxJS());
+						$document->addScript(JCommentsSystem::getAjaxJS());
 						define('JOOMLATUNE_AJAX_JS', 1);
 					}
 

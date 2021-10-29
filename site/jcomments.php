@@ -48,16 +48,16 @@ switch (trim($jc_task)) {
 		}
 		break;
 	case 'rss':
-		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.rss.php');
-		JCommentsRSS::showObjectComments();
+		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.feed.php');
+		JCommentsFeed::display('object');
 		break;
 	case 'rss_full':
-		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.rss.php');
-		JCommentsRSS::showAllComments();
+		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.feed.php');
+		JCommentsFeed::display('all');
 		break;
 	case 'rss_user':
-		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.rss.php');
-		JCommentsRSS::showUserComments();
+		require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.feed.php');
+		JCommentsFeed::display('user');
 		break;
 	case 'unsubscribe':
 		JComments::unsubscribe();
@@ -324,13 +324,14 @@ class JComments
 		$tmpl = JCommentsFactory::getTemplate($object_id, $object_group);
 		$tmpl->load('tpl_form');
 
+		$lang = Factory::getApplication()->getLanguage();
 		$user = JFactory::getUser();
 		$acl = JCommentsFactory::getACL();
 		$config = ComponentHelper::getParams('com_jcomments');
 
 		if ($user->authorise('comment.comment', 'com_jcomments')) {
 			if ((int) $config->get('comments_locked') == 1) {
-				$message = $config->get('message_locked');
+				$message = JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_locked', $lang->getTag());
 
 				if ($message != '') {
 					$message = stripslashes($message);
@@ -396,8 +397,8 @@ class JComments
 			{
  				$tmpl->addVar('tpl_form', 'var_show_checkbox_terms_of_use', 1);
 			}
-			
-			$policy = $config->get('message_policy_post');
+
+			$policy = JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_policy_post', $lang->getTag());
 			if (($policy != '') && ($user->authorise('show_policy', 'com_jcomments'))) {
 				$policy = stripslashes($policy);
 				if ($policy == strip_tags($policy)) {
@@ -590,7 +591,9 @@ class JComments
 
 			return $result;
 		} else {
-			$message = $acl->getUserBlocked() ? $config->get('message_banned') : $config->get('message_policy_whocancomment');
+			$message = $acl->getUserBlocked()
+							? JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_banned', $lang->getTag())
+							: JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_policy_whocancomment', $lang->getTag());
 			if ($message != '') {
 				$header = JText::_('FORM_HEADER');
 				$message = stripslashes($message);
@@ -1057,7 +1060,7 @@ class JComments
 			$comment->comment = JCommentsFactory::getSmilies()->replace($comment->comment);
 		}
 
-		$comment->author = JComments::getCommentAuthorName($comment);
+		$comment->author = JCommentsContent::getCommentAuthorName($comment);
 
 		// Gravatar support
 		$comment->gravatar = md5(strtolower($comment->email));
@@ -1169,22 +1172,6 @@ class JComments
 		}
 
 		return $this_page;
-	}
-
-	public static function getCommentAuthorName($comment)
-	{
-		$name = '';
-
-		if ($comment != null) {
-			$config = ComponentHelper::getParams('com_jcomments');
-			if ($comment->userid && $config->get('display_author') == 'username' && $comment->username != '') {
-				$name = $comment->username;
-			} else {
-				$name = $comment->name ? $comment->name : 'Guest'; // JText::_('Guest');
-			}
-		}
-
-		return $name;
 	}
 
 	public static function unsubscribe()
@@ -1317,15 +1304,5 @@ class JComments
 		$options['filter'] = $filter;
 
 		return JCommentsModel::getCommentsCount($options);
-	}
-
-	/*
-	 * @see JComments::show()
-	 * @deprecated Use JComments::show() instead
-	 */
-	public static function showComments($object_id, $object_group = 'com_content', $object_title = '')
-	{
-		$object_group = JCommentsSecurity::clearObjectGroup($object_group);
-		return JComments::show($object_id, $object_group, $object_title);
 	}
 }

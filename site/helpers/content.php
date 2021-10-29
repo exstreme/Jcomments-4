@@ -21,13 +21,13 @@ class JCommentsContent
 {
 	/**
 	 *
-	 * @param   object  $row  The content item object
+	 * @param   object  $row           The content item object
 	 * @param   array   $patterns
 	 * @param   array   $replacements
 	 *
-	 * @return void
+	 * @return  void
 	 */
-	protected static function _processTags(&$row, $patterns = array(), $replacements = array())
+	protected static function _processTags($row, $patterns = array(), $replacements = array())
 	{
 		if (count($patterns) > 0)
 		{
@@ -50,12 +50,12 @@ class JCommentsContent
 	/**
 	 * Searches given tag in content object
 	 *
-	 * @param   object  $row  The content item object
+	 * @param   object  $row      The content item object
 	 * @param   string  $pattern
 	 *
-	 * @return boolean True if any tag found, False otherwise
+	 * @return  boolean True if any tag found, False otherwise
 	 */
-	protected static function _findTag(&$row, $pattern)
+	protected static function _findTag($row, $pattern)
 	{
 		$keys = array('introtext', 'fulltext', 'text');
 
@@ -76,7 +76,7 @@ class JCommentsContent
 	 * @param   object   $row         The content item object
 	 * @param   boolean  $removeTags  Remove all 3rd party tags or replace it to JComments tags?
 	 *
-	 * @return void
+	 * @return  void
 	 */
 	public static function processForeignTags(&$row, $removeTags = false)
 	{
@@ -99,9 +99,9 @@ class JCommentsContent
 	 *
 	 * @param   object  $row  Content object
 	 *
-	 * @return boolean True if {jcomments on} found, False otherwise
+	 * @return  boolean True if {jcomments on} found, False otherwise
 	 */
-	public static function isEnabled(&$row)
+	public static function isEnabled($row)
 	{
 		return self::_findTag($row, '/{jcomments\s+on}/is');
 	}
@@ -111,9 +111,9 @@ class JCommentsContent
 	 *
 	 * @param   object  $row  Content object
 	 *
-	 * @return boolean True if {jcomments off} found, False otherwise
+	 * @return  boolean True if {jcomments off} found, False otherwise
 	 */
-	public static function isDisabled(&$row)
+	public static function isDisabled($row)
 	{
 		return self::_findTag($row, '/{jcomments\s+off}/is');
 	}
@@ -123,9 +123,9 @@ class JCommentsContent
 	 *
 	 * @param   object  $row  Content object
 	 *
-	 * @return boolean True if {jcomments lock} found, False otherwise
+	 * @return  boolean True if {jcomments lock} found, False otherwise
 	 */
-	public static function isLocked(&$row)
+	public static function isLocked($row)
 	{
 		return self::_findTag($row, '/{jcomments\s+lock}/is');
 	}
@@ -135,7 +135,7 @@ class JCommentsContent
 	 *
 	 * @param   object  $row  Content object
 	 *
-	 * @return void
+	 * @return  void
 	 */
 	public static function clear(&$row)
 	{
@@ -148,9 +148,9 @@ class JCommentsContent
 	/**
 	 * Checks if comments are enabled for specified category
 	 *
-	 * @param   int  $id  Category ID
+	 * @param   integer  $id  Category ID
 	 *
-	 * @return boolean
+	 * @return  boolean
 	 */
 	public static function checkCategory($id)
 	{
@@ -158,5 +158,33 @@ class JCommentsContent
 		$categories = $config->get('enable_categories', '');
 
 		return (in_array('*', $categories) || (!empty($categories) && in_array($id, $categories)));
+	}
+
+	/**
+	 * Checks if comments are enabled for specified category
+	 *
+	 * @param   object  $comment  Comment object
+	 *
+	 * @return  string
+	 */
+	public static function getCommentAuthorName($comment)
+	{
+		$name = '';
+
+		if ($comment != null)
+		{
+			$config = ComponentHelper::getParams('com_jcomments');
+
+			if ($comment->userid && $config->get('display_author') == 'username' && $comment->username != '')
+			{
+				$name = $comment->username;
+			}
+			else
+			{
+				$name = $comment->name ?: 'Guest';
+			}
+		}
+
+		return $name;
 	}
 }

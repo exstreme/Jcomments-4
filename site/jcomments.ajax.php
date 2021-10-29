@@ -1071,7 +1071,7 @@ class JCommentsAJAX
 
 		if ($comment->load((int) $id))
 		{
-			$commentName = JComments::getCommentAuthorName($comment);
+			$commentName = JCommentsContent::getCommentAuthorName($comment);
 			$commentText = JCommentsText::br2nl($comment->comment);
 
 			if ((int) $config->get('enable_nested_quotes') == 0)

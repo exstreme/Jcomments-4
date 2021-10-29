@@ -201,7 +201,7 @@ class JCommentsFactory
 		switch ($type)
 		{
 			case 'rss':
-				$link = 'index.php?option=com_jcomments&task=rss&object_id=' . $objectID . '&object_group=' . $objectGroup . '&format=raw';
+				$link = 'index.php?option=com_jcomments&task=rss&object_id=' . $objectID . '&object_group=' . $objectGroup . '&format=feed';
 
 				if ($app->isClient('administrator'))
 				{

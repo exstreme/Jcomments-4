@@ -113,20 +113,6 @@ class com_jcommentsInstallerScript
 		// Fix default guest usergroup in com_users parameters
 		// $this->fixGuestUsergroup();
 
-		// Load default settings
-		$query = $db->getQuery(true)
-		    ->select('COUNT(*)')
-		    ->from($db->quoteName('#__jcomments_settings'));
-
-		$db->setQuery($query);
-		$count = $db->loadResult();
-
-		if ($count == 0)
-		{
-			$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/default.settings.sql');
-			$this->fixUsergroups();
-		}
-
 		// Load default custom bbcodes
 		$query = $db->getQuery(true)
 		    ->select('COUNT(*)')
@@ -183,8 +169,8 @@ class com_jcommentsInstallerScript
 		// Copy smilies from old folder to new one
 		try
 		{
-			$oldPath = JPATH_SITE . '/components/com_jcomments/images/smiles';
-			$newPath = JPATH_SITE . '/components/com_jcomments/images/smilies';
+			$oldPath = JPATH_SITE . '/media/com_jcomments/images/smiles';
+			$newPath = JPATH_SITE . '/media/com_jcomments/images/smilies';
 
 			if (is_dir($oldPath))
 			{
@@ -614,7 +600,7 @@ class com_jcommentsInstallerScript
 
 	private function displayResults($data)
 	{
-		require_once(JPATH_ROOT . '/administrator/components/com_jcomments/version.php');
+		require_once JPATH_ROOT . '/administrator/components/com_jcomments/version.php';
 		$version = new JCommentsVersion();
 		?>
         <style type="text/css">

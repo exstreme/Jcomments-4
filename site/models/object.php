@@ -12,6 +12,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\Database\DatabaseDriver;
 
 /**
@@ -87,13 +88,24 @@ class JCommentsModelObject
 				->set($db->quoteName('title') . ' = ' . $db->quote($info->title))
 				->set($db->quoteName('link') . ' = ' . $db->quote($info->link))
 				->set($db->quoteName('access') . ' = ' . (int) $info->access)
-				->set($db->quoteName('userid') . ' = ' . (int) $info->userid)
+				// Userid should be placed in quotes because for guest it will be -1 and throws an 'out of range' error.
+				->set($db->quoteName('userid') . ' = ' . $db->quote($info->userid))
 				->set($db->quoteName('expired') . ' = 0')
 				->set($db->quoteName('modified') . ' = ' . $db->quote(Factory::getDate()->toSql()));
 		}
 
 		$db->setQuery($query);
-		$db->execute();
+
+		try
+		{
+			$db->execute();
+		}
+		catch (RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' at ' . __METHOD__ . ':' . __LINE__);
+
+			return false;
+		}
 	}
 
 	public static function isEmpty($object)
