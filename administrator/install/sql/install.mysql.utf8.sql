@@ -39,6 +39,15 @@ CREATE TABLE IF NOT EXISTS `#__jcomments` (
     KEY `idx_thread` (`thread_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
 
+
+CREATE TABLE IF NOT EXISTS `#__jcomments_settings` (
+   `component` VARCHAR(50) NOT NULL DEFAULT '',
+   `lang` VARCHAR(20) NOT NULL DEFAULT '',
+   `name` VARCHAR(50) NOT NULL DEFAULT '',
+   `value` TEXT,
+   PRIMARY KEY  (`component`, `lang`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `#__jcomments_votes` (
     `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
     `commentid` INT(11) UNSIGNED NOT NULL DEFAULT '0',
