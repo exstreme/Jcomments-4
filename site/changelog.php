@@ -13,6 +13,12 @@ defined('_JEXEC') or die;
 Changelog
 ------------
 
+4.0.3
+# All tables now in utf8mb4
++ Add option to comment edit to mark comment as deleted
+- Remove deprecated php functions
+- Cleanup/fix css for backend
+
 4.0.2
 # see commits in Github
 ! Adapt assets to use with WebAssets manager
@@ -23,6 +29,8 @@ Changelog
 # Adapted plugins
 # Adapted classes
 + Support Mysql 8 & PHP 8
+^ Move smiles to media folder
+! Router class is renamed because it's not working in J4
 
 4.0
 

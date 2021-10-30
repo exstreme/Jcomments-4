@@ -20,7 +20,7 @@ class JCommentsVersion
 	public $RELEASE = '4.0';
 
 	/** @var int Sub Release Level */
-	public $DEV_LEVEL = '1';
+	public $DEV_LEVEL = '3';
 
 	/** @var string Development Status */
 	public $DEV_STATUS = '';
