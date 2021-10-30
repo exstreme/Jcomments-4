@@ -102,7 +102,7 @@ class JCommentsModelObject
 		}
 		catch (RuntimeException $e)
 		{
-			Log::add($e->getMessage() . ' at ' . __METHOD__ . ':' . __LINE__);
+			Log::add($e->getMessage() . ' at ' . __METHOD__ . ':' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
