@@ -476,24 +476,26 @@ class JCommentsAJAX
 				$comment->lang         = Factory::getApplication()->getLanguage()->getTag();
 				$comment->ip           = $userIP;
 				$comment->userid       = $user->get('id') ? $user->get('id') : 0;
-				$comment->published    = $user->authorise('comment.autopublish', 'com_jcomments');
 				$comment->date         = Factory::getDate()->toSql();
+
+				// Cast to integer value to store in DB.
+				$comment->published    = (int) $user->authorise('comment.autopublish', 'com_jcomments');
 
 				$query = $db->getQuery(true);
 				$query
 					->select('COUNT(*)')
 					->from($db->quoteName('#__jcomments'))
-					->where($db->quoteName('comment') . ' = ' . $db->Quote($comment->comment))
-					->where($db->quoteName('ip') . ' = ' . $db->Quote($comment->ip))
-					->where($db->quoteName('name') . ' = ' . $db->Quote($comment->name))
+					->where($db->quoteName('comment') . ' = ' . $db->quote($comment->comment))
+					->where($db->quoteName('ip') . ' = ' . $db->quote($comment->ip))
+					->where($db->quoteName('name') . ' = ' . $db->quote($comment->name))
 					->where($db->quoteName('userid') . ' = ' . $comment->userid)
 					->where($db->quoteName('object_id') . ' = ' . $comment->object_id)
 					->where($db->quoteName('parent') . ' = ' . $comment->parent)
-					->where($db->quoteName('object_group') . ' = ' . $db->Quote($comment->object_group));
+					->where($db->quoteName('object_group') . ' = ' . $db->quote($comment->object_group));
 
 				if (JCommentsFactory::getLanguageFilter())
 				{
-					$query->where($db->quoteName('lang') . ' = ' . $db->Quote(Factory::getApplication()->getLanguage()->getTag()));
+					$query->where($db->quoteName('lang') . ' = ' . $db->quote(Factory::getApplication()->getLanguage()->getTag()));
 				}
 
 				$db->setQuery($query);
@@ -571,6 +573,8 @@ class JCommentsAJAX
 					// Save new comment to database
 					if (!$comment->store())
 					{
+						Log::add($comment->getError(), Log::ERROR, 'com_jcomments');
+
 						$response->addScript("jcomments.clear('comment');");
 
 						if ($user->authorise('comment.captcha', 'com_jcomments') == 1)

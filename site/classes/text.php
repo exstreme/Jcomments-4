@@ -290,7 +290,7 @@ class JCommentsText
 		}
 		else
 		{
-			$message = $data[$lang]->$field;
+			$message = in_array($field, $data) ? $data[$lang]->$field : $data['*']->$field;
 		}
 
 		return $message;

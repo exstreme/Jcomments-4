@@ -470,7 +470,7 @@ class JCommentsNotification
 				}
 				catch (RuntimeException $e)
 				{
-					Log::add($e->getMessage(), 'warning', 'com_jcomments-notifications');
+					Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
 				}
 
 				break;
@@ -507,7 +507,7 @@ class JCommentsNotification
 		}
 		catch (Exception $e)
 		{
-			Log::add($e->getMessage(), 'error', 'com_jcomments-notifications');
+			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
