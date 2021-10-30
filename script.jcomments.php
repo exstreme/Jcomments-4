@@ -188,34 +188,6 @@ class com_jcommentsInstallerScript
 		catch (Exception $e)
 		{
 		}
-
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
-		$query = $db->getQuery(true)
-		    ->select('*')
-		    ->from($db->quoteName('#__jcomments_settings'))
-		    ->where($db->quoteName('name') . ' = ' . $db->Quote('badwords'));
-
-		$db->setQuery($query);
-		$rows = $db->loadObjectList();
-
-		if (is_array($rows))
-		{
-			foreach ($rows as $row)
-			{
-				$value = preg_replace("#,+#", ',', preg_replace("#[\n|\r]+#", ',', $row->value));
-
-				$query = $db->getQuery(true)
-				    ->update($db->quoteName('#__jcomments_settings'))
-				    ->set($db->quoteName('value') . ' = ' . $db->Quote($value))
-				    ->where($db->quoteName('name') . ' = ' . $db->Quote($row->name))
-				    ->where($db->quoteName('lang') . ' = ' . $db->Quote($row->lang))
-				    ->where($db->quoteName('component') . ' = ' . $db->Quote($row->component));
-
-				$db->setQuery($query);
-				$db->execute();
-			}
-		}
 	}
 
 	public function uninstall($parent)
@@ -345,71 +317,6 @@ class com_jcommentsInstallerScript
 
 		$db->setQuery($query);
 		$db->execute();
-	}
-
-	private function fixUsergroups()
-	{
-		$db              = Factory::getContainer()->get('DatabaseDriver');
-		$groups          = $this->getUsergroups();
-		$guest_usergroup = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
-
-		if (count($groups))
-		{
-			$query = $db->getQuery(true)
-			    ->select('*')
-			    ->from($db->quoteName('#__jcomments_settings'))
-			    ->where($db->quoteName('name') . ' != ' . $db->Quote('badwords'))
-			    ->where($db->quoteName('name') . ' != ' . $db->Quote('forbidden_names'))
-			    ->where($db->quoteName('name') . ' != ' . $db->Quote('smilies_path'));
-
-			$where = array();
-
-			foreach ($groups as $group)
-			{
-				$where[] = $db->quoteName('value') . " LIKE " . $db->Quote('%' . $group->title . '%');
-			}
-
-			if (count($where))
-			{
-				$query->where('(' . implode(' OR ', $where) . ')');
-			}
-
-			$db->setQuery($query);
-			$rows = $db->loadObjectList();
-
-			foreach ($rows as $row)
-			{
-				$values = explode(',', $row->value);
-
-				foreach ($groups as $group)
-				{
-					for ($i = 0, $n = count($values); $i < $n; $i++)
-					{
-						if ($values[$i] == $group->title)
-						{
-							$values[$i] = $group->id;
-						}
-					}
-				}
-
-				if ($guest_usergroup !== 1 && in_array(1, $values))
-				{
-					$values[] = $guest_usergroup;
-				}
-
-				$row->value = implode(',', $values);
-
-				$query = $db->getQuery(true)
-				    ->update($db->quoteName('#__jcomments_settings'))
-				    ->set($db->quoteName('value') . ' = ' . $db->Quote($row->value))
-				    ->where($db->quoteName('component') . ' = ' . $db->Quote($row->component))
-				    ->where($db->quoteName('lang') . ' = ' . $db->Quote($row->lang))
-				    ->where($db->quoteName('name') . ' = ' . $db->Quote($row->name));
-
-				$db->setQuery($query);
-				$db->execute();
-			}
-		}
 	}
 
 	private function fixUsergroupsCustomBBCodes()
