@@ -36,6 +36,9 @@ class com_jcommentsInstallerScript
 
 	public function postflight($type, $parent)
 	{
+	    if($type === 'uninstall') {
+	        return;
+        }
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$language = Factory::getApplication()->getLanguage();
