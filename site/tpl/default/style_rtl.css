@@ -7,12 +7,6 @@
 #jc h4 {text-align: right;}
 #comments {text-align: right;}
 #comments a[rel*=external] {background-position: center left !important;padding: 0 0 0 10px !important;}
-/* RSS and Refresh*/
-#comments .rss, #comments .refresh, #comments .subscribe {padding: 0 14px 0 0;border: none;}
-#comments .rss {background: url(images/jc_rss_rtl.gif) no-repeat center right !important}
-#comments .refresh {background-position: center right !important;}
-#comments .subscribe {background-position: center right !important;}
-#comments h4 .rss, #comments h4 .refresh {padding: 0 10px 0 0;margin: 0 5px 0 0;display: inline-block !important;}
 /* List footer */
 #comments-list-footer {margin: 0 20px 10px 0 !important;}
 /* Show/hide form */
@@ -30,8 +24,6 @@
 /* Quote and Reply to buttons panel */
 #comments .comments-buttons {float: right;}
 #comments p {margin: 5px 0 5px 5px;}
-/* Comments list */
-#comments .comments-list {margin-right: 20px; margin-left: 0}
 /* Comment form */
 div.comments-policy {text-align: right;margin: 5px 20px 5px 0; margin-right: 20px !important;margin-left: 0 !important;}
 #comments-inline-edit #comments-form-error {margin-right: 5px !important;margin-left: 5px;}

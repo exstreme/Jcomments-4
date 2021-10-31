@@ -10,6 +10,8 @@
  */
 
 
+use Joomla\CMS\HTML\HTMLHelper;
+
 defined('_JEXEC') or die;
 
 /**
@@ -62,7 +64,7 @@ class jtt_tpl_email_administrator extends JoomlaTuneTemplate
 		}
 ?>
 <span style="font-size: 11px;">IP: <?php echo $comment->ip; ?></span>
-) &mdash; <span style="font-size: 11px; color: #999;"><?php echo JCommentsText::formatDate($comment->date, JText::_('DATETIME_FORMAT')); ?></span>
+) &mdash; <span style="font-size: 11px; color: #999;"><?php echo HTMLHelper::_('date', $comment->date, 'DATE_FORMAT_LC1'); ?></span>
 <div>
 <div style="border: 1px solid #ccc; padding: 10px 5px; margin: 5px 0; font: normal 1em Verdana, Arial, Sans-Serif;"><?php echo $comment->comment; ?></div>
 <?php

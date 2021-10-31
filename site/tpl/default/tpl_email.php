@@ -56,7 +56,7 @@ class jtt_tpl_email extends JoomlaTuneTemplate
 <span style="color: #3c452d;font: bold 1em Verdana, Arial, Sans-Serif;"><?php echo $comment->author; ?></span>
 <?php
 		}
-?> &mdash; <span style="font-size: 11px; color: #999;"><?php echo JCommentsText::formatDate($comment->date, JText::_('DATETIME_FORMAT')); ?></span>
+?> &mdash; <span style="font-size: 11px; color: #999;"><?php echo HTMLHelper::_('date', $comment->date, 'DATE_FORMAT_LC1'); ?></span>
 <div style="border: 1px solid #ccc; padding: 10px 5px; margin: 5px 0; font: normal 1em Verdana, Arial, Sans-Serif;"><?php echo $comment->comment; ?></div>
 
 <p style="border-top: 1px solid #ccc; margin: 10px 0 0 0; color: #555;"><?php echo $unsubscribeMessage; ?>:<br /><a href="<?php echo $unsubscribeLink; ?>" target="_blank"><?php echo JText::_('NOTIFICATION_COMMENT_UNSUBSCRIBE_LINK');?></a></p>
