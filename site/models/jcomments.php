@@ -250,12 +250,12 @@ class JCommentsModel
 		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$objectID    = @$options['object_id'];
-		$objectGroup = @$options['object_group'];
-		$published   = @$options['published'];
-		$userid      = @$options['userid'];
-		$parent      = @$options['parent'];
-		$level       = @$options['level'];
+		$objectID    = $options['object_id'] ?? null;
+		$objectGroup = $options['object_group'] ?? null;
+		$published   = $options['published'] ?? null;
+		$userid      = $options['userid'] ?? null;
+		$parent      = $options['parent'] ?? null;
+		$level       = $options['level'] ?? null;
 
 		// See JCommentsPagination::getCommentPage() for example
 		$filter      = @$options['filter'];
@@ -313,16 +313,16 @@ class JCommentsModel
 		$db   = Factory::getContainer()->get('DatabaseDriver');
 		$user = Factory::getApplication()->getIdentity();
 
-		$objectID    = @$options['object_id'];
-		$objectGroup = @$options['object_group'];
-		$parent      = @$options['parent'];
-		$level       = @$options['level'];
-		$published   = @$options['published'];
-		$userid      = @$options['userid'];
-		$filter      = @$options['filter'];
-		$orderBy     = @$options['orderBy'];
+		$objectID    = $options['object_id'] ?? null;
+		$objectGroup = $options['object_group'] ?? null;
+		$parent      = $options['parent'] ?? null;
+		$level       = $options['level'] ?? null;
+		$published   = $options['published'] ?? null;
+		$userid      = $options['userid'] ?? null;
+		$filter      = $options['filter'] ?? null;
+		$orderBy     = $options['orderBy'] ?? null;
 		$limitStart  = $options['limitStart'] ?? 0;
-		$limit       = @$options['limit'];
+		$limit       = $options['limit'] ?? null;
 		$votes       = $options['votes'] ?? true;
 		$objectinfo  = $options['objectinfo'] ?? false;
 
