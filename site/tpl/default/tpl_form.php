@@ -292,7 +292,7 @@ else {if (typeof window.onload=='function'){var oldload=window.onload;window.onl
         ?>
         <div id="comments-form-link">
             <a id="addcomments" href="#addcomments" class="showform" data-object_id="<?php echo $object_id; ?>"
-               data-object_group="<?php echo $object_group; ?>" href="#addcomments"
+               data-object_group"<?php echo $object_group; ?>" href="#addcomments"
             ><?php echo JText::_('FORM_HEADER'); ?></a>
         </div>
         <?php
