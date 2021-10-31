@@ -20,6 +20,9 @@ use Joomla\CMS\Table\Table;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseDriver;
 
+// Used in administrator panel.
+require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
+
 /**
  * JComments Notification Helper
  *
@@ -48,7 +51,7 @@ class JCommentsNotification
 				$type
 			);
 
-			if (count($subscribers))
+			if (count(get_object_vars($subscribers)))
 			{
 				Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
 
@@ -68,7 +71,11 @@ class JCommentsNotification
 							$table->body     = self::getMessageBody($data, $subscriber);
 							$table->priority = self::getMessagePriority($type);
 							$table->created  = Factory::getDate()->toSql();
-							$table->store();
+
+							if (!$table->store())
+							{
+								Log::add($table->getError(), Log::ERROR, 'com_jcomments');
+							}
 						}
 					}
 				}
@@ -396,7 +403,7 @@ class JCommentsNotification
 	 * @param   string  $lang         The language tag, e.g. en-GB
 	 * @param   string  $type         The subscription type
 	 *
-	 * @return  array
+	 * @return  object
 	 *
 	 * @since   3.0
 	 */
@@ -430,17 +437,18 @@ class JCommentsNotification
 					{
 						$email = trim($email);
 
-						$subscriber        = new stdClass;
-						$subscriber->id    = isset($users[$email]) ? $users[$email]->id : 0;
-						$subscriber->name  = isset($users[$email]) ? $users[$email]->name : '';
-						$subscriber->email = $email;
-						$subscriber->hash  = md5($email);
+						$subscriber         = new stdClass;
+						$subscriber->userid = isset($users[$email]) ? $users[$email]->id : 0;
+						$subscriber->name   = isset($users[$email]) ? $users[$email]->name : '';
+						$subscriber->email  = $email;
+						$subscriber->hash   = md5($email);
+						$subscriber->hash   = md5($email);
 
 						$subscribers[] = $subscriber;
 					}
 				}
-				break;
 
+				break;
 			case 'comment-new':
 			case 'comment-reply':
 			case 'comment-update':
@@ -468,7 +476,7 @@ class JCommentsNotification
 					$db->setQuery($query);
 					$subscribers = $db->loadObjectList();
 				}
-				catch (RuntimeException $e)
+				catch (Exception $e)
 				{
 					Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
 				}
@@ -476,7 +484,7 @@ class JCommentsNotification
 				break;
 		}
 
-		return is_array($subscribers) ? $subscribers : array();
+		return (object) $subscribers;
 	}
 
 	/**

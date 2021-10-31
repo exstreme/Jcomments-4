@@ -31,12 +31,12 @@ class jtt_tpl_index extends JoomlaTuneTemplate
 		if ($comments != '' || $form != '' || $this->getVar('comments-anticache')) {
 			// include comments css (only if we are in administor's panel)
 			if ($this->getVar('comments-css', 0) == 1) {
-				include_once (JCOMMENTS_HELPERS.'/system.php');
+				include_once (JPATH_ROOT . '/components/com_jcomments/helpers/system.php');
 ?>
-<link href="<?php echo JCommentsSystemPluginHelper::getCSS(); ?>" rel="stylesheet" type="text/css" />
+<link href="<?php echo JCommentsSystem::getCSS(); ?>" rel="stylesheet" type="text/css" />
 <?php
 				if ($this->getVar('direction') == 'rtl') {
-					$rtlCSS = JCommentsSystemPluginHelper::getCSS(true);
+					$rtlCSS = JCommentsSystem::getCSS(true);
 					if ($rtlCSS != '') {
 ?>
 <link href="<?php echo $rtlCSS; ?>" rel="stylesheet" type="text/css" />
@@ -75,7 +75,6 @@ jcomments.setList('comments-list');
 				}
 			}
 ?>
-<div id="comments-footer" align="center"><?php echo $this->getVar('support'); ?></div>
 <?php
 			// Some magic like dynamic comments list loader (anticache) and auto go to anchor script
 			$aca = (int) ($this->getVar('comments-gotocomment') == 1);
