@@ -155,9 +155,9 @@ class JCommentsContent
 	public static function checkCategory($id)
 	{
 		$config     = ComponentHelper::getParams('com_jcomments');
-		$categories = $config->get('enable_categories');
+		$categories = (array)$config->get('enable_categories');
 
-		return (in_array('*', $categories) || (!empty($categories) && in_array($id, $categories)));
+		return (in_array('*', $categories) || in_array($id, $categories));
 	}
 
 	/**
