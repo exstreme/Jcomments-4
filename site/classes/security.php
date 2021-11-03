@@ -14,10 +14,14 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
+use Joomla\Database\DatabaseDriver;
 use Joomla\String\StringHelper;
 
 /**
  * JComments security functions
+ *
+ * @since  3.0
  */
 class JCommentsSecurity
 {
@@ -39,16 +43,31 @@ class JCommentsSecurity
 
 		if ($interval > 0)
 		{
+			/** @var DatabaseDriver $db */
 			$db    = Factory::getContainer()->get('DatabaseDriver');
 			$now   = Factory::getDate()->toSql();
-			$query = "SELECT COUNT(id) "
-				. "\nFROM #__jcomments "
-				. "\nWHERE ip = " . $db->Quote($ip)
-				. "\nAND " . $db->Quote($now) . " < DATE_ADD(date, INTERVAL " . $interval . " SECOND)"
-				. (JCommentsFactory::getLanguageFilter() ? "\nAND lang = " . $db->Quote($app->getLanguage()->getTag()) : '');
+
+			$query = $db->getQuery(true)
+				->select('COUNT(id)')
+				->from($db->quoteName('#__jcomments'))
+				->where($db->quoteName('ip') . ' = ' . $db->quote($ip))
+				->where($db->quote($now) . ' < DATE_ADD(date, INTERVAL ' . $interval . ' SECOND)');
+
+			if (JCommentsFactory::getLanguageFilter())
+			{
+				$query->where($db->quoteName('lang') . ' = ' . $db->quote($app->getLanguage()->getTag()));
+			}
+
 			$db->setQuery($query);
 
-			return ($db->loadResult() == 0) ? 0 : 1;
+			try
+			{
+				return ($db->loadResult() == 0) ? 0 : 1;
+			}
+			catch (RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			}
 		}
 
 		return 0;
@@ -84,16 +103,25 @@ class JCommentsSecurity
 		if ((int) $config->get('enable_username_check') == 1)
 		{
 			$name = StringHelper::strtolower($name);
+
+			/** @var DatabaseDriver $db */
 			$db   = Factory::getContainer()->get('DatabaseDriver');
 
-			$query = $db->getQuery(true);
-			$query->select('COUNT(id)');
-			$query->from($db->quoteName('#__users'));
-			$query->where('LOWER(name) = ' . $db->Quote($db->escape($name, true)), 'OR');
-			$query->where('LOWER(username) = ' . $db->Quote($db->escape($name, true)), 'OR');
+			$query = $db->getQuery(true)
+				->select('COUNT(id)')
+				->from($db->quoteName('#__users'))
+				->where('LOWER(name) = ' . $db->quote($db->escape($name, true)), 'OR')
+				->where('LOWER(username) = ' . $db->quote($db->escape($name, true)), 'OR');
 			$db->setQuery($query);
 
-			return ($db->loadResult() == 0) ? 0 : 1;
+			try
+			{
+				return ($db->loadResult() == 0) ? 0 : 1;
+			}
+			catch (RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			}
 		}
 
 		return 0;
@@ -106,15 +134,24 @@ class JCommentsSecurity
 		if ((int) $config->get('enable_username_check') == 1)
 		{
 			$email = StringHelper::strtolower($email);
+
+			/** @var DatabaseDriver $db */
 			$db    = Factory::getContainer()->get('DatabaseDriver');
 
-			$query = $db->getQuery(true);
-			$query->select('COUNT(id)');
-			$query->from($db->quoteName('#__users'));
-			$query->where('LOWER(email) = ' . $db->Quote($db->escape($email, true)));
+			$query = $db->getQuery(true)
+				->select('COUNT(id)')
+				->from($db->quoteName('#__users'))
+				->where('LOWER(email) = ' . $db->quote($db->escape($email, true)));
 			$db->setQuery($query);
 
-			return ($db->loadResult() == 0) ? 0 : 1;
+			try
+			{
+				return ($db->loadResult() == 0) ? 0 : 1;
+			}
+			catch (RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			}
 		}
 
 		return 0;
@@ -126,6 +163,8 @@ class JCommentsSecurity
 	 * @param   array  $options  Array of options for check
 	 *
 	 * @return  boolean True on success, false otherwise
+	 *
+	 * @since   3.0
 	 */
 	public static function checkBlacklist($options = array())
 	{
@@ -135,11 +174,12 @@ class JCommentsSecurity
 
 		if (count($options))
 		{
+			/** @var DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
 
-			$query = $db->getQuery(true);
-			$query->select('COUNT(id)');
-			$query->from($db->quoteName('#__jcomments_blacklist'));
+			$query = $db->getQuery(true)
+				->select('COUNT(id)')
+				->from($db->quoteName('#__jcomments_blacklist'));
 
 			if ($userid > 0)
 			{
@@ -154,23 +194,30 @@ class JCommentsSecurity
 					if (count($parts) == 4)
 					{
 						$conditions   = array();
-						$conditions[] = $db->quoteName('ip') . ' = ' . $db->Quote($ip);
-						$conditions[] = $db->quoteName('ip') . ' = ' . $db->Quote(sprintf('%s.%s.%s.*', $parts[0], $parts[1], $parts[2]));
-						$conditions[] = $db->quoteName('ip') . ' = ' . $db->Quote(sprintf('%s.%s.*.*', $parts[0], $parts[1]));
-						$conditions[] = $db->quoteName('ip') . ' = ' . $db->Quote(sprintf('%s.*.*.*', $parts[0]));
+						$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote($ip);
+						$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.%s.*', $parts[0], $parts[1], $parts[2]));
+						$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.*.*', $parts[0], $parts[1]));
+						$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.*.*.*', $parts[0]));
 
 						$query->where($conditions, 'OR');
 					}
 					else
 					{
-						$query->where($db->quoteName('ip') . ' = ' . $db->Quote($ip));
+						$query->where($db->quoteName('ip') . ' = ' . $db->quote($ip));
 					}
 				}
 			}
 
 			$db->setQuery($query);
 
-			$result = !($db->loadResult() > 0);
+			try
+			{
+				$result = !($db->loadResult() > 0);
+			}
+			catch (RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			}
 		}
 
 		return $result;

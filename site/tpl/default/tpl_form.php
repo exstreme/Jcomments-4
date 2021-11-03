@@ -136,7 +136,7 @@ class jtt_tpl_form extends JoomlaTuneTemplate
 				?>
 				<p>
 	<span>
-		<input class="checkbox" id="comments-form-subscribe" type="checkbox" name="subscribe" value="1" tabindex="5"/>
+		<input class="form-check-input" id="comments-form-subscribe" type="checkbox" name="subscribe" value="1" tabindex="5"/>
 		<label for="comments-form-subscribe"><?php echo JText::_('FORM_SUBSCRIBE'); ?></label><br/>
 	</span>
 				</p>
@@ -215,15 +215,16 @@ function JCommentsInitializeForm()
 ";
 		if ($this->getVar('comments-form-bbcode', 0) == 1)
 		{
-			$bbcodes = array('b' => array(0 => JText::_('FORM_BBCODE_B'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT'))
-			, 'i'                => array(0 => JText::_('FORM_BBCODE_I'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT'))
-			, 'u'                => array(0 => JText::_('FORM_BBCODE_U'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT'))
-			, 's'                => array(0 => JText::_('FORM_BBCODE_S'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT'))
-			, 'img'              => array(0 => JText::_('FORM_BBCODE_IMG'), 1 => JText::_('BBCODE_HINT_ENTER_FULL_URL_TO_THE_IMAGE'))
-			, 'url'              => array(0 => JText::_('FORM_BBCODE_URL'), 1 => JText::_('BBCODE_HINT_ENTER_FULL_URL'))
-			, 'hide'             => array(0 => JText::_('FORM_BBCODE_HIDE'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT_TO_HIDE_IT_FROM_UNREGISTERED'))
-			, 'quote'            => array(0 => JText::_('FORM_BBCODE_QUOTE'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT_TO_QUOTE'))
-			, 'list'             => array(0 => JText::_('FORM_BBCODE_LIST'), 1 => JText::_('BBCODE_HINT_ENTER_LIST_ITEM_TEXT'))
+			$bbcodes = array(
+				'b'     => array(0 => JText::_('FORM_BBCODE_B'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT')),
+				'i'     => array(0 => JText::_('FORM_BBCODE_I'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT')),
+				'u'     => array(0 => JText::_('FORM_BBCODE_U'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT')),
+				's'     => array(0 => JText::_('FORM_BBCODE_S'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT')),
+				'img'   => array(0 => JText::_('FORM_BBCODE_IMG'), 1 => JText::_('BBCODE_HINT_ENTER_FULL_URL_TO_THE_IMAGE')),
+				'url'   => array(0 => JText::_('FORM_BBCODE_URL'), 1 => JText::_('BBCODE_HINT_ENTER_FULL_URL')),
+				'hide'  => array(0 => JText::_('FORM_BBCODE_HIDE'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT_TO_HIDE_IT_FROM_UNREGISTERED')),
+				'quote' => array(0 => JText::_('FORM_BBCODE_QUOTE'), 1 => JText::_('BBCODE_HINT_ENTER_TEXT_TO_QUOTE')),
+				'list'  => array(0 => JText::_('FORM_BBCODE_LIST'), 1 => JText::_('BBCODE_HINT_ENTER_LIST_ITEM_TEXT'))
 			);
 
 			foreach ($bbcodes as $k => $v)
@@ -324,10 +325,11 @@ else {if (typeof window.onload=='function'){var oldload=window.onload;window.onl
 		$objectID    = $this->getVar('comment-object_id');
 		$objectGroup = $this->getVar('comment-object_group');
 		?>
-		<div id="comments-form-link">
-			<a id="addcomments" href="#addcomments" class="showform" data-object_id="<?php echo $objectID; ?>"
-			   data-object_group="<?php echo $objectGroup; ?>"
-			><?php echo JText::_('FORM_HEADER'); ?></a>
+		<div id="comments-form-link" class="d-grid gap-2">
+			<a id="addcomments" href="#addcomments" class="btn btn-outline-primary showform"
+			   data-object_id="<?php echo $objectID; ?>" data-object_group="<?php echo $objectGroup; ?>">
+				<span class="icon-comment icon-fw"></span><?php echo JText::_('FORM_HEADER'); ?>
+			</a>
 		</div>
 		<?php
 	}

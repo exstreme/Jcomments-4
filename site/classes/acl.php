@@ -23,6 +23,14 @@ use Joomla\CMS\Factory;
 class JCommentsACL
 {
 	/**
+	 * User object
+	 *
+	 * @var    object
+	 * @since  3.0
+	 */
+	protected $user;
+
+	/**
 	 * @var    boolean|integer
 	 * @since  3.0
 	 */
@@ -113,10 +121,10 @@ class JCommentsACL
 	public $canReport = 0;
 
 	/**
-	 * @var    boolean|integer
+	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canBan = 0;
+	public $canBan = false;
 
 	/**
 	 * @var    integer
@@ -161,7 +169,7 @@ class JCommentsACL
 											&& (int) $config->get('enable_reports')
 											&& ($config->get('enable_notification') != 0
 												|| $config->get('notification_type', 2) == true);
-		$this->canBan                = 0;
+		$this->canBan                = ($user->authorise('comment.ban', 'com_jcomments') || $user->get('isRoot'));
 		$this->canQuote              = $user->authorise('comment.comment', 'com_jcomments')
 											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
 		$this->canReply              = $user->authorise('comment.comment', 'com_jcomments')
@@ -184,13 +192,15 @@ class JCommentsACL
 				$this->canQuote    = 0;
 				$this->canReply    = 0;
 				$this->canVote     = 0;
-				$this->canBan      = 0;
+				$this->canBan      = false;
 			}
 			else
 			{
 				$this->canBan = $user->authorise('comment.ban', 'com_jcomments');
 			}
 		}
+
+		$this->user = $user;
 	}
 
 	/**
@@ -203,8 +213,7 @@ class JCommentsACL
 	public function enableAutocensor()
 	{
 		$config       = ComponentHelper::getParams('com_jcomments');
-		$user         = Factory::getApplication()->getIdentity();
-		$userGroups   = $user->getAuthorisedGroups();
+		$userGroups   = $this->user->getAuthorisedGroups();
 		$censorGroups = $config->get('enable_autocensor');
 
 		foreach ($userGroups as $userGroup)
@@ -220,6 +229,24 @@ class JCommentsACL
 	}
 
 	/**
+	 * Check if need to use autocensor on current user group.
+	 *
+	 * @return  boolean   True if user must be autocensored.
+	 *
+	 * @since   4.0
+	 */
+	public function showTermsOfUse()
+	{
+		// Do not show Terms Of Use for Super user
+		if ($this->user->get('isRoot'))
+		{
+			return false;
+		}
+
+		return $this->user->authorise('comment.terms_of_use', 'com_jcomments');
+	}
+
+	/**
 	 * Check if user allowed to see custom bbcode button.
 	 *
 	 * @param   string  $buttonACL  Comma separated string with usergroup IDs.
@@ -230,8 +257,7 @@ class JCommentsACL
 	 */
 	public function enableCustomBBCode($buttonACL)
 	{
-		$user       = Factory::getApplication()->getIdentity();
-		$userGroups = $user->getAuthorisedGroups();
+		$userGroups = $this->user->getAuthorisedGroups();
 
 		foreach ($userGroups as $userGroup)
 		{
@@ -263,9 +289,8 @@ class JCommentsACL
 
 		if (!isset($access))
 		{
-			$user     = Factory::getApplication()->getIdentity();
-			$access   = array_unique(Access::getAuthorisedViewLevels($user->get('id')));
-			$access[] = 0; // for backward compatibility
+			$access   = array_unique(Access::getAuthorisedViewLevels($this->user->get('id')));
+			$access[] = 0; // For backward compatibility
 		}
 
 		return $access;
@@ -422,15 +447,25 @@ class JCommentsACL
 			|| $this->canViewIP($object) || $this->canBan($object)) && (!$this->isDeleted($object) || $this->deleteMode == 0);
 	}
 
-	public function canBan($obj = null)
+	/**
+	 *
+	 * Check if user can ban comment.
+	 *
+	 * @param   mixed  $item  Item ID or null.
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 */
+	public function canBan($item = null)
 	{
-		if (is_null($obj))
+		if (is_null($item))
 		{
 			return $this->canBan;
 		}
 		else
 		{
-			return ($this->canBan && (!$this->isDeleted($obj))) ? 1 : 0;
+			return $this->canBan && (!$this->isDeleted($item));
 		}
 	}
 

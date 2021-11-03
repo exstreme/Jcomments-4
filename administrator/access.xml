@@ -20,10 +20,10 @@
 		<action name="comment.delete" title="AP_CAN_DELETE" description="AP_CAN_DELETE_DESC"/>
 		<action name="comment.delete.own" title="AP_CAN_DELETE_OWN" description="AP_CAN_DELETE_OWN_DESC"/>
 		<action name="comment.delete.own.articles" title="AP_CAN_DELETE_FOR_MY_OBJECT" description="AP_CAN_DELETE_FOR_MY_OBJECT_DESC"/>
-		<action name="comment.bbcode.bold" title="AP_ENABLE_BBCODE_B" description="AP_ENABLE_BBCODE_B_DESC"/>
-		<action name="comment.bbcode.italic" title="AP_ENABLE_BBCODE_I" description="AP_ENABLE_BBCODE_I_DESC"/>
-		<action name="comment.bbcode.underline" title="AP_ENABLE_BBCODE_U" description="AP_ENABLE_BBCODE_U_DESC"/>
-		<action name="comment.bbcode.strike" title="AP_ENABLE_BBCODE_S" description="AP_ENABLE_BBCODE_S_DESC"/>
+		<action name="comment.bbcode.b" title="AP_ENABLE_BBCODE_B" description="AP_ENABLE_BBCODE_B_DESC"/>
+		<action name="comment.bbcode.i" title="AP_ENABLE_BBCODE_I" description="AP_ENABLE_BBCODE_I_DESC"/>
+		<action name="comment.bbcode.u" title="AP_ENABLE_BBCODE_U" description="AP_ENABLE_BBCODE_U_DESC"/>
+		<action name="comment.bbcode.s" title="AP_ENABLE_BBCODE_S" description="AP_ENABLE_BBCODE_S_DESC"/>
 		<action name="comment.bbcode.url" title="AP_ENABLE_BBCODE_URL" description="AP_ENABLE_BBCODE_URL_DESC"/>
 		<action name="comment.bbcode.img" title="AP_ENABLE_BBCODE_IMG" description="AP_ENABLE_BBCODE_IMG_DESC"/>
 		<action name="comment.bbcode.list" title="AP_ENABLE_BBCODE_LIST" description="AP_ENABLE_BBCODE_LIST_DESC"/>

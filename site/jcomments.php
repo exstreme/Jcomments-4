@@ -242,7 +242,11 @@ class JComments
 			$acl->setCommentsLocked(true);
 		}
 
-		$tmpl->addVar('tpl_index', 'comments-form-captcha', $user->authorise('comment.captcha', 'com_jcomments'));
+		$tmpl->addVar(
+			'tpl_index',
+			'comments-form-captcha',
+			($user->authorise('comment.captcha', 'com_jcomments') && !$user->get('isRoot'))
+		);
 		$tmpl->addVar('tpl_index', 'comments-form-link', $showForm ? 0 : 1);
 
 		if ((int) $config->get('enable_rss') == 1) {
@@ -350,7 +354,7 @@ class JComments
 				return $result;
 			}
 
-			if ($user->authorise('comment.captcha', 'com_jcomments') == 1) {
+			if ($user->authorise('comment.captcha', 'com_jcomments') && !$user->get('isRoot')) {
 				$captchaEngine = $config->get('captcha_engine', 'kcaptcha');
 				if ($captchaEngine != 'kcaptcha') {
 					JCommentsEvent::trigger('onJCommentsCaptchaJavaScript');
@@ -393,7 +397,7 @@ class JComments
 			}
 			
 			$show_checkbox_terms_of_use = $config->get('show_checkbox_terms_of_use');
-			if (($show_checkbox_terms_of_use == 1) && ($user->authorise('comment.terms_of_use', 'com_jcomments') == 1))
+			if (($show_checkbox_terms_of_use == 1) && ($acl->showTermsOfUse()))
 			{
  				$tmpl->addVar('tpl_form', 'var_show_checkbox_terms_of_use', 1);
 			}
@@ -440,7 +444,7 @@ class JComments
 			$tmpl->addVar('tpl_form', 'comment-name-maxlength', $username_maxlength);
 
 			if (((int) $config->get('show_commentlength') == 1)
-				&& ($user->authorise('comment.length_check', 'com_jcomments'))
+				&& ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'))
 			) {
 				$tmpl->addVar('tpl_form', 'comments-form-showlength-counter', 1);
 				$tmpl->addVar('tpl_form', 'comment-maxlength', (int) $config->get('comment_maxlength'));
@@ -448,7 +452,7 @@ class JComments
 				$tmpl->addVar('tpl_form', 'comment-maxlength', 0);
 			}
 
-			if ($user->authorise('comment.captcha', 'com_jcomments') == 1) {
+			if ($user->authorise('comment.captcha', 'com_jcomments') && !$user->get('isRoot')) {
 				$tmpl->addVar('tpl_form', 'comments-form-captcha', 1);
 
 				$captchaEngine = $config->get('captcha_engine', 'kcaptcha');
@@ -465,7 +469,7 @@ class JComments
 
 			$canSubscribe = $user->authorise('comment.subscribe', 'com_jcomments');
 
-			if ($user->id && $canSubscribe) {
+			if (($user->id && $canSubscribe) || $user->get('isRoot')) {
 				require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php');
 				$manager = JCommentsSubscriptionManager::getInstance();
 				$canSubscribe = $canSubscribe && (!$manager->isSubscribed($object_id, $object_group, $user->id));
@@ -684,10 +688,10 @@ class JComments
 
 			$tmpl->addVar('tpl_list', 'comments-refresh', intval(!$isLocked));
 			$tmpl->addVar('tpl_list', 'comments-rss', intval((int) $config->get('enable_rss') && !$isLocked));
-			$tmpl->addVar('tpl_list', 'comments-can-subscribe', intval($user->id && $user->authorise('comment.subscribe', 'com_jcomments') && !$isLocked));
+			$tmpl->addVar('tpl_list', 'comments-can-subscribe', intval($user->id && $user->authorise('comment.subscribe', 'com_jcomments') && !$isLocked) || $user->get('isRoot'));
 			$tmpl->addVar('tpl_list', 'comments-count', count($rows));
 
-			if ($user->id && $user->authorise('comment.subscribe', 'com_jcomments')) {
+			if (($user->id && $user->authorise('comment.subscribe', 'com_jcomments')) || $user->get('isRoot')) {
 				require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php');
 				$manager = JCommentsSubscriptionManager::getInstance();
 				$isSubscribed = $manager->isSubscribed($object_id, $object_group, $user->id);
@@ -818,10 +822,10 @@ class JComments
 
 			$tmpl->addVar('tpl_tree', 'comments-refresh', intval(!$isLocked));
 			$tmpl->addVar('tpl_tree', 'comments-rss', intval((int) $config->get('enable_rss') && !$isLocked));
-			$tmpl->addVar('tpl_tree', 'comments-can-subscribe', intval($user->id && $user->authorise('comment.subscribe', 'com_jcomments') && !$isLocked));
+			$tmpl->addVar('tpl_tree', 'comments-can-subscribe', intval($user->id && $user->authorise('comment.subscribe', 'com_jcomments') && !$isLocked) || $user->get('isRoot'));
 			$tmpl->addVar('tpl_tree', 'comments-count', count($rows));
 
-			if ($user->id && $user->authorise('comment.subscribe', 'com_jcomments')) {
+			if (($user->id && $user->authorise('comment.subscribe', 'com_jcomments')) || $user->get('isRoot')) {
 				require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php');
 				$manager = JCommentsSubscriptionManager::getInstance();
 				$isSubscribed = $manager->isSubscribed($object_id, $object_group, $user->id);
@@ -1046,11 +1050,11 @@ class JComments
 			$comment->comment = JComments::maskEmail($comment->id, $comment->comment);
 		}
 
-		// autolink urls
+		// Autolink urls
 		if ($user->authorise('comment.autolink', 'com_jcomments')) {
 			$comment->comment = preg_replace_callback(_JC_REGEXP_LINK, array('JComments', 'urlProcessor'), $comment->comment);
 
-			if ($user->authorise('comment.email.protect', 'com_jcomments') != 1) {
+			if (!$user->authorise('comment.email.protect', 'com_jcomments')) {
 				$comment->comment = preg_replace(_JC_REGEXP_EMAIL, '<a href="mailto:\\1@\\2">\\1@\\2</a>', $comment->comment);
 			}
 		}
@@ -1072,9 +1076,9 @@ class JComments
 		JCommentsEvent::trigger('onJCommentsCommentAfterPrepare', array(&$comment));
 	}
 
-	public static function maskEmail($id, $text)
+	public static function maskEmail($id, $text, $email = false)
 	{
-		$id = (int)$id;
+		$id = (int) $id;
 
 		if ($id) {
 			$image = str_replace('/administrator', '', JURI::root()) . 'media/com_jcomments/images/email.png';
@@ -1082,7 +1086,7 @@ class JComments
 			$matches = array();
 			$count = preg_match_all(_JC_REGEXP_EMAIL, $text, $matches);
 			for ($i = 0; $i < $count; $i++) {
-				$html = '<span onclick="jcomments.jump2email(' . $id . ', \'' . md5($matches[0][$i]) . '\');" class="email">';
+				$html = '<span onclick="jcomments.jump2email(' . $id . ', \'' . md5($matches[0][$i]) . '\', ' . (int) $email . ');" class="email">';
 				$html .= $matches[1][$i] . '<img src="' . $image . '" alt="@" />' . $matches[2][$i];
 				$html .= '</span>';
 				$text = str_replace($matches[0][$i], $html, $text);
