@@ -49,7 +49,8 @@ class JCommentsBBCode
 
 	public function registerCode($str)
 	{
-		$this->codes[$str] = Factory::getApplication()->getIdentity()->authorise('comment.bbcode.' . $str, 'com_jcomments');
+		$user = Factory::getApplication()->getIdentity();
+		$this->codes[$str] = ($user->authorise('comment.bbcode.' . $str, 'com_jcomments') || $user->get('isRoot'));
 	}
 
 	public function getCodes()
@@ -76,9 +77,18 @@ class JCommentsBBCode
 		return $enabled;
 	}
 
+	/**
+	 * Check if user can see and use bbcode.
+	 *
+	 * @param   string  $str  BBcode. E.g. 'list' or 'b' or 's'
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 */
 	public function canUse($str)
 	{
-		return $this->codes[$str] ? 1 : 0;
+		return (bool) $this->codes[$str];
 	}
 
 	public function filter($str, $forceStrip = false)
@@ -103,35 +113,35 @@ class JCommentsBBCode
 		}
 
 		// B
-		if (($this->canUse('b') == 0) || ($forceStrip))
+		if ((!$this->canUse('b')) || ($forceStrip))
 		{
 			$patterns[]     = '/\[b\](.*?)\[\/b\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// I
-		if (($this->canUse('i') == 0) || ($forceStrip))
+		if ((!$this->canUse('i')) || ($forceStrip))
 		{
 			$patterns[]     = '/\[i\](.*?)\[\/i\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// U
-		if (($this->canUse('u') == 0) || ($forceStrip))
+		if ((!$this->canUse('u')) || ($forceStrip))
 		{
 			$patterns[]     = '/\[u\](.*?)\[\/u\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// S
-		if (($this->canUse('s') == 0) || ($forceStrip))
+		if ((!$this->canUse('s')) || ($forceStrip))
 		{
 			$patterns[]     = '/\[s\](.*?)\[\/s\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// URL
-		if (($this->canUse('url') == 0) || ($forceStrip))
+		if ((!$this->canUse('url')) || ($forceStrip))
 		{
 			$patterns[]     = '/\[url\](.*?)\[\/url\]/iu';
 			$replacements[] = '\\1';
@@ -140,14 +150,14 @@ class JCommentsBBCode
 		}
 
 		// IMG
-		if (($this->canUse('img') == 0) || ($forceStrip))
+		if ((!$this->canUse('img')) || ($forceStrip))
 		{
 			$patterns[]     = '/\[img\](.*?)\[\/img\]/iu';
 			$replacements[] = '\\1';
 		}
 
 		// HIDE
-		if (($this->canUse('hide') == 0) || ($forceStrip))
+		if ((!$this->canUse('hide')) || ($forceStrip))
 		{
 			$patterns[] = '/\[hide\](.*?)\[\/hide\]/iu';
 
@@ -172,7 +182,7 @@ class JCommentsBBCode
 		$str = preg_replace($patterns, $replacements, $str);
 
 		// LIST
-		if (($this->canUse('list') == 0) || ($forceStrip))
+		if ((!$this->canUse('list')) || ($forceStrip))
 		{
 			$matches    = array();
 			$matchCount = preg_match_all('/\[list\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]/isu', $str, $matches);
@@ -246,8 +256,6 @@ class JCommentsBBCode
 	public function replace($str)
 	{
 		ob_start();
-
-		$config = ComponentHelper::getParams('com_jcomments');
 
 		$patterns     = array();
 		$replacements = array();
@@ -324,67 +332,30 @@ class JCommentsBBCode
 			$replacements[] = '<span class="hidden">' . Text::_('BBCODE_MESSAGE_HIDDEN_TEXT') . '</span>';
 		}
 
-		// TODO Geshi removed in J3.
-		// CODE
-		$geshiEnabled = (int) $config->get('enable_geshi', 0);
+		// CODE. Left for B/C only.
 		$codePattern  = '#\[code\=?([a-z0-9]*?)\](.*?)\[\/code\]#ismu';
-		$geshiLibrary = JPATH_SITE . '/plugins/content/geshi/geshi/geshi.php';
+		$patterns[]     = $codePattern;
+		$replacements[] = '<span class="code">' . Text::_('COMMENT_TEXT_CODE') . '</span><code>\\2</code>';
 
-		$geshiEnabled = $geshiEnabled && is_file($geshiLibrary);
-
-		if ($geshiEnabled)
+		if (!function_exists('jcommentsProcessCode'))
 		{
-			require_once($geshiLibrary);
-
-			if (!function_exists('jcommentsProcessGeSHi'))
+			function jcommentsProcessCode($matches)
 			{
-				function jcommentsProcessGeSHi($matches)
-				{
-					$lang                  = $matches[1] != '' ? $matches[1] : 'php';
-					$text                  = $matches[2];
-					$html_entities_match   = array('#\<br \/\>#', "#<#", "#>#", "|&#39;|", '#&quot;#', '#&nbsp;#');
-					$html_entities_replace = array("\n", '&lt;', '&gt;', "'", '"', ' ');
-					$text                  = preg_replace($html_entities_match, $html_entities_replace, $text);
-					$text                  = preg_replace('#(\r|\n)*?$#ism', '', $text);
-					$text                  = str_replace('&lt;', '<', $text);
-					$text                  = str_replace('&gt;', '>', $text);
+				$text = htmlspecialchars(trim($matches[0]));
+				$text = str_replace("\r", '', $text);
+				$text = str_replace("\n", '<br />', $text);
 
-					$geshi = new GeSHi($text, $lang);
-					$text  = $geshi->parse_code();
-
-					return '[code]' . $text . '[/code]';
-				}
+				return $text;
 			}
-
-			$patterns[]     = $codePattern;
-			$replacements[] = '<span class="code">' . Text::_('COMMENT_TEXT_CODE') . '</span>\\2';
-			$str            = preg_replace_callback($codePattern, 'jcommentsProcessGeSHi', $str);
-		}
-		else
-		{
-			$patterns[]     = $codePattern;
-			$replacements[] = '<span class="code">' . Text::_('COMMENT_TEXT_CODE') . '</span><code>\\2</code>';
-
-			if (!function_exists('jcommentsProcessCode'))
-			{
-				function jcommentsProcessCode($matches)
-				{
-					$text = htmlspecialchars(trim($matches[0]));
-					$text = str_replace("\r", '', $text);
-					$text = str_replace("\n", '<br />', $text);
-
-					return $text;
-				}
-			}
-
-			$str = preg_replace_callback($codePattern, 'jcommentsProcessCode', $str);
 		}
 
+		$str = preg_replace_callback($codePattern, 'jcommentsProcessCode', $str);
 		$str = preg_replace($patterns, $replacements, $str);
 
 		// QUOTE
 		$quotePattern = '#\[quote\s?name=\"([^\"\<\>\(\)]*?)\"\](<br\s?\/?\>)*?(.*?)(<br\s?\/?\>)*\[\/quote\](<br\s?\/?\>)*?#ismu';
-		$quoteReplace = '<span class="quote">' . Text::sprintf('COMMENT_TEXT_QUOTE_EXTENDED', '\\1') . '</span><blockquote><div>\\3</div></blockquote>';
+		$quoteReplace = '<span class="quote">' . Text::sprintf('COMMENT_TEXT_QUOTE_EXTENDED', '\\1')
+			. '</span><blockquote><div>\\3</div></blockquote>';
 
 		while (preg_match($quotePattern, $str))
 		{

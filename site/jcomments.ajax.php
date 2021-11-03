@@ -168,7 +168,7 @@ class JCommentsAJAX
 		$config   = ComponentHelper::getParams('com_jcomments');
 		$response = JCommentsFactory::getAjaxResponse();
 
-		if ($user->authorise('comment.comment', 'com_jcomments'))
+		if ($user->authorise('comment.comment', 'com_jcomments') && !$user->get('isRoot'))
 		{
 			$values = self::prepareValues($_POST);
 
@@ -264,13 +264,13 @@ class JCommentsAJAX
 
 			$values['name_checkbox_terms_of_use'] = isset($values['name_checkbox_terms_of_use']) ? (int) $values['name_checkbox_terms_of_use'] : 0;
 
-			if (($user->authorise('comment.flood', 'com_jcomments') == 1) && (JCommentsSecurity::checkFlood($userIP)))
+			if (($user->authorise('comment.flood', 'com_jcomments')) && (JCommentsSecurity::checkFlood($userIP)) && !$user->get('isRoot'))
 			{
 				self::showErrorMessage(Text::_('ERROR_TOO_QUICK'));
 			}
 			elseif (((int) $config->get('show_checkbox_terms_of_use') == 1)
 				&& ($values['name_checkbox_terms_of_use'] == 0)
-				&& ($user->authorise('comment.terms_of_use', 'com_jcomments') == 1))
+				&& ($acl->showTermsOfUse()))
 			{
 				self::showErrorMessage(Text::_('ERROR_CHECKBOX_TERMS_OF_USE_NO_SELECTED'), 'name_checkbox_terms_of_use');
 			}
@@ -287,20 +287,20 @@ class JCommentsAJAX
 				self::showErrorMessage(Text::_('ERROR_EMPTY_COMMENT'), 'comment');
 			}
 			elseif (((int) $config->get('comment_maxlength') != 0)
-				&& ($user->authorise('comment.length_check', 'com_jcomments') == 1)
+				&& ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'))
 				&& (StringHelper::strlen($values['comment']) > $config->get('comment_maxlength')))
 			{
 				self::showErrorMessage(Text::_('ERROR_YOUR_COMMENT_IS_TOO_LONG'), 'comment');
 			}
 			elseif (((int) $config->get('comment_minlength', 0) != 0)
-				&& ($user->authorise('comment.length_check', 'com_jcomments') == 1)
+				&& ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'))
 				&& (StringHelper::strlen($values['comment']) < $config->get('comment_minlength')))
 			{
 				self::showErrorMessage(Text::_('ERROR_YOUR_COMMENT_IS_TOO_SHORT'), 'comment');
 			}
 			else
 			{
-				if ($user->authorise('comment.captcha', 'com_jcomments') == 1)
+				if ($user->authorise('comment.captcha', 'com_jcomments') && !$user->get('isRoot'))
 				{
 					$captchaEngine = $config->get('captcha_engine', 'kcaptcha');
 
@@ -452,7 +452,7 @@ class JCommentsAJAX
 					return $response;
 				}
 				elseif (((int) $config->get('comment_minlength', 0) != 0)
-					&& ($user->authorise('comment.length_check', 'com_jcomments') == 1)
+					&& ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'))
 					&& (StringHelper::strlen($commentWithoutQuotes) < $config->get('comment_minlength')))
 				{
 					self::showErrorMessage(Text::_('ERROR_YOUR_COMMENT_IS_TOO_SHORT'), 'comment');
@@ -479,7 +479,7 @@ class JCommentsAJAX
 				$comment->date         = Factory::getDate()->toSql();
 
 				// Cast to integer value to store in DB.
-				$comment->published    = (int) $user->authorise('comment.autopublish', 'com_jcomments');
+				$comment->published    = (int) ($user->authorise('comment.autopublish', 'com_jcomments') || $user->get('isRoot'));
 
 				$query = $db->getQuery(true);
 				$query
@@ -552,7 +552,7 @@ class JCommentsAJAX
 								if ($timeDiff < $mergeTime)
 								{
 									$maxlength = (int) $config->get('comment_maxlength');
-									$needcheck = $user->authorise('comment.length_check', 'com_jcomments');
+									$needcheck = ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'));
 
 									// Validate new comment text length and if it longer than specified -
 									// disable union current comment with previous
@@ -577,7 +577,7 @@ class JCommentsAJAX
 
 						$response->addScript("jcomments.clear('comment');");
 
-						if ($user->authorise('comment.captcha', 'com_jcomments') == 1)
+						if ($user->authorise('comment.captcha', 'com_jcomments') && !$user->get('isRoot'))
 						{
 							if ($config->get('captcha_engine', 'kcaptcha') == 'kcaptcha')
 							{
@@ -693,11 +693,11 @@ class JCommentsAJAX
 					// Clear comments textarea & update comment length counter if needed
 					$response->addScript("jcomments.clear('comment');");
 
-					if ($user->authorise('comment.captcha', 'com_jcomments') == 1)
+					if ($user->authorise('comment.captcha', 'com_jcomments') && !$user->get('isRoot'))
 					{
 						if ($config->get('captcha_engine', 'kcaptcha') == 'kcaptcha')
 						{
-							require_once(JPATH_ROOT . '/components/com_jcomments/jcomments.captcha.php');
+							require_once JPATH_ROOT . '/components/com_jcomments/jcomments.captcha.php';
 
 							JCommentsCaptcha::destroy();
 							$response->addScript("jcomments.clear('captcha');");
@@ -988,18 +988,18 @@ class JCommentsAJAX
 				}
 				elseif (((int) $config->get('show_checkbox_terms_of_use') == 1)
 					&& ($values['name_checkbox_terms_of_use'] == 0)
-					&& ($user->authorise('comment.terms_of_use', 'com_jcomments') == 1))
+					&& ($acl->showTermsOfUse()))
 				{
 					self::showErrorMessage(Text::_('ERROR_CHECKBOX_TERMS_OF_USE_NO_SELECTED'), 'name_checkbox_terms_of_use');
 				}
 				elseif (((int) $config->get('comment_maxlength') != 0)
-					&& ($user->authorise('comment.length_check', 'com_jcomments') == 1)
+					&& ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'))
 					&& (StringHelper::strlen($values['comment']) > (int) $config->get('comment_maxlength')))
 				{
 					self::showErrorMessage(Text::_('ERROR_YOUR_COMMENT_IS_TOO_LONG'), 'comment');
 				}
 				elseif (((int) $config->get('comment_minlength') != 0)
-					&& ($user->authorise('comment.length_check', 'com_jcomments') == 1)
+					&& ($user->authorise('comment.length_check', 'com_jcomments') && !$user->get('isRoot'))
 					&& (StringHelper::strlen($values['comment']) < (int) $config->get('comment_minlength')))
 				{
 					self::showErrorMessage(Text::_('ERROR_YOUR_COMMENT_IS_TOO_SHORT'), 'comment');
@@ -1010,7 +1010,7 @@ class JCommentsAJAX
 
 					$comment->comment   = $values['comment'];
 					$comment->comment   = $bbcode->filter($comment->comment);
-					$comment->published = $user->authorise('comment.autopublish', 'com_jcomments');
+					$comment->published = (int) ($user->authorise('comment.autopublish', 'com_jcomments') || $user->get('isRoot'));
 
 
 					if (((int) $config->get('comment_title') != 0) && isset($values['title']))
@@ -1034,21 +1034,28 @@ class JCommentsAJAX
 						return $response;
 					}
 
-					$comment->store();
-					$comment->checkin();
-
-					JCommentsEvent::trigger('onJCommentsCommentAfterChange', array(&$comment));
-
-					if ((int) $config->get('enable_notification') == 1)
+					if ($comment->store())
 					{
-						if (in_array(1, $config->get('notification_type')))
-						{
-							JComments::sendNotification($comment, false);
-						}
-					}
+						$comment->checkin();
 
-					$html = JCommentsText::jsEscape(JComments::getCommentItem($comment));
-					$response->addScript("jcomments.updateComment(" . $comment->id . ", '$html');");
+						JCommentsEvent::trigger('onJCommentsCommentAfterChange', array(&$comment));
+
+						if ((int) $config->get('enable_notification') == 1)
+						{
+							if (in_array(1, $config->get('notification_type')))
+							{
+								JComments::sendNotification($comment, false);
+							}
+						}
+
+						$html = JCommentsText::jsEscape(JComments::getCommentItem($comment));
+						$response->addScript("jcomments.updateComment(" . $comment->id . ", '$html');");
+					}
+					else
+					{
+						Log::add($comment->getError(), Log::ERROR, 'com_jcomments');
+						$response->addAlert(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+					}
 				}
 			}
 			else
@@ -1184,7 +1191,17 @@ class JCommentsAJAX
 		return $response;
 	}
 
-	public static function jump2email($id, $hash)
+	/**
+	 * Search for email and simulate click on mailto: link.
+	 * @param   integer  $id     Comment ID.
+	 * @param   string   $hash   Email hash.
+	 * @param   boolean  $email  Search and replace only in email address, in comment text otherwise.
+	 *
+	 * @return  JoomlaTuneAjaxResponse
+	 *
+	 * @since   3.0
+	 */
+	public static function jump2email($id, $hash, $email = false)
 	{
 		$response = JCommentsFactory::getAjaxResponse();
 		$comment  = Table::getInstance('Comment', 'JCommentsTable');
@@ -1193,7 +1210,7 @@ class JCommentsAJAX
 		if ((strlen($hash) == 32) && ($comment->load((int) $id)))
 		{
 			$matches = array();
-			preg_match_all(_JC_REGEXP_EMAIL, $comment->comment, $matches);
+			preg_match_all(_JC_REGEXP_EMAIL, ($email ? $comment->email : $comment->comment), $matches);
 
 			foreach ($matches[0] as $email)
 			{

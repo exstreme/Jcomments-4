@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 
 /**
@@ -87,10 +88,17 @@ class jtt_tpl_comment extends JoomlaTuneTemplate
 						<?php
 						if (($this->getVar('comment-show-email') > 0) && ($comment->email != ''))
 						{
+							if (!Factory::getApplication()->getIdentity()->get('isRoot'))
+							{
+								echo JComments::maskEmail($comment->id, $comment->email, true);
+							}
+							else
+							{
 							?>
 							<a class="comment-email"
 							   href="mailto:<?php echo $comment->email; ?>"><?php echo $comment->email; ?></a>
 							<?php
+							}
 						}
 						?>
 						<span class="comment-date"><?php echo HTMLHelper::_('date', $comment->date, 'DATE_FORMAT_LC1'); ?></span>
@@ -163,7 +171,7 @@ class jtt_tpl_comment extends JoomlaTuneTemplate
 	 * Displays comment's administration panel
 	 *
 	 */
-	function getCommentAdministratorPanel(&$comment)
+	function getCommentAdministratorPanel($comment)
 	{
 		if ($this->getVar('comments-panel-visible', 0) == 1)
 		{
@@ -237,21 +245,22 @@ class jtt_tpl_comment extends JoomlaTuneTemplate
 		}
 		?>
 		<span class="comments-vote">
-	<span id="comment-vote-holder-<?php echo $comment->id; ?>">
-<?php
-if ($this->getVar('button-vote', 0) == 1)
-{
-	?>
-	<a href="#" class="vote-good" title="<?php echo JText::_('BUTTON_VOTE_GOOD'); ?>"
-	   onclick="jcomments.voteComment(<?php echo $comment->id; ?>, 1);return false;"></a><a href="#" class="vote-poor"
-	                                                                                        title="<?php echo JText::_('BUTTON_VOTE_BAD'); ?>"
-	                                                                                        onclick="jcomments.voteComment(<?php echo $comment->id; ?>, -1);return false;"></a>
-	<?php
-}
-echo $this->getCommentVoteValue($comment);
-?>
-	</span>
-</span>
+			<span id="comment-vote-holder-<?php echo $comment->id; ?>">
+			<?php
+			if ($this->getVar('button-vote', 0) == 1)
+			{
+				?>
+				<a href="#" class="vote-good" title="<?php echo JText::_('BUTTON_VOTE_GOOD'); ?>"
+				   onclick="jcomments.voteComment(<?php echo $comment->id; ?>, 1);return false;"></a>
+				<a href="#" class="vote-poor" title="<?php echo JText::_('BUTTON_VOTE_BAD'); ?>"
+				   onclick="jcomments.voteComment(<?php echo $comment->id; ?>, -1);return false;"></a>
+				<?php
+			}
+
+			$this->getCommentVoteValue($comment);
+			?>
+			</span>
+		</span>
 		<?php
 	}
 

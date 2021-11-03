@@ -5,7 +5,7 @@
 				name="enable_categories"
 				type="category"
 				extension="com_content"
-				default=""
+				default="*"
 				multiple="multiple"
 				label="A_CATEGORIES"
 				description="AP_CATEGORIES_DESC"
@@ -19,7 +19,7 @@
 				name="enable_notification"
 				type="radio"
 				class="btn-group radio"
-				default="1"
+				default="0"
 				label="AP_ENABLE_NOTIFICATION"
 				description="AP_ENABLE_NOTIFICATION_DESC"
 				filter="integer"
@@ -31,7 +31,7 @@
 		<field
 				name="notification_type"
 				type="list"
-				default=""
+				default="1,2"
 				multiple="multiple"
 				label="AP_NOTIFICATION_TYPES"
 				showon="enable_notification:1"
@@ -53,7 +53,7 @@
 				name="enable_quick_moderation"
 				type="radio"
 				class="btn-group"
-				default="1"
+				default="0"
 				label="AP_ENABLE_QUICK_MODERATION"
 				description="AP_ENABLE_QUICK_MODERATION_DESC"
 				filter="integer"
@@ -130,7 +130,7 @@
 		<field
 				name="feed_limit"
 				type="text"
-				default="0"
+				default="100"
 				filter="integer"
 				label="AP_FEED_LIMIT"
 				description="AP_FEED_LIMIT_DESC"
@@ -216,7 +216,7 @@
 				name="enable_voting"
 				type="radio"
 				class="btn-group"
-				default="0"
+				default="1"
 				label="AP_ENABLE_VOTING"
 				description="AP_ENABLE_VOTING_DESC"
 				filter="integer"
@@ -228,7 +228,7 @@
 		<field
 				name="display_author"
 				type="list"
-				default="0"
+				default="name"
 				label="AP_DISPLAY_AUTHOR"
 				description="AP_DISPLAY_AUTHOR_DESC"
 		>
@@ -241,7 +241,7 @@
 		<field
 				name="template_view"
 				type="list"
-				default="tree"
+				default="list"
 				label="AP_TEMPLATE_VIEW"
 				description="AP_TEMPLATE_VIEW_DESC"
 		>
@@ -265,7 +265,7 @@
 		<field
 				name="comments_list_order"
 				type="list"
-				default="tree"
+				default="DESC"
 				label="AP_LIST_ORDER"
 				description="AP_LIST_ORDER_DESC"
 				showon="template_view:list"
@@ -277,7 +277,7 @@
 		<field
 				name="comments_per_page"
 				type="text"
-				default=""
+				default="10"
 				filter="integer"
 				label="AP_COMMENTS_PER_PAGE"
 				description="AP_COMMENTS_PER_PAGE_DESC"
@@ -287,7 +287,7 @@
 		<field
 				name="comments_page_limit"
 				type="text"
-				default=""
+				default="15"
 				filter="integer"
 				label="AP_COMMENTS_PAGE_LIMIT"
 				description="AP_COMMENTS_PAGE_LIMIT_DESC"
@@ -297,7 +297,7 @@
 		<field
 				name="comments_pagination"
 				type="list"
-				default="0"
+				default="both"
 				label="AP_PAGINATION"
 				description="AP_PAGINATION_DESC"
 				showon="template_view:list"
@@ -312,7 +312,7 @@
 		<field
 				name="form_show"
 				type="list"
-				default="0"
+				default="1"
 				label="AP_FORM_SHOW"
 				description="AP_FORM_SHOW_DESC"
 				filter="int"
@@ -338,7 +338,7 @@
 				name="show_policy"
 				type="usergrouplist"
 				multiple="multiple"
-				default=""
+				default="2,9"
 				label="AP_SHOW_POLICY"
 				description="AP_SHOW_POLICY_DESC"
 		/>
@@ -371,7 +371,7 @@
 		<field
 				name="author_homepage"
 				type="list"
-				default="0"
+				default="1"
 				label="AP_FORM_FIELD_AUTHOR_HOMEPAGE"
 				filter="int"
 		>
@@ -386,7 +386,7 @@
 		<field
 				name="comment_title"
 				type="list"
-				default="1"
+				default="0"
 				label="AP_FORM_FIELD_COMMENT_TITLE"
 				filter="int"
 		>
@@ -399,7 +399,7 @@
 				name="show_commentlength"
 				type="radio"
 				class="btn-group"
-				default="0"
+				default="1"
 				filter="integer"
 				label="AP_SHOW_COMMENTLENGTH"
 				description="AP_SHOW_COMMENTLENGTH_DESC"
@@ -567,7 +567,7 @@
 		<field
 				name="username_maxlength"
 				type="text"
-				default="0"
+				default="20"
 				filter="integer"
 				label="AP_USERNAME_MAXLENGTH"
 				description="AP_USERNAME_MAXLENGTH_DESC"
@@ -585,7 +585,7 @@
 		<field
 				name="comment_maxlength"
 				type="text"
-				default="0"
+				default="1000"
 				filter="integer"
 				label="AP_COMMENT_MAXLENGTH"
 				description="AP_COMMENT_MAXLENGTH_DESC"
@@ -594,7 +594,7 @@
 		<field
 				name="word_maxlength"
 				type="text"
-				default="0"
+				default="50"
 				filter="integer"
 				label="AP_WORD_MAXLENGTH"
 				description="AP_WORD_MAXLENGTH_DESC"
@@ -603,7 +603,7 @@
 		<field
 				name="link_maxlength"
 				type="text"
-				default="0"
+				default="50"
 				filter="integer"
 				label="AP_LINK_MAXLENGTH"
 				description="AP_LINK_MAXLENGTH_DESC"
@@ -612,7 +612,7 @@
 		<field
 				name="flood_time"
 				type="text"
-				default="0"
+				default="30"
 				filter="integer"
 				label="AP_FLOOD_TIME"
 				description="AP_FLOOD_TIME_DESC"
@@ -622,7 +622,7 @@
 				name="enable_nested_quotes"
 				type="radio"
 				class="btn-group"
-				default="0"
+				default="1"
 				filter="integer"
 				label="AP_ENABLE_NESTED_QUOTES"
 				description="AP_ENABLE_NESTED_QUOTES_DESC"
@@ -683,6 +683,7 @@
 				rows="3"
 				cols="50"
 				filter="raw"
+				default="administrator,moderator,admin"
 				label="AP_FORBIDDEN_NAMES_LIST"
 				description="AP_FORBIDDEN_NAMES_LIST_DESC"
 				required="false"
@@ -716,6 +717,7 @@
 				multiple="true"
 				min="1"
 				buttons="add,remove"
+				default='{"__field10":{"lang":"*","censor_replace_word":"[censored]"}}'
 		>
 			<form>
 				<field
@@ -729,7 +731,6 @@
 				<field
 						name="censor_replace_word"
 						type="text"
-						default="[censored]"
 						label="AP_CENSOR_REPLACE_WORD"
 				/>
 			</form>
@@ -745,6 +746,7 @@
 				multiple="true"
 				min="1"
 				buttons="add,remove"
+				default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned."}}'
 		>
 			<form>
 				<field

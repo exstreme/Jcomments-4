@@ -12,16 +12,39 @@
 defined('_JEXEC') or die;
 
 use Joomla\Archive\Zip;
+use Joomla\CMS\Cache\Cache;
+use Joomla\CMS\Cache\CacheControllerFactoryInterface;
+use Joomla\CMS\Cache\Controller\CallbackController;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
+use Joomla\CMS\Form\Form;
 use Joomla\CMS\Installer\Installer;
+use Joomla\CMS\Installer\InstallerAdapter;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\DatabaseDriver;
 
+/**
+ * Script file of Joomla CMS
+ *
+ * @since  4.0
+ */
 class com_jcommentsInstallerScript
 {
-	public function preflight($type, $parent)
+	/**
+	 * Function to act prior to installation process begins
+	 *
+	 * @param   string     $action     Which action is happening (install|uninstall|discover_install|update)
+	 * @param   Installer  $installer  The class calling this method
+	 *
+	 * @return  boolean  True on success
+	 *
+	 * @since   3.7.0
+	 */
+	public function preflight($action, $installer)
 	{
 		if (!version_compare(JVERSION, '4.0.0', 'ge'))
 		{
@@ -34,13 +57,26 @@ class com_jcommentsInstallerScript
 		return true;
 	}
 
-	public function postflight($type, $parent)
+
+	/**
+	 * Called after any type of action
+	 *
+	 * @param   string            $action     Which action is happening (install|uninstall|discover_install|update)
+	 * @param   InstallerAdapter  $installer  The class calling this method
+	 *
+	 * @return  boolean  True on success
+	 *
+	 * @throws  Exception
+	 * @since   4.0.0
+	 */
+	public function postflight($action, $installer)
 	{
-		if ($type === 'uninstall')
+		if ($action === 'uninstall')
 		{
-			return;
+			return true;
 		}
 
+		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$language = Factory::getApplication()->getLanguage();
@@ -58,11 +94,12 @@ class com_jcommentsInstallerScript
 		$data->title    = Text::_('A_INSTALL_LOG');
 		$data->finish   = Text::_('A_INSTALL_COMPLETE');
 		$data->next     = Uri::root() . 'administrator/index.php?option=com_jcomments&view=settings';
+		$data->action   = $action;
 		$data->messages = array();
 		$data->plugins  = array();
 
-		$src      = $parent->getParent()->getPath('source');
-		$manifest = $parent->getParent()->manifest;
+		$src      = $installer->getParent()->getPath('source');
+		$manifest = $installer->getParent()->getManifest();
 		$plugins  = $manifest->xpath('plugins/plugin');
 
 		foreach ($plugins as $plugin)
@@ -76,15 +113,15 @@ class com_jcommentsInstallerScript
 				$path = $src . '/plugins/' . $group . '/' . $name;
 			}
 
-			$installer = new Installer;
-			$result    = $installer->install($path);
+			$_installer = new Installer;
+			$result     = $_installer->install($path);
 
 			$query = $db->getQuery(true)
 				->update($db->quoteName('#__extensions'))
 				->set($db->quoteName('enabled') . ' = 1')
-				->where($db->quoteName('type') . ' = ' . $db->Quote('plugin'))
-				->where($db->quoteName('element') . ' = ' . $db->Quote($name))
-				->where($db->quoteName('folder') . ' = ' . $db->Quote($group));
+				->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+				->where($db->quoteName('element') . ' = ' . $db->quote($name))
+				->where($db->quoteName('folder') . ' = ' . $db->quote($group));
 
 			$db->setQuery($query);
 			$db->execute();
@@ -118,9 +155,6 @@ class com_jcommentsInstallerScript
 			$this->executeSQL($script);
 		}
 
-		// Fix default guest usergroup in com_users parameters
-		// $this->fixGuestUsergroup();
-
 		// Load default custom bbcodes
 		$query = $db->getQuery(true)
 			->select('COUNT(*)')
@@ -148,8 +182,8 @@ class com_jcommentsInstallerScript
 			$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/default.smilies.sql');
 		}
 
-		// Some fixes
-		$this->fixComponentName();
+		// Load default access rules
+		$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/default.access.sql');
 
 		// Copy JomSocial rule
 		$source      = JPATH_ROOT . '/administrator/components/com_jcomments/install/xml/jomsocial_rule.xml';
@@ -160,19 +194,26 @@ class com_jcommentsInstallerScript
 			File::copy($source, $destination);
 		}
 
-		$cache = Factory::getCache('com_jcomments');
-		$cache->clean();
-
+		$this->setComponentParams();
+		$this->cleanCache('com_jcomments');
 		$this->displayResults($data);
+
+		return true;
 	}
 
-	public function update()
+	/**
+	 * Method to update Joomla!
+	 *
+	 * @param   Installer  $installer  The class calling this method
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 */
+	public function update($installer)
 	{
 		// Delete obsolete files and folders (from previous installations)
 		$this->deleteObsoleteFiles();
-
-		// Fix default guest usergroup in com_users parameters
-		$this->fixGuestUsergroup();
 
 		// Copy smilies from old folder to new one
 		try
@@ -200,60 +241,30 @@ class com_jcommentsInstallerScript
 		}
 	}
 
-	public function uninstall($parent)
+	/**
+	 * Called on uninstall
+	 *
+	 * @param   InstallerAdapter  $installer  The class calling this method
+	 *
+	 * @return  void
+	 *
+	 * @throws  Exception
+	 * @since   4.0.0
+	 */
+	public function uninstall($installer)
 	{
+		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
 		$language = Factory::getApplication()->getLanguage();
 		$language->load('com_jcomments', JPATH_ADMINISTRATOR, 'en-GB', true);
 		$language->load('com_jcomments', JPATH_ADMINISTRATOR, null, true);
 
-		$messages                = array();
-		$messages['content']     = Text::_('A_UNINSTALL_PLUGIN_CONTENT');
-		$messages['search']      = Text::_('A_UNINSTALL_PLUGIN_SEARCH');
-		$messages['system']      = Text::_('A_UNINSTALL_PLUGIN_SYSTEM');
-		$messages['editors-xtd'] = Text::_('A_UNINSTALL_PLUGIN_EDITORS_XTD');
-
 		$data           = new stdClass;
 		$data->title    = Text::_('A_UNINSTALL_LOG');
 		$data->finish   = Text::_('A_UNINSTALL_COMPLETE');
+		$data->action   = 'uninstall';
 		$data->messages = array();
-
-		$manifest = $parent->getParent()->manifest;
-		$plugins  = $manifest->xpath('plugins/plugin');
-
-		foreach ($plugins as $plugin)
-		{
-			$name  = (string) $plugin->attributes()->plugin;
-			$group = (string) $plugin->attributes()->group;
-
-			$query = $db->getQuery(true)
-				->select($db->quoteName('extension_id'))
-				->from($db->quoteName('#__extensions'))
-				->where($db->quoteName('type') . ' = ' . $db->Quote('plugin'))
-				->where($db->quoteName('element') . ' = ' . $db->Quote($name))
-				->where($db->quoteName('folder') . ' = ' . $db->Quote($group));
-
-			$db->setQuery($query);
-			$extensions = $db->loadColumn();
-
-			if (count($extensions))
-			{
-				$result = false;
-
-				foreach ($extensions as $id)
-				{
-					$installer = new Installer;
-					$result    = $installer->uninstall('plugin', $id);
-				}
-
-				if (isset($messages[$group]))
-				{
-					$data->messages[] = array('text' => $messages[$group], 'result' => $result);
-					unset($messages[$group]);
-				}
-			}
-		}
 
 		if (Factory::getApplication()->get('caching') != 0)
 		{
@@ -266,12 +277,7 @@ class com_jcommentsInstallerScript
 
 			if (count($extensions))
 			{
-				foreach ($extensions as $extension)
-				{
-					$cache = Factory::getCache($extension);
-					$cache->clean();
-				}
-
+				$this->cleanCache($extensions);
 				$data->messages[] = array('text' => Text::_('A_UNINSTALL_CLEAN_CACHE'), 'result' => true);
 			}
 		}
@@ -279,6 +285,115 @@ class com_jcommentsInstallerScript
 		$this->displayResults($data);
 	}
 
+	/**
+	 * Clean cache after some actions.
+	 *
+	 * @param   array|string  $objects  Array this cache object names or string.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 */
+	private function cleanCache($objects)
+	{
+		if (is_array($objects))
+		{
+			foreach ($objects as $object)
+			{
+				/** @var CallbackController $cache */
+				$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
+					->createCacheController('callback', ['defaultgroup' => $object]);
+
+				/** @var Cache $cache */
+				$cache->clean();
+			}
+		}
+		else
+		{
+			$this->cleanCache(array($objects));
+		}
+	}
+
+	/**
+	 * Method to get a form object.
+	 *
+	 * @param   string   $name     The name of the form.
+	 * @param   string   $source   The form source. Can be XML string if file flag is set to false.
+	 * @param   string   $xpath    An optional xpath to search for the fields.
+	 *
+	 * @return  Form
+	 *
+	 * @since   4.0.0
+	 * @throws  Exception
+	 */
+	private function loadForm($name, $source = null, $xpath = null)
+	{
+		Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_jcomments/');
+
+		return Form::getInstance($name, $source, array('control' => 'jform', 'load_data' => array()), true, $xpath);
+	}
+
+	/**
+	 * Set up component parameters from config.xml
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 */
+	private function setComponentParams()
+	{
+		/** @var DatabaseDriver $db */
+		$db     = Factory::getContainer()->get('DatabaseDriver');
+		$form   = $this->loadForm('com_jcomments.config', 'config', '/config');
+		$params = array();
+
+		// Get the fieldset names
+		$nameFieldsets = array();
+
+		foreach ($form->getFieldsets() as $fieldset)
+		{
+			$nameFieldsets[] = $fieldset->name;
+		}
+
+		foreach ($nameFieldsets as $fieldsetName)
+		{
+			foreach ($form->getFieldset($fieldsetName) as $field)
+			{
+				$fieldname = $field->getAttribute('name');
+				$params[$fieldname] = $field->getAttribute('default');
+
+				if ($field->getAttribute('type') == 'subform')
+				{
+					$params[$fieldname] = json_decode($field->getAttribute('default'));
+				}
+			}
+		}
+
+		// Set some special field values
+		$params['captcha_engine']   = 'kcaptcha';
+		$params['kcaptcha_credits'] = '';
+		$params['badwords']         = '';
+		unset($params['rules']);
+
+		$query = $db->getQuery(true)
+			->update($db->quoteName('#__extensions'))
+			->set($db->quoteName('params') . " = '" . $db->escape(json_encode($params)) . "'")
+			->where($db->quoteName('element') . " = 'com_jcomments'")
+			->where($db->quoteName('type') . " = 'component'");
+
+		$db->setQuery($query);
+		$db->execute();
+	}
+
+	/**
+	 * Execute installation sql files.
+	 *
+	 * @param   string  $filename  Filename with sql.
+	 *
+	 * @return  boolean
+	 *
+	 * @since   4.0
+	 */
 	private function executeSQL($filename = '')
 	{
 		if (is_file($filename))
@@ -290,12 +405,12 @@ class com_jcommentsInstallerScript
 				return false;
 			}
 
-			$queries = JDatabaseDriver::splitSql($buffer);
+			/** @var DatabaseDriver $db */
+			$db      = Factory::getContainer()->get('DatabaseDriver');
+			$queries = $db->splitSql($buffer);
 
 			if (count($queries))
 			{
-				$db = Factory::getContainer()->get('DatabaseDriver');
-
 				foreach ($queries as $query)
 				{
 					$query = trim($query);
@@ -309,7 +424,7 @@ class com_jcommentsInstallerScript
 						}
 						catch (RuntimeException $e)
 						{
-							error_log($e->getMessage());
+							Log::add($e->getMessage(), Log::EMERGENCY, 'com_jcomments');
 						}
 					}
 				}
@@ -319,24 +434,11 @@ class com_jcommentsInstallerScript
 		return true;
 	}
 
-	private function fixComponentName()
-	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__extensions'))
-			->set($db->quoteName('name') . ' = ' . $db->Quote('com_jcomments'))
-			->where($db->quoteName('element') . ' = ' . $db->Quote('com_jcomments'));
-
-		$db->setQuery($query);
-		$db->execute();
-	}
-
 	private function fixUsergroupsCustomBBCodes()
 	{
 		$db             = Factory::getContainer()->get('DatabaseDriver');
 		$groups         = $this->getUsergroups();
-		$guestUsergroup = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
+		$guestUsergroup = ComponentHelper::getParams('com_users')->get('guest_usergroup', 9);
 
 		if (count($groups))
 		{
@@ -348,7 +450,7 @@ class com_jcommentsInstallerScript
 
 			foreach ($groups as $group)
 			{
-				$where[] = $db->quoteName('button_acl') . " LIKE " . $db->Quote('%' . $group->title . '%');
+				$where[] = $db->quoteName('button_acl') . " LIKE " . $db->quote('%' . $group->title . '%');
 			}
 
 			if (count($where))
@@ -383,44 +485,12 @@ class com_jcommentsInstallerScript
 
 				$query = $db->getQuery(true)
 					->update($db->quoteName('#__jcomments_custom_bbcodes'))
-					->set($db->quoteName('button_acl') . ' = ' . $db->Quote($row->button_acl))
-					->where($db->quoteName('name') . ' = ' . $db->Quote($row->name));
+					->set($db->quoteName('button_acl') . ' = ' . $db->quote($row->button_acl))
+					->where($db->quoteName('name') . ' = ' . $db->quote($row->name));
 
 				$db->setQuery($query);
 				$db->execute();
 			}
-		}
-	}
-
-	private function fixGuestUsergroup()
-	{
-		$params         = JComponentHelper::getParams('com_users');
-		$guestUsergroup = $params->get('guest_usergroup');
-
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
-		$query = $db->getQuery(true)
-			->select('COUNT(*)')
-			->from($db->quoteName('#__usergroups'))
-			->where($db->quoteName('id') . ' = ' . (int) $guestUsergroup);
-
-		$db->setQuery($query);
-		$count = $db->loadResult();
-
-		if ($count == 0)
-		{
-			$params->set('guest_usergroup', '1');
-
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__extensions'))
-				->set($db->quoteName('params') . '= ' . $db->quote((string) $params))
-				->where($db->quoteName('element') . ' = ' . $db->quote('com_users'));
-
-			$db->setQuery($query);
-			$db->execute();
-
-			Factory::getCache('com_users')->clean();
-			Factory::getCache('_system')->clean();
 		}
 	}
 
@@ -523,14 +593,8 @@ class com_jcommentsInstallerScript
 
 	private function displayResults($data)
 	{
-		require_once JPATH_ROOT . '/administrator/components/com_jcomments/version.php';
-		$version = new JCommentsVersion;
 		?>
 		<style>
-			.adminform tr th {
-				display: none;
-			}
-
 			#jcomments-installer {
 				margin: 10px auto;
 				padding: 8px;
@@ -593,76 +657,28 @@ class com_jcommentsInstallerScript
 			#jcomments-installer table td {
 				vertical-align: top;
 			}
-
-			#jcomments-installer .btn {
-				display: inline-block;
-				*display: inline;
-				*zoom: 1;
-				padding: 4px 14px;
-				margin-bottom: 0;
-				font-size: 13px;
-				line-height: 18px;
-				*line-height: 18px;
-				text-align: center;
-				vertical-align: middle;
-				cursor: pointer;
-				color: #333;
-				text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
-				background-color: #f5f5f5;
-				background-image: -moz-linear-gradient(top, #fff, #e6e6e6);
-				background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#e6e6e6));
-				background-image: -webkit-linear-gradient(top, #fff, #e6e6e6);
-				background-image: -o-linear-gradient(top, #fff, #e6e6e6);
-				background-image: linear-gradient(to bottom, #fff, #e6e6e6);
-				background-repeat: repeat-x;
-				filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe5e5e5', GradientType=0);
-				border-color: #e6e6e6 #e6e6e6 #bfbfbf;
-				border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-				*background-color: #e6e6e6;
-				filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
-				border: 1px solid #bbb;
-				*border: 0;
-				border-bottom-color: #a2a2a2;
-				-webkit-border-radius: 4px;
-				-moz-border-radius: 4px;
-				border-radius: 4px;
-				*margin-left: .3em;
-				-webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
-				-moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
-				box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);
-			}
-
-			#jcomments-installer .btn:hover,
-			#jcomments-installer .btn:active,
-			#jcomments-installer .btn.active {
-				color: #333;
-				text-decoration: none;
-				background-color: #e6e6e6;
-				*background-color: #d9d9d9;
-				background-position: 0 -15px;
-				-webkit-transition: background-position .1s linear;
-				-moz-transition: background-position .1s linear;
-				-o-transition: background-position .1s linear;
-				transition: background-position .1s linear;
-			}
-
-			#jcomments-installer .btn:active,
-			#jcomments-installer .btn.active {
-				background-color: #cccccc \9;
-			}
 		</style>
 		<div id="jcomments-installer">
-			<table width="95%" cellpadding="0" cellspacing="0">
+			<table class="table">
 				<tbody>
 				<tr>
-					<td width="50px">
-						<img src="http://www.joomlatune.com/images/logo/jcomments.png" alt=""/>
-					</td>
+					<?php if ($data->action !== 'uninstall'): ?>
 					<td>
+						<p style="margin: 1em;">
+							<img src="<?php echo Uri::root(); ?>media/com_jcomments/images/icon-48-jcomments.png" alt="JComments"/>
+						</p>
+					</td>
+					<?php endif; ?>
+					<td>
+						<?php if ($data->action !== 'uninstall'):
+							require_once JPATH_ROOT . '/administrator/components/com_jcomments/version.php';
+							$version = new JCommentsVersion;
+						?>
 						<div>
 							<span class="extension-name"><?php echo $version->getLongVersion(); ?></span>
 							<span class="extension-date">[<?php echo $version->getReleaseDate(); ?>]</span>
 						</div>
+						<?php endif; ?>
 
 						<div class="extension-copyright">
 							&copy; 2006-<?php echo date('Y'); ?> smart (<a
@@ -696,7 +712,7 @@ class com_jcommentsInstallerScript
 						<?php if (!empty($data->next)): ?>
 							<div>
 								<div class="jcomments-installer-next">
-									<a href="<?php echo $data->next; ?>" class="btn">
+									<a href="<?php echo $data->next; ?>" class="btn btn-success btn-sm">
 										<?php echo Text::_('A_INSTALL_BUTTON_NEXT'); ?>
 									</a>
 								</div>

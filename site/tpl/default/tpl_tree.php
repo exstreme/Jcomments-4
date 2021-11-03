@@ -145,13 +145,13 @@ class jtt_tpl_tree extends JoomlaTuneTemplate
 		$lines = array();
 
 		if ($this->getVar('comments-refresh', 1) == 1) {
-			$lines[] = '<a href="#" title="'.JText::_('BUTTON_REFRESH').'" onclick="jcomments.showPage('.$object_id.',\''. $object_group . '\',0);return false;"><span aria-hidden="true" class="icon-loop icon-fw"></span>'.JText::_('BUTTON_REFRESH').'</a>';
+			$lines[] = '<a href="#" title="'.JText::_('BUTTON_REFRESH').'" onclick="jcomments.showPage('.$object_id.',\''. $object_group . '\',0);return false;"><span aria-hidden="true" class="icon-loop icon-fw"></span> '.JText::_('BUTTON_REFRESH').'</a>';
 		}
 
 		if ($this->getVar('comments-rss', 1) == 1) {
 			$link = $this->getVar('rssurl');
 			if (!empty($link)) {
-				$lines[] = '<a href="' . $link . '" title="' . JText::_('BUTTON_RSS') . '" target="_blank"><span aria-hidden="true" class="icon-rss icon-fw"></span>' . JText::_('BUTTON_RSS') . '</a>';
+				$lines[] = '<a href="' . $link . '" title="' . JText::_('BUTTON_RSS') . '" target="_blank"><span aria-hidden="true" class="icon-rss icon-fw"></span> ' . JText::_('BUTTON_RSS') . '</a>';
 			}
 		}
 
@@ -161,7 +161,7 @@ class jtt_tpl_tree extends JoomlaTuneTemplate
 			$text = $isSubscribed ? JText::_('BUTTON_UNSUBSCRIBE') : JText::_('BUTTON_SUBSCRIBE');
 			$func = $isSubscribed ? 'unsubscribe' : 'subscribe';
 
-			$lines[] = '<a id="comments-subscription" href="#" title="' . $text . '" onclick="jcomments.' . $func . '('.$object_id.',\''. $object_group . '\');return false;"><span aria-hidden="true" class="icon-mail icon-fw"></span>'. $text .'</a>';
+			$lines[] = '<a id="comments-subscription" href="#" title="' . $text . '" onclick="jcomments.' . $func . '('.$object_id.',\''. $object_group . '\');return false;"><span aria-hidden="true" class="icon-mail icon-fw"></span> '. $text .'</a>';
 		}
 
 		if (count($lines)) {
