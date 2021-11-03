@@ -168,7 +168,7 @@ class JCommentsAJAX
 		$config   = ComponentHelper::getParams('com_jcomments');
 		$response = JCommentsFactory::getAjaxResponse();
 
-		if ($user->authorise('comment.comment', 'com_jcomments') && !$user->get('isRoot'))
+		if ($user->authorise('comment.comment', 'com_jcomments') || !$user->get('isRoot'))
 		{
 			$values = self::prepareValues($_POST);
 
