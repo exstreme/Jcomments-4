@@ -1386,14 +1386,13 @@ JComments.prototype = {
 			div.innerHTML = '';
 		}
 	},
-	// TODO Unused method
-	/*closeReport: function (m) {
+	closeReport: function (m) {
 		this.cancelReport();
 
 		if (m) {
 			this.showMessage(m, 'info', 'comments-inline-report');
 		}
-	},*/
+	},
 	banIP: function (id) {
 		this.ajax('JCommentsBanIP', arguments)
 	},

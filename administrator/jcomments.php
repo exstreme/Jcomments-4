@@ -28,6 +28,8 @@ if (!defined('JPATH_COMPONENT'))
 	define('JPATH_COMPONENT', JPATH_BASE . '/components/com_jcomments');
 }
 
+JLoader::registerPrefix('JComments', JPATH_ROOT . '/components/com_jcomments/classes/');
+JLoader::registerPrefix('JComments', JPATH_ROOT . '/components/com_jcomments/helpers/');
 JLoader::register('JCommentsControllerForm', JPATH_COMPONENT . '/controllers/controllerform.php');
 JLoader::register('JCommentsControllerList', JPATH_COMPONENT . '/controllers/controllerlist.php');
 JLoader::register('JCommentsModelForm', JPATH_COMPONENT . '/models/modelform.php');

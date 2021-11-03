@@ -333,7 +333,7 @@ class JComments
 		$acl = JCommentsFactory::getACL();
 		$config = ComponentHelper::getParams('com_jcomments');
 
-		if ($user->authorise('comment.comment', 'com_jcomments')) {
+		if ($user->authorise('comment.comment', 'com_jcomments') || !$user->get('isRoot')) {
 			if ((int) $config->get('comments_locked') == 1) {
 				$message = JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_locked', $lang->getTag());
 
@@ -646,7 +646,7 @@ class JComments
 		$limitstart = 0;
 		$total = JComments::getCommentsCount($object_id, $object_group);
 
-		if ($user->authorise('comment.comment', 'com_jcomments') == 0 && $total == 0) {
+		if (!$user->authorise('comment.comment', 'com_jcomments') && $total == 0) {
 			return '';
 		}
 
@@ -796,7 +796,7 @@ class JComments
 
 		$total = JComments::getCommentsCount($object_id, $object_group);
 
-		if ($user->authorise('comment.comment', 'com_jcomments') == 0 && $total == 0) {
+		if (!$user->authorise('comment.comment', 'com_jcomments') && $total == 0) {
 			return '';
 		}
 
