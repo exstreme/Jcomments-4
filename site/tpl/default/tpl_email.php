@@ -9,6 +9,8 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+use Joomla\CMS\HTML\HTMLHelper;
+
 defined('_JEXEC') or die;
 
 /**

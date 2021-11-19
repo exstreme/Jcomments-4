@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<extension type="package" method="upgrade">
+	<name>JComments package</name>
+	<author>JComments team</author>
+	<creationDate>November 2021</creationDate>
+	<packagename>jcomments</packagename>
+	<version>4.0.4</version>
+	<url>https://github.com/exstreme/Jcomments-4</url>
+	<packager>JComments team</packager>
+	<packagerurl>https://github.com/exstreme/Jcomments-4</packagerurl>
+	<description>JComments lets your users comment on content items</description>
+
+	<scriptfile>pkg_jcomments.php</scriptfile>
+	<files folder="packages">
+		<file type="component" id="com_jcomments">com_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="content">plg_content_jcomments.zip</file>
+		<file type="plugin" id="jcommentson" group="editors-xtd">plg_jcommentson_jcomments.zip</file>
+		<file type="plugin" id="jcommentsoff" group="editors-xtd">plg_jcommentsoff_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="system">plg_system_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="user">plg_user_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="quickicon">plg_quickicon_jcomments.zip</file>
+	</files>
+
+	<compatibility>
+		<version>4</version>
+	</compatibility>
+
+	<blockChildUninstall>true</blockChildUninstall>
+
+	<updateservers>
+		<server type="extension" priority="1" name="JComments Update Site">
+			<![CDATA[https://raw.githubusercontent.com/exstreme/Jcomments-4/Develop/update-jcomments.xml]]>
+		</server>
+	</updateservers>
+</extension>

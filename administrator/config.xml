@@ -235,6 +235,29 @@
 			<option value="name">AP_DISPLAY_AUTHOR_NAME</option>
 			<option value="username">AP_DISPLAY_AUTHOR_USERNAME</option>
 		</field>
+
+		<field
+				name="display_title"
+				type="radio"
+				class="btn-group"
+				default="1"
+				label="AP_DISPLAY_TITLE"
+				filter="integer"
+		>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+	</fieldset>
+
+	<fieldset name="gravatar" label="Gravatar">
+		<field
+				name="gav_options"
+				type="textarea"
+				rows="5"
+				cols="25"
+				label="AP_COMMENTS_GRAVATAR"
+				description="AP_COMMENTS_GRAVATAR_DESC"
+		/>
 	</fieldset>
 
 	<fieldset name="list" label="A_LIST_PARAMS">
@@ -537,19 +560,21 @@
 
 		<field
 				name="kcaptcha_foregroundColor"
-				type="text"
+				type="color"
+				format="rgb"
 				label="AP_FORM_FIELD_KPT_FG_COLOR"
 				showon="captcha_engine:kcaptcha"
-				default="180, 180, 180"
+				default="rgb(180, 180, 180)"
 				filter="string"
 		/>
 
 		<field
 				name="kcaptcha_backgroundColor"
-				type="text"
+				type="color"
+				format="rgb"
 				label="AP_FORM_FIELD_KPT_BG_COLOR"
 				showon="captcha_engine:kcaptcha"
-				default="246, 246, 246"
+				default="rgb(246, 246, 246)"
 				filter="string"
 		/>
 
@@ -589,15 +614,6 @@
 				filter="integer"
 				label="AP_COMMENT_MAXLENGTH"
 				description="AP_COMMENT_MAXLENGTH_DESC"
-		/>
-
-		<field
-				name="word_maxlength"
-				type="text"
-				default="50"
-				filter="integer"
-				label="AP_WORD_MAXLENGTH"
-				description="AP_WORD_MAXLENGTH_DESC"
 		/>
 
 		<field
@@ -746,7 +762,7 @@
 				multiple="true"
 				min="1"
 				buttons="add,remove"
-				default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned."}}'
+				default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned.","message_terms_of_use":"Before posting a comment you must accept our terms of use."}}'
 		>
 			<form>
 				<field
@@ -798,6 +814,17 @@
 						filter="raw"
 						label="A_MESSAGES_BANNED"
 						description="A_MESSAGES_BANNED_DESC"
+						required="false"
+				/>
+
+				<field
+						name="message_terms_of_use"
+						type="textarea"
+						rows="2"
+						cols="50"
+						filter="raw"
+						label="A_MESSAGES_TOS"
+						description="A_MESSAGES_TOS_DESC"
 						required="false"
 				/>
 			</form>

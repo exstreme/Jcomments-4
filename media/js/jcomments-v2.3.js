@@ -341,7 +341,7 @@ JCommentsEditor.prototype = {
 				}
 			}
 			if (this.bbcPanel == null) {
-				this.bbcPanel = document.createElement('span');
+				this.bbcPanel = document.createElement('div');
 				this.bbcPanel.className = 'bbcode';
 				this.bbcPanel.style.display = 'block';
 				this.ta.parentNode.insertBefore(this.bbcPanel, this.ta);
@@ -852,7 +852,7 @@ JComments.prototype = {
 	setMode: function (m, i) {
 		var b = this.$('comments-form-cancel'), jc = this;
 		if (b != null) {
-			b.style.display = (m != 'add') ? '' : 'none';
+			//b.style.display = (m != 'add') ? '' : 'none';
 			b.onclick = (m == 'edit' ? function () {
 				jc.cancelEdit(i);
 			} : (m == 'reply' ? function () {
@@ -1121,11 +1121,14 @@ JComments.prototype = {
 		if (t) {
 			t.style.display = '';
 		}
+		this.$('comments-form-cancel').style.display = 'none';
 		return this.ajax('JCommentsCancelComment', arguments);
 	},
 	cancelReply: function () {
 		if (this.form) {
 			this.form.remove('comment-parent-id-hidden');
+			document.querySelector('#comments-form').reset();
+			this.$('comments-form-cancel').style.display = 'none';
 			this.restoreForm(false);
 		}
 	},
@@ -1277,7 +1280,7 @@ JComments.prototype = {
 			if (d) {
 				d.parentNode.removeChild(d);
 			} else {
-				d = this.createElement('div', 'comments-inline-edit', 'comments-inline-edit');
+				d = this.createElement('div', 'comments-inline-edit', 'border rounded border-top-0 comments-inline-edit');
 			}
 			c.appendChild(d);
 			this.moveElement(ff, d);
@@ -1286,6 +1289,7 @@ JComments.prototype = {
 			if (te) {
 				te.style.display = 'none';
 			}
+			this.$('comments-form-cancel').style.display = 'inline-block';
 			this.scrollTo('comments-inline-edit');
 			this.form.focus('comment');
 		}
@@ -1297,7 +1301,7 @@ JComments.prototype = {
 		if (d) {
 			d.parentNode.removeChild(d);
 		} else {
-			d = this.createElement('div', 'comments-inline-edit', 'comments-inline-edit');
+			d = this.createElement('div', 'comments-inline-edit', 'border rounded border-top-0 comments-inline-edit');
 		}
 		c.appendChild(d);
 		if (!this.form) {
@@ -1335,6 +1339,7 @@ JComments.prototype = {
 				}
 			}
 		}
+		this.$('comments-form-cancel').style.display = 'inline-block';
 	},
 	formLoaded: function () {
 	},
@@ -1390,7 +1395,7 @@ JComments.prototype = {
 		this.cancelReport();
 
 		if (m) {
-			this.showMessage(m, 'info', 'comments-inline-report');
+			this.showMessage(m, 'success', 'comments-inline-report');
 		}
 	},
 	banIP: function (id) {
@@ -1402,7 +1407,9 @@ JComments.prototype = {
 		}
 
 		// TODO Place at the current form position
-		Joomla.renderMessages({'error': [m]}, '#comments-report-form-msg');
+		//Joomla.renderMessages({'error': [m]}, '#comments-report-form-msg');
+
+		this.showMessage(m, 'danger', t);
 
 		if (this.form != null) {
 			this.form.error(n);
@@ -1414,7 +1421,7 @@ JComments.prototype = {
 		}
 
 		//Joomla.renderMessages({'info': [m]}, '#comments-report-form-msg');
-		this.showMessage(m, 'info', t);
+		this.showMessage(m, 'success', t);
 	},
 	showMessage: function (m, c, t) {
 		clearTimeout(this.fadeTimer);
@@ -1433,7 +1440,8 @@ JComments.prototype = {
 		if (!c) {
 			c = 'info';
 		}
-		fe.className = 'comments-form-message-' + c;
+		fe.className = 'alert alert-' + c;
+		fe.role = 'alert';
 		fe.innerHTML = m;
 		fe.style.display = 'block';
 		JComments.prototype.setOpacity(fe.id, 100);
@@ -1482,11 +1490,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			e.preventDefault();
 
 			jcomments.saveComment();
-		} else if (e.target && e.target.id == 'comments-form-cancel') {
+		} else if (e.target && e.target.id == 'comments-form-reset') {
 			e.preventDefault();
 
 			document.querySelector('#comments-form').reset();
-		} else if (e.target && (e.target.id == 'comments-form-captcha-image' || e.target.id == 'captcha-span-jc')) {
+		} else if (e.target && (e.target.id == 'comments-form-captcha-image' || e.target.id == 'cmd-captcha-reload')) {
 			e.preventDefault();
 
 			jcomments.clear('captcha');

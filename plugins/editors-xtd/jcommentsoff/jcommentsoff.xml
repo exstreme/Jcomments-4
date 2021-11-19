@@ -12,5 +12,10 @@
 	<files>
 		<filename plugin="jcommentsoff">jcommentsoff.php</filename>
 	</files>
-	<config />
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_editors-xtd_jcommentsoff.ini</language>
+		<language tag="en-GB">language/en-GB/plg_editors-xtd_jcommentsoff.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_editors-xtd_jcommentsoff.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_editors-xtd_jcommentsoff.sys.ini</language>
+	</languages>
 </extension>

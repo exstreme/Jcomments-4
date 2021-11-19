@@ -219,7 +219,7 @@ class JCommentsModel
 	public static function deleteComments($objectID, $objectGroup = 'com_content')
 	{
 		$objectGroup = trim($objectGroup);
-		$objectIDs   = is_array($objectID) ? implode(',', $objectID) : $objectID;
+		$objectIDs   = is_array($objectID) ? implode(',', $objectID) : (int) $objectID;
 
 		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
@@ -257,7 +257,7 @@ class JCommentsModel
 		$parent      = $options['parent'] ?? null;
 		$level       = $options['level'] ?? null;
 
-		// See JCommentsPagination::getCommentPage() for example
+		/** @see JCommentsPagination::getCommentPage() for example */
 		$filter      = @$options['filter'];
 
 		$query = $db->getQuery(true)

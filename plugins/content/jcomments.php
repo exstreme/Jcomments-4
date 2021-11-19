@@ -118,8 +118,11 @@ class plgContentJComments extends CMSPlugin
 
 			$tmpl->addVar('tpl_links', 'comments_link_style', ($readmoreRegister ? -1 : 1));
 			$tmpl->addVar('tpl_links', 'content-item', $article);
-			$tmpl->addVar('tpl_links', 'show_hits',
-				intval($this->params->get('show_hits', 0) && $params->get('show_hits', 0)));
+			$tmpl->addVar(
+				'tpl_links',
+				'show_hits',
+				intval($this->params->get('show_hits', 0) && $params->get('show_hits', 0))
+			);
 
 			$readmoreDisabled = false;
 
@@ -240,8 +243,8 @@ class plgContentJComments extends CMSPlugin
 
 			// Hide comments link if comments enabled but link disabled in plugin params
 			if ((($this->params->get('comments_count', 1) == 0)
-					|| ($count == 0 && $this->params->get('add_comments', 1) == 0)
-					|| ($count == 0 && $readmoreRegister == 1))
+				|| ($count == 0 && $this->params->get('add_comments', 1) == 0)
+				|| ($count == 0 && $readmoreRegister == 1))
 				&& !$commentsDisabled
 			)
 			{
@@ -411,19 +414,16 @@ class plgContentJComments extends CMSPlugin
 		if ($context == 'com_content.article')
 		{
 			require_once JPATH_ROOT . '/components/com_jcomments/models/jcomments.php';
+			require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
 
-			// TODO Get Table to get item ID.
-			JCommentsModel::deleteComments((int) $table->id);
+			JCommentsModel::deleteComments($data->id);
 
-			$db    = Factory::getContainer()->get('DatabaseDriver');
-			$query = $db->getQuery(true);
-			$query->delete();
-			$query->from($db->quoteName('#__jcomments_subscriptions'));
-			$query->where($db->quoteName('object_id') . ' = ' . (int) $data->id);
-			$query->where($db->quoteName('object_group') . ' = ' . $db->Quote('com_content'));
-			$db->setQuery($query);
-			$db->execute();
+			$model = new JcommentsModelSubscriptions;
+
+			return $model->deleteSubscriptions($data->id, 'com_content');
 		}
+
+		return true;
 	}
 
 	public function onContentAfterSave($context, $article, $isNew)

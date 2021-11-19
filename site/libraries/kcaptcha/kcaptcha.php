@@ -5,7 +5,7 @@
  *
  * System requirements: PHP 4.0.6+ w/ GD
  *
- * @version           2.0.0
+ * @version           2.0.1
  * @package           KCAPTCHA
  * @author            Kruglov Sergei <kruglov@yandex.ru>
  * @copyright     (C) 2006-2008 Kruglov Sergei
@@ -376,15 +376,13 @@ class KCAPTCHA
 		}
 
 		// Handle some properties which should be an array.
-		if ($property === 'foregroundColor' || $property === 'backgroundColor')
+		if (preg_match('@^#@', $value))
 		{
-			$_value = explode(',', $value);
-			list($r, $g, $b) = $_value;
-			$this->$property = array(
-				trim((int) $r),
-				trim((int) $g),
-				trim((int) $b)
-			);
+			$this->$property = self::hex2array($value);
+		}
+		elseif (strpos($value, 'rgb') !== false || strpos($value, 'rgba') !== false)
+		{
+			$this->$property = self::rgb2array($value);
 		}
 		else
 		{
@@ -392,5 +390,41 @@ class KCAPTCHA
 		}
 
 		return $this->$property;
+	}
+
+	/**
+	 * Convert hex color(#ffffff) to rgb array.
+	 *
+	 * @param   string  $hex  Color code
+	 *
+	 * @return  array   Return array(0 - red, 1 - green, 2 - blue).
+	 *
+	 * @since   2.0.1
+	 */
+	public function hex2array($hex)
+	{
+		$hex = str_replace('#', '', $hex);
+
+		return array(
+			base_convert(substr($hex, 0, 2), 16, 10),
+			base_convert(substr($hex, 2, 2), 16, 10),
+			base_convert(substr($hex, 4, 2), 16, 10)
+		);
+	}
+
+	/**
+	 * Convert rgb(180, 180, 180) to rgb array.
+	 *
+	 * @param   string  $rgb  Color code
+	 *
+	 * @return  array   Return array(0 - red, 1 - green, 2 - blue).
+	 *
+	 * @since   2.0.1
+	 */
+	public function rgb2array($rgb)
+	{
+		$rgb = preg_replace('#rgb|rgba|\(|\)|\s+#', '', $rgb);
+
+		return explode(',', $rgb);
 	}
 }

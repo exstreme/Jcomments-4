@@ -139,10 +139,10 @@ class JCommentsACL
 	protected $deleteMode = 0;
 
 	/**
-	 * @var    integer
+	 * @var    boolean
 	 * @since  3.0
 	 */
-	protected $userBlocked = 0;
+	protected $userBlocked = false;
 
 	/**
 	 * @throws Exception
@@ -169,14 +169,14 @@ class JCommentsACL
 											&& (int) $config->get('enable_reports')
 											&& ($config->get('enable_notification') != 0
 												|| $config->get('notification_type', 2) == true);
-		$this->canBan                = ($user->authorise('comment.ban', 'com_jcomments') || $user->get('isRoot'));
+		$this->canBan                = $user->authorise('comment.ban', 'com_jcomments');
 		$this->canQuote              = $user->authorise('comment.comment', 'com_jcomments')
 											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
 		$this->canReply              = $user->authorise('comment.comment', 'com_jcomments')
 											&& $user->authorise('comment.reply', 'com_jcomments')
 											&& $config->get('template_view') == 'tree';
 		$this->userID                = $user->get('id');
-		$this->userBlocked           = 0;
+		$this->userBlocked           = false;
 		$this->deleteMode            = (int) $config->get('delete_mode');
 		$this->commentsLocked        = false;
 
@@ -188,7 +188,7 @@ class JCommentsACL
 
 			if (!JCommentsSecurity::checkBlacklist($options))
 			{
-				$this->userBlocked = 1;
+				$this->userBlocked = true;
 				$this->canQuote    = 0;
 				$this->canReply    = 0;
 				$this->canVote     = 0;
@@ -237,13 +237,7 @@ class JCommentsACL
 	 */
 	public function showTermsOfUse()
 	{
-		// Do not show Terms Of Use for Super user
-		if ($this->user->get('isRoot'))
-		{
-			return false;
-		}
-
-		return $this->user->authorise('comment.terms_of_use', 'com_jcomments');
+		return !$this->user->authorise('comment.terms_of_use', 'com_jcomments');
 	}
 
 	/**
@@ -274,26 +268,13 @@ class JCommentsACL
 	/**
 	 * Check if user is blocked
 	 *
-	 * @return integer
+	 * @return  boolean
 	 *
-	 * @since  3.0
+	 * @since   3.0
 	 */
 	public function getUserBlocked()
 	{
 		return $this->userBlocked;
-	}
-
-	public function getUserAccess()
-	{
-		static $access = null;
-
-		if (!isset($access))
-		{
-			$access   = array_unique(Access::getAuthorisedViewLevels($this->user->get('id')));
-			$access[] = 0; // For backward compatibility
-		}
-
-		return $access;
 	}
 
 	public function isLocked($object)
