@@ -12,6 +12,12 @@
 	<files>
 		<filename plugin="jcomments">jcomments.php</filename>
 	</files>
+	<languages folder="admin">
+		<language tag="en-GB">language/en-GB/plg_quickicon_jcomments.ini</language>
+		<language tag="en-GB">language/en-GB/plg_quickicon_jcomments.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_quickicon_jcomments.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_quickicon_jcomments.sys.ini</language>
+	</languages>
 	<config>
 		<fields name="params">
 			<fieldset name="basic">

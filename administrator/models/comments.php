@@ -172,9 +172,6 @@ class JCommentsModelComments extends JCommentsModelList
 	 */
 	public function publish(&$pks, $value = 1)
 	{
-		require_once JPATH_ROOT . '/components/com_jcomments/helpers/event.php';
-		require_once JPATH_ROOT . '/components/com_jcomments/helpers/notification.php';
-
 		$user         = Factory::getApplication()->getIdentity();
 		$language     = Factory::getApplication()->getLanguage();
 		$table        = $this->getTable($this->tableName, $this->tablePrefix);

@@ -11,6 +11,12 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+
+$app     = Factory::getApplication();
+$langRtl = $app->getLanguage()->isRtl();
+
 /** @var JoomlaTuneTemplate $displayData */
 $activePage  = $displayData->getVar('comments-nav-active', 1);
 $firstPage   = $displayData->getVar('comments-nav-first', 0);
@@ -45,12 +51,22 @@ if ($displayData->getVar('comments-nav-top') == 1 || $displayData->getVar('comme
 	if ($firstPage != 0 && $totalPage != 0)
 	{
 		?>
-		<nav aria-label="Page navigation example">
-			<ul class="pagination justify-content-center">
+		<nav class="pagination__wrapper" aria-label="<?php echo Text::_('JLIB_HTML_PAGINATION'); ?>">
+			<ul class="pagination justify-content-center ms-0">
+				<?php // "Start" item ?>
 				<li class="page-item<?php echo $first == $activePage ? ' disabled' : ''; ?>">
-					<a class="page-link" href="javascript:void(0);" aria-label="Previous"
+					<a class="page-link" href="javascript:void(0);"
+					   aria-label="<?php echo Text::sprintf('JLIB_HTML_GOTO_POSITION', strtolower(Text::_('JLIB_HTML_START'))); ?>"
+					   onclick="jcomments.showPage(<?php echo (int) $objectID; ?>, '<?php echo $objectGroup; ?>', <?php echo $firstPage; ?>);">
+						<span class="<?php echo $langRtl ? 'icon-angle-double-right' : 'icon-angle-double-left'; ?>" aria-hidden="true"></span>
+					</a>
+				</li>
+				<?php // "Prev" item ?>
+				<li class="page-item<?php echo $first == $activePage ? ' disabled' : ''; ?>">
+					<a class="page-link" href="javascript:void(0);"
+					   aria-label="<?php echo Text::sprintf('JLIB_HTML_GOTO_POSITION', strtolower(Text::_('JPREVIOUS'))); ?>"
 					   onclick="jcomments.showPage(<?php echo (int) $objectID; ?>, '<?php echo $objectGroup; ?>', <?php echo $activePage - 1; ?>);">
-						<span aria-hidden="true">&laquo;</span>
+						<span class="<?php echo $langRtl ? 'icon-angle-right' : 'icon-angle-left'; ?>" aria-hidden="true"></span>
 					</a>
 				</li>
 
@@ -58,23 +74,37 @@ if ($displayData->getVar('comments-nav-top') == 1 || $displayData->getVar('comme
 				for ($i = $first; $i <= $last; $i++):
 					if ($i == $activePage):
 						?>
-						<li class="page-item disabled"><a class="page-link" href="javascript:void(0);"><?php echo $i; ?></a></li>
+						<li class="page-item active">
+							<a class="page-link" href="javascript:void(0);" aria-current="true"
+							   aria-label="<?php echo Text::sprintf('JLIB_HTML_PAGE_CURRENT', $i); ?>"><?php echo $i; ?>
+							</a>
+						</li>
 						<?php
 					else:
 						?>
 						<li class="page-item">
 							<a class="page-link" href="javascript:void(0);"
+							   aria-label="<?php echo Text::sprintf('JLIB_HTML_GOTO_PAGE', $i); ?>"
 							   onclick="jcomments.showPage(<?php echo (int) $objectID; ?>, '<?php echo $objectGroup; ?>', <?php echo $i; ?>);">
 							   <?php echo $i; ?>
 							</a>
 						</li>
 					<?php endif; ?>
 				<?php endfor; ?>
-
+				<?php // "Next" item ?>
 				<li class="page-item<?php echo $last == $activePage ? ' disabled' : ''; ?>">
-					<a class="page-link" href="javascript:void(0);" aria-label="Next"
+					<a class="page-link" href="javascript:void(0);"
+					   aria-label="<?php echo Text::sprintf('JLIB_HTML_GOTO_POSITION', strtolower(Text::_('JNEXT'))); ?>"
 					   onclick="jcomments.showPage(<?php echo (int) $objectID; ?>, '<?php echo $objectGroup; ?>', <?php echo $activePage + 1; ?>);">
-						<span aria-hidden="true">&raquo;</span>
+						<span class="<?php echo $langRtl ? 'icon-angle-left' : 'icon-angle-right'; ?>" aria-hidden="true"></span>
+					</a>
+				</li>
+				<?php // "End" item ?>
+				<li class="page-item<?php echo $last == $activePage ? ' disabled' : ''; ?>">
+					<a class="page-link" href="javascript:void(0);"
+					   aria-label="<?php echo Text::sprintf('JLIB_HTML_GOTO_POSITION', strtolower(Text::_('JLIB_HTML_END'))); ?>"
+					   onclick="jcomments.showPage(<?php echo (int) $objectID; ?>, '<?php echo $objectGroup; ?>', <?php echo $totalPage; ?>);">
+						<span class="<?php echo $langRtl ? 'icon-angle-double-left' : 'icon-angle-double-right'; ?>" aria-hidden="true"></span>
 					</a>
 				</li>
 			</ul>

@@ -11,10 +11,12 @@
 
 defined('_JEXEC') or die;
 
-/** @var JCommentsViewAbout $this */
-
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+
+/** @var JCommentsViewAbout $this */
+
+preg_match('(\d+\.\d+)', $this->component['version'], $matches);
 ?>
 <div class="main-card">
 	<div class="row">
@@ -26,17 +28,16 @@ use Joomla\CMS\Uri\Uri;
 				<tbody>
 				<tr>
 					<td>
-						<span class="extension-name"><?php echo $this->version->getLongVersion(); ?></span>
-						<span class="extension-date">[<?php echo $this->version->getReleaseDate(); ?>]</span>
+						<span class="text-warning"><strong>JComments <?php echo $this->component['version']; ?></strong></span>
+						<span class="text-warning">[<?php echo $this->component['creationDate']; ?>]</span>
 						<br><br>
-						<span><?php echo Text::sprintf('A_ABOUT_JCOMMENTS_GITHUB_PROJECT', $this->version->PRODUCT, $this->version->RELEASE); ?></span>
-
-						<div class="extension-copyright">
-							&copy; 2006-<?php echo date('Y'); ?> smart (<a
-									href="http://www.joomlatune.ru">JoomlaTune.ru</a> | <a
-									href="http://www.joomlatune.com">JoomlaTune.com</a>).
-							<?php echo Text::_('A_ABOUT_COPYRIGHT'); ?>
-						</div>
+						<span>
+							<?php echo Text::sprintf(
+								'A_ABOUT_JCOMMENTS_GITHUB_PROJECT',
+								$matches[0]
+							); ?>
+						</span>
+						<div class="text-secondary"><?php echo Text::sprintf('A_ABOUT_COPYRIGHTS', date('Y')); ?></div>
 					</td>
 				</tr>
 				<tr>

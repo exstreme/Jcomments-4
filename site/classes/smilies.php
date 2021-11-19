@@ -79,25 +79,35 @@ class JCommentsSmilies
 		return $this->_smilies;
 	}
 
+	/**
+	 * @param   string  $str  Comment text
+	 *
+	 * @return  string
+	 *
+	 * @since   3.0
+	 */
 	public function replace($str)
 	{
 		if (count($this->_replacements) > 0)
 		{
-			$str = JCommentsText::br2nl($str);
 			$str = preg_replace($this->_replacements['code'], $this->_replacements['icon'], $str);
-			$str = JCommentsText::nl2br($str);
 		}
 
 		return $str;
 	}
 
+	/**
+	 * @param   string  $str  Comment text
+	 *
+	 * @return  string
+	 *
+	 * @since   3.0
+	 */
 	public function strip($str)
 	{
 		if (count($this->_replacements) > 0)
 		{
-			$str = JCommentsText::br2nl($str);
 			$str = preg_replace($this->_replacements['code'], '\\1\\3', $str);
-			$str = JCommentsText::nl2br($str);
 		}
 
 		return $str;

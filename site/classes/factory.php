@@ -120,12 +120,6 @@ class JCommentsFactory
 		$tmpl->addGlobalVar('charset', 'utf-8');
 		$tmpl->addGlobalVar('ajaxurl', self::getLink('ajax', $objectID, $objectGroup));
 		$tmpl->addGlobalVar('smilesurl', self::getLink('smilies', $objectID, $objectGroup));
-
-		if ((int) $config->get('enable_rss') == 1)
-		{
-			$tmpl->addGlobalVar('rssurl', self::getLink('rss', $objectID, $objectGroup));
-		}
-
 		$tmpl->addGlobalVar('template', $templateName);
 		$tmpl->addGlobalVar('template_url', $templateUrl);
 		$tmpl->addGlobalVar('itemid', $app->input->getInt('Itemid') ?: 1);
@@ -195,28 +189,10 @@ class JCommentsFactory
 
 	public static function getLink($type = 'ajax', $objectID = 0, $objectGroup = '', $lang = '')
 	{
-		$app    = Factory::getApplication();
 		$config = ComponentHelper::getParams('com_jcomments');
 
 		switch ($type)
 		{
-			case 'rss':
-				$link = 'index.php?option=com_jcomments&task=rss&object_id=' . $objectID . '&object_group=' . $objectGroup . '&format=feed';
-
-				if ($app->isClient('administrator'))
-				{
-					$link = Uri::root(true) . '/' . $link;
-				}
-				else
-				{
-					$link = Route::_($link, false);
-				}
-
-				return $link;
-
-			case 'noavatar':
-				return Uri::root() . 'media/com_jcomments/images/no_avatar.png';
-
 			case 'smiles':
 			case 'smilies':
 				return Uri::root(true) . '/' . trim(str_replace('\\', '/', $config->get('smilies_path')), '/') . '/';
@@ -228,16 +204,13 @@ class JCommentsFactory
 				return Route::_('index.php?option=com_jcomments&task=captcha&format=raw&ac=' . $random, false);
 
 			case 'ajax':
-				// Support alternate language files
-				$lsfx = ($config->get('lsfx') != '') ? ('&lsfx=' . $config->get('lsfx')) : '';
-
 				// Support additional param for multilingual sites
 				if (!empty($lang))
 				{
 					$lang = '&lang=' . $lang;
 				}
 
-				$link = Route::_('index.php?option=com_jcomments&tmpl=component' . $lang . $lsfx, false);
+				$link = Route::_('index.php?option=com_jcomments&tmpl=component' . $lang, false);
 
 				// Fix to prevent cross-domain ajax call
 				if (isset($_SERVER['HTTP_HOST']))
@@ -278,6 +251,67 @@ class JCommentsFactory
 		}
 
 		return $link;
+	}
+
+	/**
+	 * Get gravatar URL or generate <img>.
+	 *
+	 * @param   object   $comment  Comment object.
+	 * @param   boolean  $tag      Return <img> tag if set to true.
+	 *
+	 * @return  string
+	 *
+	 * @since   4.0
+	 */
+	public static function getGravatar($comment, $tag = false)
+	{
+		$config       = ComponentHelper::getParams('com_jcomments');
+		$options      = $config->get('gav_options');
+		$emailHash    = md5(strtolower($comment->email));
+		$optionsArray = array();
+
+		if (!empty($options))
+		{
+			$options = explode("\n", $options);
+
+			foreach ($options as $option)
+			{
+				$_options = explode('=', $option);
+
+				if ($_options[0] == 'd')
+				{
+					if (strpos($_options[1], 'http') !== false)
+					{
+						$_options[1] = urlencode(trim($_options[1]));
+					};
+				}
+
+				$optionsArray[$_options[0]] = trim($_options[1]);
+			}
+
+			$data = 'https://www.gravatar.com/avatar/' . $emailHash . '/?' . implode('&', $optionsArray);
+		}
+		else
+		{
+			$data = 'https://www.gravatar.com/avatar/' . $emailHash . '/';
+		}
+
+		if ($tag)
+		{
+			if (!empty($optionsArray))
+			{
+				$width  = array_key_exists('s', $optionsArray) ? $optionsArray['s'] : 32;
+				$height = $width;
+				$data   = '<img src="' . $data . '" alt="' . htmlspecialchars($comment->author) . '"'
+					. ' width="' . $width . '" height="' . $height . '" class="gravatar-img">';
+			}
+			else
+			{
+				$data   = '<img src="' . $data . '" alt="' . htmlspecialchars($comment->author) . '" class="gravatar-img">';
+			}
+		}
+
+		return $data;
 	}
 
 	/**

@@ -135,8 +135,6 @@ class JCommentsTableComment extends Table
 
 	public function store($updateNulls = false)
 	{
-		require_once JPATH_ROOT . '/components/com_jcomments/helpers/object.php';
-
 		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
 
@@ -315,8 +313,6 @@ class JCommentsTableComment extends Table
 
 	protected function clearComment($value)
 	{
-		require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
-
 		// Change \n to <br />
 		$matches = array();
 		preg_match_all('#(\[code\=?([a-z0-9]*?)\].*\[\/code\])#isUu', trim($value), $matches);
@@ -331,7 +327,7 @@ class JCommentsTableComment extends Table
 			$value     = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
 		}
 
-		$value = JCommentsText::nl2br($value);
+		//$value = JCommentsText::nl2br($value);
 
 		foreach ($map as $key => $code)
 		{

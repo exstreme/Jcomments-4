@@ -85,13 +85,9 @@ class JCommentsModelComment extends JCommentsModelForm
 
 	public function save($data)
 	{
-		require_once JPATH_ROOT . '/components/com_jcomments/classes/bbcode.php';
-		require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
-		require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
-		require_once JPATH_ROOT . '/components/com_jcomments/helpers/notification.php';
-
-		$bbcodes = new JCommentsBBCode;
+		/** @var JCommentsTableComment $table */
 		$table   = $this->getTable();
+		$bbcodes = new JCommentsBBCode;
 		$pkName  = $table->getKeyName();
 		$pk      = (!empty($data[$pkName])) ? $data[$pkName] : (int) $this->getState($this->getName() . '.id');
 
@@ -126,7 +122,7 @@ class JCommentsModelComment extends JCommentsModelForm
 
 			$table->title   = stripslashes($table->title);
 			$table->comment = stripslashes($table->comment);
-			$table->comment = JCommentsText::nl2br($table->comment);
+			//$table->comment = JCommentsText::nl2br($table->comment); // TODO Remove JCommentsText::nl2br()
 			$table->comment = $bbcodes->filter($table->comment);
 
 			if (!$table->check())
