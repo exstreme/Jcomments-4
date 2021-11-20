@@ -85,13 +85,6 @@ $wa->useScript('keepalive')
 				</div>
 			</div>
 		<?php echo HTMLHelper::_('uitab.endTab'); ?>
-		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'rules', Text::_('JCONFIG_PERMISSIONS_LABEL')); ?>
-		<?php
-			// Due to unable save permissions via ajax with native Joomla functions it's better to use component settings in com_config.
-			// But user can change permission in dropdown - just save the settings.
-			echo $this->form->renderFieldset('rules');
-		?>
-		<?php echo HTMLHelper::_('uitab.endTab'); ?>
 		<?php echo HTMLHelper::_('uitab.endTabSet'); ?>
 	</div>
 
