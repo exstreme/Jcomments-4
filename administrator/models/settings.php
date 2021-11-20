@@ -11,11 +11,9 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Access\Rules;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Model\FormModel;
 use Joomla\Utilities\ArrayHelper;
 
@@ -89,10 +87,6 @@ class JCommentsModelSettings extends FormModel
 	{
 		$app   = Factory::getApplication();
 		$db    = $this->getDbo();
-		$rules = $data['rules'];
-
-		// Unset rules array because we do not need it in the component parameters
-		unset($data['rules']);
 
 		// Adjust some values
 		if (isset($data['forbidden_names']))
@@ -141,36 +135,6 @@ class JCommentsModelSettings extends FormModel
 		catch (RuntimeException $e)
 		{
 			$app->enqueueMessage($e->getMessage(), 'error');
-
-			return false;
-		}
-
-		if ($app->getIdentity()->authorise('core.admin', 'com_jcomments') && isset($rules))
-		{
-			$rules = new Rules($rules);
-			$query->clear()
-				->update($db->quoteName('#__assets'))
-				->set($db->quoteName('rules') . ' = ' . $db->quote($rules))
-				->where($db->quoteName('name') . " = 'com_jcomments'")
-				->where($db->quoteName('level') . ' = 1')
-				->where($db->quoteName('parent_id') . ' = 1');
-
-			$db->setQuery($query);
-
-			try
-			{
-				$db->execute();
-			}
-			catch (RuntimeException $e)
-			{
-				$app->enqueueMessage($e->getMessage(), 'error');
-
-				return false;
-			}
-		}
-		else
-		{
-			$app->enqueueMessage(Text::_('JERROR_ALERTNOAUTHOR'), 'error');
 
 			return false;
 		}
