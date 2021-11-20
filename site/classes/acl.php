@@ -218,7 +218,7 @@ class JCommentsACL
 
 		foreach ($userGroups as $userGroup)
 		{
-			if (in_array($userGroup, explode(',',$censorGroups)))
+			if (in_array($userGroup, $censorGroups))
 			{
 				// Current usergroup must be censored.
 				return true;
