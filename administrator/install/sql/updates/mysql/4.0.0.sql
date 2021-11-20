@@ -1,5 +1,5 @@
-DROP TABLE `#__jcomments_settings`;
-DROP TABLE `#__jcomments_version`;
+DROP TABLE IF EXISTS `#__jcomments_settings`;
+DROP TABLE IF EXISTS `#__jcomments_version`;
 
 ALTER TABLE `#__jcomments` CHARSET=utf8mb4, COLLATE=utf8mb4_general_ci;
 ALTER TABLE `#__jcomments_blacklist` CHARSET=utf8mb4, COLLATE=utf8mb4_general_ci;
