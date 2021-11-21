@@ -29,7 +29,7 @@
 
 	<updateservers>
 		<server type="extension" priority="1" name="JComments Update Site">
-			<![CDATA[https://raw.githubusercontent.com/exstreme/Jcomments-4/Develop/update-jcomments.xml]]>
+			<![CDATA[https://raw.githubusercontent.com/exstreme/Jcomments-4/master/update-jcomments.xml]]>
 		</server>
 	</updateservers>
 </extension>
