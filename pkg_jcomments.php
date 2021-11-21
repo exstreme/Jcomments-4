@@ -330,6 +330,10 @@ class pkg_jcommentsInstallerScript
 				{
 					$params[$fieldname] = json_decode($field->getAttribute('default'));
 				}
+                elseif (!is_null($field->getAttribute('multiple')))
+                {
+                    $params[$fieldname] = explode(',', $field->getAttribute('default'));
+                }
 			}
 		}
 
