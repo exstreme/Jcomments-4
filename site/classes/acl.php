@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Access;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 
@@ -217,7 +218,7 @@ class JCommentsACL
 
 		foreach ($userGroups as $userGroup)
 		{
-			if (in_array($userGroup, $censorGroups))
+			if (in_array($userGroup, explode(',',$censorGroups)))
 			{
 				// Current usergroup must be censored.
 				return true;
