@@ -5,10 +5,10 @@
 		<description>JComments lets your users comment on content items</description>
 		<element>com_jcomments</element>
 		<type>component</type>
-		<version>4.0.4</version>
+		<version>4.0.5</version>
 		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/pkg_jcomments_4.0.4.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/pkg_jcomments_4.0.5.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>Stable</tag>
