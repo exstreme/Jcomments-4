@@ -2,14 +2,12 @@
 /**
  * JComments plugin for DJ-Catalog2 objects support (http://dj-extensions.com)
  *
- * @version 4.0
+ * @version 3.0
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
+ * @author Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2011-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
@@ -23,7 +21,7 @@ class jc_com_djcatalog2 extends JCommentsPlugin
 		if (is_file($routerHelper)) {
 			require_once($routerHelper);
 
-			$db = Factory::getContainer()->get('DatabaseDriver');
+			$db = JFactory::getDBO();
 
 			$query = $db->getQuery(true);
 			$query->select('a.id, a.alias, a.name, a.created_by');

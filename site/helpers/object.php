@@ -18,6 +18,7 @@ use Joomla\CMS\Factory;
 
 require_once JPATH_ROOT . '/components/com_jcomments/models/object.php';
 require_once JPATH_ROOT . '/components/com_jcomments/classes/objectinfo.php';
+require_once JPATH_ROOT . '/components/com_jcomments/classes/security.php';
 
 /**
  * JComments objects frontend helper
@@ -246,8 +247,8 @@ class JCommentsObject
 		{
 			if ($app->isClient('administrator'))
 			{
-				// We do not have to update object's link from backend
-				$info->link = null;
+				// We do not have to update object's link from backend. But if link is empty somehow, do update.
+				$info->link = str_replace('administrator/', '', $info->link);
 			}
 
 			// Insert/update object information
