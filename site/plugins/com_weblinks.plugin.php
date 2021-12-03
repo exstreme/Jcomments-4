@@ -10,28 +10,26 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
 
 class jc_com_weblinks extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( 'SELECT title, id FROM #__categories WHERE section = "com_weblinks" and id = ' . $id );
 		return $db->loadResult();
 	}
 
 	function getObjectLink($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDBO();
 		$db->setQuery( 'SELECT alias FROM #__categories WHERE section = "com_weblinks" and id = ' . $id );
 		$alias = $db->loadResult();
 		
 		$link = 'index.php?option=com_weblinks&view=category&id='. $id.':'.$alias;
 
-		require_once(JPATH_SITE.DS.'includes'.DS.'application.php');
+		require_once(JPATH_SITE.'/includes/application.php');
 
 		$component = JComponentHelper::getComponent('com_weblinks');
 		$menus = JApplication::getMenu('site');

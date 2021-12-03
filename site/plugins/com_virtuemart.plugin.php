@@ -4,12 +4,10 @@
  *
  * @version 2.0
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
@@ -29,7 +27,7 @@ class jc_com_virtuemart extends JCommentsPlugin
 	
 			VmConfig::loadConfig();
 
-			$db = Factory::getContainer()->get('DatabaseDriver');
+			$db = JFactory::getDBO();
 			$db->setQuery('SELECT product_name, created_by FROM #__virtuemart_products_' . VMLANG . ' WHERE virtuemart_product_id =' . $id);
 			$row = $db->loadObject();
 			

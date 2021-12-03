@@ -9,15 +9,13 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
 
 class jc_com_hikashop extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDBO();
 		$db->setQuery( 'SELECT a.product_name as name, a.product_id as id, b.product_name as parent_name FROM #__hikashop_product AS a LEFT JOIN #__hikashop_product AS b ON a.product_parent_id=b.product_id WHERE a.product_id = ' . $id );
 		$obj = $db->loadObject();
 		$name = @$obj->name;
@@ -44,7 +42,7 @@ class jc_com_hikashop extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDBO();
 		$db->setQuery( 'SELECT a.product_vendor_id as created_by, a.product_id as id, b.product_vendor_id as parent_created_by FROM #__hikashop_product AS a LEFT JOIN #__hikashop_product AS b ON a.product_parent_id=b.product_id WHERE a.product_id = ' . $id );
 		$obj = $db->loadObject();
 		$id = @$obj->created_by;
@@ -60,7 +58,7 @@ class jc_com_hikashop extends JCommentsPlugin
 
 		if (empty($id)) {
 			$app = JFactory::getApplication();
-			if (JCommentsSystemPluginHelper::isAdmin($app)) {
+			if ($app->isAdmin()) {
 				$user =& JFactory::getUser();
 				$id = $user->id;
 			}

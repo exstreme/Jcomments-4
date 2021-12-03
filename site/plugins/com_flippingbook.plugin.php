@@ -4,12 +4,10 @@
  *
  * @version 2.0
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
@@ -17,7 +15,7 @@ class jc_com_flippingbook extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( "SELECT title, id FROM #__flippingbook_books WHERE id = $id" );
 		return $db->loadResult();
 	}
@@ -26,7 +24,7 @@ class jc_com_flippingbook extends JCommentsPlugin
 	{
 		$_Itemid = self::getItemid( 'com_flippingbook' );
 
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$id = intval($id);
 
 		$query = 'SELECT b.id,' .

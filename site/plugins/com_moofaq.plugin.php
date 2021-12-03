@@ -4,20 +4,24 @@
  *
  * @version 2.1
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\Factory;
-
 defined('_JEXEC') or die;
 
+/**
+ * @package     jc_com_moofaq
+ *
+ * @deprecated  4.0.5  Package changes name to iFaq
+ * @since       1.0
+ */
 class jc_com_moofaq extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( 'SELECT title, id FROM #__content WHERE id = ' . $id );
 		return $db->loadResult();
 	}
@@ -26,7 +30,7 @@ class jc_com_moofaq extends JCommentsPlugin
 	{
 	        $link = '';
 
-		require_once(JPATH_ROOT.DS.'components'.DS.'com_moofaq'.DS.'helpers'.DS.'route.php');
+		require_once(JPATH_ROOT.'/components/com_moofaq/helpers/route.php');
 		
 		$query = 'SELECT a.id, a.sectionid, a.access,' .
 				' CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(":", a.id, a.alias) ELSE a.id END as slug,'.
@@ -35,7 +39,7 @@ class jc_com_moofaq extends JCommentsPlugin
 				' LEFT JOIN #__categories AS cc ON cc.id = a.catid' .
 				' WHERE a.id = ' . $id;
 
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( $query );
 		$row = $db->loadObject();
 
@@ -52,7 +56,7 @@ class jc_com_moofaq extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( 'SELECT created_by FROM #__content WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		

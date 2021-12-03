@@ -4,12 +4,10 @@
  *
  * @version 2.0
  * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @author Sergey M. Litvinov (smart@joomlatune.ru)
+ * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
-
-use Joomla\CMS\Factory;
 
 defined('_JEXEC') or die;
 
@@ -17,7 +15,7 @@ class jc_com_docman extends JCommentsPlugin
 {
 	function getObjectTitle($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( 'SELECT dmname, id FROM #__docman WHERE id = ' . $id );
 		return $db->loadResult();
 	}
@@ -35,7 +33,7 @@ class jc_com_docman extends JCommentsPlugin
 			}
 		}
 
-		include_once(JPATH_SITE.DS.'includes'.DS.'application.php');
+		include_once(JPATH_SITE.'/includes/application.php');
 
 		$link = 'index.php?option=com_docman&task=doc_details&gid=' . $id;
 
@@ -43,7 +41,7 @@ class jc_com_docman extends JCommentsPlugin
 			$link .= '&Itemid=' . $_Itemid;
 		};
 
-		$router = JPATH_SITE . DS . 'components' . DS . 'com_docman' . DS . 'router.php';
+		$router = JPATH_SITE.'/components/com_docman/router.php';
 		if (is_file($router)) {
 			include_once($router);
 		}
@@ -54,7 +52,7 @@ class jc_com_docman extends JCommentsPlugin
 
 	function getObjectOwner($id)
 	{
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$db = JFactory::getDbo();
 		$db->setQuery( 'SELECT dmsubmitedby FROM #__docman WHERE id = ' . $id );
 		$userid = $db->loadResult();
 		
