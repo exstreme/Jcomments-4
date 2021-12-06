@@ -64,6 +64,63 @@ class pkg_jcommentsInstallerScript
 		return true;
 	}
 
+    /**
+     * Called only with install
+     *
+     * @param   string            $action     Which action is happening (install|uninstall|discover_install|update)
+     * @param   InstallerAdapter  $installer  The class calling this method
+     *
+     * @return  boolean  True on success
+     *
+     * @throws  Exception
+     * @since   4.0.0
+     */
+    public function install($action, $installer)
+    {
+        // Load default custom bbcodes
+        $query = $db->getQuery(true)
+            ->select('COUNT(id)')
+            ->from($db->quoteName('#__jcomments_custom_bbcodes'));
+
+        $db->setQuery($query);
+        $count = $db->loadResult();
+
+        if ($count == 0)
+        {
+            $this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.custom_bbcodes.sql');
+            $this->fixUsergroupsCustomBBCodes();
+        }
+
+        // Load default smilies
+        $query = $db->getQuery(true)
+            ->select('COUNT(id)')
+            ->from($db->quoteName('#__jcomments_smilies'));
+
+        $db->setQuery($query);
+        $count = $db->loadResult();
+
+        if ($count == 0)
+        {
+            $this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.smilies.sql');
+        }
+
+        // Load default access rules
+        $this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.access.sql');
+
+        // Copy JomSocial rule
+        $source      = JPATH_ROOT . '/administrator/components/com_jcomments/install/xml/jomsocial_rule.xml';
+        $destination = JPATH_SITE . '/components/com_jcomments/jomsocial_rule.xml';
+
+        if (!is_file($destination))
+        {
+            File::copy($source, $destination);
+        }
+
+        // Enable plugins
+        $this->enablePlugins(1);
+
+        $this->setComponentParams();
+	}
 
 	/**
 	 * Called after any type of action
@@ -101,49 +158,7 @@ class pkg_jcommentsInstallerScript
 		$data->action   = $action;
 		$data->xml      = $componentXML;
 
-		// Load default custom bbcodes
-		$query = $db->getQuery(true)
-			->select('COUNT(id)')
-			->from($db->quoteName('#__jcomments_custom_bbcodes'));
 
-		$db->setQuery($query);
-		$count = $db->loadResult();
-
-		if ($count == 0)
-		{
-			$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.custom_bbcodes.sql');
-			$this->fixUsergroupsCustomBBCodes();
-		}
-
-		// Load default smilies
-		$query = $db->getQuery(true)
-			->select('COUNT(id)')
-			->from($db->quoteName('#__jcomments_smilies'));
-
-		$db->setQuery($query);
-		$count = $db->loadResult();
-
-		if ($count == 0)
-		{
-			$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.smilies.sql');
-		}
-
-		// Load default access rules
-		$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.access.sql');
-
-		// Copy JomSocial rule
-		$source      = JPATH_ROOT . '/administrator/components/com_jcomments/install/xml/jomsocial_rule.xml';
-		$destination = JPATH_SITE . '/components/com_jcomments/jomsocial_rule.xml';
-
-		if (!is_file($destination))
-		{
-			File::copy($source, $destination);
-		}
-
-		// Enable plugins
-		$this->enablePlugins(1);
-
-		$this->setComponentParams();
 		$this->cleanCache('com_jcomments');
 		$this->displayResults($data);
 
