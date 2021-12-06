@@ -64,62 +64,67 @@ class pkg_jcommentsInstallerScript
 		return true;
 	}
 
-    /**
-     * Called only with install
-     *
-     * @param   string            $action     Which action is happening (install|uninstall|discover_install|update)
-     * @param   InstallerAdapter  $installer  The class calling this method
-     *
-     * @return  boolean  True on success
-     *
-     * @throws  Exception
-     * @since   4.0.0
-     */
-    public function install($action, $installer)
-    {
-        // Load default custom bbcodes
-        $query = $db->getQuery(true)
-            ->select('COUNT(id)')
-            ->from($db->quoteName('#__jcomments_custom_bbcodes'));
+	/**
+	 * Called only with install
+	 *
+	 * @param   string            $action     Which action is happening (install|uninstall|discover_install|update)
+	 * @param   InstallerAdapter  $installer  The class calling this method
+	 *
+	 * @return  boolean  True on success
+	 *
+	 * @throws  Exception
+	 * @since   4.0.0
+	 */
+	public function install($action, $installer)
+	{
+		/** @var DatabaseDriver $db */
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
-        $db->setQuery($query);
-        $count = $db->loadResult();
+		// Load default custom bbcodes
+		$query = $db->getQuery(true)
+			->select('COUNT(id)')
+			->from($db->quoteName('#__jcomments_custom_bbcodes'));
 
-        if ($count == 0)
-        {
-            $this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.custom_bbcodes.sql');
-            $this->fixUsergroupsCustomBBCodes();
-        }
+		$db->setQuery($query);
+		$count = $db->loadResult();
 
-        // Load default smilies
-        $query = $db->getQuery(true)
-            ->select('COUNT(id)')
-            ->from($db->quoteName('#__jcomments_smilies'));
+		if ($count == 0)
+		{
+			$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.custom_bbcodes.sql');
+			$this->fixUsergroupsCustomBBCodes();
+		}
 
-        $db->setQuery($query);
-        $count = $db->loadResult();
+		// Load default smilies
+		$query = $db->getQuery(true)
+			->select('COUNT(id)')
+			->from($db->quoteName('#__jcomments_smilies'));
 
-        if ($count == 0)
-        {
-            $this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.smilies.sql');
-        }
+		$db->setQuery($query);
+		$count = $db->loadResult();
 
-        // Load default access rules
-        $this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.access.sql');
+		if ($count == 0)
+		{
+			$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.smilies.sql');
+		}
 
-        // Copy JomSocial rule
-        $source      = JPATH_ROOT . '/administrator/components/com_jcomments/install/xml/jomsocial_rule.xml';
-        $destination = JPATH_SITE . '/components/com_jcomments/jomsocial_rule.xml';
+		// Load default access rules
+		$this->executeSQL(JPATH_ROOT . '/administrator/components/com_jcomments/install/sql/mysql/default.access.sql');
 
-        if (!is_file($destination))
-        {
-            File::copy($source, $destination);
-        }
+		// Copy JomSocial rule
+		$source      = JPATH_ROOT . '/administrator/components/com_jcomments/install/xml/jomsocial_rule.xml';
+		$destination = JPATH_SITE . '/components/com_jcomments/jomsocial_rule.xml';
 
-        // Enable plugins
-        $this->enablePlugins(1);
+		if (!is_file($destination))
+		{
+			File::copy($source, $destination);
+		}
 
-        $this->setComponentParams();
+		// Enable plugins
+		$this->enablePlugins(1);
+
+		$this->setComponentParams();
+
+		return true;
 	}
 
 	/**
@@ -140,9 +145,6 @@ class pkg_jcommentsInstallerScript
 			return true;
 		}
 
-		/** @var DatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
-
 		$language = Factory::getApplication()->getLanguage();
 		$language->load('com_jcomments', JPATH_ADMINISTRATOR, 'en-GB', true);
 		$language->load('com_jcomments', JPATH_ADMINISTRATOR, null, true);
@@ -157,7 +159,6 @@ class pkg_jcommentsInstallerScript
 		$data->next     = Uri::root() . 'administrator/index.php?option=com_jcomments&view=settings';
 		$data->action   = $action;
 		$data->xml      = $componentXML;
-
 
 		$this->cleanCache('com_jcomments');
 		$this->displayResults($data);
