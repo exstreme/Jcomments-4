@@ -1227,63 +1227,6 @@ class JCommentsAJAX
 		return $response;
 	}
 
-	public static function subscribeUser($objectID, $objectGroup)
-	{
-		$user     = Factory::getApplication()->getIdentity();
-		$response = JCommentsFactory::getAjaxResponse();
-
-		if ($user->get('id'))
-		{
-			require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
-
-			$manager = JCommentsSubscriptionManager::getInstance();
-			$result  = $manager->subscribe($objectID, $objectGroup, $user->get('id'));
-
-			if ($result)
-			{
-				$response->addScript("jcomments.updateSubscription(true, '" . Text::_('BUTTON_UNSUBSCRIBE') . "');");
-			}
-			else
-			{
-				$errors = $manager->getErrors();
-
-				if (count($errors))
-				{
-					$response->addAlert(implode('\n', $errors));
-				}
-			}
-		}
-
-		return $response;
-	}
-
-	public static function unsubscribeUser($objectID, $objectGroup)
-	{
-		$user        = Factory::getApplication()->getIdentity();
-		$response    = JCommentsFactory::getAjaxResponse();
-		$objectGroup = JCommentsSecurity::clearObjectGroup($objectGroup);
-
-		if ($user->get('id'))
-		{
-			require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
-
-			$manager = JCommentsSubscriptionManager::getInstance();
-			$result  = $manager->unsubscribe($objectID, $objectGroup, $user->get('id'));
-
-			if ($result)
-			{
-				$response->addScript("jcomments.updateSubscription(false, '" . Text::_('BUTTON_SUBSCRIBE') . "');");
-			}
-			else
-			{
-				$errors = $manager->getErrors();
-				$response->addAlert(implode('\n', $errors));
-			}
-		}
-
-		return $response;
-	}
-
 	public static function voteComment($id, $value)
 	{
 		/** @var DatabaseDriver $db */

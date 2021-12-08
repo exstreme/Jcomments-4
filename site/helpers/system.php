@@ -13,7 +13,6 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\CMS\Uri\Uri;
 
 /**
@@ -60,5 +59,29 @@ class JCommentsSystem
 		}
 
 		return $cssUrl;
+	}
+
+	/**
+	 * Get the return URL.
+	 *
+	 * If a "return" variable has been passed in the request
+	 *
+	 * @return  string	The return URL.
+	 *
+	 * @since   4.0
+	 */
+	public static function getReturnPage()
+	{
+		$input  = Factory::getApplication()->input;
+		$return = $input->get('return', null, 'base64');
+
+		if (empty($return) || !Uri::isInternal(base64_decode($return)))
+		{
+			return Uri::base();
+		}
+		else
+		{
+			return base64_decode($return);
+		}
 	}
 }

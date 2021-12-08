@@ -25,7 +25,7 @@ use Joomla\Registry\Registry;
 /**
  * Plugin for attaching comments list and form to content item
  */
-class plgContentJComments extends CMSPlugin
+class PlgContentJcomments extends CMSPlugin
 {
 	public function onPrepareContent(&$article, &$params)
 	{
@@ -420,22 +420,33 @@ class plgContentJComments extends CMSPlugin
 
 			$model = new JcommentsModelSubscriptions;
 
-			return $model->deleteSubscriptions($data->id, 'com_content');
+			return $model->unsubscribe($data->id, 'com_content');
 		}
 
 		return true;
 	}
 
+	/**
+	 * The save event.
+	 *
+	 * @param   string   $context  The context
+	 * @param   object   $article  The table
+	 * @param   boolean  $isNew    Is new item
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 */
 	public function onContentAfterSave($context, $article, $isNew)
 	{
-		// Check we are handling the frontend edit form.
-		if ($context == 'com_content.form' && !$isNew)
+		if (($context == 'com_content.article' || $context == 'com_content.form') && !$isNew)
 		{
 			require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
 
 			if (JCommentsContent::checkCategory($article->catid))
 			{
 				require_once JPATH_ROOT . '/components/com_jcomments/helpers/object.php';
+
 				JCommentsObject::storeObjectInfo($article->id);
 			}
 		}

@@ -1450,28 +1450,6 @@ JComments.prototype = {
 		}, 6000);
 		JCommentsScroll.scroll(fe);
 	},
-
-	subscribe: function (o, g) {
-		return this.ajax('JCommentsSubscribe', arguments);
-	},
-	unsubscribe: function (o, g) {
-		return this.ajax('JCommentsUnsubscribe', arguments);
-	},
-	updateSubscription: function (m, t) {
-		var e = this.$('comments-subscription');
-		if (e) {
-			var jc = this;
-			e.innerHTML = t;
-			e.onclick = m ? function () {
-				jc.unsubscribe(jc.oi, jc.og);
-				return false;
-			} : function () {
-				jc.subscribe(jc.oi, jc.og);
-				return false;
-			};
-			e.blur();
-		}
-	},
 	go: function (l) {
 		window.open(l);
 		return false;
@@ -1501,3 +1479,34 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 })
+
+jQuery(document).ready(function ($) {
+	$('.cmd-subscribe').on('click',function (e) {
+		e.preventDefault();
+
+		let $this = $(this);
+
+		Joomla.request({
+			url: $this.attr('href') + '&format=json',
+			onSuccess: function (response) {
+				let _response = JSON.parse(response);
+
+				if (_response.success) {
+					$this.attr({
+						href: _response.data.href,
+						title: _response.data.title
+					});
+					$this.html('<span aria-hidden="true" class="icon-mail icon-fw"></span> ' + _response.data.title);
+
+					Joomla.renderMessages({'message': [_response.message]}, '.comments-list-footer');
+				} else {
+					Joomla.renderMessages({'warning': [_response.message]}, '.comments-list-footer');
+				}
+			},
+			onError: function (xhr) {
+				let response = JSON.parse(xhr.responseText);
+				Joomla.renderMessages({'error': [response.message]}, '.comments-list-footer');
+			}
+		});
+	});
+});
