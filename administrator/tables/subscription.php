@@ -48,9 +48,18 @@ class JCommentsTableSubscription extends Table
 	/** @var boolean */
 	public $published = null;
 
-	public function __construct($_db)
+	/** @var string */
+	public $source = null;
+
+	/** @var boolean */
+	public $checked_out = 0;
+
+	/** @var datetime */
+	public $checked_out_time = 0;
+
+	public function __construct($table)
 	{
-		parent::__construct('#__jcomments_subscriptions', 'id', $_db);
+		parent::__construct('#__jcomments_subscriptions', 'id', $table);
 	}
 
 	public function store($updateNulls = false)
@@ -60,8 +69,9 @@ class JCommentsTableSubscription extends Table
 
 		if ($this->userid != 0 && empty($this->email))
 		{
-			// TODO How to get user object by user ID in J4?
-			$user        = Factory::getUser($this->userid);
+			/** @var \Joomla\CMS\User\UserFactory $userFactory */
+			$userFactory = Factory::getContainer()->get('user.factory');
+			$user        = $userFactory->loadUserById($this->userid);
 			$this->email = $user->email;
 		}
 

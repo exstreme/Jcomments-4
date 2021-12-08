@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 
 /** @var JoomlaTuneTemplate $displayData */
 $objectID    = $displayData->getVar('comment-object_id');
@@ -20,7 +21,7 @@ $objectGroup = $displayData->getVar('comment-object_group');
 ?>
 <div class="comments-list-footer">
 	<?php if ($displayData->getVar('comments-refresh', true)): ?>
-	<div>
+	<div class="comments-refresh">
 		<a href="#" title="<?php echo Text::_('BUTTON_REFRESH'); ?>"
 		   onclick="jcomments.showPage(<?php echo $objectID; ?>, '<?php echo $objectGroup; ?>', 0); return false;">
 			<span aria-hidden="true" class="icon-loop icon-fw"></span> <?php echo Text::_('BUTTON_REFRESH'); ?>
@@ -29,7 +30,7 @@ $objectGroup = $displayData->getVar('comment-object_group');
 	<?php endif; ?>
 
 	<?php if ($displayData->getVar('comments-rss', 1) == 1): ?>
-	<div>
+	<div class="comments-rss">
 		<a href="<?php echo Route::_('index.php?option=com_jcomments&view=comments&task=rss&object_id=' . $objectID . '&object_group=' . $objectGroup . '&format=feed'); ?>"
 		   title="<?php echo Text::_('BUTTON_RSS'); ?>" target="_blank">
 			<span aria-hidden="true" class="icon-rss icon-fw"></span> <?php echo Text::_('BUTTON_RSS'); ?>
@@ -40,11 +41,12 @@ $objectGroup = $displayData->getVar('comment-object_group');
 	<?php if ($displayData->getVar('comments-can-subscribe', 0) == 1):
 		$isSubscribed = $displayData->getVar('comments-user-subscribed', 0);
 		$text = $isSubscribed ? Text::_('BUTTON_UNSUBSCRIBE') : Text::_('BUTTON_SUBSCRIBE');
-		$func = $isSubscribed ? 'unsubscribe' : 'subscribe';
+		$func = $isSubscribed ? 'remove' : 'add';
+		$url  = 'index.php?option=com_jcomments&task=subscriptions.' . $func . '&object_id=' . $objectID
+			. '&object_group=' . $objectGroup . '&return=' . base64_encode(Uri::getInstance());
 		?>
-	<div>
-		<a href="#" id="comments-subscription" title="<?php echo $text; ?>"
-		   onclick="jcomments.<?php echo $func; ?>(<?php echo $objectID; ?>, '<?php echo $objectGroup; ?>'); return false;">
+	<div class="comments-subscription">
+		<a href="<?php echo Route::_($url); ?>" class="cmd-subscribe" title="<?php echo $text; ?>" rel="nofollow">
 			<span aria-hidden="true" class="icon-mail icon-fw"></span> <?php echo $text; ?>
 		</a>
 	</div>

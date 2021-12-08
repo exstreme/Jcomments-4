@@ -37,6 +37,9 @@ ob_end_clean();
 $app = Factory::getApplication();
 $task = $app->input->get('task', '');
 
+// TODO Must be placed in main component view class.
+\Joomla\CMS\HTML\HTMLHelper::_('jquery.framework');
+
 switch ($task)
 {
 	case 'captcha':
@@ -56,10 +59,6 @@ switch ($task)
 				JCommentsEvent::trigger('onJCommentsCaptchaImage');
 			}
 		}
-
-		break;
-	case 'unsubscribe':
-		JComments::unsubscribe();
 
 		break;
 	case 'cmd':
@@ -82,6 +81,8 @@ switch ($task)
 		JCommentsAJAX::refreshObjectsAjax();
 
 		jexit();
+	case 'subscriptions.add':
+	case 'subscriptions.remove':
 	case 'show_all':
 	case 'rss':
 	case 'rss_full':
@@ -179,8 +180,6 @@ if (isset($_REQUEST['jtxf']))
 	$jtx->registerFunction(array('JCommentsVoteComment', 'JCommentsAJAX', 'voteComment'));
 	$jtx->registerFunction(array('JCommentsShowReportForm', 'JCommentsAJAX', 'showReportForm'));
 	$jtx->registerFunction(array('JCommentsReportComment', 'JCommentsAJAX', 'reportComment'));
-	$jtx->registerFunction(array('JCommentsSubscribe', 'JCommentsAJAX', 'subscribeUser'));
-	$jtx->registerFunction(array('JCommentsUnsubscribe', 'JCommentsAJAX', 'unsubscribeUser'));
 	$jtx->registerFunction(array('JCommentsBanIP', 'JCommentsAJAX', 'BanIP'));
 	$jtx->processRequests();
 }
@@ -546,9 +545,10 @@ class JComments
 
 			if ($user->get('id') && $canSubscribe)
 			{
-				require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
-				$manager      = JCommentsSubscriptionManager::getInstance();
-				$canSubscribe = $canSubscribe && (!$manager->isSubscribed($objectID, $objectGroup, $user->get('id')));
+				require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
+
+				$subscriptionModel = new JcommentsModelSubscriptions;
+				$canSubscribe = (!$subscriptionModel->isSubscribed($objectID, $objectGroup, $user->get('id')));
 			}
 
 			$tmpl->addVar('tpl_form', 'comments-form-subscribe', (int) $canSubscribe);
@@ -803,10 +803,10 @@ class JComments
 
 			if ($user->get('id') && $user->authorise('comment.subscribe', 'com_jcomments'))
 			{
-				require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
+				require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
 
-				$manager      = JCommentsSubscriptionManager::getInstance();
-				$isSubscribed = $manager->isSubscribed($objectID, $objectGroup, $user->get('id'));
+				$subscriptionModel = new JcommentsModelSubscriptions;
+				$isSubscribed = $subscriptionModel->isSubscribed($objectID, $objectGroup, $user->get('id'));
 				$tmpl->addVar('tpl_list', 'comments-user-subscribed', $isSubscribed);
 			}
 
@@ -1378,46 +1378,6 @@ class JComments
 		}
 
 		return $thisPage;
-	}
-
-	/**
-	 * Unsubscribe user.
-	 *
-	 * @return  void
-	 *
-	 * @throws  Exception
-	 * @since   3.0
-	 */
-	public static function unsubscribe()
-	{
-		$app  = Factory::getApplication();
-		$hash = $app->input->get('hash', '');
-		$hash = preg_replace('#[^A-Z0-9]#i', '', $hash);
-
-		if ($hash)
-		{
-			require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
-
-			$manager      = JCommentsSubscriptionManager::getInstance();
-			$subscription = $manager->getSubscriptionByHash($hash);
-			$result       = $manager->unsubscribeByHash($hash);
-
-			if ($result)
-			{
-				$link = JCommentsObject::getLink($subscription->object_id, $subscription->object_group, $subscription->lang);
-
-				if (empty($link))
-				{
-					$link = Route::_('index.php');
-				}
-
-				$app->redirect($link, Text::_('SUCCESSFULLY_UNSUBSCRIBED'));
-			}
-		}
-
-		header('HTTP/1.0 404 Not Found');
-
-		throw new RuntimeException('JGLOBAL_RESOURCE_NOT_FOUND', 404);
 	}
 
 	/**
