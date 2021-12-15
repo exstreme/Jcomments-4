@@ -67,15 +67,12 @@ class pkg_jcommentsInstallerScript
 	/**
 	 * Called only with install
 	 *
-	 * @param   string            $action     Which action is happening (install|uninstall|discover_install|update)
-	 * @param   InstallerAdapter  $installer  The class calling this method
-	 *
 	 * @return  boolean  True on success
 	 *
 	 * @throws  Exception
 	 * @since   4.0.0
 	 */
-	public function install($action, $installer)
+	public function install()
 	{
 		/** @var DatabaseDriver $db */
 		$db = Factory::getContainer()->get('DatabaseDriver');
