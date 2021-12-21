@@ -963,10 +963,10 @@ class JComments
 
 			if ($user->get('id') && $user->authorise('comment.subscribe', 'com_jcomments'))
 			{
-				require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
+				require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
 
-				$manager      = JCommentsSubscriptionManager::getInstance();
-				$isSubscribed = $manager->isSubscribed($objectID, $objectGroup, $user->get('id'));
+				$subscriptionModel = new JcommentsModelSubscriptions;
+				$isSubscribed = $subscriptionModel->isSubscribed($objectID, $objectGroup, $user->get('id'));
 				$tmpl->addVar('tpl_tree', 'comments-user-subscribed', $isSubscribed);
 			}
 
