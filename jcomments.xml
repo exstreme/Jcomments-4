@@ -7,7 +7,7 @@
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<copyright>Copyright 2006-2021 JoomlaTune.ru All rights reserved!</copyright>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.9</version>
+	<version>4.0.10</version>
 	<description>JComments lets your users comment on content items.</description>
 
 	<install>
@@ -29,6 +29,7 @@
 		<filename>jcomments.ajax.php</filename>
 		<filename>jcomments.captcha.php</filename>
 		<filename>jcomments.class.php</filename>
+		<filename>jcomments.subscription.php</filename>
 
 		<folder>classes</folder>
 		<folder>helpers</folder>
