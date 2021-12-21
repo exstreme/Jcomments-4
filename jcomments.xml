@@ -2,12 +2,10 @@
 <extension type="component" method="upgrade">
 	<name>com_jcomments</name>
 	<creationDate>December 2021</creationDate>
-	<author>smart</author>
-	<authorEmail>smart@joomlatune.ru</authorEmail>
+	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
-	<copyright>Copyright 2006-2021 JoomlaTune.ru All rights reserved!</copyright>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.10</version>
+	<version>4.0.11</version>
 	<description>JComments lets your users comment on content items.</description>
 
 	<install>
@@ -29,7 +27,6 @@
 		<filename>jcomments.ajax.php</filename>
 		<filename>jcomments.captcha.php</filename>
 		<filename>jcomments.class.php</filename>
-		<filename>jcomments.subscription.php</filename>
 
 		<folder>classes</folder>
 		<folder>helpers</folder>
