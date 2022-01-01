@@ -98,9 +98,6 @@ class JCommentsTableComment extends Table
 	/** @var datetime */
 	public $checked_out_time = 0;
 
-	/** @var string */
-	public $editor = '';
-
 	/**
 	 * Object constructor to set table and key fields.  In most cases this will
 	 * be overridden by child classes to explicitly set the table and key fields
