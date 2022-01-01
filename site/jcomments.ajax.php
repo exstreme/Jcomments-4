@@ -526,10 +526,10 @@ class JCommentsAJAX
 					// Save comments subscription
 					if ($values['subscribe'])
 					{
-						require_once JPATH_ROOT . '/components/com_jcomments/jcomments.subscription.php';
+						require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
 
-						$manager = JCommentsSubscriptionManager::getInstance();
-						$manager->subscribe($comment->object_id, $comment->object_group, $comment->userid, $comment->email, $comment->name, $comment->lang);
+                        $subscriptionModel = new JcommentsModelSubscriptions;
+                        $subscriptionModel->subscribe($comment->object_id, $comment->object_group, $comment->userid, $comment->email, $comment->name, $comment->lang);
 					}
 
 					$merged    = false;
