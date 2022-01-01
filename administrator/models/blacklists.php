@@ -45,7 +45,7 @@ class JCommentsModelBlacklists extends JCommentsModelList
 				$db->quoteName(
 					array(
 						'jb.id', 'jb.ip', 'jb.userid', 'jb.created', 'jb.created_by', 'jb.expire', 'jb.reason',
-						'jb.notes', 'jb.checked_out', 'jb.checked_out_time', 'jb.editor'
+						'jb.notes', 'jb.checked_out', 'jb.checked_out_time'
 					)
 				)
 			)
