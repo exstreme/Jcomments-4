@@ -1366,6 +1366,22 @@ JComments.prototype = {
 			}
 		}
 	},
+    hideChildComments: function(e, id) {
+        var b = this.$('show-button-' + id);
+        var c = this.$('comment-item-' + id);
+        b.style.display = '';
+        c.classList.add('hide-children');
+        e.style.display = 'none';
+        return false;
+    },
+    showChildComments: function(e, id) {
+        var b = this.$('hide-button-' + id);
+        var c = this.$('comment-item-' + id);
+        b.style.display = '';
+        c.classList.remove('hide-children');
+        e.style.display = 'none';
+        return false;
+    },
 	reportComment: function (id) {
 		this.busyComment(id);
 		this.cancelReply();
