@@ -47,6 +47,9 @@ if ($displayData->getVar('button-reply') == 1
 		<?php endif; ?>
 
         <?php if ($comment->children != 0) : ?>
+            <?php if ($displayData->getVar('button-quote') == 1 || $displayData->getVar('button-reply') == 1 || $displayData->getVar('button-report') == 1): ?>
+				&vert;
+			<?php endif; ?>
             <a href="#" id="hide-button-<?php echo $comment->id; ?>" onclick="jcomments.hideChildComments(this, <?php echo $comment->id; ?>); return false;">
                 <?php echo Text::_('BUTTON_HIDE'); ?>
             </a>
