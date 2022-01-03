@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
 	<name>com_jcomments</name>
-	<creationDate>December 2021</creationDate>
+	<creationDate>January 2022</creationDate>
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.12</version>
+	<version>4.0.14</version>
 	<description>JComments lets your users comment on content items.</description>
 
 	<install>
