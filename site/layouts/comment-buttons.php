@@ -46,7 +46,7 @@ if ($displayData->getVar('button-reply') == 1
 			</a>
 		<?php endif; ?>
 
-        <?php if ($comment->children != 0) : ?>
+        <?php if (isset($comment->children) && $comment->children != 0) : ?>
             <?php if ($displayData->getVar('button-quote') == 1 || $displayData->getVar('button-reply') == 1 || $displayData->getVar('button-report') == 1): ?>
 				&vert;
 			<?php endif; ?>
