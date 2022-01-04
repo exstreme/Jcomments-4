@@ -219,6 +219,10 @@
 	padding: 5px;
 }
 
+#comments .comment.hide-children + .comments-list-child {
+    display: none;
+}
+
 /* Comment form */
 div.comments-policy {
 	padding: 5px;
