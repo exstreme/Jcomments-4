@@ -6,68 +6,69 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.0</version>
+	<version>4.0.1</version>
 	<description>MOD_JCOMMENTS_LATEST_COMMENTED_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Module\LatestCommented</namespace>
 
 	<files>
-		<filename module="mod_jcomments_latest_commented">mod_jcomments_latest_commented.php</filename> 
 		<folder>src</folder>
 		<folder>tmpl</folder>
+
+		<filename module="mod_jcomments_latest_commented">mod_jcomments_latest_commented.php</filename>
 		<filename>mod_jcomments_latest_commented.xml</filename>
 	</files>
 
-	<languages folder="language">
-		<language tag="ar-AA">ar-AA/ar-AA.mod_jcomments_latest_commented.ini</language>
-		<language tag="ar-AA">ar-AA/ar-AA.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="be-BY">be-BY/be-BY.mod_jcomments_latest_commented.ini</language>
-		<language tag="be-BY">be-BY/be-BY.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="cs-CZ">cs-CZ/cs-CZ.mod_jcomments_latest_commented.ini</language>
-		<language tag="cs-CZ">cs-CZ/cs-CZ.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="da-DK">da-DK/da-DK.mod_jcomments_latest_commented.ini</language>
-		<language tag="da-DK">da-DK/da-DK.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="de-DE">de-DE/de-DE.mod_jcomments_latest_commented.ini</language>
-		<language tag="de-DE">de-DE/de-DE.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="el-GR">el-GR/el-GR.mod_jcomments_latest_commented.ini</language>
-		<language tag="el-GR">el-GR/el-GR.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="en-GB">en-GB/en-GB.mod_jcomments_latest_commented.ini</language>
-		<language tag="en-GB">en-GB/en-GB.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="es-AR">es-AR/es-AR.mod_jcomments_latest_commented.ini</language>
-		<language tag="es-AR">es-AR/es-AR.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="es-ES">es-ES/es-ES.mod_jcomments_latest_commented.ini</language>
-		<language tag="es-ES">es-ES/es-ES.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="fr-FR">fr-FR/fr-FR.mod_jcomments_latest_commented.ini</language>
-		<language tag="fr-FR">fr-FR/fr-FR.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="hr-HR">hr-HR/hr-HR.mod_jcomments_latest_commented.ini</language>
-		<language tag="hr-HR">hr-HR/hr-HR.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="it-IT">it-IT/it-IT.mod_jcomments_latest_commented.ini</language>
-		<language tag="it-IT">it-IT/it-IT.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="lv-LV">lv-LV/lv-LV.mod_jcomments_latest_commented.ini</language>
-		<language tag="lv-LV">lv-LV/lv-LV.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="nl-NL">nl-NL/nl-NL.mod_jcomments_latest_commented.ini</language>
-		<language tag="nl-NL">nl-NL/nl-NL.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="pt-BR">pt-BR/pt-BR.mod_jcomments_latest_commented.ini</language>
-		<language tag="pt-BR">pt-BR/pt-BR.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="ro-RO">ro-RO/ro-RO.mod_jcomments_latest_commented.ini</language>
-		<language tag="ro-RO">ro-RO/ro-RO.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="ru-RU">ru-RU/ru-RU.mod_jcomments_latest_commented.ini</language>
-		<language tag="ru-RU">ru-RU/ru-RU.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="sl-SI">sl-SI/sl-SI.mod_jcomments_latest_commented.ini</language>
-		<language tag="sl-SI">sl-SI/sl-SI.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="sr-RS">sr-RS/sr-RS.mod_jcomments_latest_commented.ini</language>
-		<language tag="sr-RS">sr-RS/sr-RS.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="sr-YU">sr-YU/sr-YU.mod_jcomments_latest_commented.ini</language>
-		<language tag="sr-YU">sr-YU/sr-YU.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="sv-SE">sv-SE/sv-SE.mod_jcomments_latest_commented.ini</language>
-		<language tag="sv-SE">sv-SE/sv-SE.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="th-TH">th-TH/th-TH.mod_jcomments_latest_commented.ini</language>
-		<language tag="th-TH">th-TH/th-TH.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="tr-TR">tr-TR/tr-TR.mod_jcomments_latest_commented.ini</language>
-		<language tag="tr-TR">tr-TR/tr-TR.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="uk-UA">uk-UA/uk-UA.mod_jcomments_latest_commented.ini</language>
-		<language tag="uk-UA">uk-UA/uk-UA.mod_jcomments_latest_commented.sys.ini</language>
-		<language tag="zh-CN">zh-CN/zh-CN.mod_jcomments_latest_commented.ini</language>
-		<language tag="zh-CN">zh-CN/zh-CN.mod_jcomments_latest_commented.sys.ini</language>
+	<languages>
+		<language tag="ar-AA">language/ar-AA/mod_jcomments_latest_commented.ini</language>
+		<language tag="ar-AA">language/ar-AA/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="be-BY">language/be-BY/mod_jcomments_latest_commented.ini</language>
+		<language tag="be-BY">language/be-BY/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="cs-CZ">language/cs-CZ/mod_jcomments_latest_commented.ini</language>
+		<language tag="cs-CZ">language/cs-CZ/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="da-DK">language/da-DK/mod_jcomments_latest_commented.ini</language>
+		<language tag="da-DK">language/da-DK/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="de-DE">language/de-DE/mod_jcomments_latest_commented.ini</language>
+		<language tag="de-DE">language/de-DE/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="el-GR">language/el-GR/mod_jcomments_latest_commented.ini</language>
+		<language tag="el-GR">language/el-GR/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="en-GB">language/en-GB/mod_jcomments_latest_commented.ini</language>
+		<language tag="en-GB">language/en-GB/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="es-AR">language/es-AR/mod_jcomments_latest_commented.ini</language>
+		<language tag="es-AR">language/es-AR/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="es-ES">language/es-ES/mod_jcomments_latest_commented.ini</language>
+		<language tag="es-ES">language/es-ES/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="fr-FR">language/fr-FR/mod_jcomments_latest_commented.ini</language>
+		<language tag="fr-FR">language/fr-FR/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="hr-HR">language/hr-HR/mod_jcomments_latest_commented.ini</language>
+		<language tag="hr-HR">language/hr-HR/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="it-IT">language/it-IT/mod_jcomments_latest_commented.ini</language>
+		<language tag="it-IT">language/it-IT/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="lv-LV">language/lv-LV/mod_jcomments_latest_commented.ini</language>
+		<language tag="lv-LV">language/lv-LV/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="nl-NL">language/nl-NL/mod_jcomments_latest_commented.ini</language>
+		<language tag="nl-NL">language/nl-NL/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="pt-BR">language/pt-BR/mod_jcomments_latest_commented.ini</language>
+		<language tag="pt-BR">language/pt-BR/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="ro-RO">language/ro-RO/mod_jcomments_latest_commented.ini</language>
+		<language tag="ro-RO">language/ro-RO/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/mod_jcomments_latest_commented.ini</language>
+		<language tag="ru-RU">language/ru-RU/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="sl-SI">language/sl-SI/mod_jcomments_latest_commented.ini</language>
+		<language tag="sl-SI">language/sl-SI/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="sr-RS">language/sr-RS/mod_jcomments_latest_commented.ini</language>
+		<language tag="sr-RS">language/sr-RS/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="sr-YU">language/sr-YU/mod_jcomments_latest_commented.ini</language>
+		<language tag="sr-YU">language/sr-YU/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="sv-SE">language/sv-SE/mod_jcomments_latest_commented.ini</language>
+		<language tag="sv-SE">language/sv-SE/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="th-TH">language/th-TH/mod_jcomments_latest_commented.ini</language>
+		<language tag="th-TH">language/th-TH/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="tr-TR">language/tr-TR/mod_jcomments_latest_commented.ini</language>
+		<language tag="tr-TR">language/tr-TR/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="uk-UA">language/uk-UA/mod_jcomments_latest_commented.ini</language>
+		<language tag="uk-UA">language/uk-UA/mod_jcomments_latest_commented.sys.ini</language>
+		<language tag="zh-CN">language/zh-CN/mod_jcomments_latest_commented.ini</language>
+		<language tag="zh-CN">language/zh-CN/mod_jcomments_latest_commented.sys.ini</language>
 	</languages>
 
 	<config>
