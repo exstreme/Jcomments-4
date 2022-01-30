@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset name="details" addrulepath="administrator/components/com_jcomments/models/rules">
+		<field
+				name="id"
+				type="text"
+				default="0"
+				readonly="true"
+				class="readonly"
+				label="JGLOBAL_FIELD_ID_LABEL"
+				description="JGLOBAL_FIELD_ID_DESC"
+		/>
+
+		<field
+				name="title"
+				type="text"
+				size="40"
+				label="A_COMMENT_TITLE"
+				filter="string"
+		/>
+
+		<field
+				name="comment"
+				type="textarea"
+				rows="10"
+				cols="30"
+				filter="raw"
+				label="A_COMMENT_TEXT"
+				required="true"
+		/>
+
+		<field
+				name="date"
+				type="calendar"
+				readonly="true"
+				class="readonly"
+				size="22"
+				label="A_COMMENT_DATE"
+				format="%Y-%m-%d %H:%M:%S"
+				filter="user_utc"
+				labelclass="control-label"
+		/>
+
+		<field
+				name="userid"
+				type="user"
+				label="A_COMMENT_NAME"
+				validate="UserId"
+		/>
+
+		<field
+				name="lang"
+				type="contentlanguage"
+				label="JFIELD_LANGUAGE_LABEL"
+				description="A_COMMENT_FIELD_LANGUAGE_DESC"
+		>
+			<option value="*">JALL</option>
+		</field>
+
+		<field
+				name="name"
+				type="text"
+				size="40"
+				label="A_COMMENT_NAME"
+		/>
+
+		<field
+				name="email"
+				type="email"
+				size="40"
+				label="A_COMMENT_EMAIL"
+				validate="email"
+		/>
+
+		<field
+				name="homepage"
+				type="url"
+				size="40"
+				label="A_COMMENT_HOMEPAGE"
+				validate="url"
+				required="false"
+		/>
+
+		<field
+				name="published"
+				type="list"
+				label="JSTATUS"
+				default="0"
+				class="form-select-color-state"
+				size="1"
+				validate="options"
+		>
+			<option value="1">JPUBLISHED</option>
+			<option value="0">JUNPUBLISHED</option>
+		</field>
+
+		<field
+				name="deleted"
+				type="radio"
+				layout="joomla.form.field.radio.switcher"
+				label="A_COMMENT_FIELD_DELETED_LABEL"
+				description="A_COMMENTS_HAS_BEEN_MARKED_AS_DELETED"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<!-- Used in view to internal access checking -->
+		<field
+				name="checked_out"
+				type="hidden"
+				filter="unset"/>
+
+		<field
+				name="checked_out_time"
+				type="hidden"
+				filter="unset"/>
+	</fieldset>
+</form>
