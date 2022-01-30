@@ -17,6 +17,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Access;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\Utilities\ArrayHelper;
 
 // @TODO Must be removed later when component frontend will use namespaces.
@@ -119,6 +120,8 @@ class LatestCommentedHelper
 		}
 		catch (\RuntimeException $e)
 		{
+			Log::add($e->getMessage(), Log::ERROR, 'mod_jcomments_latest_commented');
+
 			return array();
 		}
 
