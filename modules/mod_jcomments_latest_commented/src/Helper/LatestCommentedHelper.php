@@ -107,7 +107,7 @@ class LatestCommentedHelper
 		}
 		elseif (count($source))
 		{
-			$query->where($db->qn('c.object_group') . ' IN (' . $db->quote(implode("','", $source)) . ')');
+			$query->where($db->qn('c.object_group') . ' IN (' . $db->quote(implode("','", $source), false) . ')');
 		}
 
 		$query->group($db->qn(array('obj.id', 'obj.title', 'obj.link')))
