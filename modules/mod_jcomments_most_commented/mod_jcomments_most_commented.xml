@@ -86,18 +86,18 @@
 				/>
 
 				<field
-						name="catid"
-						type="category"
-						extension="com_content"
-						multiple="true"
-						default="0"
-						size="10"
-						filter="intarray"
-						class="multipleCategories"
-						required="true"
-						layout="joomla.form.field.list-fancy-select"
-						label="JCATEGORY"
-						description="MOD_JCOMMENTS_MOST_COMMENTED_FIELD_CATEGORY_DESC"
+					name="catid"
+					type="category"
+					extension="com_content"
+					multiple="true"
+					default="0"
+					size="10"
+					filter="intarray"
+					class="multipleCategories"
+					required="true"
+					layout="joomla.form.field.list-fancy-select"
+					label="JCATEGORY"
+					description="MOD_JCOMMENTS_MOST_COMMENTED_FIELD_CATEGORY_DESC"
 				>
 					<option value="0">MOD_JCOMMENTS_MOST_COMMENTED_OPTION_ALL_CATEGORIES</option>
 				</field>

@@ -26,7 +26,6 @@ use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
 // @TODO Must be removed later when component frontend will use namespaces.
-require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
 require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
 require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
 require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
