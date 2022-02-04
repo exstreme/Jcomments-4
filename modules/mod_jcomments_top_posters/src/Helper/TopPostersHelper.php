@@ -2,7 +2,6 @@
 /**
  * JComments Top Posters - Shows list of top posters
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -18,6 +17,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Uri\Uri;
 
 // @TODO Must be removed later when component frontend will use namespaces.
 require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
@@ -152,7 +152,7 @@ class TopPostersHelper
 			if ($showAvatar && empty($item->avatar))
 			{
 				$item->author = $item->displayAuthorName;
-				$item->avatar = \JcommentsFactory::getGravatar($item);
+				$item->avatar = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
 			}
 		}
 

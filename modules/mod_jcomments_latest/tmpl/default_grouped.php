@@ -2,7 +2,6 @@
 /**
  * JComments Latest - Shows latest comments
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -18,6 +17,7 @@ defined('_JEXEC') or die;
 /** @var object $params */
 /** @var object $list */
 /** @var integer $itemHeading */
+/** @var object $module */
 ?>
 <div class="list-group list-group-flush <?php echo $params->get('moduleclass_sfx'); ?>">
 	<?php foreach ($list as $groupName => $group): ?>
@@ -33,7 +33,8 @@ defined('_JEXEC') or die;
 			</div>
 			<div class="mb-1">
 				<div class="list-group list-group-flush">
-					<?php foreach ($group as $item): ?>
+					<?php foreach ($group as $key => $item):
+						$ariaDescribed = 'latest-comments-' . $module->id . '-' . $key; ?>
 
 						<div class="list-group-item">
 							<?php if ($params->get('show_comment_title') && $item->displayCommentTitle): ?>
@@ -71,14 +72,36 @@ defined('_JEXEC') or die;
 								<?php if ($params->get('show_comment_author')): ?><br><?php endif; ?>
 							<?php endif; ?>
 
-							<?php if ($params->get('show_comment_author')):
-								if ($params->get('show_avatar')):
-									$author = '<span class="avatar-img"><img src="' . $item->avatar . '" width="24" height="24" alt="" class="gravatar-img"></span> ' . $item->displayAuthorName;
-								else:
-									$author = $item->displayAuthorName;
-								endif;
-								?>
-								<small class="text-secondary createdby author"><?php echo Text::sprintf('COM_CONTENT_WRITTEN_BY', $author); ?></small>
+							<?php if ($params->get('show_comment_author')): ?>
+								<span class="text-secondary small">
+									<?php echo Text::sprintf('COM_CONTENT_WRITTEN_BY', ''); ?>
+								</span>
+
+								<?php if ($params->get('show_avatar')):
+									if (!empty($item->profileLink)): ?>
+
+										<span class="avatar-img">
+											<a href="<?php echo $item->profileLink; ?>"
+											   target="<?php echo $item->profileLinkTarget; ?>"
+											   style="text-decoration: none;">
+												<img src="<?php echo $item->avatar; ?>" width="24" height="24" alt="">
+											</a>
+										</span>
+									<?php else: ?>
+										<span class="avatar-img">
+											<img src="<?php echo $item->avatar; ?>" width="24" height="24" alt="">
+										</span>
+									<?php endif; ?>
+
+									<small class="text-secondary createdby author">
+										<?php echo $item->displayAuthorName; ?>
+									</small>
+
+								<?php else: ?>
+									<small class="text-secondary createdby author">
+										<?php echo $item->displayAuthorName; ?>
+									</small>
+								<?php endif; ?>
 							<?php endif; ?>
 						</div>
 

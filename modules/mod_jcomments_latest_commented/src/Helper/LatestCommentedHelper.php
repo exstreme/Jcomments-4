@@ -2,7 +2,6 @@
 /**
  * JComments Latest Commented - Shows latest commented items
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -20,7 +19,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\Utilities\ArrayHelper;
 
-// @TODO Must be removed later when component frontend will use namespaces.
+// TODO Must be removed later when component frontend will use namespaces.
 require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
 
 /**
@@ -69,7 +68,7 @@ class LatestCommentedHelper
 				)
 			);
 
-		// @TODO Must be changed later when component frontend will use namespaces.
+		// TODO Must be changed later when component frontend will use namespaces.
 		if (\JCommentsFactory::getLanguageFilter())
 		{
 			$langTag = Factory::getApplication()->getLanguage()->getTag();
