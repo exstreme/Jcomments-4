@@ -2,7 +2,6 @@
 /**
  * JComments Latest - Shows latest comments
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -16,11 +15,13 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\Module\LatestComments\Site\Helper\LatestCommentsHelper;
 
-/** @var object $params */
+/** @var \Joomla\Registry\Registry $params */
 $list = LatestCommentsHelper::getList($params);
 
 if (!empty($list))
 {
+	\Joomla\CMS\Factory::getApplication()->getLanguage()->load('com_content');
+
 	$grouped          = false;
 	$commentsGrouping = $params->get('comments_grouping', 'none');
 	$itemHeading      = $params->get('item_heading', 4);

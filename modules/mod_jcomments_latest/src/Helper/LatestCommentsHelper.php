@@ -2,7 +2,6 @@
 /**
  * JComments Latest Comments - Shows latest comments
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -22,13 +21,15 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
-// @TODO Must be removed later when component frontend will use namespaces.
+// TODO Must be removed later when component frontend will use namespaces.
 require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
 require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
 require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
+require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
 
 /**
  * Helper for mod_jcomments_latest
@@ -90,7 +91,7 @@ class LatestCommentsHelper
 				)
 			);
 
-		// @TODO Must be changed later when component frontend will use namespaces.
+		// TODO Must be changed later when component frontend will use namespaces.
 		if (\JCommentsFactory::getLanguageFilter())
 		{
 			$langTag = Factory::getApplication()->getLanguage()->getTag();
@@ -171,12 +172,13 @@ class LatestCommentsHelper
 
 			if ($showAvatar)
 			{
-				PluginHelper::importPlugin('jcomments');
-
-				Factory::getApplication()->triggerEvent('onPrepareAvatars', array(&$list));
+				if (PluginHelper::importPlugin('jcomments', 'avatar') === true)
+				{
+					Factory::getApplication()->triggerEvent('onPrepareAvatars', array(&$list));
+				}
 			}
 
-			foreach ($list as &$item)
+			foreach ($list as $item)
 			{
 				if ($showDate)
 				{
@@ -194,21 +196,21 @@ class LatestCommentsHelper
 					$item->displayDate = '';
 				}
 
-				// @TODO Must be changed later when component frontend will use namespaces.
+				// TODO Must be changed later when component frontend will use namespaces.
 				$item->displayAuthorName   = $showAuthor ? \JCommentsContent::getCommentAuthorName($item) : '';
 
 				$item->displayObjectTitle  = $showObjectTitle ? $item->object_title : '';
 				$item->displayCommentTitle = $showCommentTitle ? $item->title : '';
 				$item->displayCommentLink  = $item->object_link . '#comment-' . $item->id;
 
-				// @TODO Must be changed later when component frontend will use namespaces.
+				// TODO Must be changed later when component frontend will use namespaces.
 				$text = \JCommentsText::censor($item->comment);
 				$text = preg_replace('#\[quote[^\]]*?\](((?R)|.)*?)\[\/quote\]#ismu', '', $text);
 				$text = $bbcode->filter($text, true);
 
 				if ($user->authorise('comment.autolink', 'com_jcomments'))
 				{
-					// @TODO Change when constant and urlProcessor will be moved into ContentHelper class.
+					// TODO Change when constant and urlProcessor will be moved into ContentHelper class.
 					$text = preg_replace_callback(_JC_REGEXP_LINK, array('JComments', 'urlProcessor'), $text);
 				}
 
@@ -230,10 +232,10 @@ class LatestCommentsHelper
 
 				$item->displayCommentText = $text;
 
+				// Set default avatar if JComments avatars plugin is not  enabled.
 				if ($showAvatar && empty($item->avatar))
 				{
-					$item->author = $item->displayAuthorName;
-					$item->avatar = \JcommentsFactory::getGravatar($item);
+					$item->avatar = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
 				}
 
 				$item->readmoreText = Text::_('MOD_JCOMMENTS_LATEST_READMORE');

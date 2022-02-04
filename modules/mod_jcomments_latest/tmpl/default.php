@@ -2,7 +2,6 @@
 /**
  * JComments Latest - Shows latest comments
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)

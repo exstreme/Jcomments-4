@@ -2,7 +2,6 @@
 /**
  * JComments Latest Comments - Shows latest comments
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -19,7 +18,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\Database\DatabaseDriver;
 
 class ObjectgroupField extends ListField
 {
@@ -29,7 +27,7 @@ class ObjectgroupField extends ListField
 	{
 		$options = array();
 
-		/** @var DatabaseDriver $db */
+		/** @var \Joomla\Database\DatabaseDriver $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');
 		$query = $db->getQuery(true)
 			->select('DISTINCT ' . $db->qn('element'))

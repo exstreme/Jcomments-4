@@ -2,7 +2,6 @@
 /**
  * JComments Latest Commented - Shows latest commented items
  *
- * @version       4.0.0
  * @package       JComments
  * @author        JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -16,7 +15,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\Module\LatestCommented\Site\Helper\LatestCommentedHelper;
 
-/** @var object $params */
+/** @var \Joomla\Registry\Registry $params */
 $list = LatestCommentedHelper::getList($params);
 
 require ModuleHelper::getLayoutPath('mod_jcomments_latest_commented', $params->get('layout', 'default'));

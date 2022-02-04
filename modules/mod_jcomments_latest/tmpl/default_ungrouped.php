@@ -2,7 +2,6 @@
 /**
  * JComments Latest - Shows latest comments
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -111,12 +110,22 @@ defined('_JEXEC') or die;
 
 			<?php if ($params->get('show_comment_author')):
 				if ($params->get('show_avatar')):
-					$author = '<span class="avatar-img"><img src="' . $item->avatar . '" width="24" height="24" alt="" class="gravatar-img"></span> ' . $item->displayAuthorName;
+					if (!empty($item->profileLink)):
+						$author = '<span class="avatar-img">
+							<a href="' . $item->profileLink . '" target="' . $item->profileLinkTarget . '" style="text-decoration: none;">
+								<img src="' . $item->avatar . '" width="24" height="24" alt="">
+							</a>
+						</span> ' . $item->displayAuthorName;
+					else:
+						$author = '<span class="avatar-img"><img src="' . $item->avatar . '" width="24" height="24" alt=""></span> ' . $item->displayAuthorName;
+					endif;
 				else:
 					$author = $item->displayAuthorName;
 				endif;
 				?>
-				<small class="text-secondary createdby author"><?php echo Text::sprintf('COM_CONTENT_WRITTEN_BY', $author); ?></small>
+				<small class="text-secondary createdby author">
+					<?php echo Text::sprintf('COM_CONTENT_WRITTEN_BY', $author); ?>
+				</small>
 			<?php endif; ?>
 		</div>
 	<?php endforeach; ?>
