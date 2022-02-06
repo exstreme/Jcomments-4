@@ -11,3 +11,7 @@ Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" targe
 ## Modules
 
 Available modules can be downloaded <a href="https://github.com/exstreme/Jcomments-4/tree/master/build/modules" target="_blank">here</a>.
+
+## Plugins
+
+Available plugins can be downloaded <a href="https://github.com/exstreme/Jcomments-4/tree/master/build/plugins" target="_blank">here</a>.
