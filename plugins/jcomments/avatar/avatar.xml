@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="jcomments" method="upgrade">
+	<name>plg_jcomments_avatar</name>
+	<creationDate>February 2022</creationDate>
+	<author>JComments team</author>
+	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.2.0</version>
+	<description>PLG_JCOMMENTS_AVATAR_XML_DESCRIPTION</description>
+
+	<files>
+		<filename plugin="avatar">avatar.php</filename>
+	</files>
+
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_jcomments_avatar.ini</language>
+		<language tag="en-GB">language/en-GB/plg_jcomments_avatar.sys.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field
+					name="avatar_type"
+					type="list"
+					default=""
+					layout="joomla.form.field.list-fancy-select"
+					label="PLG_JCOMMENTS_AVATAR_FIELD_AVATAR_SOURCE_LABEL"
+					description="PLG_JCOMMENTS_AVATAR_FIELD_AVATAR_SOURCE_DESC"
+				>
+					<option value="default">JOPTION_DO_NOT_USE</option>
+					<option value="comprofiler">CommunityBuilder</option>
+					<option value="contacts">Contacts</option>
+					<option value="gravatar">Gravatar</option>
+					<option value="kunena">Kunena</option>
+					<option value="phocagallery">PhocaGallery</option>
+				</field>
+
+				<field 
+					name="avatar_default_avatar"
+					type="list"
+					default="default"
+					label="PLG_JCOMMENTS_AVATAR_FIELD_DEFAULT_AVATAR_LABEL"
+					description="PLG_JCOMMENTS_AVATAR_FIELD_DEFAULT_AVATAR_DESC"
+				>
+					<option value="default">PLG_JCOMMENTS_AVATAR_FIELD_VALUE_DEFAULT_IMAGE</option>
+					<option value="custom">PLG_JCOMMENTS_AVATAR_FIELD_VALUE_CUSTOM_IMAGE</option>
+				</field>
+
+				<field 
+					name="avatar_custom_default_avatar"
+					type="media"
+					label="PLG_JCOMMENTS_AVATAR_FIELD_CUSTOM_DEFAULT_AVATAR_LABEL"
+					description="PLG_JCOMMENTS_AVATAR_FIELD_CUSTOM_DEFAULT_AVATAR_DESC"
+					showon="avatar_default_avatar:custom"
+				/>
+
+				<field
+					name="gravatar_options"
+					type="textarea"
+					rows="5"
+					cols="25"
+					label="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_LABEL"
+					description="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_DESC"
+					showon="avatar_type:gravatar"
+				>
+				</field>
+
+				<field 
+					name="avatar_link"
+					type="radio"
+					default="0"
+					class="btn-group"
+					label="PLG_JCOMMENTS_AVATAR_FIELD_PROFILE_LINK_LABEL"
+					description="PLG_JCOMMENTS_AVATAR_FIELD_PROFILE_LINK_DESC"
+				>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+
+				<field 
+					name="avatar_link_target"
+					type="list"
+					default="_blank"
+					label="PLG_JCOMMENTS_AVATAR_FIELD_TARGET_LABEL"
+					description="PLG_JCOMMENTS_AVATAR_FIELD_TARGET_DESC"
+				>
+					<option value="_blank">JBROWSERTARGET_NEW</option>
+					<option value="_self">JBROWSERTARGET_PARENT</option>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+
+	<updateservers>
+		<server type="extension" priority="1" name="JComments Plugins Update Site">
+			<![CDATA[https://raw.githubusercontent.com/exstreme/Jcomments-4/master/update-jcomments-plugins.xml]]>
+		</server>
+	</updateservers>
+</extension>

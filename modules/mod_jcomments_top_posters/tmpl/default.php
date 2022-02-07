@@ -27,7 +27,7 @@ if (!empty($list)): ?>
 					<?php if ($params->get('show_avatar')):
 						if (!empty($item->profileLink)): ?>
 							<span class="avatar-img">
-								<a href="<?php echo $item->profileLink; ?>" target="<?php echo $item->profileTarget; ?>"
+								<a href="<?php echo $item->profileLink; ?>" target="<?php echo $item->profileLinkTarget; ?>"
 								   style="text-decoration: none;">
 									<img src="<?php echo $item->avatar; ?>" width="24" height="24" alt="">
 								</a>

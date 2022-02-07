@@ -249,17 +249,6 @@
 		</field>
 	</fieldset>
 
-	<fieldset name="gravatar" label="Gravatar">
-		<field
-				name="gav_options"
-				type="textarea"
-				rows="5"
-				cols="25"
-				label="AP_COMMENTS_GRAVATAR"
-				description="AP_COMMENTS_GRAVATAR_DESC"
-		/>
-	</fieldset>
-
 	<fieldset name="list" label="A_LIST_PARAMS">
 		<field
 				name="template_view"
