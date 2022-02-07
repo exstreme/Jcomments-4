@@ -31,7 +31,7 @@
 		<action name="comment.bbcode.quote" title="AP_ENABLE_BBCODE_QUOTE" description="AP_ENABLE_BBCODE_QUOTE_DESC"/>
 		<action name="comment.autolink" title="AP_ENABLE_AUTOLINKURLS" description="AP_ENABLE_AUTOLINKURLS_DESC"/>
 		<action name="comment.email.protect" title="AP_ENABLE_EMAILPROTECTION" description="AP_ENABLE_EMAILPROTECTION_DESC"/>
-		<action name="comment.gravatar" title="AP_ENABLE_GRAVATAR" description="AP_ENABLE_GRAVATAR_DESC"/>
+		<action name="comment.avatar" title="AP_ENABLE_AVATAR"/>
 		<action name="comment.view.email" title="AP_CAN_VIEW_AUTHOR_EMAIL" description="AP_CAN_VIEW_AUTHOR_EMAIL_DESC"/>
 		<action name="comment.view.site" title="AP_CAN_VIEW_AUTHOR_HOMEPAGE" description="AP_CAN_VIEW_AUTHOR_HOMEPAGE_DESC"/>
 		<action name="comment.view.ip" title="AP_CAN_VIEW_AUTHOR_IP" description="AP_CAN_VIEW_AUTHOR_IP_DESC"/>

@@ -828,7 +828,7 @@ class JComments
 
 			JCommentsEvent::trigger('onJCommentsCommentsPrepare', array(&$rows));
 
-			if ($user->authorise('comment.gravatar', 'com_jcomments'))
+			if ($user->authorise('comment.avatar', 'com_jcomments'))
 			{
 				JCommentsEvent::trigger('onPrepareAvatars', array(&$rows));
 			}
@@ -864,7 +864,7 @@ class JComments
 				$tmpl->addVar('tpl_comment', 'button-quote', $acl->canQuote($row));
 				$tmpl->addVar('tpl_comment', 'button-reply', $acl->canReply($row));
 				$tmpl->addVar('tpl_comment', 'button-report', $acl->canReport($row));
-				$tmpl->addVar('tpl_comment', 'avatar', $user->authorise('comment.gravatar', 'com_jcomments') && !$row->deleted);
+				$tmpl->addVar('tpl_comment', 'avatar', $user->authorise('comment.avatar', 'com_jcomments') && !$row->deleted);
 
 				$tmpl->addObject('tpl_comment', 'comment', $row);
 
@@ -974,7 +974,7 @@ class JComments
 
 			JCommentsEvent::trigger('onJCommentsCommentsPrepare', array(&$rows));
 
-			if ($user->authorise('comment.gravatar', 'com_jcomments'))
+			if ($user->authorise('comment.avatar', 'com_jcomments'))
 			{
 				JCommentsEvent::trigger('onPrepareAvatars', array(&$rows));
 			}
@@ -1013,7 +1013,7 @@ class JComments
 				$tmpl->addVar('tpl_comment', 'button-quote', $acl->canQuote($row));
 				$tmpl->addVar('tpl_comment', 'button-reply', $acl->canReply($row));
 				$tmpl->addVar('tpl_comment', 'button-report', $acl->canReport($row));
-				$tmpl->addVar('tpl_comment', 'avatar', $user->authorise('comment.gravatar', 'com_jcomments') && !$row->deleted);
+				$tmpl->addVar('tpl_comment', 'avatar', $user->authorise('comment.avatar', 'com_jcomments') && !$row->deleted);
 
 				if (isset($items[$row->id]))
 				{
@@ -1038,7 +1038,7 @@ class JComments
 		$acl    = JCommentsFactory::getACL();
 		$config = ComponentHelper::getParams('com_jcomments');
 
-		if ($user->authorise('comment.gravatar', 'com_jcomments'))
+		if ($user->authorise('comment.avatar', 'com_jcomments'))
 		{
 			JCommentsEvent::trigger('onPrepareAvatar', array(&$comment));
 		}
@@ -1076,7 +1076,7 @@ class JComments
 		$tmpl->addVar('tpl_comment', 'button-reply', $acl->canReply($comment));
 		$tmpl->addVar('tpl_comment', 'button-report', $acl->canReport($comment));
 		$tmpl->addVar('tpl_comment', 'comment-number', '');
-		$tmpl->addVar('tpl_comment', 'avatar', $user->authorise('comment.gravatar', 'com_jcomments') && !$comment->deleted);
+		$tmpl->addVar('tpl_comment', 'avatar', $user->authorise('comment.avatar', 'com_jcomments') && !$comment->deleted);
 
 		$tmpl->addObject('tpl_comment', 'comment', $comment);
 
@@ -1233,10 +1233,11 @@ class JComments
 
 		$comment->author = JCommentsContent::getCommentAuthorName($comment);
 
-		// Gravatar support
+		// Avatar support
 		if (empty($comment->avatar))
 		{
-			$comment->avatar = JCommentsFactory::getGravatar($comment, true);
+			$comment->avatar = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+			$comment->profileLink = '';
 		}
 
 		JCommentsEvent::trigger('onJCommentsCommentAfterPrepare', array(&$comment));

@@ -254,72 +254,12 @@ class JCommentsFactory
 	}
 
 	/**
-	 * Get gravatar URL or generate <img>.
-	 *
-	 * @param   object   $comment  Comment object.
-	 * @param   boolean  $tag      Return <img> tag if set to true.
-	 *
-	 * @return  string
-	 *
-	 * @since   4.0
-	 */
-	public static function getGravatar($comment, $tag = false)
-	{
-		$config       = ComponentHelper::getParams('com_jcomments');
-		$options      = $config->get('gav_options');
-		$emailHash    = md5(strtolower($comment->email));
-		$optionsArray = array();
-
-		if (!empty($options))
-		{
-			$options = explode("\n", $options);
-
-			foreach ($options as $option)
-			{
-				$_options = explode('=', $option);
-
-				if ($_options[0] == 'd')
-				{
-					if (strpos($_options[1], 'http') !== false)
-					{
-						$_options[1] = urlencode(trim($_options[1]));
-					};
-				}
-
-				$optionsArray[$_options[0]] = trim($_options[1]);
-			}
-
-			$data = 'https://www.gravatar.com/avatar/' . $emailHash . '/?' . implode('&', $optionsArray);
-		}
-		else
-		{
-			$data = 'https://www.gravatar.com/avatar/' . $emailHash . '/';
-		}
-
-		if ($tag)
-		{
-			if (!empty($optionsArray))
-			{
-				$width  = array_key_exists('s', $optionsArray) ? $optionsArray['s'] : 32;
-				$height = $width;
-				$data   = '<img src="' . $data . '" alt="' . htmlspecialchars($comment->author) . '"'
-					. ' width="' . $width . '" height="' . $height . '" class="gravatar-img">';
-			}
-			else
-			{
-				$data   = '<img src="' . $data . '" alt="' . htmlspecialchars($comment->author) . '" class="gravatar-img">';
-			}
-		}
-
-		return $data;
-	}
-
-	/**
 	 * Return the current state of the language filter.
 	 *
-	 * @return	boolean
+	 * @return   boolean
 	 *
-	 * @since	4.0
+	 * @throws   Exception
+	 * @since    4.0
 	 */
 	public static function getLanguageFilter()
 	{
