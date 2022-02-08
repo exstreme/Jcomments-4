@@ -59,19 +59,19 @@ class JCommentsModelObject
 				->set($db->quoteName('access') . ' = ' . (int) $info->access)
 				->set($db->quoteName('userid') . ' = ' . (int) $info->userid)
 				->set($db->quoteName('expired') . ' = 0')
-				->set($db->quoteName('modified') . ' = ' . $db->quote(JFactory::getDate()->toSql()));
+				->set($db->quoteName('modified') . ' = ' . $db->quote(Factory::getDate()->toSql()));
 
-			if (empty($info->title))
+			if (!empty($info->title))
 			{
-				$query->set($db->quoteName('title') . ' = ' . $db->Quote($info->title));
+				$query->set($db->quoteName('title') . ' = ' . $db->quote($info->title));
 			}
 
-			if (empty($info->link))
+			if (!empty($info->link))
 			{
-				$query->set($db->quoteName('link') . ' = ' . $db->Quote($info->link));
+				$query->set($db->quoteName('link') . ' = ' . $db->quote($info->link));
 			}
 
-			if (empty($info->category_id))
+			if (!empty($info->category_id))
 			{
 				$query->set($db->quoteName('category_id') . ' = ' . (int) $info->category_id);
 			}
