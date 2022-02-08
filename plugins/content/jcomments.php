@@ -32,7 +32,7 @@ class PlgContentJcomments extends CMSPlugin
 		require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
 
 		// Check whether plugin has been unpublished
-		if (!JPluginHelper::isEnabled('content', 'jcomments'))
+		if (!PluginHelper::isEnabled('content', 'jcomments'))
 		{
 			JCommentsContent::clear($article);
 
@@ -439,7 +439,7 @@ class PlgContentJcomments extends CMSPlugin
 	 */
 	public function onContentAfterSave($context, $article, $isNew)
 	{
-		if (($context == 'com_content.article' || $context == 'com_content.form') && !$isNew)
+		if ($context == 'com_content.form' && !$isNew)
 		{
 			require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
 
