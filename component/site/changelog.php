@@ -13,6 +13,10 @@ defined('_JEXEC') or die;
 Changelog
 ------------
 
+4.0.15
+# fixed mysql updates
+- removed support for gravatar plugin
+
 4.0.3
 # All tables now in utf8mb4
 + Add option to comment edit to mark comment as deleted
