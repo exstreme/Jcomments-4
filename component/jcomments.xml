@@ -46,8 +46,9 @@
 		<folder>images</folder>
 		<folder>js</folder>
 	</media>
- 
+
 	<languages folder="site">
+		<language tag="de-DE">language/de-DE/com_jcomments.ini</language>
 		<language tag="en-GB">language/en-GB/com_jcomments.ini</language>
 		<language tag="ru-RU">language/ru-RU/com_jcomments.ini</language>
 	</languages>
