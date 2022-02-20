@@ -6,7 +6,7 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.2.0</version>
+	<version>4.2.1</version>
 	<description>PLG_JCOMMENTS_AVATAR_XML_DESCRIPTION</description>
 
 	<files>
@@ -35,6 +35,7 @@
 					<option value="gravatar">Gravatar</option>
 					<option value="kunena">Kunena</option>
 					<option value="phocagallery">PhocaGallery</option>
+					<option value="easysocial">EasySocial</option>
 				</field>
 
 				<field 
