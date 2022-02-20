@@ -1,3 +1,3 @@
 files:
-  - source: en-GB/*.ini
-    translation: '%original_file_name%'
+  - source: "/**/en-GB/*.ini"
+    translation: "/**/%locale%/%original_file_name%"
