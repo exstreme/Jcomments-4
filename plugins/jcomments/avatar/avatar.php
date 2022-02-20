@@ -15,6 +15,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
@@ -439,6 +440,74 @@ class PlgJcommentsAvatar extends CMSPlugin
 			}
 
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+		}
+	}
+
+	/**
+	 * Get image URL from com_easysocial
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
+	protected function getEasysocialImage(array $comments)
+	{
+		require_once JPATH_ADMINISTRATOR . '/components/com_easysocial/includes/easysocial.php';
+
+		$jConfig = ES::jConfig();
+		$easysocialurlPlugin = PluginHelper::isEnabled('system', 'easysocialurl');
+
+		foreach ($comments as $comment)
+		{
+			$uid                        = (int) $comment->userid;
+			$esUser                     = ES::user($uid);
+			$comment->profileLink       = '';
+			$comment->avatar            = $esUser->getAvatar(SOCIAL_AVATAR_MEDIUM);
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+
+			if ($esUser->isSiteAdmin() && ($esUser->isBlock() || $esUser->hasCommunityAccess()) || $esUser->id)
+			{
+				if ($easysocialurlPlugin)
+				{
+					if (!ES::isSh404Installed() && $jConfig->getValue('sef'))
+					{
+						$rootUri = rtrim(Uri::root(), '/');
+						$alias   = \Joomla\CMS\Filter\OutputFilter::stringURLSafe($esUser->getAlias());
+						$alias   = ESR::normalizePermalink($alias);
+						$url     = $rootUri . '/' . $alias;
+
+						// Retrieve current site language code
+						$langCode = ES::getCurrentLanguageCode();
+
+						// Append language code from the simple url
+						if (!empty($langCode))
+						{
+							$url = $rootUri . '/' . $langCode . '/' . $alias;
+						}
+
+						if ($jConfig->getValue('sef_suffix') && !(substr($url, -9) == 'index.php' || substr($url, -1) == '/'))
+						{
+							// $uri = JURI::getInstance(ES::getURI(true));
+							// $format = $uri->getVar('format', 'html');
+							$format = 'html';
+							$url .= '.' . $format;
+
+						}
+
+						$comment->profileLink = $url;
+					}
+				}
+				else
+				{
+					$options              = array('id' => $esUser->getAlias());
+					$options['sef']       = true;
+					$options['adminSef']  = false;
+					$comment->profileLink = \FRoute::profile($options, false);
+				}
+			}
 		}
 	}
 }
