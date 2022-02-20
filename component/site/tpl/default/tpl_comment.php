@@ -42,12 +42,18 @@ class jtt_tpl_comment extends JoomlaTuneTemplate
 				?>
 				<div class="flex-fill border rounded rbox">
 					<?php
-					$commentBoxIndentStyle = ($this->getVar('avatar') == 1) ? ' avatar-indent' : '';
-
 					if ($this->getVar('avatar') == 1)
 					{
 						?>
-						<div class="comment-avatar"><?php echo $comment->avatar; ?></div>
+						<div class="comment-avatar">
+							<?php if ($comment->profileLink > ''): ?>
+								<a href="<?php echo $comment->profileLink; ?>" target="<?php echo $comment->profileLinkTarget; ?>">
+									<img src="<?php echo $comment->avatar; ?>" alt="" width="32" height="32">
+								</a>
+							<?php else: ?>
+								<img src="<?php echo $comment->avatar; ?>" alt="" width="32" height="32">
+							<?php endif; ?>
+						</div>
 						<?php
 					}
 					?>
