@@ -126,16 +126,7 @@ class PlgContentJcomments extends CMSPlugin
 
 			$readmoreDisabled = false;
 
-			if (($params->get('show_readmore') == 0) || (@$article->readmore == 0))
-			{
-				$readmoreDisabled = true;
-			}
-			elseif (@$article->readmore > 0)
-			{
-				$readmoreDisabled = false;
-			}
-
-			if ($this->params->get('readmore_link', 1) == 0)
+			if ($params->get('show_readmore') == 0 || $this->params->get('readmore_link', 1) == 0)
 			{
 				$readmoreDisabled = true;
 			}
@@ -149,10 +140,6 @@ class PlgContentJcomments extends CMSPlugin
 				{
 					$readmoreText = Text::_('COM_CONTENT_REGISTER_TO_READ_MORE');
 				}
-				elseif ($readmore = $params->get('readmore'))
-				{
-					$readmoreText = $readmore;
-				}
 				elseif ($alternativeReadmore = $article->alternative_readmore)
 				{
 					$readmoreText = trim($alternativeReadmore);
@@ -164,7 +151,7 @@ class PlgContentJcomments extends CMSPlugin
 				}
 				else
 				{
-					$readmoreText = Text::_('COM_CONTENT_READ_MORE_TITLE');
+					$readmoreText = Text::_('COM_CONTENT_READ_MORE');
 
 					if ($params->get('show_readmore_title', 0) == 1)
 					{
