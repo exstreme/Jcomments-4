@@ -16,6 +16,8 @@ Changelog
 4.0.16
 # fixed avatar
 # fixed languages consts for checkbox Accept terms of use
+# fixed mysql bug with installation
++ added german language
 
 
 4.0.15
