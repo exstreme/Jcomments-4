@@ -155,8 +155,7 @@ class PlgContentJcomments extends CMSPlugin
 
 					if ($params->get('show_readmore_title', 0) == 1)
 					{
-						$readmoreText = Text::_('COM_CONTENT_READ_MORE')
-							. HTMLHelper::_('string.truncate', $article->title, $params->get('readmore_limit'));
+						$readmoreText .= HTMLHelper::_('string.truncate', $article->title, $params->get('readmore_limit'));
 					}
 				}
 
