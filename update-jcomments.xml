@@ -5,19 +5,19 @@
 		<description>JComments lets your users comment on content items</description>
 		<element>com_jcomments</element>
 		<type>component</type>
-		<version>4.0.15</version>
+		<version>4.0.16</version>
 		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/releases/download/v4.0.15/pkg_jcomments_4.0.15.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/releases/download/v4.0.16/pkg_jcomments_4.0.16.zip</downloadurl>
 		</downloads>
 		<tags>
 			<tag>Stable</tag>
 		</tags>
 		<maintainer>exstreme and Globulopolis</maintainer>
 		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
-		<sha256>5639d0313ea08d483b181eea68ddb7f226e7ac1f53622ffd99900c4050963b13</sha256>
-		<sha384>96e802ec47f724fe4e067040365c427600d58015acb974debb09145c66e25d7cb330e4ed6afb2ad2fa969db2bb5796ac</sha384>
-		<sha512>83783de9493cb09943f47ea354993b61c7414879e111821da4a2384d01dcde6efd16ee89eff6944abe3ef4d2130ac3449b24d8bd108a2ff1a489988a35cba180</sha512>
+		<sha256>c35547a4211d5ba073539fb8f280cba55861cf061964576ffdb872ea9ebc78fc</sha256>
+		<sha384>fe3c866541be6b6d0ee75717189e2c5e6363b36c00b3fafa35f77d4c59e02e226839a20524a359cd26f4e745565511ba</sha384>
+		<sha512>f6ba00cedfd991a82270a3cff3ab6c5fc28c449c415ef836bda183da883405cd9e66db12c42c2ea0a05c74ce9fa897fc81700b3e4aa0f6691ea9608a5c6f925a</sha512>
 		<targetplatform name="joomla" version="4.[0123456789]|10"/>
 	</update>				
 </updates>
