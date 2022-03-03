@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates>
+	<update>
+		<name>JComments - Avatar</name>
+		<description>Plugin for JComments to support user avatars from 3rd party extensions.</description>
+		<element>avatar</element>
+		<type>plugin</type>
+		<folder>jcomments</folder>
+		<client>site</client>
+		<version>4.2.2</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_4.2.2.zip</downloadurl>
+		</downloads>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
+		<sha256>cae6790a9b28f5672a08f5ea1c800eec20eed8af525413b827b69c83bc5caa03</sha256>
+		<sha384>c517376e47ee0179640949767d9911876a91a435aacf93546d2026fd6283038718bd750c28c37f6767a79ce5233f526b</sha384>
+		<sha512>6521fac75e56fbcbe49b093ab8b1983e12440df7ed5240476d4700a41f1da6bb670ed8a9012e30909792fede64bedfcde5278b6951232b19cd991da4fd4a7e10</sha512>
+		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+	</update>				
+</updates>
