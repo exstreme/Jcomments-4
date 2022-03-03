@@ -82,40 +82,9 @@ $moduleId = str_replace(' ', '', $module->title) . $module->id;
 				</tr>
 			<?php endforeach; ?>
 		<?php else: ?>
-			<tr colspan="3">
-				<td><?php echo Text::_('MOD_JCOMMENTS_LATEST_BACKEND_NO_MATCHING_RESULTS'); ?></td>
+			<tr>
+				<td colspan="3"><?php echo Text::_('MOD_JCOMMENTS_LATEST_BACKEND_NO_MATCHING_RESULTS'); ?></td>
 			</tr>
 		<?php endif; ?>
 	</tbody>
 </table>
-
-
-<!--<div class="row-striped">
-	<?php if (count($list)) : ?>
-		<?php foreach ($list as $i=>$item) : ?>
-		<div class="row-fluid">
-			<div class="span9">
-				<?php echo JHtml::_('jgrid.published', $item->published, $i, '', false); ?>
-				<?php if ($item->checked_out) : ?>
-					<?php echo JHtml::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time); ?>
-				<?php endif; ?>
-
-				<strong class="row-title">
-					<?php if ($item->link) : ?>
-						<a href="<?php echo $item->link; ?>"><?php echo htmlspecialchars($item->comment, ENT_QUOTES, 'UTF-8');?></a>
-					<?php else : ?>
-						<?php echo htmlspecialchars($item->comment, ENT_QUOTES, 'UTF-8'); ?>
-					<?php endif; ?>
-				</strong>
-
-				<small class="hasTooltip" title="<?php echo JHtml::tooltipText('MOD_JCOMMENTS_LATEST_BACKEND_HEADING_AUHTOR'); ?>">
-					<?php echo $item->author;?>
-				</small>
-			</div>
-			<div class="span3">
-				<span class="small"><i class="icon-calendar"></i> <?php echo JHtml::_('date', $item->date, 'Y-m-d'); ?></span>
-			</div>
-		</div>
-		<?php endforeach; ?>
-	<?php endif; ?>
-</div>-->

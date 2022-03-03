@@ -6,7 +6,7 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.0</version>
+	<version>4.0.1</version>
 	<description>MOD_JCOMMENTS_LATEST_BACKEND_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Module\LatestComments</namespace>
 

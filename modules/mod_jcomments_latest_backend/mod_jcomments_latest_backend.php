@@ -16,7 +16,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\Module\LatestComments\Administrator\Helper\LatestCommentsHelper;
 
-/** @var object $params */
+/** @var \Joomla\Registry\Registry $params */
 $list = LatestCommentsHelper::getList($params);
 
 require ModuleHelper::getLayoutPath('mod_jcomments_latest_backend', $params->get('layout', 'default'));
