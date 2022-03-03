@@ -12,12 +12,15 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\ParameterType;
 
 /**
  * Class to add support for avatar(s) in JComments
@@ -26,14 +29,6 @@ use Joomla\CMS\Uri\Uri;
  */
 class PlgJcommentsAvatar extends CMSPlugin
 {
-	/**
-	 * List with commenting users IDs except guests.
-	 *
-	 * @var   array
-	 * @since 4.0
-	 */
-	private $users = array();
-
 	/**
 	 * Prepare avatar for single comment
 	 *
@@ -76,16 +71,6 @@ class PlgJcommentsAvatar extends CMSPlugin
 
 			if (method_exists($this, $method))
 			{
-				foreach ($comments as $comment)
-				{
-					if ($comment->userid != 0)
-					{
-						$this->users[] = (int) $comment->userid;
-					}
-				}
-
-				$this->users = array_unique($this->users);
-
 				$this->$method($comments);
 			}
 		}
@@ -103,7 +88,9 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 */
 	protected function getComprofilerImage(array $comments)
 	{
-		if (count($this->users))
+		$users = $this->getUsers($comments);
+
+		if (count($users))
 		{
 			/** @var \Joomla\Database\DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
@@ -111,7 +98,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 			$query = $db->getQuery(true)
 				->select($db->qn(array('user_id', 'avatar')))
 				->from($db->qn('#__comprofiler'))
-				->where($db->qn('user_id') . ' IN (' . implode(',', $this->users) . ')')
+				->where($db->qn('user_id') . ' IN (' . implode(',', $users) . ')')
 				->where($db->qn('avatarapproved') . ' = 1');
 
 			try
@@ -142,8 +129,13 @@ class PlgJcommentsAvatar extends CMSPlugin
 		foreach ($comments as $comment)
 		{
 			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
 
-			$comment->profileLink       = $uid ? Route::_('index.php?option=com_comprofiler&task=userProfile&user=' . $uid . $itemId) : '';
+			if ($this->params->get('avatar_link') == 1)
+			{
+				$comment->profileLink = $uid ? Route::_('index.php?option=com_comprofiler&task=userProfile&user=' . $uid . $itemId) : '';
+			}
+
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
 
 			if (isset($avatars[$uid]) && !empty($avatars[$uid]->avatar))
@@ -169,7 +161,9 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 */
 	protected function getContactsImage(array $comments)
 	{
-		if (count($this->users))
+		$users = $this->getUsers($comments);
+
+		if (count($users))
 		{
 			/** @var \Joomla\Database\DatabaseDriver $db */
 			$db      = Factory::getContainer()->get('DatabaseDriver');
@@ -185,7 +179,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 				)
 				->from($db->qn('#__contact_details', 'cd'))
 				->innerJoin($db->qn('#__categories', 'cat'), 'cd.catid = cat.id')
-				->where($db->qn('cd.user_id') . ' IN (' . implode(',', $this->users) . ')');
+				->where($db->qn('cd.user_id') . ' IN (' . implode(',', $users) . ')');
 
 			// Select only published and not expired
 			$query->where('cd.published = 1')
@@ -210,12 +204,17 @@ class PlgJcommentsAvatar extends CMSPlugin
 		foreach ($comments as $comment)
 		{
 			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
 
 			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '')
 			{
-				$comment->profileLink = $uid
-					? Route::_('index.php?option=com_contact&view=contact&id=' . $avatars[$uid]->slug . '&catid=' . $avatars[$uid]->catslug)
-					: '';
+				if ($this->params->get('avatar_link') == 1)
+				{
+					$comment->profileLink = $uid
+						? Route::_('index.php?option=com_contact&view=contact&id=' . $avatars[$uid]->slug . '&catid=' . $avatars[$uid]->catslug)
+						: '';
+				}
+
 				$comment->avatar = Uri::base() . '/' . $avatars[$uid]->avatar;
 			}
 			else
@@ -244,6 +243,81 @@ class PlgJcommentsAvatar extends CMSPlugin
 				return Uri::base() . ltrim($this->params->get('avatar_custom_default_avatar'), '/');
 			default:
 				return Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+		}
+	}
+
+	/**
+	 * Get image URL from com_easysocial
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
+	protected function getEasysocialImage(array $comments)
+	{
+		require_once JPATH_ADMINISTRATOR . '/components/com_easysocial/includes/easysocial.php';
+
+		$jConfig = ES::jConfig();
+		$easysocialurlPlugin = PluginHelper::isEnabled('system', 'easysocialurl');
+
+		foreach ($comments as $comment)
+		{
+			$uid                        = (int) $comment->userid;
+			$esUser                     = ES::user($uid);
+			$comment->profileLink       = '';
+			$comment->avatar            = $esUser->getAvatar(SOCIAL_AVATAR_MEDIUM);
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+
+			if ($esUser->isSiteAdmin() && ($esUser->isBlock() || $esUser->hasCommunityAccess()) || $esUser->id)
+			{
+				if ($easysocialurlPlugin)
+				{
+					if (!ES::isSh404Installed() && $jConfig->getValue('sef'))
+					{
+						$rootUri = rtrim(Uri::root(), '/');
+						$alias   = \Joomla\CMS\Filter\OutputFilter::stringURLSafe($esUser->getAlias());
+						$alias   = ESR::normalizePermalink($alias);
+						$url     = $rootUri . '/' . $alias;
+
+						// Retrieve current site language code
+						$langCode = ES::getCurrentLanguageCode();
+
+						// Append language code from the simple url
+						if (!empty($langCode))
+						{
+							$url = $rootUri . '/' . $langCode . '/' . $alias;
+						}
+
+						if ($jConfig->getValue('sef_suffix') && !(substr($url, -9) == 'index.php' || substr($url, -1) == '/'))
+						{
+							// $uri = JURI::getInstance(ES::getURI(true));
+							// $format = $uri->getVar('format', 'html');
+							$format = 'html';
+							$url .= '.' . $format;
+
+						}
+
+						if ($this->params->get('avatar_link') == 1)
+						{
+							$comment->profileLink = $url;
+						}
+					}
+				}
+				else
+				{
+					$options              = array('id' => $esUser->getAlias());
+					$options['sef']       = true;
+					$options['adminSef']  = false;
+
+					if ($this->params->get('avatar_link') == 1)
+					{
+						$comment->profileLink = \FRoute::profile($options, false);
+					}
+				}
+			}
 		}
 	}
 
@@ -325,7 +399,9 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 */
 	protected function getKunenaImage(array $comments)
 	{
-		if (count($this->users))
+		$users = $this->getUsers($comments);
+
+		if (count($users))
 		{
 			/** @var \Joomla\Database\DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
@@ -333,7 +409,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 			$query = $db->getQuery(true)
 				->select($db->qn(array('userid', 'avatar')))
 				->from($db->qn('#__kunena_users'))
-				->where($db->qn('userid') . ' IN (' . implode(',', $this->users) . ')');
+				->where($db->qn('userid') . ' IN (' . implode(',', $users) . ')');
 
 			try
 			{
@@ -367,10 +443,14 @@ class PlgJcommentsAvatar extends CMSPlugin
 		foreach ($comments as $comment)
 		{
 			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
 
-			$comment->profileLink = $uid
-				? \Kunena\Forum\Libraries\Route\KunenaRoute::_('index.php?option=com_kunena&view=user&userid=' . $uid . '&Itemid=' . $itemId)
-				: '';
+			if ($this->params->get('avatar_link') == 1)
+			{
+				$comment->profileLink = $uid
+					? \Kunena\Forum\Libraries\Route\KunenaRoute::_('index.php?option=com_kunena&view=user&userid=' . $uid . '&Itemid=' . $itemId)
+					: '';
+			}
 
 			$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 
@@ -398,7 +478,9 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 */
 	protected function getPhocagalleryImage(array $comments)
 	{
-		if (count($this->users))
+		$users = $this->getUsers($comments);
+
+		if (count($users))
 		{
 			/** @var \Joomla\Database\DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
@@ -406,7 +488,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 			$query = $db->getQuery(true)
 				->select($db->qn(array('userid', 'avatar')))
 				->from($db->qn('#__phocagallery_user'))
-				->where($db->qn('userid') . ' IN (' . implode(',', $this->users) . ')');
+				->where($db->qn('userid') . ' IN (' . implode(',', $users) . ')');
 
 			try
 			{
@@ -444,7 +526,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	}
 
 	/**
-	 * Get image URL from com_easysocial
+	 * Get image URL from phpBB3
 	 *
 	 * @param   array  $comments  Array with comment objects
 	 *
@@ -453,61 +535,379 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @throws  \Exception
 	 * @since   4.0
 	 */
-	protected function getEasysocialImage(array $comments)
+	protected function getPhpbb3Image(array $comments)
 	{
-		require_once JPATH_ADMINISTRATOR . '/components/com_easysocial/includes/easysocial.php';
+		$forumConfig = Path::clean($this->params->get('forums_config'));
+		$data        = array('config' => array(), 'user_data' => array());
+		$cacheId     = 'plg_jcomments_avatar_phpbb3';
 
-		$jConfig = ES::jConfig();
-		$easysocialurlPlugin = PluginHelper::isEnabled('system', 'easysocialurl');
+		/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
+		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
+			->createCacheController('output', array('defaultgroup' => $cacheId));
+
+		// Init default values.
+		$dbms         = '';
+		$dbhost       = '';
+		$dbport       = '';
+		$dbuser       = '';
+		$dbpasswd     = '';
+		$dbname       = '';
+		$table_prefix = '';
+
+		if (!is_file($forumConfig) || !is_readable($forumConfig))
+		{
+			Log::add('phpBB3 configuration file not found at "' . $forumConfig . '"', Log::ERROR, 'plg_jcomments_avatars');
+
+			return;
+		}
+
+		include $forumConfig;
+
+		/** @var Joomla\CMS\Cache\Cache $cache */
+		// Force cache only if caching is disabled in global configuration.
+		if (Factory::getApplication()->get('caching') == 0)
+		{
+			$cache->setCaching((bool) $this->params->get('force_caching'));
+		}
+
+		// Load phpBB3 config data and users data from cache
+		if ($cache->contains($cacheId, 'plg_jcomments_avatar'))
+		{
+			$data = $cache->get($cacheId, 'plg_jcomments_avatar');
+		}
+		else
+		{
+			// Connect to phpBB3 database using settings from phpBB3 configuration file
+			$dbFactory  = new \Joomla\Database\DatabaseFactory;
+			$driverName = str_replace('\\', '', substr($dbms, strrpos($dbms, '\\')));
+			$db         = $dbFactory->getDriver(
+				$driverName,
+				array(
+					'host'     => $dbhost, 'port' => $dbport, 'user' => $dbuser, 'password' => $dbpasswd,
+					'database' => $dbname, 'select' => true, 'prefix' => $table_prefix
+				)
+			);
+
+			// Get phpBB3 board config
+			$configQuery = $db->getQuery(true)
+				->select($db->qn(array('config_name', 'config_value')))
+				->from($db->qn('#__config'));
+
+			try
+			{
+				$db->setQuery($configQuery);
+				$data['config'] = $db->loadObjectList('config_name');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+
+			$query = $db->getQuery(true)
+				->select($db->qn(array('user_id', 'username_clean', 'user_email', 'user_avatar', 'user_avatar_type')))
+				->from($db->qn('#__users'));
+
+			if ($this->params->get('forums_link_type') == 'email')
+			{
+				$users = $this->getUsers($comments, true);
+				$query->whereIn($db->qn('user_email'), $users, ParameterType::STRING);
+			}
+			elseif ($this->params->get('forums_link_type') == 'login')
+			{
+				$users = $this->getUsers($comments, false, true);
+				$query->whereIn($db->qn('username_clean'), $users, ParameterType::STRING);
+			}
+
+			try
+			{
+				$db->setQuery($query);
+				$data['user_data'] = $db->loadObjectList();
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+
+			$cache->store($data, $cacheId, 'plg_jcomments_avatar');
+		}
 
 		foreach ($comments as $comment)
 		{
-			$uid                        = (int) $comment->userid;
-			$esUser                     = ES::user($uid);
-			$comment->profileLink       = '';
-			$comment->avatar            = $esUser->getAvatar(SOCIAL_AVATAR_MEDIUM);
-			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+			$comment->profileLink = '';
+			$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			$phpBB3Profile = array();
 
-			if ($esUser->isSiteAdmin() && ($esUser->isBlock() || $esUser->hasCommunityAccess()) || $esUser->id)
+			foreach ($data['user_data'] as $phpBB3)
 			{
-				if ($easysocialurlPlugin)
+				// Ugly checking but works
+				if ($this->params->get('forums_link_type') == 'email' && $phpBB3->user_email == $comment->email)
 				{
-					if (!ES::isSh404Installed() && $jConfig->getValue('sef'))
+					$phpBB3Profile = $phpBB3;
+					break;
+				}
+				elseif ($this->params->get('forums_link_type') == 'login' && $phpBB3->username_clean == $comment->username)
+				{
+					$phpBB3Profile = $phpBB3;
+					break;
+				}
+			}
+
+			if (!empty($phpBB3Profile->user_id))
+			{
+				if ($this->params->get('avatar_link') == 1)
+				{
+					$comment->profileLink = $this->params->get('forums_site_url') . '/memberlist.php?mode=viewprofile&u=' . $phpBB3Profile->user_id;
+				}
+
+				if ($phpBB3Profile->user_avatar_type == 'avatar.driver.remote')
+				{
+					$comment->avatar = $phpBB3Profile->user_avatar;
+				}
+				elseif ($phpBB3Profile->user_avatar_type == 'avatar.driver.upload' || $phpBB3Profile->user_avatar_type == 'avatar.driver.local')
+				{
+					// .htaccess file in avatars folder will deny access, so we must to use data:image
+					$avatarExt = \Joomla\CMS\Filesystem\File::getExt($phpBB3Profile->user_avatar);
+
+					if ($phpBB3Profile->user_avatar_type == 'avatar.driver.upload')
 					{
-						$rootUri = rtrim(Uri::root(), '/');
-						$alias   = \Joomla\CMS\Filter\OutputFilter::stringURLSafe($esUser->getAlias());
-						$alias   = ESR::normalizePermalink($alias);
-						$url     = $rootUri . '/' . $alias;
+						$avatarPath = $data['config']['avatar_path']->config_value;
+						$avatarFile = $data['config']['avatar_salt']->config_value . '_' . $phpBB3Profile->user_id . '.' . $avatarExt;
+					}
+					else
+					{
+						$avatarPath = $data['config']['avatar_gallery_path']->config_value;
+						$avatarFile = $phpBB3Profile->user_avatar;
+					}
 
-						// Retrieve current site language code
-						$langCode = ES::getCurrentLanguageCode();
+					$avatar = Path::clean(
+						$this->params->get('forums_site_path') . '/' . $avatarPath . '/'
+						. $avatarFile
+					);
+					$imageData       = @getimagesize($avatar);
+					$avatar          = file_get_contents($avatar);
+					$comment->avatar = 'data:' . image_type_to_mime_type($imageData[2]) . ';base64,' . base64_encode($avatar);
+				}
+			}
 
-						// Append language code from the simple url
-						if (!empty($langCode))
-						{
-							$url = $rootUri . '/' . $langCode . '/' . $alias;
-						}
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+		}
+	}
 
-						if ($jConfig->getValue('sef_suffix') && !(substr($url, -9) == 'index.php' || substr($url, -1) == '/'))
-						{
-							// $uri = JURI::getInstance(ES::getURI(true));
-							// $format = $uri->getVar('format', 'html');
-							$format = 'html';
-							$url .= '.' . $format;
+	/**
+	 * Get image URL from Simple Machines Forum (SMF)
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
+	protected function getSmfImage(array $comments)
+	{
+		$forumConfig = Path::clean($this->params->get('forums_config'));
+		$data        = array('config' => array(), 'user_data' => array());
+		$cacheId     = 'plg_jcomments_avatar_smf';
 
-						}
+		/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
+		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
+			->createCacheController('output', array('defaultgroup' => $cacheId));
 
-						$comment->profileLink = $url;
+		// Init default values.
+		$db_type   = '';
+		$db_server = '';
+		$db_port   = '';
+		$db_user   = '';
+		$db_passwd = '';
+		$db_name   = '';
+		$db_prefix = '';
+
+		if (!is_file($forumConfig) || !is_readable($forumConfig))
+		{
+			Log::add('SMF configuration file not found at "' . $forumConfig . '"', Log::ERROR, 'plg_jcomments_avatars');
+
+			return;
+		}
+
+		include $forumConfig;
+
+		/** @var Joomla\CMS\Cache\Cache $cache */
+		// Force cache only if caching is disabled in global configuration.
+		if (Factory::getApplication()->get('caching') == 0)
+		{
+			$cache->setCaching((bool) $this->params->get('force_caching'));
+		}
+
+		// Load SMF config data and users data from cache
+		if ($cache->contains($cacheId, 'plg_jcomments_avatar'))
+		{
+			$data = $cache->get($cacheId, 'plg_jcomments_avatar');
+		}
+		else
+		{
+			// Connect to SMF database using settings from SMF configuration file
+			$dbFactory  = new \Joomla\Database\DatabaseFactory;
+
+			if (strpos($db_type, 'postgresql') !== false)
+			{
+				$driverName = 'pgsql';
+			}
+			else
+			{
+				$driverName = 'mysqli';
+			}
+
+			$db = $dbFactory->getDriver(
+				$driverName,
+				array(
+					'host'     => $db_server, 'port' => $db_port, 'user' => $db_user, 'password' => $db_passwd,
+					'database' => $db_name, 'select' => true, 'prefix' => $db_prefix
+				)
+			);
+
+			// Get SMF board config
+			$configQuery = $db->getQuery(true)
+				->select($db->qn(array('variable', 'value')))
+				->from($db->qn('#__settings'));
+
+			try
+			{
+				$db->setQuery($configQuery);
+				$data['config'] = $db->loadObjectList('variable');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+
+			$query = $db->getQuery(true)
+				->select($db->qn(array('m.id_member', 'm.member_name', 'm.email_address', 'm.avatar', 'a.filename')))
+				->from($db->qn('#__members', 'm'))
+				->leftJoin($db->qn('#__attachments', 'a'), 'a.id_member = m.id_member AND a.approved = 1 AND a.attachment_type = 1');
+
+			if ($this->params->get('forums_link_type') == 'email')
+			{
+				$users = $this->getUsers($comments, true);
+				$query->whereIn($db->qn('email_address'), $users, ParameterType::STRING);
+			}
+			elseif ($this->params->get('forums_link_type') == 'login')
+			{
+				$users = $this->getUsers($comments, false, true);
+				$query->whereIn($db->qn('member_name'), $users, ParameterType::STRING);
+			}
+
+			try
+			{
+				$db->setQuery($query);
+				$data['user_data'] = $db->loadObjectList();
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+
+			$cache->store($data, $cacheId, 'plg_jcomments_avatar');
+		}
+
+		foreach ($comments as $comment)
+		{
+			$comment->profileLink = '';
+			$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			$smfProfile = array();
+
+			foreach ($data['user_data'] as $smf)
+			{
+				// Ugly checking but works
+				if ($this->params->get('forums_link_type') == 'email' && $smf->email_address == $comment->email)
+				{
+					$smfProfile = $smf;
+					break;
+				}
+				elseif ($this->params->get('forums_link_type') == 'login' && $smf->member_name == $comment->username)
+				{
+					$smfProfile = $smf;
+					break;
+				}
+			}
+
+			if (!empty($smfProfile->id_member))
+			{
+				if ($this->params->get('avatar_link') == 1)
+				{
+					$comment->profileLink = $this->params->get('forums_site_url') . '/index.php?action=profile;u=' . $smfProfile->id_member;
+				}
+
+				// Avatar from gallery or URL
+				if (!empty($smfProfile->avatar))
+				{
+					// User specified an URL
+					if (preg_match('#(https?://)#', $smfProfile->avatar, $matches))
+					{
+						$comment->avatar = $smfProfile->avatar;
+					}
+					else
+					{
+						$comment->avatar = $data['config']['avatar_url']->value . '/' . $smfProfile->avatar;
 					}
 				}
-				else
+				// Avatar uploaded by user
+				elseif (!empty($smfProfile->filename))
 				{
-					$options              = array('id' => $esUser->getAlias());
-					$options['sef']       = true;
-					$options['adminSef']  = false;
-					$comment->profileLink = \FRoute::profile($options, false);
+					$customAvatarPath = Path::clean($data['config']['custom_avatar_dir']->value . '/' . $smfProfile->filename);
+
+					if (is_file($customAvatarPath) && is_readable($customAvatarPath))
+					{
+						$comment->avatar = $data['config']['custom_avatar_url']->value . '/' . $smfProfile->filename;
+					}
+				}
+			}
+
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+		}
+	}
+
+	/**
+	 * Get a list of commenting users
+	 *
+	 * @param   array    $comments  Array with comment objects
+	 * @param   boolean  $emails    Return list of emails
+	 * @param   boolean  $login     Return list of user names
+	 *
+	 * @return  array
+	 *
+	 * @since   4.0
+	 */
+	protected function getUsers(array $comments, bool $emails = false, bool $login = false): array
+	{
+		$users = array();
+
+		foreach ($comments as $comment)
+		{
+			if ($emails)
+			{
+				$users[] = $comment->email;
+			}
+			elseif ($login)
+			{
+				$users[] = $comment->username;
+			}
+			else
+			{
+				if ($comment->userid != 0)
+				{
+					$users[] = (int) $comment->userid;
 				}
 			}
 		}
+
+		return array_unique($users);
 	}
 }

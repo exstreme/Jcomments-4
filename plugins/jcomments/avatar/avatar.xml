@@ -6,7 +6,7 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.2.1</version>
+	<version>4.2.2</version>
 	<description>PLG_JCOMMENTS_AVATAR_XML_DESCRIPTION</description>
 
 	<files>
@@ -16,6 +16,8 @@
 	<languages>
 		<language tag="en-GB">language/en-GB/plg_jcomments_avatar.ini</language>
 		<language tag="en-GB">language/en-GB/plg_jcomments_avatar.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_jcomments_avatar.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_jcomments_avatar.sys.ini</language>
 	</languages>
 
 	<config>
@@ -36,6 +38,8 @@
 					<option value="kunena">Kunena</option>
 					<option value="phocagallery">PhocaGallery</option>
 					<option value="easysocial">EasySocial</option>
+					<option value="phpbb3">phpBB3</option>
+					<option value="smf">Simple Machines Forum (SMF)</option>
 				</field>
 
 				<field 
@@ -44,6 +48,7 @@
 					default="default"
 					label="PLG_JCOMMENTS_AVATAR_FIELD_DEFAULT_AVATAR_LABEL"
 					description="PLG_JCOMMENTS_AVATAR_FIELD_DEFAULT_AVATAR_DESC"
+					showon="avatar_type!:easysocial"
 				>
 					<option value="default">PLG_JCOMMENTS_AVATAR_FIELD_VALUE_DEFAULT_IMAGE</option>
 					<option value="custom">PLG_JCOMMENTS_AVATAR_FIELD_VALUE_CUSTOM_IMAGE</option>
@@ -54,7 +59,7 @@
 					type="media"
 					label="PLG_JCOMMENTS_AVATAR_FIELD_CUSTOM_DEFAULT_AVATAR_LABEL"
 					description="PLG_JCOMMENTS_AVATAR_FIELD_CUSTOM_DEFAULT_AVATAR_DESC"
-					showon="avatar_default_avatar:custom"
+					showon="avatar_type!:easysocial[AND]avatar_default_avatar:custom"
 				/>
 
 				<field
@@ -65,7 +70,52 @@
 					label="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_LABEL"
 					description="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_DESC"
 					showon="avatar_type:gravatar"
+				/>
+
+				<field
+						name="forums_config"
+						type="text"
+						label="PLG_JCOMMENTS_AVATAR_FIELD_FORUMS_CONFIG_LABEL"
+						showon="avatar_type:phpbb3,smf"
+				/>
+
+				<field
+						name="forums_site_path"
+						type="text"
+						label="PLG_JCOMMENTS_AVATAR_FIELD_FORUMS_SITE_PATH_LABEL"
+						showon="avatar_type:phpbb3,smf"
+				/>
+
+				<field
+						name="forums_site_url"
+						type="text"
+						label="PLG_JCOMMENTS_AVATAR_FIELD_FORUMS_SITE_URL_LABEL"
+						showon="avatar_type:phpbb3,smf"
+				/>
+
+				<field
+						name="forums_link_type"
+						type="list"
+						default="email"
+						label="PLG_JCOMMENTS_AVATAR_FIELD_FORUMS_LINK_TYPE_LABEL"
+						description="PLG_JCOMMENTS_AVATAR_FIELD_FORUMS_LINK_TYPE_DESC"
+						showon="avatar_type:phpbb3,smf"
 				>
+					<option value="email">Email</option>
+					<option value="login">Login</option>
+				</field>
+
+				<field
+						name="force_caching"
+						type="radio"
+						default="0"
+						class="btn-group"
+						label="PLG_JCOMMENTS_AVATAR_FIELD_FORCE_CACHING_LABEL"
+						description="PLG_JCOMMENTS_AVATAR_FIELD_FORCE_CACHING_DESC"
+						showon="avatar_type:phpbb3,smf"
+				>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
 				</field>
 
 				<field 
