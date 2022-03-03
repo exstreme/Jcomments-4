@@ -22,10 +22,10 @@ use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
 
 // @TODO Must be removed later when component frontend will use namespaces.
-require_once JPATH_ROOT . '/components/com_jcomments/classes/bbcode.php';
-require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
-require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
-require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
+include_once JPATH_ROOT . '/components/com_jcomments/classes/bbcode.php';
+include_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
+include_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
+include_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
 
 /**
  * Helper for mod_jcomments_latest_backend
@@ -55,8 +55,8 @@ class LatestCommentsHelper
 			->from($db->qn('#__jcomments', 'jc'));
 
 		// Join over the users
-		$query->select('u.name AS editor');
-		$query->join('LEFT', $db->quoteName('#__users') . ' AS u ON u.id = jc.checked_out');
+		$query->select($db->qn('u.name', 'editor'))
+			->leftJoin($db->qn('#__users', 'u'), 'u.id = jc.checked_out');
 
 		$query->order($db->qn('jc.date') . ' DESC');
 
