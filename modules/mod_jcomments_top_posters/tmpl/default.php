@@ -52,21 +52,21 @@ if (!empty($list)): ?>
 					<?php endif; ?>
 
 					<?php if ($params->get('show_votes') == 1): ?>
-						<span class="votes" aria-describedby="<?php echo $ariaDescribed; ?>-votes">
+						<span class="votes align-middle" aria-describedby="<?php echo $ariaDescribed; ?>-votes">
 							<?php if ($item->votes < 0): ?>
-								<span class="badge bg-danger rounded-pill">-<?php echo $item->votes; ?></span>
+								<span class="text-danger">-<?php echo $item->votes; ?></span>
 							<?php elseif ($item->votes > 0): ?>
-								<span class="badge bg-success rounded-pill">+<?php echo $item->votes; ?></span>
+								<span class="text-success">+<?php echo $item->votes; ?></span>
 							<?php else: ?>
-								<span class="badge bg-secondary rounded-pill"><?php echo $item->votes; ?></span>
+								<span class="text-secondary"><?php echo $item->votes; ?></span>
 							<?php endif; ?>
 						</span>
 						<div role="tooltip" id="<?php echo $ariaDescribed; ?>-votes">
 							<?php echo Text::_('MOD_JCOMMENTS_TOP_POSTERS_FIELD_VOTES_LABEL'); ?>
 						</div>
 					<?php elseif ($params->get('show_votes') == 2): ?>
-						<span class="votes" aria-describedby="<?php echo $ariaDescribed; ?>-votes">
-							<span class="badge bg-success rounded-pill">+<?php echo $item->isgood; ?></span><span class="badge bg-danger rounded-pill">-<?php echo $item->ispoor; ?></span>
+						<span class="votes align-middle" aria-describedby="<?php echo $ariaDescribed; ?>-votes">
+							<span class="text-success">+<?php echo $item->isgood; ?></span> | <span class="text-danger">-<?php echo $item->ispoor; ?></span>
 						</span>
 						<div role="tooltip" id="<?php echo $ariaDescribed; ?>-votes">
 							<?php echo Text::_('MOD_JCOMMENTS_TOP_POSTERS_FIELD_VOTES_LABEL'); ?>
