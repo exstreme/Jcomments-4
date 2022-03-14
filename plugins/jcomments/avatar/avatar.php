@@ -258,6 +258,11 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 */
 	protected function getEasysocialImage(array $comments)
 	{
+		if (!is_file(JPATH_ADMINISTRATOR . '/components/com_easysocial/includes/easysocial.php'))
+		{
+			return;
+		}
+
 		require_once JPATH_ADMINISTRATOR . '/components/com_easysocial/includes/easysocial.php';
 
 		$jConfig = ES::jConfig();
@@ -612,11 +617,25 @@ class PlgJcommentsAvatar extends CMSPlugin
 			if ($this->params->get('forums_link_type') == 'email')
 			{
 				$users = $this->getUsers($comments, true);
+
+				// No one has left a comment yet.
+				if (empty($users) || !is_array($users))
+				{
+					return;
+				}
+
 				$query->whereIn($db->qn('user_email'), $users, ParameterType::STRING);
 			}
 			elseif ($this->params->get('forums_link_type') == 'login')
 			{
 				$users = $this->getUsers($comments, false, true);
+
+				// No one has left a comment yet.
+				if (empty($users) || !is_array($users))
+				{
+					return;
+				}
+
 				$query->whereIn($db->qn('username_clean'), $users, ParameterType::STRING);
 			}
 
@@ -794,11 +813,25 @@ class PlgJcommentsAvatar extends CMSPlugin
 			if ($this->params->get('forums_link_type') == 'email')
 			{
 				$users = $this->getUsers($comments, true);
+
+				// No one has left a comment yet.
+				if (empty($users) || !is_array($users))
+				{
+					return;
+				}
+
 				$query->whereIn($db->qn('email_address'), $users, ParameterType::STRING);
 			}
 			elseif ($this->params->get('forums_link_type') == 'login')
 			{
 				$users = $this->getUsers($comments, false, true);
+
+				// No one has left a comment yet.
+				if (empty($users) || !is_array($users))
+				{
+					return;
+				}
+
 				$query->whereIn($db->qn('member_name'), $users, ParameterType::STRING);
 			}
 

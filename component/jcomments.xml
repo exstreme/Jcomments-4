@@ -5,8 +5,9 @@
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.16</version>
+	<version>4.0.17</version>
 	<description>JComments lets your users comment on content items.</description>
+	<namespace path="src">Joomla\Component\Jcomments</namespace>
 
 	<install>
 		<sql>

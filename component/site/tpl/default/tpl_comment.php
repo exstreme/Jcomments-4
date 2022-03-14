@@ -40,7 +40,7 @@ class jtt_tpl_comment extends JoomlaTuneTemplate
 			{
 				// Return all comment item
 				?>
-				<div class="flex-fill border rounded rbox">
+				<div class="border rounded rbox">
 					<?php
 					if ($this->getVar('avatar') == 1)
 					{

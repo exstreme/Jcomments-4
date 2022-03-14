@@ -278,6 +278,7 @@ class JComments
 			$config->set('comments_locked', 1);
 		}
 
+		// The 'comments_locked' option value is set in PlgContentJcomments::prepareContent()
 		if ((int) $config->get('comments_locked', 0) == 1)
 		{
 			$config->set('enable_rss', 0);
@@ -369,6 +370,7 @@ class JComments
 
 		if ($user->authorise('comment.comment', 'com_jcomments'))
 		{
+			// The 'comments_locked' option value is set in PlgContentJcomments::prepareContent()
 			if ((int) $config->get('comments_locked') == 1)
 			{
 				$message = JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_locked', $lang->getTag());
@@ -794,6 +796,7 @@ class JComments
 
 		if (count($rows))
 		{
+			// The 'comments_locked' option value is set in PlgContentJcomments::prepareContent()
 			$isLocked = ((int) $config->get('comments_locked', 0) == 1); // TODO Convert to int
 
 			$tmpl->addVar('tpl_list', 'comments-refresh', !$isLocked);
@@ -954,6 +957,7 @@ class JComments
 
 		if (count($rows))
 		{
+			// The 'comments_locked' option value is set in PlgContentJcomments::prepareContent()
 			$isLocked = ((int) $config->get('comments_locked', 0) == 1);
 
 			$tmpl->addVar('tpl_tree', 'comments-refresh', !$isLocked);
