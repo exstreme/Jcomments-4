@@ -23,7 +23,7 @@ if (!empty($list)): ?>
 			<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
 				style="padding-left: 0; padding-right: 0;">
 				<a href="<?php echo $item->link; ?>#comments"><?php echo $item->title; ?></a>
-				<span class="badge bg-primary rounded-pill"><?php echo $item->commentsCount; ?></span>
+				<span class="badge bg-primary"><?php echo $item->commentsCount; ?></span>
 			</li>
 
 			<?php else: ?>

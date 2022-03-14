@@ -21,7 +21,7 @@ if (!empty($list)): ?>
 			<a href="<?php echo $item->link; ?>#comments"><?php echo $item->title; ?></a>
 
 			<?php if ($params->get('showCommentsCount')): ?>
-				<span class="badge bg-success rounded-pill">+<?php echo $item->commentsCount; ?></span>
+				<span class="badge bg-success">+<?php echo $item->commentsCount; ?></span>
 			<?php endif; ?>
 		</li>
 		<?php endforeach; ?>
