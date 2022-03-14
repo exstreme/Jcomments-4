@@ -1,13 +1,14 @@
 <?php
 /**
- * JComments - Joomla Comment System
+ * JComments editors-xtd plugin - Provides button for editor.
  *
- * @version 4.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 
@@ -21,27 +22,27 @@ use Joomla\CMS\Plugin\CMSPlugin;
  *
  * @since  1.5
  */
-class plgButtonJCommentsOff extends CMSPlugin
+class PlgButtonJCommentsOff extends CMSPlugin
 {
+	/**
+	 * Load the language file on instantiation.
+	 *
+	 * @var    boolean
+	 * @since  3.1
+	 */
 	protected $autoloadLanguage = true;
-
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-		$this->loadLanguage('plg_editors-xtd_jcommentson', JPATH_ADMINISTRATOR);
-	}
 
 	/**
 	 * JComments Off button
 	 *
-	 * @param string $name Editor field name
+	 * @param   string  $name  Editor field name
 	 *
 	 * @return  CMSObject  $button
 	 *
-	 * @throws  Exception
+	 * @throws  \Exception
 	 * @since   1.5
 	 */
-	public function onDisplay($name)
+	public function onDisplay(string $name)
 	{
 		$js = "
 		function insertJCommentsOff(editor) {
@@ -62,6 +63,7 @@ class plgButtonJCommentsOff extends CMSPlugin
 		$button->text    = Text::_('PLG_EDITORS-XTD_JCOMMENTSOFF_BUTTON_JCOMMENTSOFF');
 		$button->name    = 'blank';
 		$button->link    = '#';
+		$button->icon    = 'comment';
 
 		return $button;
 	}

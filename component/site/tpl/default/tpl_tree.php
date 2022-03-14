@@ -104,7 +104,7 @@ class jtt_tpl_tree extends JoomlaTuneTemplate
 				$i  = $this->getVar('comment-modulo');
 				$id = $this->getVar('comment-id');
 				?>
-				<div class="d-flex <?php echo $i % 2 ? 'odd' : 'even'; ?>"
+				<div class="<?php echo $i % 2 ? 'odd' : 'even'; ?>"
 					 id="comment-item-<?php echo $id; ?>"><?php echo $comment; ?></div>
 				<?php
 			}

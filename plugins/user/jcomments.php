@@ -1,14 +1,14 @@
 <?php
 /**
- * JComments - Joomla Comment System
+ * JComments user plugin - User plugin for updating user info in comments.
  *
- * @version       4.0
- * @package       JComments
- * @authors       Sergey M. Litvinov <smart@joomlatune.ru>, exstreme <info@protectyoursite.ru>, Vladimir Globulopolis
- * @copyright     (C) 2006-2018 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @copyright     (C) 2018-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 
@@ -17,13 +17,13 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\Form\FormHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
-use Joomla\Database\DatabaseDriver;
 use Joomla\Utilities\ArrayHelper;
 
 /**
- * User plugin for updating user info in comments
+ * User plugin for updating user info in comments.
  *
  * @since 1.5
  */
@@ -64,7 +64,7 @@ class PlgUserJComments extends CMSPlugin
 	 * @return  boolean
 	 * @since   4.0
 	 */
-	public function onContentPrepareData($context, $data)
+	public function onContentPrepareData(string $context, $data): bool
 	{
 		// Check we are manipulating a valid form.
 		if ($context != 'com_users.profile')
@@ -106,21 +106,63 @@ class PlgUserJComments extends CMSPlugin
 		if ($this->app->input->get('layout') !== 'edit')
 		{
 			$db = $this->db;
+			$totalComments = 0;
+			$totalVotes = 0;
 
-			$query = $db->getQuery(true)
-				->select('COUNT(id)')
-				->from($db->quoteName('#__jcomments'))
-				->where($db->quoteName('userid') . ' = ' . $userId);
-
-			$db->setQuery($query);
-			$total = $db->loadResult();
-
-			// Do not set this value to empty or 0 because it will display COM_USERS_PROFILE_VALUE_NOT_FOUND text instead of numeric zero.
-			$data->comments['total_comments'] = Text::plural('PLG_USER_COMMENTS_TOTAL_N', $total);
-
-			if ($total > 0 && !HTMLHelper::isRegistered('users.total_comments'))
+			if ($this->params->get('show_comments_link', 0))
 			{
-				HTMLHelper::register('users.total_comments', [__CLASS__, 'url']);
+				try
+				{
+					$query = $db->getQuery(true)
+						->select('COUNT(id)')
+						->from($db->quoteName('#__jcomments'))
+						->where($db->quoteName('userid') . ' = ' . $userId);
+
+					$db->setQuery($query);
+					$totalComments = $db->loadResult();
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
+
+					return false;
+				}
+
+				// Do not set this value to empty or 0 because it will display COM_USERS_PROFILE_VALUE_NOT_FOUND text instead of numeric zero.
+				$data->comments['total_comments'] = Text::plural('PLG_USER_COMMENTS_TOTAL_N', $totalComments);
+
+				if ($totalComments > 0 && !HTMLHelper::isRegistered('users.total_comments'))
+				{
+					HTMLHelper::register('users.total_comments', [__CLASS__, 'urlComment']);
+				}
+			}
+
+			if ($this->params->get('show_votes_link', 0))
+			{
+				try
+				{
+					$query = $db->getQuery(true)
+						->select('COUNT(id)')
+						->from($db->quoteName('#__jcomments_votes'))
+						->where($db->quoteName('userid') . ' = ' . $userId);
+
+					$db->setQuery($query);
+					$totalVotes = $db->loadResult();
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
+
+					return false;
+				}
+
+				// Do not set this value to empty or 0 because it will display COM_USERS_PROFILE_VALUE_NOT_FOUND text instead of numeric zero.
+				$data->comments['total_votes'] = Text::plural('PLG_USER_COMMENTS_VOTES_TOTAL_N', $totalVotes);
+
+				if ($totalVotes > 0 && !HTMLHelper::isRegistered('users.total_votes'))
+				{
+					HTMLHelper::register('users.total_votes', [__CLASS__, 'urlVotes']);
+				}
 			}
 		}
 
@@ -136,7 +178,7 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @since   4.0
 	 */
-	public static function url($value)
+	public static function urlComment(string $value)
 	{
 		if (empty($value))
 		{
@@ -144,7 +186,7 @@ class PlgUserJComments extends CMSPlugin
 		}
 		else
 		{
-			/** @var DatabaseDriver $db */
+			/** @var \Joomla\Database\DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			$query = $db->getQuery(true)
@@ -157,10 +199,78 @@ class PlgUserJComments extends CMSPlugin
 					)
 				);
 
-			$db->setQuery($query);
-			$itemid = $db->loadResult();
+			try
+			{
+				$db->setQuery($query);
+				$itemid = $db->loadResult();
+			}
+			catch (RuntimeException $e)
+			{
+				Log::add($e->getMessage(), 'plg_user_jcomments');
+				$itemid = Factory::getApplication()->input->get('Itemid');
+			}
 
-			return '<a href="' . Route::_('index.php?option=com_jcomments&view=comments&task=show_all&Itemid=' . (int) $itemid) . '">' . $value . '</a>';
+			$url = Route::_('index.php?option=com_jcomments&view=comments&task=viewAllMyComments&Itemid=' . (int) $itemid);
+
+			// If component not found Route will return a Null value. Check it and set url w/o route.
+			$url = empty($url)
+				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&view=comments&task=viewAllMyComments&Itemid=' . (int) $itemid
+				: $url;
+
+			return '<a href="' . $url . '">' . $value . '</a>';
+		}
+	}
+
+	/**
+	 * Returns an anchor tag for votes.
+	 *
+	 * @param   string  $value  Field value
+	 *
+	 * @return  mixed|string
+	 *
+	 * @throws  Exception
+	 * @since   4.0
+	 */
+	public static function urlVotes(string $value)
+	{
+		if (empty($value))
+		{
+			return HTMLHelper::_('users.value', $value);
+		}
+		else
+		{
+			/** @var \Joomla\Database\DatabaseDriver $db */
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
+			try
+			{
+				$query = $db->getQuery(true)
+					->select($db->quoteName('extension_id'))
+					->from($db->quoteName('#__extensions'))
+					->where(
+						array(
+							$db->quoteName('element') . ' = ' . $db->quote('com_jcomments'),
+							$db->quoteName('type') . ' = ' . $db->quote('component')
+						)
+					);
+
+				$db->setQuery($query);
+				$itemid = $db->loadResult();
+			}
+			catch (RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
+				$itemid = Factory::getApplication()->input->get('Itemid');
+			}
+
+			$url = Route::_('index.php?option=com_jcomments&view=comments&task=viewAllMyVotes&Itemid=' . (int) $itemid);
+
+			// If component not found Route will return a Null value. Check it and set url w/o route.
+			$url = empty($url)
+				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&view=comments&task=viewAllMyVotes&Itemid=' . (int) $itemid
+				: $url;
+
+			return '<a href="' . $url . '">' . $value . '</a>';
 		}
 	}
 
@@ -174,7 +284,7 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @since   1.6
 	 */
-	public function onContentPrepareForm(Form $form, $data)
+	public function onContentPrepareForm(Form $form, $data): bool
 	{
 		// Check we are manipulating a valid form.
 		$name = $form->getName();
@@ -192,6 +302,17 @@ class PlgUserJComments extends CMSPlugin
 		if ($this->app->input->get('layout') == 'edit')
 		{
 			$form->removeField('total_comments', 'comments');
+			$form->removeField('total_votes', 'comments');
+		}
+
+		if (!$this->params->get('show_comments_link'))
+		{
+			$form->removeField('total_comments', 'comments');
+		}
+
+		if (!$this->params->get('show_votes_link'))
+		{
+			$form->removeField('total_votes', 'comments');
 		}
 
 		return true;
@@ -209,7 +330,7 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @since   2.0
 	 */
-	public function onUserAfterSave($data, $isNew, $result, $error)
+	public function onUserAfterSave(array $data, bool $isNew, bool $result, string $error)
 	{
 		if ($data && !$isNew)
 		{
@@ -219,25 +340,39 @@ class PlgUserJComments extends CMSPlugin
 			{
 				$db = $this->db;
 
-				// Update name, username and email in comments
-				$query = $db->getQuery(true)
-					->update($db->quoteName('#__jcomments'))
-					->set($db->quoteName('name') . ' = ' . $db->quote($data['name']))
-					->set($db->quoteName('username') . ' = ' . $db->quote($data['username']))
-					->set($db->quoteName('email') . ' = ' . $db->quote($data['email']))
-					->where($db->quoteName('userid') . ' = ' . $userId);
+				try
+				{
+					// Update name, username and email in comments
+					$query = $db->getQuery(true)
+						->update($db->quoteName('#__jcomments'))
+						->set($db->quoteName('name') . ' = ' . $db->quote($data['name']))
+						->set($db->quoteName('username') . ' = ' . $db->quote($data['username']))
+						->set($db->quoteName('email') . ' = ' . $db->quote($data['email']))
+						->where($db->quoteName('userid') . ' = ' . $userId);
 
-				$db->setQuery($query);
-				$db->execute();
+					$db->setQuery($query);
+					$db->execute();
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
+				}
 
-				// Update email in subscriptions
-				$query = $db->getQuery(true)
-					->update($db->quoteName('#__jcomments_subscriptions'))
-					->set($db->quoteName('email') . ' = ' . $db->quote($data['email']))
-					->where($db->quoteName('userid') . ' = ' . $userId);
+				try
+				{
+					// Update email in subscriptions
+					$query = $db->getQuery(true)
+						->update($db->quoteName('#__jcomments_subscriptions'))
+						->set($db->quoteName('email') . ' = ' . $db->quote($data['email']))
+						->where($db->quoteName('userid') . ' = ' . $userId);
 
-				$db->setQuery($query);
-				$db->execute();
+					$db->setQuery($query);
+					$db->execute();
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
+				}
 			}
 		}
 	}
@@ -255,7 +390,7 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @since   2.0
 	 */
-	public function onUserAfterDelete($user, $success, $msg)
+	public function onUserAfterDelete(array $user, bool $success, string $msg)
 	{
 		if ($success)
 		{

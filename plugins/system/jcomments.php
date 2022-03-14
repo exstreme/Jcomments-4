@@ -1,37 +1,51 @@
 <?php
 /**
- * JComments - Joomla Comment System
+ * JComments system plugin - System plugin for attaching JComments.
  *
- * @version       3.0
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Uri\Uri;
+use Joomla\Event\DispatcherInterface;
+use Joomla\Registry\Registry;
 use Joomla\Utilities\ArrayHelper;
 
-include_once(JPATH_ROOT . '/components/com_jcomments/helpers/system.php');
+include_once JPATH_ROOT . '/components/com_jcomments/helpers/system.php';
 
 /**
  * System plugin for attaching JComments CSS & JavaScript to HEAD tag
  *
  * @since 1.5
  */
-class plgSystemJComments extends CMSPlugin
+class PlgSystemJComments extends CMSPlugin
 {
+	/**
+	 * Application object.
+	 *
+	 * @var    \Joomla\CMS\Application\CMSApplication
+	 * @since  3.8.0
+	 */
+	protected $app;
+
 	/**
 	 * Constructor
 	 *
-	 * @param   object  $subject  The object to observe
-	 * @param   array   $config   An array that holds the plugin configuration
+	 * @param   DispatcherInterface  $subject  The object to observe
+	 * @param   array                $config   An optional associative array of configuration settings.
+	 *                                         Recognized key values include 'name', 'group', 'params', 'language'
+	 *                                         (this list is not meant to be comprehensive).
 	 *
-	 * @throws Exception
-	 * @since 1.5
+	 * @throws  \Exception
+	 * @since   1.5
 	 */
 	public function __construct(&$subject, $config)
 	{
@@ -39,10 +53,10 @@ class plgSystemJComments extends CMSPlugin
 
 		if (!isset($this->params))
 		{
-			$this->params = new JRegistry('');
+			$this->params = new Registry('');
 		}
 
-		// small hack to allow CAPTCHA display even if any notice or warning occurred
+		// Small hack to allow CAPTCHA display even if any notice or warning occurred
 		$app    = Factory::getApplication();
 		$option = $app->input->get('option');
 		$task   = $app->input->get('task');
@@ -56,7 +70,7 @@ class plgSystemJComments extends CMSPlugin
 		{
 			if ($this->params->get('disable_error_reporting', 0) == 1)
 			{
-				// turn off all error reporting for AJAX call
+				// Turn off all error reporting for AJAX call
 				@error_reporting(E_NONE);
 			}
 		}
@@ -64,28 +78,25 @@ class plgSystemJComments extends CMSPlugin
 
 	public function onAfterRender()
 	{
-		$app    = Factory::getApplication();
-		$buffer = $app->getBody();
+		$buffer = $this->app->getBody();
 
 		if ($this->params->get('clear_rss', 0) == 1)
 		{
-			$option = $app->input->get('option');
+			$option = $this->app->input->get('option');
 
 			if ($option == 'com_content')
 			{
-				$document = Factory::getDocument();
-
-				if ($document->getType() == 'feed')
+				if ($this->app->getDocument()->getType() === 'feed')
 				{
 					$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#is', '', $buffer);
-					$app->setBody($buffer);
+					$this->app->setBody($buffer);
 				}
 			}
 		}
 
 		if ((defined('JCOMMENTS_CSS') || defined('JCOMMENTS_JS')) && !defined('JCOMMENTS_SHOW'))
 		{
-			if ($app->getName() == 'site')
+			if ($this->app->getName() == 'site')
 			{
 				$regexpJS  = '#(\<script(\stype=\"text\/javascript\")? src="[^\"]*\/com_jcomments\/[^\>]*\>\<\/script\>[\s\r\n]*?)#ismU';
 				$regexpCSS = '#(\<link rel="stylesheet" href="[^\"]*\/com_jcomments\/[^>]*>[\s\r\n]*?)#ismU';
@@ -98,19 +109,19 @@ class plgSystemJComments extends CMSPlugin
 
 				if (!$jsFound)
 				{
-					// remove JavaScript if JComments isn't loaded
+					// Remove JavaScript if JComments isn't loaded
 					$buffer = preg_replace($regexpJS, '', $buffer);
 				}
 
 				if (!$cssFound && !$jsFound)
 				{
-					// remove CSS if JComments isn't loaded
+					// Remove CSS if JComments isn't loaded
 					$buffer = preg_replace($regexpCSS, '', $buffer);
 				}
 
 				if ($buffer != '')
 				{
-					$app->setBody($buffer);
+					$this->app->setBody($buffer);
 				}
 			}
 		}
@@ -120,65 +131,42 @@ class plgSystemJComments extends CMSPlugin
 
 	public function onAfterRoute()
 	{
-		$legacyFile = JPATH_ROOT . '/components/com_jcomments/jcomments.legacy.php';
-
-		if (!is_file($legacyFile))
-		{
-			return;
-		}
-
-		include_once($legacyFile);
-
-		$app = Factory::getApplication();
-		$app->getRouter();
+		// Do not change to $app->getDocument() because it will cause an error.
 		$document = Factory::getDocument();
 
 		if ($document->getType() == 'html')
 		{
-			if ($app->isClient('administrator'))
+			if ($this->app->isClient('administrator'))
 			{
-				$document->addStyleSheet(JURI::root(true) . '/administrator/components/com_jcomments/assets/css/icon.css?v=2');
-				$app->getLanguage()->load('com_jcomments.sys', JPATH_ROOT . '/administrator', 'en-GB', true);
+				$this->app->getLanguage()->load('com_jcomments.sys', JPATH_ROOT . '/administrator', 'en-GB', true);
 
-				$option = $app->findOption();
-				$task = $app->input->get('task');
+				$option = $this->app->findOption();
+				$task = $this->app->input->get('task');
 
 				// TODO Do find a better solution in joomla 4.0
 				$type = 'content';
 
-				// remove comments if content item deleted from trash
+				// Remove comments if content item deleted from trash
+				// TODO Adapt this code to Joomla 4. Use event.
 				if ($option == 'com_trash' && $task == 'delete' && $type == 'content')
 				{
-					$cid = $app->input->post->get('cid', array(), 'array');
+					$cid = $this->app->input->post->get('cid', array(), 'array');
 					ArrayHelper::toInteger($cid, array(0));
-					include_once(JPATH_ROOT . '/components/com_jcomments/jcomments.php');
+					include_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
 					JCommentsModel::deleteComments($cid, 'com_content');
 				}
 			}
 			else
 			{
-				$option = $app->input->get('option');
+				$option = $this->app->input->get('option');
 
-				if ($option == 'com_content' || $option == 'com_alphacontent' || $option == 'com_multicategories')
+				if ($option == 'com_content' || $option == 'com_multicategories')
 				{
-					include_once(JPATH_ROOT . '/components/com_jcomments/jcomments.class.php');
-					include_once(JPATH_ROOT . '/components/com_jcomments/helpers/system.php');
+					$document->addStyleSheet(Uri::root(true) . '/media/com_jcomments/css/style.css');
 
-					// include JComments CSS
-					if ($this->params->get('disable_template_css', 0) == 0)
+					if ($this->app->getLanguage()->isRtl())
 					{
-						$document->addStyleSheet(JCommentsSystem::getCSS());
-						$language = $app->getLanguage();
-
-						if ($language->isRTL())
-						{
-							$rtlCSS = JCommentsSystem::getCSS(true);
-
-							if ($rtlCSS != '')
-							{
-								$document->addStyleSheet($rtlCSS);
-							}
-						}
+						$document->addStyleSheet(Uri::root(true) . '/media/com_jcomments/css/style_rtl.css');
 					}
 
 					if (!defined('JCOMMENTS_CSS'))
@@ -186,12 +174,12 @@ class plgSystemJComments extends CMSPlugin
 						define('JCOMMENTS_CSS', 1);
 					}
 
-					// include JComments JavaScript library
-					$document->addScript(JCommentsSystem::getCoreJS());
+					// Include JComments JavaScript library
+					$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js');
 
 					if (!defined('JOOMLATUNE_AJAX_JS'))
 					{
-						$document->addScript(JCommentsSystem::getAjaxJS());
+						$document->addScript(Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4');
 						define('JOOMLATUNE_AJAX_JS', 1);
 					}
 
@@ -204,26 +192,25 @@ class plgSystemJComments extends CMSPlugin
 		}
 	}
 
-
-	public function onJCommentsShow($object_id, $object_group, $object_title)
+	public function onJCommentsShow($objectId, $objectGroup, $objectTitle)
 	{
 		$coreFile = JPATH_ROOT . '/components/com_jcomments/jcomments.php';
 
 		if (is_file($coreFile))
 		{
-			include_once($coreFile);
-			echo JComments::show($object_id, $object_group, $object_title);
+			include_once $coreFile;
+			echo JComments::show($objectId, $objectGroup, $objectTitle);
 		}
 	}
 
-	public function onJCommentsCount($object_id, $object_group)
+	public function onJCommentsCount($objectId, $objectGroup)
 	{
 		$coreFile = JPATH_ROOT . '/components/com_jcomments/jcomments.php';
 
 		if (is_file($coreFile))
 		{
-			include_once($coreFile);
-			echo JComments::getCommentsCount($object_id, $object_group);
+			include_once $coreFile;
+			echo JComments::getCommentsCount($objectId, $objectGroup);
 		}
 	}
 }
