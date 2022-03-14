@@ -43,7 +43,7 @@ if (!empty($list)): ?>
 				</div>
 				<div class="stats end-0">
 					<?php if ($params->get('show_comments_count')): ?>
-						<span class="badge bg-primary rounded-pill" aria-describedby="<?php echo $ariaDescribed; ?>-count">
+						<span class="badge bg-primary" aria-describedby="<?php echo $ariaDescribed; ?>-count">
 							<?php echo $item->commentsCount; ?>
 						</span>
 						<div role="tooltip" id="<?php echo $ariaDescribed; ?>-count">

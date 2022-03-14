@@ -10,9 +10,9 @@
  *
  **/
 
-use Joomla\CMS\Language\Text;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\Language\Text;
 
 /** @var object $params */
 /** @var object $list */
