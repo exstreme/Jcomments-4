@@ -37,14 +37,14 @@ span.gi {
 	margin-right: 5px;
 }
 
-/* Set styles for custom bbcode icons. Do not use styles from frontend as it will be broke table. */
+/* Set styles for custom bbcode icons. Do not use styles from frontend as it will broke table. */
 #jc .bbcode a, #jc .bbcode a:focus, #jc .bbcode a:active, #jc .bbcode a:hover {
 	width: 23px;
 	height: 23px;
 	display: inline-block;
 	background-color: transparent !important;
 	background-repeat: no-repeat;
-	background-image: url(../images/tpl/jc_bbcodes.gif);
+	background-image: url(../images/tmpl/default/jc_bbcodes.gif);
 	text-decoration: none;
 	border: none !important;
 }
@@ -79,4 +79,23 @@ span.gi {
 
 #jc a.bbcode-vimeo {
 	background-position: -510px 0 !important;
+}
+
+/* CSS for jQuery More plugin v2.0.0. */
+.more-hidden {
+	display: none;
+}
+
+.more-link {
+	padding: 0.125em;
+	background-color: #eee;
+	border: 1px solid #ccc;
+	border-radius: 0.25em;
+	-moz-border-radius: 0.25em;
+	-webkit-border-radius: 0.25em;
+	text-decoration: none;
+}
+
+.more-link img {
+	border: none;
 }

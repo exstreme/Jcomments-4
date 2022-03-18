@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="editors-xtd" method="upgrade">
+	<name>plg_editors-xtd_jcommentslock</name>
+	<creationDate>March 2022</creationDate>
+	<copyright>2022 by exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.0.0</version>
+	<description>PLG_EDITORS-XTD_JCOMMENTSLOCK_XML_DESCRIPTION</description>
+
+	<files>
+		<filename plugin="jcommentslock">jcommentslock.php</filename>
+	</files>
+
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_editors-xtd_jcommentslock.ini</language>
+		<language tag="en-GB">language/en-GB/plg_editors-xtd_jcommentslock.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_editors-xtd_jcommentslock.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_editors-xtd_jcommentslock.sys.ini</language>
+	</languages>
+</extension>

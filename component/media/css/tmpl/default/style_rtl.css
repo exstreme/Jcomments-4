@@ -3,18 +3,8 @@
 	text-align: right;
 }
 
-.comments-link, .readmore-link {
-	padding: 0 14px 5px 5px;
-	margin: 0 5px 5px 14px;
-	background-image: url(images/jc_blog_rtl.gif);
-}
-
 .comments-link {
 	background-position: right -27px;
-}
-
-.readmore-link {
-	background-position: right 3px;
 }
 
 /* Common styles */

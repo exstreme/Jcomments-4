@@ -21,7 +21,7 @@ preg_match('(\d+\.\d+)', $this->component['version'], $matches);
 <div class="main-card">
 	<div class="row">
 		<div class="col-lg-1">
-			<p style="margin: 1em;"><img src="<?php echo Uri::root(); ?>media/com_jcomments/images/icon-48-jcomments.png" alt="JComments"/></p>
+			<p style="margin: 1em;"><img src="<?php echo Uri::root(); ?>media/com_jcomments/images/icon-48-jcomments.jpg" alt="JComments"/></p>
 		</div>
 		<div class="col-lg-11">
 			<table class="table">

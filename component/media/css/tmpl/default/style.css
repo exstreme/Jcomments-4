@@ -5,18 +5,8 @@
 	text-align: left;
 }
 
-.comments-link, .readmore-link {
-	padding: 0 5px 5px 14px;
-	background-image: url(images/jc_blog.gif);
-	background-repeat: no-repeat;
-}
-
 .comments-link {
 	background-position: 0 -27px;
-}
-
-.readmore-link {
-	background-position: 0 2px;
 }
 
 /* JComments common styles */
@@ -34,7 +24,7 @@
 	padding: 0;
 	width: 16px;
 	height: 16px;
-	background: url(images/jc_busy.gif) no-repeat;
+	background: url(../../../images/tmpl/default/jc_busy.gif) no-repeat;
 }
 
 #jc p.message {
@@ -64,7 +54,7 @@
 }
 
 #comments a[rel*=external], #comments a[rel*=external]:active, #comments a[rel*=external]:hover, #comments a[rel*=external]:focus {
-	background: url(images/jc_link.gif) no-repeat center right;
+	background: url(../../../images/tmpl/default/jc_link.gif) no-repeat center right;
 	padding: 0 10px 0 0;
 	margin: 0 2px;
 	display: inline-block;
@@ -123,13 +113,10 @@
 }
 
 #comments blockquote {
+	border-left: 0.25em solid #849B9F;
 	color: #849B9F;
 	text-align: left;
 	padding: 8px;
-}
-
-#comments blockquote {
-	border-left: 0.25em solid #849B9F;
 }
 
 #comments .code {
@@ -220,7 +207,7 @@
 }
 
 #comments .comment.hide-children + .comments-list-child {
-    display: none;
+	display: none;
 }
 
 /* Comment form */
@@ -301,7 +288,7 @@ div.comments-policy {
 	border-top-width: 0;
 	min-width: 250px !important;
 	cursor: s-resize;
-	background: #eee url(images/jc_resize.gif) no-repeat right 2px;
+	background: #eee url(../../../images/tmpl/default/jc_resize.gif) no-repeat right 2px;
 }
 
 #comments-form .grippie .counter {
@@ -387,7 +374,7 @@ div.comments-policy {
 	display: block;
 	background-color: transparent !important;
 	background-repeat: no-repeat;
-	background-image: url(images/jc_bbcodes.gif);
+	background-image: url(../../../images/tmpl/default/jc_bbcodes.gif);
 	text-decoration: none;
 	border: none !important;
 }
