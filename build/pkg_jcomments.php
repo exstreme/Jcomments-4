@@ -34,7 +34,7 @@ use Joomla\Database\DatabaseDriver;
 class pkg_jcommentsInstallerScript
 {
 	/**
-	 * Component logo in data:image/png format
+	 * Component logo in data:image/jpg format
 	 *
 	 * @var    string
 	 * @since  4.0
@@ -266,6 +266,7 @@ class pkg_jcommentsInstallerScript
 				'AND',
 				array(
 					$db->quoteName('element') . ' = ' . $db->quote('jcomments'),
+					$db->quoteName('element') . ' = ' . $db->quote('jcommentslock'),
 					$db->quoteName('element') . ' = ' . $db->quote('jcommentson'),
 					$db->quoteName('element') . ' = ' . $db->quote('jcommentsoff')
 				),
@@ -304,9 +305,9 @@ class pkg_jcommentsInstallerScript
 	 */
 	private function getLogo()
 	{
-		$logo = file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-jcomments.png');
+		$logo = file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-jcomments.jpg');
 
-		$this->logo = 'data:image/png;base64,' . base64_encode($logo);
+		$this->logo = 'data:image/jpeg;base64,' . base64_encode($logo);
 	}
 
 	/**

@@ -12,12 +12,12 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Event\DispatcherInterface;
 use Joomla\Registry\Registry;
-use Joomla\Utilities\ArrayHelper;
 
 include_once JPATH_ROOT . '/components/com_jcomments/helpers/system.php';
 
@@ -76,22 +76,29 @@ class PlgSystemJComments extends CMSPlugin
 		}
 	}
 
+	/**
+	 * After Render Event.
+	 *
+	 * @return  void
+	 *
+	 * @since   2.5
+	 */
 	public function onAfterRender()
 	{
+		// Use this plugin only in site application.
+		if (!$this->app->isClient('site'))
+		{
+			return;
+		}
+
 		$buffer = $this->app->getBody();
 
-		if ($this->params->get('clear_rss', 0) == 1)
+		if ($this->params->get('clear_rss', 0) == 1
+			&& $this->app->input->get('option') == 'com_content'
+			&& $this->app->getDocument()->getType() === 'feed')
 		{
-			$option = $this->app->input->get('option');
-
-			if ($option == 'com_content')
-			{
-				if ($this->app->getDocument()->getType() === 'feed')
-				{
-					$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#is', '', $buffer);
-					$this->app->setBody($buffer);
-				}
-			}
+			$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#is', '', $buffer);
+			$this->app->setBody($buffer);
 		}
 
 		if ((defined('JCOMMENTS_CSS') || defined('JCOMMENTS_JS')) && !defined('JCOMMENTS_SHOW'))
@@ -125,8 +132,6 @@ class PlgSystemJComments extends CMSPlugin
 				}
 			}
 		}
-
-		return true;
 	}
 
 	public function onAfterRoute()
@@ -134,60 +139,45 @@ class PlgSystemJComments extends CMSPlugin
 		// Do not change to $app->getDocument() because it will cause an error.
 		$document = Factory::getDocument();
 
-		if ($document->getType() == 'html')
+		if ($document->getType() != 'html')
 		{
-			if ($this->app->isClient('administrator'))
+			return;
+		}
+
+		$option = $this->app->input->get('option');
+
+		if ($this->app->isClient('site') && ($option == 'com_content' || $option == 'com_multicategories'))
+		{
+			// Try to find CSS in ROOT/templates folder
+			$template = ComponentHelper::getParams('com_jcomments')->get('template');
+			$cssName = $this->app->getLanguage()->isRtl() ? 'style_rtl.css' : 'style.css';
+			$cssUrl  = Uri::root(true) . '/templates/' . $this->app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName;
+
+			// Try to find CSS in ROOT/media/component folder
+			if (!is_file(JPATH_SITE . '/templates/' . $this->app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName))
 			{
-				$this->app->getLanguage()->load('com_jcomments.sys', JPATH_ROOT . '/administrator', 'en-GB', true);
-
-				$option = $this->app->findOption();
-				$task = $this->app->input->get('task');
-
-				// TODO Do find a better solution in joomla 4.0
-				$type = 'content';
-
-				// Remove comments if content item deleted from trash
-				// TODO Adapt this code to Joomla 4. Use event.
-				if ($option == 'com_trash' && $task == 'delete' && $type == 'content')
-				{
-					$cid = $this->app->input->post->get('cid', array(), 'array');
-					ArrayHelper::toInteger($cid, array(0));
-					include_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
-					JCommentsModel::deleteComments($cid, 'com_content');
-				}
+				$cssUrl  = Uri::root(true) . '/media/com_jcomments/css/tmpl/' . $template . '/' . $cssName;
 			}
-			else
+
+			$document->addStyleSheet($cssUrl);
+
+			if (!defined('JCOMMENTS_CSS'))
 			{
-				$option = $this->app->input->get('option');
+				define('JCOMMENTS_CSS', 1);
+			}
 
-				if ($option == 'com_content' || $option == 'com_multicategories')
-				{
-					$document->addStyleSheet(Uri::root(true) . '/media/com_jcomments/css/style.css');
+			// Include JComments JavaScript library
+			$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js');
 
-					if ($this->app->getLanguage()->isRtl())
-					{
-						$document->addStyleSheet(Uri::root(true) . '/media/com_jcomments/css/style_rtl.css');
-					}
+			if (!defined('JOOMLATUNE_AJAX_JS'))
+			{
+				$document->addScript(Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4');
+				define('JOOMLATUNE_AJAX_JS', 1);
+			}
 
-					if (!defined('JCOMMENTS_CSS'))
-					{
-						define('JCOMMENTS_CSS', 1);
-					}
-
-					// Include JComments JavaScript library
-					$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js');
-
-					if (!defined('JOOMLATUNE_AJAX_JS'))
-					{
-						$document->addScript(Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4');
-						define('JOOMLATUNE_AJAX_JS', 1);
-					}
-
-					if (!defined('JCOMMENTS_JS'))
-					{
-						define('JCOMMENTS_JS', 1);
-					}
-				}
+			if (!defined('JCOMMENTS_JS'))
+			{
+				define('JCOMMENTS_JS', 1);
 			}
 		}
 	}

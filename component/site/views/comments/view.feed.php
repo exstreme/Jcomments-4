@@ -32,7 +32,7 @@ class JCommentsViewComments extends AbstractView
 	 *
 	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
 	 *
-	 * @return  false|void
+	 * @return  string|void
 	 *
 	 * @since  3.0
 	 */
@@ -90,7 +90,10 @@ class JCommentsViewComments extends AbstractView
 		if ($itemsType == 'rss')
 		{
 			$this->document->title          = JCommentsObject::getTitle($objectID, $objectGroup, $language);
-			$this->document->link           = Route::_(JCommentsObject::getLink($objectID, $objectGroup, $language));
+			$this->document->link           = Route::_(
+				htmlspecialchars(JCommentsObject::getLink($objectID, $objectGroup, $language), ENT_COMPAT),
+				false
+			);
 			$this->document->syndicationURL = $liveSite . Route::_(
 				'index.php?option=com_jcomments&task=rss&object_id=' . $objectID . '&object_group=' . $objectGroup . $lm . '&format=feed'
 			);
@@ -183,9 +186,9 @@ class JCommentsViewComments extends AbstractView
 
 				$item = new FeedItem;
 				$item->title       = $objectTitle;
-				$item->link        = $objectLink . '#comment-' . $row->id;
+				$item->link        = htmlspecialchars($objectLink, ENT_COMPAT) . '#comment-' . $row->id;
 				$item->description = $description;
-				$item->source      = $objectLink;
+				$item->source      = htmlspecialchars($objectLink, ENT_COMPAT);
 				$item->date        = $row->date;
 				$item->author      = $author;
 

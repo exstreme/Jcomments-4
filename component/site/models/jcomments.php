@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\Database\DatabaseDriver;
 
 /**
@@ -238,11 +239,19 @@ class JCommentsModel
 		$query = $db->getQuery(true)
 			->delete($db->quoteName('#__jcomments_objects'))
 			->where($db->quoteName('object_group') . ' = ' . $db->quote($objectGroup))
-			->where($db->quoteName('object_id') . ' = ' . (int) $objectGroup);
+			->where($db->quoteName('object_id') . ' IN (' . $objectIDs . ')');
 
-		$db->setQuery($query);
+		try
+		{
+			$db->setQuery($query);
+			$db->execute();
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
 
-		return $db->execute();
+			return false;
+		}
 	}
 
 	protected static function getCommentsCountQuery($options)
