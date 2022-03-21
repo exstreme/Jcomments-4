@@ -156,7 +156,7 @@ class PlgSystemJComments extends CMSPlugin
 			// Try to find CSS in ROOT/media/component folder
 			if (!is_file(JPATH_SITE . '/templates/' . $this->app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName))
 			{
-				$cssUrl  = Uri::root(true) . '/media/com_jcomments/css/tmpl/' . $template . '/' . $cssName;
+				$cssUrl  = Uri::root(true) . '/components/com_jcomments/tpl/' . $template . '/' . $cssName;
 			}
 
 			$document->addStyleSheet($cssUrl);
