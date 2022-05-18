@@ -18,6 +18,14 @@ use Joomla\CMS\Plugin\CMSPlugin;
 class PlgQuickiconJComments extends CMSPlugin
 {
 	/**
+	 * Load the language file on instantiation.
+	 *
+	 * @var    boolean
+	 * @since  4.0.0
+	 */
+	protected $autoloadLanguage = true;
+
+	/**
 	 * Application object.
 	 *
 	 * @var    \Joomla\CMS\Application\CMSApplication

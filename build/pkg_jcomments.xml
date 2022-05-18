@@ -2,9 +2,9 @@
 <extension type="package" method="upgrade">
 	<name>JComments package</name>
 	<author>JComments team</author>
-	<creationDate>March 2022</creationDate>
+	<creationDate>May 2022</creationDate>
 	<packagename>jcomments</packagename>
-	<version>4.0.18</version>
+	<version>4.0.19</version>
 	<url>https://github.com/exstreme/Jcomments-4</url>
 	<packager>JComments team</packager>
 	<packagerurl>https://github.com/exstreme/Jcomments-4</packagerurl>
