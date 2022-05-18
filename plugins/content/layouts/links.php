@@ -24,43 +24,51 @@ extract($displayData);
  * @var  string                    $link                Link for 'readmore'
  * @var  integer                   $commentsCount       Total number of comments
  * @var  boolean                   $commentsLinkHidden  Hide links on certain conditions
+ * @var  boolean                   $showReadmore        Show/Hide readmore if article have a system-readmore.
  */
 
 $input = Factory::getApplication()->input;
 ?>
-<div class="comments-readmore">
-	<?php echo LayoutHelper::render(
-		'joomla.content.readmore',
-		array(
-			'item'   => $item,
-			'params' => $item->params,
-			'link'   => $link
-		)
-	);
+<div class="comments-readmore container-fluid">
+	<div class="row">
+	<?php if ($showReadmore): ?>
+		<div class="col-md-auto">
+			<?php echo LayoutHelper::render(
+				'joomla.content.readmore',
+				array(
+					'item'   => $item,
+					'params' => $item->params,
+					'link'   => $link
+				)
+			); ?>
+		</div>
+	<?php endif;
 
-if ($commentsLinkHidden == false):
-?>
-	<div class="btn-group" role="group" aria-label="Comments link">
-		<?php if ($params->get('link_read_comments') && ($params->get('show_frontpage') || $input->getString('view') != 'featured')): ?>
-			<?php if ($commentsCount > 0): ?>
-				<a href="<?php echo $link; ?>#comments" class="btn btn-secondary">
-					<?php echo Text::plural('LINK_READ_COMMENTS', $commentsCount); ?>
-				</a>
-			<?php endif; ?>
-		<?php endif; ?>
+	if ($commentsLinkHidden == false): ?>
+		<div class="col-md-auto">
+			<div class="btn-group" role="group" aria-label="Comments link">
+				<?php if ($params->get('link_read_comments') && ($params->get('show_frontpage') || $input->getWord('view') != 'featured')): ?>
+					<?php if ($commentsCount > 0): ?>
+						<a href="<?php echo $link; ?>#comments" class="btn btn-secondary">
+							<?php echo Text::plural('LINK_READ_COMMENTS', $commentsCount); ?>
+						</a>
+					<?php endif; ?>
+				<?php endif; ?>
 
-		<?php if ($params->get('link_add_comment') && ($params->get('show_frontpage') || $input->getString('view') != 'featured')): ?>
-			<?php if ($commentsCount == 0): ?>
-				<a href="<?php echo $link; ?>#addcomments" class="btn btn-secondary">
-					<span class="icon-plus" aria-hidden="true"></span> <?php echo Text::_('LINK_ADD_COMMENT'); ?>
-				</a>
-			<?php else: ?>
-				<a href="<?php echo $link; ?>#addcomments" class="btn btn-secondary"
-				   title="<?php echo Text::_('LINK_ADD_COMMENT'); ?>">
-					<span class="icon-plus" aria-hidden="true"></span>
-				</a>
-			<?php endif; ?>
-		<?php endif; ?>
+				<?php if ($params->get('link_add_comment') && ($params->get('show_frontpage') || $input->getWord('view') != 'featured')): ?>
+					<?php if ($commentsCount == 0): ?>
+						<a href="<?php echo $link; ?>#addcomments" class="btn btn-secondary">
+							<span class="icon-plus" aria-hidden="true"></span> <?php echo Text::_('LINK_ADD_COMMENT'); ?>
+						</a>
+					<?php else: ?>
+						<a href="<?php echo $link; ?>#addcomments" class="btn btn-secondary"
+						   title="<?php echo Text::_('LINK_ADD_COMMENT'); ?>">
+							<span class="icon-plus" aria-hidden="true"></span>
+						</a>
+					<?php endif; ?>
+				<?php endif; ?>
+			</div>
+		</div>
+	<?php endif; ?>
 	</div>
-<?php endif; ?>
 </div>
