@@ -15,9 +15,9 @@
 		</tags>
 		<maintainer>exstreme and Globulopolis</maintainer>
 		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
-		<sha256>dbd6835ff5510c9cb78b7675746455d1c788f0766d654f6192bfe48e0bf35e9a</sha256>
-		<sha384>92c91fac471826dfd5f4a3d7782e8c490121529ad694a3ffbca3bbaeb09e0640ecace1a592151ca8b31765afd95675f3</sha384>
-		<sha512>f2d8769a7c9b095f97f489b5860946cc58d75f7a7428cbc735c18a288b9477d0d2b473a2722da84f3f2caace450fc3635d4853f6b98faa1c7e222071636e0319</sha512>
+		<sha256>e6eaab12e2a8ed580149eedc967beb73519621c895ee9103da6be590420fea93</sha256>
+		<sha384>9f8364910543c44b7411a9e1f76a0e1a1fe3b889e76bf73b49fd148cfed3dc0a3d6413aafc70b005a348805dafec82ad</sha384>
+		<sha512>df36d04eef1a186c90af9de98579758d3f1ca9d7cf0df86e2c2aad9c16f4c111b7e7ea22cd89419bf0a4d3bcf58e7db2f0a6fa633a3c2c5808410c350e7ad5bd</sha512>
 		<targetplatform name="joomla" version="4.[0123456789]|10"/>
 	</update>				
 </updates>
