@@ -461,7 +461,7 @@ class JComments
 
 			$policy = JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_policy_post', $lang->getTag());
 
-			if (($policy != '') && ($user->authorise('show_policy', 'com_jcomments')))
+			if ($policy != '' && $acl->showPolicy())
 			{
 				$policy = stripslashes($policy);
 
