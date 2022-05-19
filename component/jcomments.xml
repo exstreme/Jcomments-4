@@ -5,7 +5,7 @@
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.18</version>
+	<version>4.0.19</version>
 	<description>JComments lets your users comment on content items.</description>
 	<namespace path="src">Joomla\Component\Jcomments</namespace>
 
@@ -31,8 +31,8 @@
 		<filename>jcomments.class.php</filename>
 
 		<folder>classes</folder>
+		<folder>controllers</folder>
 		<folder>helpers</folder>
-		<folder>language</folder>
 		<folder>layouts</folder>
 		<folder>libraries</folder>
 		<folder>models</folder>
@@ -69,6 +69,11 @@
 		</submenu>
 
 		<files folder="administrator">
+			<filename>controller.php</filename>
+			<filename>jcomments.php</filename>
+			<filename>access.xml</filename>
+			<filename>config.xml</filename>
+
 			<folder>controllers</folder>
 			<folder>classes</folder>
 			<folder>helpers</folder>
@@ -76,10 +81,6 @@
 			<folder>models</folder>
 			<folder>tables</folder>
 			<folder>views</folder>
-			<filename>controller.php</filename>
-			<filename>jcomments.php</filename>
-			<filename>access.xml</filename>
-			<filename>config.xml</filename>
 		</files>
 
 		<languages folder="administrator">

@@ -167,6 +167,15 @@ class PlgContentJcomments extends CMSPlugin
 				$layoutData['commentsLinkHidden'] = true;
 			}
 
+			$layoutData['showReadmore'] = false;
+
+			if ($params->get('show_readmore') && $article->readmore)
+			{
+				// Disable joomla 'readmore' and show 'readmore' layout from this plugin
+				$params->set('show_readmore', false);
+				$layoutData['showReadmore'] = true;
+			}
+
 			// Links position
 			if ($this->params->get('links_position') == 'after')
 			{
