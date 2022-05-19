@@ -13,6 +13,13 @@ defined('_JEXEC') or die;
 Changelog
 ------------
 
+4.0.20
+# fixed bug with showing policy rules
+
+4.0.19
+# Updated languages for backend module.
++ New backend module version.
+
 4.0.16
 # fixed avatar
 # fixed languages consts for checkbox Accept terms of use
