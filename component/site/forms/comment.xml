@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset addfieldprefix="Joomla\\Plugin\\System\\PrivacyConsent\\Field">
+		<field
+				name="id"
+				type="hidden"
+				label="COM_CONTENT_ID_LABEL"
+				size="10"
+				default="0"
+				readonly="true"
+		/>
+
+		<field
+				name="name"
+				type="text"
+				label="FORM_NAME"
+				size="30"
+				filter="string"
+				labelclass="col-sm-2 col-form-label"
+		/>
+
+		<field
+				name="email"
+				type="email"
+				label="JGLOBAL_EMAIL"
+				size="30"
+				filter="string"
+				validate="email"
+				validDomains="com_users.domains"
+		/>
+
+		<field
+				name="homepage"
+				type="url"
+				label="FORM_HOMEPAGE"
+				size="30"
+				filter="url"
+				validate="url"
+		/>
+
+		<field
+				name="title"
+				type="text"
+				label="FORM_TITLE"
+				size="30"
+				filter="string"
+		/>
+
+		<!--<field
+				name="comment"
+				type="editor"
+				label="COM_CONTENT_FIELD_ARTICLETEXT_LABEL"
+				hiddenLabel="true"
+				buttons="false"
+				filter="JComponentHelper::filterText"
+		/>-->
+
+		<field
+				name="comment"
+				type="textarea"
+				label="COM_CONTENT_FIELD_ARTICLETEXT_LABEL"
+				hiddenLabel="true"
+				rows="10"
+				filter="JComponentHelper::filterText"
+		/>
+
+		<field
+				name="subscribe"
+				type="checkbox"
+				default="0"
+				label="BUTTON_SUBSCRIBE"
+				filter="integer"
+		/>
+
+		<field
+				name="terms_of_use"
+				type="checkbox"
+				default="1"
+				label="FORM_TOS"
+				filter="integer"
+				required="true"
+		/>
+
+		<field
+				name="captcha"
+				type="captcha"
+				label="FORM_CAPTCHA"
+				description="FORM_CAPTCHA_DESC"
+				validate="captcha"
+		/>
+	</fieldset>
+</form>

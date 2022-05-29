@@ -19,8 +19,6 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Event\DispatcherInterface;
 use Joomla\Registry\Registry;
 
-include_once JPATH_ROOT . '/components/com_jcomments/helpers/system.php';
-
 /**
  * System plugin for attaching JComments CSS & JavaScript to HEAD tag
  *
@@ -50,6 +48,12 @@ class PlgSystemJComments extends CMSPlugin
 	public function __construct(&$subject, $config)
 	{
 		parent::__construct($subject, $config);
+
+		// Use this plugin only in site application.
+		if (!$this->app->isClient('site'))
+		{
+			return;
+		}
 
 		if (!isset($this->params))
 		{

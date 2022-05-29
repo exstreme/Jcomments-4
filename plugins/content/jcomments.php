@@ -12,14 +12,17 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Access\Access;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
 use Joomla\CMS\Layout\FileLayout;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Event\DispatcherInterface;
 use Joomla\Registry\Registry;
 
 /**
@@ -29,6 +32,40 @@ use Joomla\Registry\Registry;
  */
 class PlgContentJcomments extends CMSPlugin
 {
+	/**
+	 * @var    \Joomla\CMS\Application\SiteApplication
+	 *
+	 * @since  3.9.0
+	 */
+	protected $app;
+
+	/**
+	 * Load the plugin language file on instantiation.
+	 *
+	 * @var    boolean
+	 *
+	 * @since  3.9.0
+	 */
+	protected $autoloadLanguage = true;
+
+	/**
+	 * Constructor
+	 *
+	 * @param   DispatcherInterface  $subject  The object to observe
+	 * @param   array                $config   An optional associative array of configuration settings.
+	 *                                         Recognized key values include 'name', 'group', 'params', 'language'
+	 *                                         (this list is not meant to be comprehensive).
+	 *
+	 * @since   1.5
+	 */
+	public function __construct(&$subject, $config = array())
+	{
+		parent::__construct($subject, $config);
+
+		// Load component language file
+		$this->app->getLanguage()->load('com_jcomments');
+	}
+
 	/**
 	 * Prepare 'readmore' data before display layout
 	 *
@@ -42,12 +79,10 @@ class PlgContentJcomments extends CMSPlugin
 	 */
 	private function prepareContent(&$article, &$params): void
 	{
-		require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
-
 		// Check whether plugin has been unpublished
 		if (!PluginHelper::isEnabled('content', 'jcomments'))
 		{
-			JCommentsContent::clear($article);
+			JcommentsContentHelper::clear($article);
 
 			return;
 		}
@@ -70,38 +105,35 @@ class PlgContentJcomments extends CMSPlugin
 			return;
 		}
 
-		require_once JPATH_ROOT . '/components/com_jcomments/jcomments.class.php';
-
-		JCommentsContent::processForeignTags($article);
+		JcommentsContentHelper::processForeignTags($article);
 
 		$config           = ComponentHelper::getParams('com_jcomments');
-		$categoryEnabled  = JCommentsContent::checkCategory($article->catid);
-		$commentsEnabled  = JCommentsContent::isEnabled($article) || $categoryEnabled;
-		$commentsDisabled = JCommentsContent::isDisabled($article) || !$commentsEnabled;
-		$commentsLocked   = JCommentsContent::isLocked($article);
+		$categoryEnabled  = JcommentsContentHelper::checkCategory($article->catid);
+		$commentsEnabled  = JcommentsContentHelper::isEnabled($article) || $categoryEnabled;
+		$commentsDisabled = JcommentsContentHelper::isDisabled($article) || !$commentsEnabled;
+		$commentsLocked   = JcommentsContentHelper::isLocked($article);
 		$archivesState    = 2;
 
 		if (isset($article->state) && $article->state == $archivesState && $this->params->get('enable_for_archived') == 0)
 		{
 			$commentsLocked = true;
+			JcommentsFactory::getAcl()->setCommentsLocked($commentsLocked);
 		}
 
-		$config->set('comments_on', (int) $commentsEnabled);
-		$config->set('comments_off', (int) $commentsDisabled);
-		$config->set('comments_locked', (int) $commentsLocked);
+		$config->set('comments_on', $commentsEnabled);
+		$config->set('comments_off', $commentsDisabled);
+		$config->set('comments_locked', $commentsLocked);
 
+		// Render 'Readmore' layout
 		if ($view != 'article')
 		{
 			$layoutData = array();
 			$layoutData['params'] = &$this->params;
 
-			$user        = $app->getIdentity();
-			$authorised  = Access::getAuthorisedViewLevels($user->get('id'));
-			$checkAccess = in_array($article->access, $authorised);
-			$slug        = $article->slug ?? $article->id;
-			$language    = $article->language ?? '*';
+			$slug     = $article->slug ?? $article->id;
+			$language = $article->language ?? '*';
 
-			if ($checkAccess)
+			if ($params->get('access-view'))
 			{
 				$readmoreLink = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
 			}
@@ -120,11 +152,11 @@ class PlgContentJcomments extends CMSPlugin
 
 			$commentsDisabled = false;
 
-			if ((int) $config->get('comments_off') == 1)
+			if ($config->get('comments_off'))
 			{
 				$commentsDisabled = true;
 			}
-			elseif ((int) $config->get('comments_on') == 1)
+			elseif ($config->get('comments_on'))
 			{
 				$commentsDisabled = false;
 			}
@@ -136,17 +168,19 @@ class PlgContentJcomments extends CMSPlugin
 			// Do not query comments count if comments disabled and link hidden
 			if (!$commentsDisabled)
 			{
-				require_once JPATH_ROOT . '/components/com_jcomments/models/jcomments.php';
-
 				if ($this->params->get('link_read_comments') != 0)
 				{
-					$acl   = JCommentsFactory::getACL();
-					$count = JCommentsModel::getCommentsCount(
+					$acl = JcommentsFactory::getACL();
+
+					/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
+					$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()->createModel('Comments', 'Site');
+					$count = $model->getCommentsCount(
 						array(
 							'object_id'    => (int) $article->id,
 							'object_group' => 'com_content',
 							'published'    => $acl->canPublish() || $acl->canPublishForObject($article->id, 'com_content')
-								? null : 1
+								? null : 1, // TODO Set to 1 when object::save() will be implemented in object model.
+							'lang' => $language
 						)
 					);
 
@@ -154,8 +188,8 @@ class PlgContentJcomments extends CMSPlugin
 				}
 			}
 
-			JCommentsContent::clear($article);
-			$layoutData['item'] = &$article;
+			JcommentsContentHelper::clear($article);
+			$layoutData['item'] = $article;
 			$layoutData['link'] = $readmoreLink;
 
 			// Hide comments link if comments enabled but link disabled in plugin params
@@ -179,43 +213,59 @@ class PlgContentJcomments extends CMSPlugin
 			// Links position
 			if ($this->params->get('links_position') == 'after')
 			{
-				$article->text .= $this->getRenderer('links')->render($layoutData);
+				$article->introtext = $article->text . $this->getRenderer('links')->render($layoutData);
 			}
 			else
 			{
-				$article->text = $this->getRenderer('links')->render($layoutData) . $article->text;
+				$article->introtext = $this->getRenderer('links')->render($layoutData) . $article->text;
 			}
 		}
+		// Display comments
 		else
 		{
-			if ($this->params->get('show_comments_event') == 'prepareContent')
+			if ($this->params->get('show_comments_event') == 'onContentBeforeDisplay')
 			{
-				$isEnabled = ((int) $config->get('comments_on', 0) == 1) && ((int) $config->get('comments_off', 0) == 0);
+				$isEnabled = ($config->get('comments_on', false)) && ($config->get('comments_off', false) == false);
 
 				if ($isEnabled)
 				{
-					require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+					$basePath = JPATH_ROOT . '/components/com_jcomments';
+					$view = $this->getView(
+						'Comments',
+						'Site',
+						'Html',
+						// View config
+						array('base_path' => $basePath, 'template_path' => $basePath . '/tmpl/comments/'),
+						true,
+						// Model config
+						array('name' => 'Comments', 'prefix' => 'Site', 'base_path' => $basePath)
+					);
 
-					$comments = JComments::show($article->id, 'com_content', $article->title);
+					ob_start();
+
+					//$view->display(null, array('id' => $article->id, 'object' => 'com_content', 'title' => $article->title));
+					$view->display();
+					$output = ob_get_contents();
+
+					ob_end_clean();
 
 					if (strpos($article->text, '{jcomments}') !== false)
 					{
-						$article->text = str_replace('{jcomments}', $comments, $article->text);
+						$article->text = str_replace('{jcomments}', '', $article->text) . $output;
 					}
 					else
 					{
-						$article->text .= $comments;
+						$article->text .= $output;
 					}
 				}
 			}
 
-			JCommentsContent::clear($article);
+			JcommentsContentHelper::clear($article);
 		}
-
 	}
 
 	/**
-	 * Show 'readmore' layout before the article introtext
+	 * Show 'Readmore' layout before or after article introtext in featured view, display comment form otherwise.
 	 *
 	 * @param   string  $context  The context of the content being passed to the plugin
 	 * @param   object  $article  The article object
@@ -239,38 +289,25 @@ class PlgContentJcomments extends CMSPlugin
 				return;
 			}
 
-			$originalText  = $article->text ?? '';
-			$article->text = '';
 			$this->prepareContent($article, $params);
 
 			if (isset($article->text))
 			{
-				if (($view == 'article') && strpos($originalText, '{jcomments}') !== false)
-				{
-					$originalText = str_replace('{jcomments}', $article->text, $originalText);
-				}
-				else
-				{
-					$article->introtext = str_replace('{jcomments}', '', $article->introtext);
+				$article->text = str_replace('{jcomments}', '', $article->text);
+				$article->introtext = str_replace('{jcomments}', '', $article->introtext);
 
-					if ($this->params->get('links_position', 'after') == 'after')
-					{
-						$article->introtext = $article->introtext . $article->text;
-					}
-					else
-					{
-						$article->introtext = $article->text . $article->introtext;
-					}
+				if (($view === 'article') && strpos($article->text, '{jcomments}') !== false)
+				{
+					$article->text = str_replace('{jcomments}', $article->text, $article->text);
 				}
 			}
 
-			$article->text = $originalText;
-			JCommentsContent::clear($article);
+			JcommentsContentHelper::clear($article);
 		}
 	}
 
 	/**
-	 * Show comments when onContentAfterDisplay trigger
+	 * Display comment form
 	 *
 	 * @param   string  $context  The context of the content being passed to the plugin
 	 * @param   object  $article  The article object
@@ -278,6 +315,7 @@ class PlgContentJcomments extends CMSPlugin
 	 *
 	 * @return  string
 	 *
+	 * @throws  \Exception
 	 * @since   1.6
 	 */
 	public function onContentAfterDisplay(string $context, &$article, &$params): string
@@ -289,8 +327,6 @@ class PlgContentJcomments extends CMSPlugin
 			{
 				return '';
 			}
-
-			require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
 
 			$app  = Factory::getApplication();
 			$view = $app->input->get('view');
@@ -304,21 +340,39 @@ class PlgContentJcomments extends CMSPlugin
 				|| $app->input->get('print')
 			)
 			{
-				JCommentsContent::clear($article);
+				JcommentsContentHelper::clear($article);
 
 				return '';
 			}
 
-			require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
-
 			$config    = ComponentHelper::getParams('com_jcomments');
-			$isEnabled = ((int) $config->get('comments_on', 0) == 1) && ((int) $config->get('comments_off', 0) == 0);
+			$isEnabled = ($config->get('comments_on', false)) && ($config->get('comments_off', false) == false);
 
-			if ($isEnabled && $view == 'article')
+			if ($isEnabled && $view === 'article' && $this->params->get('show_comments_event') == 'onContentAfterDisplay')
 			{
-				JCommentsContent::clear($article);
+				JcommentsContentHelper::clear($article);
 
-				return JComments::show($article->id, 'com_content', $article->title);
+				$basePath = JPATH_ROOT . '/components/com_jcomments';
+				$view = $this->getView(
+					'Comments',
+					'Site',
+					'Html',
+					// View config
+					array('base_path' => $basePath, 'template_path' => $basePath . '/tmpl/comments/'),
+					true,
+					// Model config
+					array('name' => 'Comments', 'prefix' => 'Site', 'base_path' => $basePath)
+				);
+
+				ob_start();
+
+				//$view->display(null, array('id' => $article->id, 'object' => 'com_content', 'title' => $article->title));
+				$view->display();
+				$output = ob_get_contents();
+
+				ob_end_clean();
+
+				return $output;
 			}
 		}
 
@@ -326,8 +380,7 @@ class PlgContentJcomments extends CMSPlugin
 	}
 
 	/**
-	 * After delete content logging method
-	 * This method adds a record to #__action_logs contains (message, date, context, user)
+	 * After delete content method
 	 * Method is called right after the content is deleted
 	 *
 	 * @param   string  $context  The context of the content passed to the plugin
@@ -341,13 +394,23 @@ class PlgContentJcomments extends CMSPlugin
 	{
 		if ($context == 'com_content.article')
 		{
-			require_once JPATH_ROOT . '/components/com_jcomments/models/jcomments.php';
-			require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
+			$factory = $this->app->bootComponent('com_jcomments')->getMVCFactory();
+
+			/*require_once JPATH_ROOT . '/components/com_jcomments/_models/jcomments.php';
+			require_once JPATH_ROOT . '/components/com_jcomments/_models/subscriptions.php';
 
 			JCommentsModel::deleteComments($article->id);
 
 			$model = new JcommentsModelSubscriptions;
-			$model->unsubscribe($article->id, 'com_content');
+			$model->unsubscribe($article->id, 'com_content');*/
+
+			/** @var Joomla\Component\Jcomments\Site\Model\CommentModel $model */
+			/*$comment = $factory->createModel('Comment', 'Site', array('ignore_request' => true));
+			$comment->delete($article->id);*/
+
+			/** @var Joomla\Component\Jcomments\Site\Model\SubscriptionModel $model */
+			/*$subscription = $factory->createModel('Subscription', 'Site', array('ignore_request' => true));
+			$subscription->unsubscribe($article->id, 'com_content');*/
 		}
 	}
 
@@ -368,13 +431,17 @@ class PlgContentJcomments extends CMSPlugin
 	{
 		if (($context == 'com_content.article' || $context == 'com_content.form') && !$isNew)
 		{
-			require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
-
-			if (JCommentsContent::checkCategory($article->catid))
+			if (JcommentsContentHelper::checkCategory($article->catid))
 			{
-				require_once JPATH_ROOT . '/components/com_jcomments/helpers/object.php';
+				//require_once JPATH_ROOT . '/components/com_jcomments/helpers/object.php';
 
-				JCommentsObject::storeObjectInfo($article->id);
+				//JcommentsObject::storeObjectInfo($article->id);
+
+				/** @var Joomla\Component\Jcomments\Site\Model\ObjectModel $model */
+				/*$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
+					->createModel('Object', 'Site', array('ignore_request' => true));
+
+				$model->save($article->id);*/
 			}
 		}
 	}
@@ -446,5 +513,61 @@ class PlgContentJcomments extends CMSPlugin
 	public function debug(string $layoutId, array $data = []): string
 	{
 		return $this->getRenderer($layoutId)->debug($data);
+	}
+
+	/**
+	 * Method to load and return a view object.
+	 *
+	 * @param   string   $name         The name of the view.
+	 * @param   string   $prefix       Optional view prefix.
+	 * @param   string   $type         Optional type of view.
+	 * @param   array    $config       Optional configuration array for the view.
+	 * @param   boolean  $setModel     Load and set model for view.
+	 * @param   array    $modelConfig  Model condifguration.
+	 *
+	 * @return  \Joomla\CMS\MVC\View\ViewInterface  The view object
+	 *
+	 * @throws  \Exception
+	 * @since   3.10.0
+	 */
+	private function getView(string $name, string $prefix = '', string $type = 'Html', array $config = [],
+		bool $setModel = false, array $modelConfig = []
+	)
+	{
+		if (!isset($config['layout']))
+		{
+			$config['layout'] = $this->app->input->get('layout', 'default', 'string');
+		}
+
+		/** @var Joomla\CMS\MVC\Factory\MVCFactory $factory */
+		$factory = $this->app->bootComponent('com_jcomments')->getMVCFactory();
+
+		/** @var Joomla\Component\Jcomments\Site\View\Comments\HtmlView $view */
+		$view = $factory->createView($name, $prefix, $type, $config);
+
+		if ($setModel)
+		{
+			if (!isset($modelConfig['name']))
+			{
+				$modelConfig['name'] = $name;
+			}
+
+			if (!isset($modelConfig['prefix']))
+			{
+				$modelConfig['prefix'] = '';
+			}
+
+			if (!isset($modelConfig['options']))
+			{
+				$modelConfig['options'] = array();
+			}
+
+			Form::addFormPath($modelConfig['base_path'] . '/forms');
+
+			$model = $factory->createModel($modelConfig['name'], $modelConfig['prefix'], $modelConfig['options']);
+			$view->setModel($model, true);
+		}
+
+		return $view;
 	}
 }

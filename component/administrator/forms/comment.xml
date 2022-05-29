@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset name="details" addfieldprefix="Joomla\Component\Jcomments\Administrator\Field">
+		<field
+				name="id"
+				type="text"
+				default="0"
+				readonly="true"
+				class="readonly"
+				label="JGLOBAL_FIELD_ID_LABEL"
+				description="JGLOBAL_FIELD_ID_DESC"
+		/>
+
+		<field
+				name="object_id"
+				type="text"
+				class="validate-numeric"
+				size="40"
+				filter="integer"
+				label="A_SUBSCRIPTION_OBJECT_ID"
+				required="true"
+		/>
+
+		<field
+				name="object_group"
+				type="objectgroup"
+				label="A_COMPONENT"
+				required="true"
+				filter="string"
+				layout="joomla.form.field.list-fancy-select"
+		/>
+
+		<field
+				name="title"
+				type="text"
+				size="40"
+				label="A_COMMENT_TITLE"
+				filter="string"
+		/>
+
+		<field
+				name="comment"
+				type="textarea"
+				rows="15"
+				cols="50"
+				filter="raw"
+				label="A_COMMENT_TEXT"
+				required="true"
+		/>
+
+		<field
+				name="date"
+				type="calendar"
+				readonly="true"
+				translateformat="true"
+				size="22"
+				showtime="true"
+				label="A_COMMENT_DATE"
+				filter="user_utc"
+		/>
+
+		<field
+				name="userid"
+				type="user"
+				label="A_COMMENT_NAME"
+				validate="UserId"
+		/>
+
+		<field
+				name="lang"
+				type="contentlanguage"
+				label="JFIELD_LANGUAGE_LABEL"
+				description="A_COMMENT_FIELD_LANGUAGE_DESC"
+		>
+			<option value="*">JALL</option>
+		</field>
+
+		<field
+				name="name"
+				type="text"
+				size="40"
+				label="A_COMMENT_NAME"
+		/>
+
+		<field
+				name="email"
+				type="email"
+				size="40"
+				label="A_COMMENT_EMAIL"
+				validate="email"
+		/>
+
+		<field
+				name="homepage"
+				type="url"
+				size="40"
+				label="A_COMMENT_HOMEPAGE"
+				validate="url"
+				required="false"
+		/>
+
+		<field
+				name="published"
+				type="list"
+				label="JSTATUS"
+				default="0"
+				class="form-select-color-state"
+				size="1"
+				validate="options"
+		>
+			<option value="1">JPUBLISHED</option>
+			<option value="0">JUNPUBLISHED</option>
+		</field>
+
+		<field
+				name="deleted"
+				type="radio"
+				layout="joomla.form.field.radio.switcher"
+				label="A_COMMENT_FIELD_DELETED_LABEL"
+				description="A_COMMENTS_HAS_BEEN_MARKED_AS_DELETED"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<!-- Used in view to internal access checking -->
+		<field
+				name="checked_out"
+				type="hidden"
+				filter="unset"/>
+
+		<field
+				name="checked_out_time"
+				type="hidden"
+				filter="unset"/>
+	</fieldset>
+</form>

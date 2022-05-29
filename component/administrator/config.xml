@@ -1,252 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<fieldset name="categories" label="A_CATEGORIES">
-		<field
-				name="enable_categories"
-				type="category"
-				extension="com_content"
-				default="*"
-				multiple="multiple"
-				label="A_CATEGORIES"
-				description="AP_CATEGORIES_DESC"
-		>
-			<option value="*">JOPTION_ALL_CATEGORIES</option>
-		</field>
-	</fieldset>
+	<fieldset name="main" label="COM_CONFIG">
+		<fieldset name="categories" label="A_CATEGORIES">
+			<field
+					name="enable_categories"
+					type="category"
+					extension="com_content"
+					default="*"
+					multiple="multiple"
+					label="A_CATEGORIES"
+					description="AP_CATEGORIES_DESC"
+			>
+				<option value="*">JOPTION_ALL_CATEGORIES</option>
+			</field>
+		</fieldset>
 
-	<fieldset name="notifications" label="A_NOTIFICATIONS">
-		<field
-				name="enable_notification"
-				type="radio"
-				class="btn-group radio"
-				default="0"
-				label="AP_ENABLE_NOTIFICATION"
-				description="AP_ENABLE_NOTIFICATION_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+		<fieldset name="view" label="A_VIEW">
+			<field
+					name="template"
+					type="folderlist"
+					directory="components/com_jcomments/tpl"
+					default="default"
+					hide_none="true"
+					hide_default="true"
+					label="AP_TEMPLATE"
+					description="AP_TEMPLATE_DESC"
+			/>
 
-		<field
-				name="notification_type"
-				type="list"
-				default="1,2"
-				multiple="multiple"
-				label="AP_NOTIFICATION_TYPES"
-				showon="enable_notification:1"
-		>
-			<option value="1">AP_NOTIFICATION_TYPES_NOTIFICATIONS</option>
-			<option value="2">AP_NOTIFICATION_TYPES_REPORTS</option>
-		</field>
+			<field
+					name="enable_smilies"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_ENABLE_SMILES"
+					description="AP_ENABLE_SMILES_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="notification_email"
-				type="text"
-				default=""
-				label="AP_ENABLE_NOTIFICATION_EMAIL"
-				description="AP_ENABLE_NOTIFICATION_EMAIL_DESC"
-				showon="enable_notification:1"
-		/>
+			<field
+					name="enable_custom_bbcode"
+					type="radio"
+					class="btn-group"
+					default="0"
+					label="AP_ENABLE_CUSTOM_BBCODE"
+					description="AP_ENABLE_CUSTOM_BBCODE_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="enable_quick_moderation"
-				type="radio"
-				class="btn-group"
-				default="0"
-				label="AP_ENABLE_QUICK_MODERATION"
-				description="AP_ENABLE_QUICK_MODERATION_DESC"
-				filter="integer"
-				showon="enable_notification:1"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-	</fieldset>
+			<field
+					name="enable_voting"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_ENABLE_VOTING"
+					description="AP_ENABLE_VOTING_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-	<fieldset name="reports" label="A_REPORTS">
-		<field
-				name="enable_reports"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_ENABLE_REPORTS"
-				description="AP_ENABLE_REPORTS_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+			<field
+					name="display_author"
+					type="list"
+					default="name"
+					label="AP_DISPLAY_AUTHOR"
+					description="AP_DISPLAY_AUTHOR_DESC"
+			>
+				<option value="name">AP_DISPLAY_AUTHOR_NAME</option>
+				<option value="username">AP_DISPLAY_AUTHOR_USERNAME</option>
+			</field>
 
-		<field
-				name="reports_per_comment"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_MAX_REPORTS_PER_COMMENT"
-				description="AP_MAX_REPORTS_PER_COMMENT_DESC"
-				showon="enable_reports:1"
-		/>
+			<field
+					name="display_title"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_DISPLAY_TITLE"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+		</fieldset>
 
-		<field
-				name="reports_before_unpublish"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_REPORTS_BEFORE_UNPUBLISH"
-				description="AP_REPORTS_BEFORE_UNPUBLISH_DESC"
-				showon="enable_reports:1"
-		/>
+		<fieldset name="misc" label="A_MISC">
+			<field
+					name="enable_rss"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_ENABLE_RSS"
+					description="AP_ENABLE_RSS_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="report_reason_required"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_REPORT_REASON_REQUIRED"
-				description="AP_REPORT_REASON_REQUIRED_DESC"
-				filter="integer"
-				showon="enable_reports:1"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-	</fieldset>
+			<field
+					name="feed_limit"
+					type="text"
+					default="100"
+					filter="integer"
+					label="AP_FEED_LIMIT"
+					description="AP_FEED_LIMIT_DESC"
+			/>
 
-	<fieldset name="misc" label="A_MISC">
-		<field
-				name="enable_rss"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_ENABLE_RSS"
-				description="AP_ENABLE_RSS_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+			<field
+					name="enable_plugins"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_USE_PLUGINS"
+					description="AP_USE_PLUGINS_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="feed_limit"
-				type="text"
-				default="100"
-				filter="integer"
-				label="AP_FEED_LIMIT"
-				description="AP_FEED_LIMIT_DESC"
-		/>
+			<field
+					name="load_cached_comments"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE"
+					description="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="enable_plugins"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_USE_PLUGINS"
-				description="AP_USE_PLUGINS_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="load_cached_comments"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE"
-				description="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="delete_mode"
-				type="list"
-				default="0"
-				label="AP_DELETE_MODE"
-				filter="integer"
-		>
-			<option value="0">AP_DELETE_MODE_DELETE</option>
-			<option value="1">AP_DELETE_MODE_MARK</option>
-		</field>
-	</fieldset>
-
-	<fieldset name="view" label="A_VIEW">
-		<field
-				name="template"
-				type="folderlist"
-				directory="components/com_jcomments/tpl"
-				default="default"
-				hide_none="true"
-				hide_default="true"
-				label="AP_TEMPLATE"
-				description="AP_TEMPLATE_DESC"
-		/>
-
-		<field
-				name="enable_smilies"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_ENABLE_SMILES"
-				description="AP_ENABLE_SMILES_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="enable_custom_bbcode"
-				type="radio"
-				class="btn-group"
-				default="0"
-				label="AP_ENABLE_CUSTOM_BBCODE"
-				description="AP_ENABLE_CUSTOM_BBCODE_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="enable_voting"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_ENABLE_VOTING"
-				description="AP_ENABLE_VOTING_DESC"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="display_author"
-				type="list"
-				default="name"
-				label="AP_DISPLAY_AUTHOR"
-				description="AP_DISPLAY_AUTHOR_DESC"
-		>
-			<option value="name">AP_DISPLAY_AUTHOR_NAME</option>
-			<option value="username">AP_DISPLAY_AUTHOR_USERNAME</option>
-		</field>
-
-		<field
-				name="display_title"
-				type="radio"
-				class="btn-group"
-				default="1"
-				label="AP_DISPLAY_TITLE"
-				filter="integer"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+			<field
+					name="delete_mode"
+					type="list"
+					default="0"
+					label="AP_DELETE_MODE"
+					filter="integer"
+			>
+				<option value="0">AP_DELETE_MODE_DELETE</option>
+				<option value="1">AP_DELETE_MODE_MARK</option>
+			</field>
+		</fieldset>
 	</fieldset>
 
 	<fieldset name="list" label="A_LIST_PARAMS">
@@ -421,328 +324,330 @@
 		</field>
 
 		<field
-				name="show_checkbox_terms_of_use"
-				type="radio"
-				class="btn-group"
-				default="0"
-				filter="integer"
-				label="AP_ENABLE_ACCEPT_TERMS_OF_USE"
-				description="AP_ENABLE_ACCEPT_TERMS_OF_USE_DESC"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
 				name="smilies_path"
 				type="text"
 				default="media/com_jcomments/images/smilies/"
 				label="AP_FORM_FIELD_SMILIES_PATH"
 				filter="path"
 		/>
-
-		<field
-				name="captcha_engine"
-				type="plugins"
-				folder="captcha"
-				label="AP_FORM_FIELD_CAPTCHA"
-		>
-			<option value="kcaptcha">KCAPTCHA</option>
-		</field>
-
-		<field
-				name="kcaptcha_alphabet"
-				type="text"
-				label="AP_FORM_FIELD_KPT_ALPHABET"
-				showon="captcha_engine:kcaptcha"
-				filter="string"
-				default="0123456789abcdefghijklmnopqrstuvwxyz"
-		/>
-
-		<field
-				name="kcaptcha_allowedSymbols"
-				type="text"
-				label="AP_FORM_FIELD_KPT_SYMBOLS"
-				showon="captcha_engine:kcaptcha"
-				filter="string"
-				default="23456789abcdeghkmnpqsuvxyz"
-		/>
-
-		<field
-				name="kcaptcha_fontsDir"
-				type="text"
-				label="AP_FORM_FIELD_KPT_FONTS"
-				showon="captcha_engine:kcaptcha"
-				filter="path"
-				default="media/com_jcomments/images/fonts"
-		/>
-
-		<field
-				name="kcaptcha_length"
-				type="text"
-				label="AP_FORM_FIELD_KPT_LENGTH"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="5"
-		/>
-
-		<field
-				name="kcaptcha_width"
-				type="text"
-				label="AP_FORM_FIELD_KPT_WIDTH"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="121"
-		/>
-
-		<field
-				name="kcaptcha_height"
-				type="text"
-				label="AP_FORM_FIELD_KPT_HEIGHT"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="60"
-		/>
-
-		<field
-				name="kcaptcha_fluctuationAmplitude"
-				type="text"
-				label="AP_FORM_FIELD_KPT_AMP"
-				showon="captcha_engine:kcaptcha"
-				filter="integer"
-				default="5"
-		/>
-
-		<field
-				name="kcaptcha_noSpaces"
-				type="radio"
-				class="btn-group"
-				label="AP_FORM_FIELD_KPT_SPACES"
-				showon="captcha_engine:kcaptcha"
-				default="1"
-				filter="integer"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field
-				name="kcaptcha_showCredits"
-				type="radio"
-				class="btn-group"
-				label="AP_FORM_FIELD_KPT_CREDITS"
-				showon="captcha_engine:kcaptcha"
-				default="0"
-				filter="integer"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field
-				name="kcaptcha_credits"
-				type="text"
-				label="AP_FORM_FIELD_KPT_CREDITS_TEXT"
-				showon="captcha_engine:kcaptcha"
-				filter="string"
-		/>
-
-		<field
-				name="kcaptcha_foregroundColor"
-				type="color"
-				format="rgb"
-				label="AP_FORM_FIELD_KPT_FG_COLOR"
-				showon="captcha_engine:kcaptcha"
-				default="rgb(180, 180, 180)"
-				filter="string"
-		/>
-
-		<field
-				name="kcaptcha_backgroundColor"
-				type="color"
-				format="rgb"
-				label="AP_FORM_FIELD_KPT_BG_COLOR"
-				showon="captcha_engine:kcaptcha"
-				default="rgb(246, 246, 246)"
-				filter="string"
-		/>
-
-		<field
-				name="kcaptcha_jpegQuality"
-				type="number"
-				label="AP_FORM_FIELD_KPT_QUALITY"
-				showon="captcha_engine:kcaptcha"
-				default="90"
-				filter="integer"
-		/>
 	</fieldset>
 
-	<fieldset name="restrictions" label="A_RESTRICTIONS">
-		<field
-				name="username_maxlength"
-				type="text"
-				default="20"
-				filter="integer"
-				label="AP_USERNAME_MAXLENGTH"
-				description="AP_USERNAME_MAXLENGTH_DESC"
-		/>
+	<fieldset name="notifications" label="A_NOTIFICATIONS">
+		<fieldset name="notifications_main" label="A_NOTIFICATIONS">
+			<field
+					name="enable_notification"
+					type="radio"
+					class="btn-group radio"
+					default="0"
+					label="AP_ENABLE_NOTIFICATION"
+					description="AP_ENABLE_NOTIFICATION_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="comment_minlength"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_COMMENT_MINLENGTH"
-				description="AP_COMMENT_MINLENGTH_DESC"
-		/>
+			<field
+					name="notification_type"
+					type="list"
+					default="1,2"
+					multiple="multiple"
+					label="AP_NOTIFICATION_TYPES"
+					showon="enable_notification:1"
+			>
+				<option value="1">AP_NOTIFICATION_TYPES_NOTIFICATIONS</option>
+				<option value="2">AP_NOTIFICATION_TYPES_REPORTS</option>
+			</field>
 
-		<field
-				name="comment_maxlength"
-				type="text"
-				default="1000"
-				filter="integer"
-				label="AP_COMMENT_MAXLENGTH"
-				description="AP_COMMENT_MAXLENGTH_DESC"
-		/>
+			<field
+					name="notification_email"
+					type="text"
+					default=""
+					label="AP_ENABLE_NOTIFICATION_EMAIL"
+					description="AP_ENABLE_NOTIFICATION_EMAIL_DESC"
+					showon="enable_notification:1"
+			/>
 
-		<field
-				name="link_maxlength"
-				type="text"
-				default="50"
-				filter="integer"
-				label="AP_LINK_MAXLENGTH"
-				description="AP_LINK_MAXLENGTH_DESC"
-		/>
+			<field
+					name="enable_quick_moderation"
+					type="radio"
+					class="btn-group"
+					default="0"
+					label="AP_ENABLE_QUICK_MODERATION"
+					description="AP_ENABLE_QUICK_MODERATION_DESC"
+					filter="integer"
+					showon="enable_notification:1"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+		</fieldset>
 
-		<field
-				name="flood_time"
-				type="text"
-				default="30"
-				filter="integer"
-				label="AP_FLOOD_TIME"
-				description="AP_FLOOD_TIME_DESC"
-		/>
+		<fieldset name="reports" label="A_REPORTS">
+			<field
+					name="enable_reports"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_ENABLE_REPORTS"
+					description="AP_ENABLE_REPORTS_DESC"
+					filter="integer"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="enable_nested_quotes"
-				type="radio"
-				class="btn-group"
-				default="1"
-				filter="integer"
-				label="AP_ENABLE_NESTED_QUOTES"
-				description="AP_ENABLE_NESTED_QUOTES_DESC"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+			<field
+					name="reports_per_comment"
+					type="text"
+					default="0"
+					filter="integer"
+					label="AP_MAX_REPORTS_PER_COMMENT"
+					description="AP_MAX_REPORTS_PER_COMMENT_DESC"
+					showon="enable_reports:1"
+			/>
 
-		<field
-				name="merge_time"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_MERGE_TIME"
-				description="AP_MERGE_TIME_DESC"
-		/>
+			<field
+					name="reports_before_unpublish"
+					type="text"
+					default="0"
+					filter="integer"
+					label="AP_REPORTS_BEFORE_UNPUBLISH"
+					description="AP_REPORTS_BEFORE_UNPUBLISH_DESC"
+					showon="enable_reports:1"
+			/>
 
-		<field
-				name="max_comments_per_object"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_MAX_COMMENTS_PER_OBJECT"
-				description="AP_MAX_COMMENTS_PER_OBJECT_DESC"
-		/>
+			<field
+					name="report_reason_required"
+					type="radio"
+					class="btn-group"
+					default="1"
+					label="AP_REPORT_REASON_REQUIRED"
+					description="AP_REPORT_REASON_REQUIRED_DESC"
+					filter="integer"
+					showon="enable_reports:1"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+		</fieldset>
 	</fieldset>
 
 	<fieldset name="security" label="A_SECURITY">
-		<field
-				name="enable_username_check"
-				type="radio"
-				class="btn-group"
-				default="1"
-				filter="integer"
-				label="AP_ENABLE_USERNAME_CHECK"
-				description="AP_ENABLE_USERNAME_CHECK_DESC"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+		<fieldset name="security_main" label="A_SECURITY">
+			<field
+					name="enable_username_check"
+					type="radio"
+					class="btn-group"
+					default="1"
+					filter="integer"
+					label="AP_ENABLE_USERNAME_CHECK"
+					description="AP_ENABLE_USERNAME_CHECK_DESC"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="enable_blacklist"
-				type="radio"
-				class="btn-group"
-				default="0"
-				filter="integer"
-				label="AP_ENABLE_BLACKLIST"
-				description="AP_ENABLE_BLACKLIST_DESC"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
+			<field
+					name="enable_blacklist"
+					type="radio"
+					class="btn-group"
+					default="0"
+					filter="integer"
+					label="AP_ENABLE_BLACKLIST"
+					description="AP_ENABLE_BLACKLIST_DESC"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
 
-		<field
-				name="forbidden_names"
-				type="textarea"
-				rows="3"
-				cols="50"
-				filter="raw"
-				default="administrator,moderator,admin"
-				label="AP_FORBIDDEN_NAMES_LIST"
-				description="AP_FORBIDDEN_NAMES_LIST_DESC"
-				required="false"
-		/>
+			<field
+					name="forbidden_names"
+					type="textarea"
+					rows="3"
+					cols="50"
+					filter="raw"
+					default="administrator,moderator,admin"
+					label="AP_FORBIDDEN_NAMES_LIST"
+					description="AP_FORBIDDEN_NAMES_LIST_DESC"
+					required="false"
+			/>
+		</fieldset>
+
+		<fieldset name="restrictions" label="A_RESTRICTIONS">
+			<field
+					name="username_maxlength"
+					type="text"
+					default="20"
+					filter="integer"
+					label="AP_USERNAME_MAXLENGTH"
+					description="AP_USERNAME_MAXLENGTH_DESC"
+			/>
+
+			<field
+					name="comment_minlength"
+					type="text"
+					default="10"
+					filter="integer"
+					label="AP_COMMENT_MINLENGTH"
+					description="AP_COMMENT_MINLENGTH_DESC"
+			/>
+
+			<field
+					name="comment_maxlength"
+					type="text"
+					default="1000"
+					filter="integer"
+					label="AP_COMMENT_MAXLENGTH"
+					description="AP_COMMENT_MAXLENGTH_DESC"
+			/>
+
+			<field
+					name="link_maxlength"
+					type="text"
+					default="50"
+					filter="integer"
+					label="AP_LINK_MAXLENGTH"
+					description="AP_LINK_MAXLENGTH_DESC"
+			/>
+
+			<field
+					name="flood_time"
+					type="text"
+					default="30"
+					filter="integer"
+					label="AP_FLOOD_TIME"
+					description="AP_FLOOD_TIME_DESC"
+			/>
+
+			<field
+					name="enable_nested_quotes"
+					type="radio"
+					class="btn-group"
+					default="1"
+					filter="integer"
+					label="AP_ENABLE_NESTED_QUOTES"
+					description="AP_ENABLE_NESTED_QUOTES_DESC"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+
+			<field
+					name="merge_time"
+					type="text"
+					default="0"
+					filter="integer"
+					label="AP_MERGE_TIME"
+					description="AP_MERGE_TIME_DESC"
+			/>
+
+			<field
+					name="max_comments_per_object"
+					type="text"
+					default="0"
+					filter="integer"
+					label="AP_MAX_COMMENTS_PER_OBJECT"
+					description="AP_MAX_COMMENTS_PER_OBJECT_DESC"
+			/>
+		</fieldset>
+
+		<fieldset name="censor" label="A_CENSOR">
+			<field
+					name="enable_autocensor"
+					type="usergrouplist"
+					multiple="multiple"
+					default="2,9"
+					label="AP_ENABLE_AUTOCENSOR"
+			/>
+
+			<field
+					name="badwords"
+					type="textarea"
+					rows="3"
+					cols="50"
+					filter="raw"
+					label="AP_BAD_WORDS_LIST"
+					description="AP_BAD_WORDS_LIST_DESC"
+					required="false"
+			/>
+
+			<field
+					name="censor_replace_fields"
+					type="subform"
+					label="AP_CENSOR_REPLACE_WORD_SUBFORM"
+					multiple="true"
+					min="1"
+					buttons="add,remove"
+					default='{"__field10":{"lang":"*","censor_replace_word":"[censored]"}}'
+			>
+				<form>
+					<field
+							name="lang"
+							type="contentlanguage"
+							label="JFIELD_LANGUAGE_LABEL"
+					>
+						<option value="*">JALL</option>
+					</field>
+
+					<field
+							name="censor_replace_word"
+							type="text"
+							label="AP_CENSOR_REPLACE_WORD"
+					/>
+				</form>
+			</field>
+		</fieldset>
 	</fieldset>
 
-	<fieldset name="censor" label="A_CENSOR">
+	<fieldset name="messages" label="A_MESSAGES" addfieldprefix="Joomla\Component\Content\Administrator\Field">
 		<field
-				name="enable_autocensor"
-				type="usergrouplist"
-				multiple="multiple"
-				default="2,9"
-				label="AP_ENABLE_AUTOCENSOR"
-		/>
-
-		<field
-				name="badwords"
+				name="consentbox_text"
 				type="textarea"
-				rows="3"
-				cols="50"
-				filter="raw"
-				label="AP_BAD_WORDS_LIST"
-				description="AP_BAD_WORDS_LIST_DESC"
-				required="false"
+				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_LABEL"
+				description="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_DESC"
+				hint="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_DEFAULT"
+				cols="20"
+				filter="html"
 		/>
 
 		<field
-				name="censor_replace_fields"
-				type="subform"
-				label="AP_CENSOR_REPLACE_WORD_SUBFORM"
-				multiple="true"
-				min="1"
-				buttons="add,remove"
-				default='{"__field10":{"lang":"*","censor_replace_word":"[censored]"}}'
+				name="privacy_type"
+				type="list"
+				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_LABEL"
+				default="article"
+				validate="options"
 		>
-			<form>
-				<field
-						name="lang"
-						type="contentlanguage"
-						label="JFIELD_LANGUAGE_LABEL"
-				>
-					<option value="*">JALL</option>
-				</field>
-
-				<field
-						name="censor_replace_word"
-						type="text"
-						label="AP_CENSOR_REPLACE_WORD"
-				/>
-			</form>
+			<option value="article">PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_ARTICLE</option>
+			<option value="menu_item">PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_MENU_ITEM</option>
 		</field>
-	</fieldset>
 
-	<fieldset name="messages" label="A_MESSAGES">
+		<field
+				name="privacy_article"
+				type="modal_article"
+				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_ARTICLE_LABEL"
+				description="PLG_CONTENT_CONFIRMCONSENT_FIELD_ARTICLE_DESC"
+				select="true"
+				new="true"
+				edit="true"
+				clear="true"
+				filter="integer"
+				showon="privacy_type:article"
+		/>
+
+		<field
+				addfieldprefix="Joomla\Component\Menus\Administrator\Field"
+				name="privacy_menu_item"
+				type="modal_menu"
+				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_MENU_ITEM_LABEL"
+				select="true"
+				new="true"
+				edit="true"
+				clear="true"
+				filter="integer"
+				showon="privacy_type:menu_item"
+		/>
+
 		<field
 				name="messages_fields"
 				type="subform"
@@ -820,7 +725,7 @@
 		</field>
 	</fieldset>
 
-	<fieldset name="rules" label="JCONFIG_PERMISSIONS_LABEL">
+	<fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
 		<field
 				name="rules"
 				type="rules"

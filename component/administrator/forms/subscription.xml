@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset addfieldprefix="Joomla\Component\Jcomments\Administrator\Field">
+		<field
+				name="object_id"
+				type="text"
+				class="validate-numeric"
+				size="40"
+				label="A_SUBSCRIPTION_OBJECT_ID"
+				required="true"
+		/>
+
+		<field
+				name="object_group"
+				type="objectgroup"
+				label="A_COMPONENT"
+				required="true"
+				filter="string"
+				layout="joomla.form.field.list-fancy-select"
+		/>
+
+		<field
+				name="name"
+				type="text"
+				size="40"
+				label="A_SUBSCRIPTION_NAME"
+				required="true"
+		/>
+
+		<field
+				name="email"
+				type="email"
+				size="40"
+				label="A_SUBSCRIPTION_EMAIL"
+				validate="email"
+				required="true"
+		/>
+
+		<field
+				name="lang"
+				type="contentlanguage"
+				label="JFIELD_LANGUAGE_LABEL"
+				description="A_COMMENT_FIELD_LANGUAGE_DESC"
+		>
+			<option value="*">JALL</option>
+		</field>
+
+		<field
+				name="published"
+				type="list"
+				label="JSTATUS"
+				default="0"
+				class="form-select-color-state"
+				size="1"
+				validate="options"
+		>
+			<option value="1">JPUBLISHED</option>
+			<option value="0">JUNPUBLISHED</option>
+		</field>
+
+		<field
+				name="id"
+				type="text"
+				default="0"
+				readonly="true"
+				class="readonly"
+				label="JGLOBAL_FIELD_ID_LABEL"
+				description="JGLOBAL_FIELD_ID_DESC"
+		/>
+
+		<!-- Used in view to internal access checking -->
+		<field
+				name="checked_out"
+				type="hidden"
+				filter="unset"
+		/>
+
+		<field
+				name="checked_out_time"
+				type="hidden"
+				filter="unset"
+		/>
+	</fieldset>
+</form>

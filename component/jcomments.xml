@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
 	<name>com_jcomments</name>
-	<creationDate>May 2022</creationDate>
+	<creationDate>January 2022</creationDate>
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.20</version>
+	<version>4.1.0</version>
 	<description>JComments lets your users comment on content items.</description>
 	<namespace path="src">Joomla\Component\Jcomments</namespace>
 
@@ -24,25 +24,19 @@
 	</update>
 
 	<files folder="site">
-		<filename>controller.php</filename>
-		<filename>jcomments.php</filename>
-		<filename>jcomments.ajax.php</filename>
-		<filename>jcomments.captcha.php</filename>
-		<filename>jcomments.class.php</filename>
+		<filename>jomsocial_rule.xml</filename>
 
-		<folder>classes</folder>
-		<folder>controllers</folder>
-		<folder>helpers</folder>
+		<folder>forms</folder>
 		<folder>layouts</folder>
-		<folder>libraries</folder>
-		<folder>models</folder>
 		<folder>plugins</folder>
 		<folder>sef_ext</folder>
-		<folder>tpl</folder>
-		<folder>views</folder>
+		<folder>src</folder>
+		<folder>tmpl</folder>
 	</files>
 
 	<media destination="com_jcomments" folder="media">
+		<filename>joomla.asset.json</filename>
+
 		<folder>css</folder>
 		<folder>images</folder>
 		<folder>js</folder>
@@ -55,7 +49,7 @@
 	</languages>
 
 	<administration>
-		<menu img="media/com_jcomments/images/icon-16-jcomments.png" view="comments">COM_JCOMMENTS</menu>
+		<menu img="../media/com_jcomments/images/icon-16-jcomments.jpg" view="comments">COM_JCOMMENTS</menu>
 		<submenu>
 			<menu view="comments" link="option=com_jcomments&amp;view=comments">COM_JCOMMENTS_COMMENTS</menu>
 			<menu view="smilies" link="option=com_jcomments&amp;view=smilies">COM_JCOMMENTS_SMILIES</menu>
@@ -65,22 +59,23 @@
 			<menu view="mailqueues" link="option=com_jcomments&amp;view=mailqueues">COM_JCOMMENTS_MAILQ</menu>
 			<menu view="import" link="option=com_jcomments&amp;view=import">COM_JCOMMENTS_IMPORT</menu>
 			<menu view="settings" link="option=com_jcomments&amp;view=settings">COM_JCOMMENTS_SETTINGS</menu>
+			<menu view="fields" link="option=com_fields&amp;view=fields&amp;context=com_jcomments.comment">COM_JCOMMENTS_FIELDS</menu>
+			<menu view="groups" link="option=com_fields&amp;view=groups&amp;context=com_jcomments.comment">COM_JCOMMENTS_FIELD_GROUPS</menu>
 			<menu view="about" link="option=com_jcomments&amp;view=about">COM_JCOMMENTS_ABOUT</menu>
 		</submenu>
 
 		<files folder="administrator">
-			<filename>controller.php</filename>
-			<filename>jcomments.php</filename>
 			<filename>access.xml</filename>
 			<filename>config.xml</filename>
+			<filename>jcomments.xml</filename>
 
-			<folder>controllers</folder>
 			<folder>classes</folder>
-			<folder>helpers</folder>
+			<folder>forms</folder>
 			<folder>install</folder>
-			<folder>models</folder>
-			<folder>tables</folder>
-			<folder>views</folder>
+			<folder>layouts</folder>
+			<folder>services</folder>
+			<folder>src</folder>
+			<folder>tmpl</folder>
 		</files>
 
 		<languages folder="administrator">
