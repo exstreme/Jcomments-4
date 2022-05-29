@@ -28,11 +28,12 @@ $input = Factory::getApplication()->input;
 		) . '&_=' . time(),
 		bin2hex(random_bytes(5)),
 		array(
-			'width' => '100%',
-			'onload' => 'iFrameHeight(this);',
-			'style' => 'overflow: hidden;',
+			'width'     => '100%',
+			'onload'    => 'iFrameHeight(this);',
+			'style'     => 'overflow: hidden;',
 			'scrolling' => 'no',
-			'class' => 'commentsFormFrame'
+			'class'     => 'commentsFormFrame',
+			'id'        => 'addcomments'
 		)
 	); ?>
 </div>
