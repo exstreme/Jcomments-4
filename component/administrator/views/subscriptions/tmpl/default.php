@@ -77,6 +77,7 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 							$canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $userId || $item->checked_out == 0;
 							$canChange = $user->authorise('core.edit.state', 'com_jcomments') && $canCheckin;
 						?>
+						<?php endforeach; ?>
 							<tr class="row<?php echo $i % 2; ?>">
 								<td class="text-center">
 									<?php echo HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->id); ?>
@@ -119,7 +120,6 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 									<?php echo (int) $item->id; ?>
 								</td>
 							</tr>
-						<?php endforeach; ?>
 						</tbody>
 					</table>
 
