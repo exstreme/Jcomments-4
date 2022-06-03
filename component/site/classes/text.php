@@ -184,7 +184,7 @@ class JCommentsText
 		}
 		else
 		{
-			$message = in_array($field, $data) ? $data[$lang]->$field : $data['*']->$field;
+			$message = array_key_exists($lang, $data) ? $data[$lang]->$field : $data['*']->$field;
 		}
 
 		return $message;
