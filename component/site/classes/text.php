@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 
 /**
  * JComments common text functions
@@ -180,11 +181,29 @@ class JCommentsText
 
 		if (empty($lang) || $lang == '*')
 		{
+			// Get messages for 'All' language
 			$message = $data['*']->$field;
 		}
 		else
 		{
-			$message = array_key_exists($lang, $data) ? $data[$lang]->$field : $data['*']->$field;
+			// Get messages for current item language
+			if (array_key_exists($lang, $data))
+			{
+				$message = $data[$lang]->$field;
+			}
+			// If not found, fallback to 'All' language messages
+			else
+			{
+				if (array_key_exists('*', $data))
+				{
+					$message = $data['*']->$field;
+				}
+				// Give up. User not defined messages for proper language in component settings.
+				else
+				{
+					$message = Text::_('ERROR');
+				}
+			}
 		}
 
 		return $message;
