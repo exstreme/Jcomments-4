@@ -1,0 +1,465 @@
+/* content plugin styles */
+.jcomments-links {
+	margin-top: 10px;
+	clear: both;
+	text-align: left;
+}
+
+.comments-link {
+	background-position: 0 -27px;
+}
+
+/* JComments common styles */
+#jc {
+	clear: both;
+}
+
+#jc a:link, #jc a:visited, #jc a:hover {
+	outline: none;
+}
+
+#jc .busy {
+	display: none;
+	margin: 3px auto;
+	padding: 0;
+	width: 16px;
+	height: 16px;
+	background: url(images/jc_busy.gif) no-repeat;
+}
+
+#jc p.message {
+	color: #777;
+	background-color: inherit;
+	background-image: none;
+	text-align: center;
+	text-decoration: none;
+	text-transform: none;
+	text-indent: 0;
+	padding: 5px 0 0 0;
+	border-top: 1px solid #D2DADB;
+}
+
+#comments {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	text-align: left;
+	text-decoration: none;
+	text-transform: none;
+	text-indent: 0;
+}
+
+#comments a {
+	text-decoration: none;
+}
+
+#comments a[rel*=external], #comments a[rel*=external]:active, #comments a[rel*=external]:hover, #comments a[rel*=external]:focus {
+	background: url(images/jc_link.gif) no-repeat center right;
+	padding: 0 10px 0 0;
+	margin: 0 2px;
+	display: inline-block;
+}
+
+/* List footer */
+.comments-list-footer {
+	margin-bottom: 1rem;
+}
+
+/* Show/hide form */
+#comments-form-link .showform {
+	margin: 5px 0 22px 22px;
+	font-weight: bold;
+}
+
+/* Comment */
+#comments .comment-box {
+	margin: 0;
+	padding: 0;
+}
+
+#comments .comment-avatar {
+	float: left;
+	margin: 0 .5rem .5rem 0;
+	min-width: 32px;
+	padding: 0;
+}
+
+#comments .avatar-indent {
+	padding-left: 40px;
+}
+
+.comment-info dd {
+	float: left;
+	font-size: .8em;
+	margin-top: .2em;
+	margin-right: .5em;
+}
+
+/* Avatar */
+#comments .comment-avatar img {
+	max-width: 200px;
+	border: none !important;
+}
+
+#comments .comment-body {
+	clear: both;
+	margin: 6px 0 0;
+	padding: 0 0 2px;
+}
+
+/* Quote, Code and Hidden block styles */
+#comments .quote, #comments blockquote, #comments .code {
+	margin: 5px 0;
+}
+
+#comments blockquote {
+	border-left: 0.25em solid #849B9F;
+	color: #849B9F;
+	text-align: left;
+	padding: 8px;
+}
+
+#comments .code {
+	background: none;
+	border: none;
+	padding: 0;
+}
+
+#comments figure {
+	margin-bottom: 1rem;
+}
+
+/* Quote and Reply to buttons panel */
+#comments .comments-buttons {
+	float: right;
+	margin: 5px !important;
+}
+
+#comments .email, #comments .emailactive {
+	text-decoration: none;
+	white-space: normal;
+	margin: 0;
+	padding: 0;
+	line-height: 10px;
+	cursor: pointer;
+	border-bottom: 1px dotted #999;
+}
+
+#comments .email {
+	color: #444;
+	background-color: inherit;
+}
+
+#comments .emailactive {
+	color: #cc0000;
+	background-color: inherit;
+}
+
+#comments .email img, #comments .emailactive img {
+	padding: 0;
+}
+
+#comments .comment-body img {
+	padding: 0;
+	border: 0 none;
+}
+
+#comments .comment-body .img {
+	padding: 4px 0 !important;
+	max-width: 500px;
+}
+
+#comments .toolbar {
+	clear: both;
+	border-top: 1px solid #ccc;
+	margin: 8px 0 0 0;
+	padding: 5px 0 0 0;
+}
+
+#comments .toolbar .main-actions {
+	float: left;
+}
+
+#comments .toolbar .main-actions a {
+	padding: 0 5px 0 0;
+}
+
+#comments .toolbar .user-actions {
+	float: right;
+}
+
+#comments .toolbar .user-actions a {
+	padding: 0 0 0 5px;
+}
+
+/* Comments list */
+#comments .even, #comments .odd {
+	margin-bottom: 10px;
+}
+
+.comments-list-child .comment {
+	background-color: #fafafa;
+	margin-left: 1rem;
+}
+
+#comments-list .comments-inline-edit {
+	padding: 5px;
+}
+
+#comments .comment.hide-children + .comments-list-child {
+	display: none;
+}
+
+/* Comment form */
+div.comments-policy {
+	padding: 5px;
+	margin: .5rem 0;
+}
+
+#comments-form .counter {
+	color: #777;
+	font-size: 1em;
+}
+
+#comments-inline-edit {
+	padding: .5rem;
+}
+
+#comments-form img.smile {
+	margin: 0 3px 3px 0;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+	float: none;
+}
+
+#comments-form img.captcha {
+	padding: 0;
+	margin: 0 0 3px 0;
+	border: 1px solid #ccc;
+}
+
+#comments-form span.captcha {
+	color: #777;
+	cursor: pointer;
+	display: inline-block;
+}
+
+.comments-inline-report {
+	margin-top: .5rem;
+}
+
+#comments-form input.captcha {
+	width: 116px;
+	margin: 3px 0 5px 0;
+}
+
+#comments-form textarea {
+	min-width: 250px !important;
+	resize: none;
+}
+
+#comments-form-message {
+	padding: .5rem;
+}
+
+#comments-form .counterpanel {
+	height: 13px;
+	display: block;
+	overflow: hidden;
+	color: #ccc;
+	padding: 0;
+	margin: 0;
+	border: 1px solid #ddd;
+	border-top-width: 0;
+	max-width: 400px !important;
+	width: 350px;
+	background-color: #eee;
+}
+
+#comments-form .grippie {
+	height: 13px;
+	display: block;
+	overflow: hidden;
+	color: #ccc;
+	padding: 0;
+	margin: 0;
+	border: 1px solid #ddd;
+	border-top-width: 0;
+	min-width: 250px !important;
+	cursor: s-resize;
+	background: #eee url(images/jc_resize.gif) no-repeat right 2px;
+}
+
+#comments-form .grippie .counter {
+	font-size: 10px;
+	padding: 0;
+	margin: 0;
+}
+
+#comments-form .grippie span {
+	display: block;
+	float: left;
+}
+
+#comments-form .grippie span span {
+	display: inline;
+	float: none;
+}
+
+#comments-form-smilespanel {
+	display: none;
+	cursor: pointer;
+	padding: 2px;
+	max-width: 200px;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	overflow: auto;
+	left: 0;
+	top: 0;
+	position: absolute;
+	z-index: 999999 !important;
+}
+
+#comments-footer, #comments-footer a {
+	color: #ccc !important;
+	background-color: inherit;
+	font: normal 9px Verdana, Arial, Sans-Serif !important;
+}
+
+#comments-footer {
+	display: block;
+	height: 14px;
+	border-top: 1px solid #ccc;
+	padding-top: 1px;
+	margin-top: 4px;
+	text-align: right;
+}
+
+#comments-footer a {
+	text-decoration: none !important;
+	text-transform: none;
+	padding: 0;
+	margin: 0;
+	border: none !important;
+	float: right;
+	background: none !important;
+}
+
+/* Vote */
+#jc .comments-vote {
+	width: 6em;
+	float: right;
+}
+
+#jc .comments-vote .busy {
+	margin: 0;
+	float: right;
+	width: 16px;
+}
+
+#jc .comments-vote .vote-value {
+	font-weight: 700;
+	line-height: 14px;
+	margin: 0;
+	float: right;
+}
+
+/* BBCode */
+#jc .bbcode a, #jc .bbcode a:focus, #jc .bbcode a:active, #jc .bbcode a:hover {
+	width: 23px;
+	height: 23px;
+	float: left;
+	margin: 0 2px 0 0;
+	display: block;
+	background-color: transparent !important;
+	background-repeat: no-repeat;
+	background-image: url(images/jc_bbcodes.gif);
+	text-decoration: none;
+	border: none !important;
+}
+
+#jc a.bbcode-empty {
+	background-position: 0 0;
+}
+
+#jc a.bbcode-b {
+	background-position: -30px 0 !important;
+}
+
+#jc a.bbcode-i {
+	background-position: -60px 0 !important;
+}
+
+#jc a.bbcode-u {
+	background-position: -90px 0 !important;
+}
+
+#jc a.bbcode-s {
+	background-position: -120px 0 !important;
+}
+
+#jc a.bbcode-url {
+	background-position: -150px 0 !important;
+}
+
+#jc a.bbcode-img {
+	background-position: -180px 0 !important;
+}
+
+#jc a.bbcode-list {
+	background-position: -210px 0 !important;
+}
+
+#jc a.bbcode-hide {
+	background-position: -240px 0 !important;
+}
+
+#jc a.bbcode-quote {
+	background-position: -270px 0 !important;
+}
+
+#jc a.bbcode-smile {
+	background-position: -300px 0 !important;
+}
+
+#jc a.bbcode-youtube {
+	background-position: -330px 0 !important;
+}
+
+#jc a.bbcode-google {
+	background-position: -360px 0 !important;
+}
+
+#jc a.bbcode-wiki {
+	background-position: -390px 0 !important;
+}
+
+#jc a.bbcode-facebook {
+	background-position: -420px 0 !important;
+}
+
+#jc a.bbcode-flickr {
+	background-position: -450px 0 !important;
+}
+
+#jc a.bbcode-instagram {
+	background-position: -480px 0 !important;
+}
+
+#jc a.bbcode-vimeo {
+	background-position: -510px 0 !important;
+}
+
+#jc .bbcode img {
+	width: 23px;
+	height: 23px;
+	float: left;
+	margin: 0 2px 0 0;
+}
+
+/* Rounded comments */
+#jc .rbox {
+	padding: 4px 8px;
+	overflow: hidden;
+}

@@ -1,37 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
 	<name>plg_system_jcomments</name>
-	<creationDate>15/08/2018</creationDate>
-	<author>smart</author>
-	<copyright>Copyright 2006-2018 JoomlaTune.ru All rights reserved!</copyright>
-	<authorEmail>smart@joomlatune.ru</authorEmail>
-	<authorUrl>http://www.joomlatune.ru</authorUrl>
-	<license>http://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>2.0</version>
+	<creationDate>August 2018</creationDate>
+	<author>JComments team</author>
+	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.0.1</version>
 	<description>PLG_SYSTEM_JCOMMENTS_XML_DESCRIPTION</description>
+
 	<files>
 		<filename plugin="jcomments">jcomments.php</filename>
 	</files>
+
 	<languages folder="admin">
 		<language tag="en-GB">language/en-GB/plg_system_jcomments.ini</language>
 		<language tag="en-GB">language/en-GB/plg_system_jcomments.sys.ini</language>
 		<language tag="ru-RU">language/ru-RU/plg_system_jcomments.ini</language>
 		<language tag="ru-RU">language/ru-RU/plg_system_jcomments.sys.ini</language>
 	</languages>
+
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
-				<field name="disable_template_css" type="list" default="0" label="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLETEMPLATECSS_LABEL" description="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLETEMPLATECSS_DESC">
-					<option value="0">JNO</option>
+				<field
+						name="disable_template_css"
+						type="radio"
+						default="0"
+						class="btn-group btn-group-yesno"
+						label="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLETEMPLATECSS_LABEL"
+						description="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLETEMPLATECSS_DESC">
 					<option value="1">JYES</option>
+					<option value="0">JNO</option>
 				</field>
-				<field name="disable_error_reporting" type="list" default="0" label="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLEERRORREPORTING_LABEL" description="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLEERRORREPORTING_DESC">
-					<option value="0">JNO</option>
+				<field
+						name="disable_error_reporting"
+						type="radio"
+						default="0"
+						class="btn-group btn-group-yesno"
+						label="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLEERRORREPORTING_LABEL"
+						description="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLEERRORREPORTING_DESC">
 					<option value="1">JYES</option>
+					<option value="0">JNO</option>
 				</field>
-				<field name="clear_rss" type="list" default="0" label="PLG_SYSTEM_JCOMMENTS_FIELD_CLEARTAGS_LABEL" description="PLG_SYSTEM_JCOMMENTS_FIELD_CLEARTAGS_DESC">
-					<option value="0">JNO</option>
+				<field
+						name="clear_rss"
+						type="radio"
+						default="0"
+						class="btn-group btn-group-yesno"
+						label="PLG_SYSTEM_JCOMMENTS_FIELD_CLEARTAGS_LABEL"
+						description="PLG_SYSTEM_JCOMMENTS_FIELD_CLEARTAGS_DESC">
 					<option value="1">JYES</option>
+					<option value="0">JNO</option>
 				</field>
 			</fieldset>
 		</fields>

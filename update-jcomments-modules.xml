@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates>
+	<update>
+		<name>JComments Latest Backend</name>
+		<description>This module shows a list of latest comments in administrator panel.</description>
+		<element>mod_jcomments_latest_backend</element>
+		<type>module</type>
+		<client>administrator</client>
+		<version>4.0.2</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_backend_4.0.2.zip</downloadurl>
+		</downloads>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
+		<sha256>7c69286fd59509c76d1d63383d1e11cd1402288efd732b77d8fc92939337a2e4</sha256>
+		<sha384>03647a81dc4a439550f2bf85d880f7c74b164ced255007f4c22f83c1eeca0e709ca43da8c37ebfcdf1e8b0ef2577a995</sha384>
+		<sha512>d07e7be2ba643d170258f5649a78177f57c8d0bb1feba862a9671a4f63f1e79be17de805873afa31fcb4834a2dc393ae50b767abee5fc67428b0cf83910fb28e</sha512>
+		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+	</update>
+
+	<update>
+		<name>JComments Latest</name>
+		<description>This module shows a list of latest comments.</description>
+		<element>mod_jcomments_latest</element>
+		<type>module</type>
+		<client>site</client>
+		<version>4.0.2</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_commented_4.0.2.zip</downloadurl>
+		</downloads>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
+		<sha256>7bad4af8fe34b4a5253fdce253519c0589fa50c62b05b9f7a25704628f9a0fad</sha256>
+		<sha384>70c1b91211ab94df0160e90633f416e94010d2be35f3c5d026faacd96fccb1ac4c1c5109f2a64a6ee4faaea549c9a348</sha384>
+		<sha512>d43a775494f9166e29c7131ff8c373ffce4e1e07e6ce0c61adec5b9a7621a2e2a657e6cc1dbff9bd8976aa603d7601e373c4e4184ba6f5e01fed1be768d0e24d</sha512>
+		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+	</update>
+
+	<update>
+		<name>JComments Latest Commented</name>
+		<description>This Module shows a list of latest commented items.</description>
+		<element>mod_jcomments_latest_commented</element>
+		<type>module</type>
+		<client>site</client>
+		<version>4.0.3</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_commented_4.0.3.zip</downloadurl>
+		</downloads>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
+		<sha256>54341e7cd18e2f441c63b484f884d3ad499e5c783bd0da6b7f01c6a3b2c544a1</sha256>
+		<sha384>a3d8783e0df7d4118b01187cb580ee0e36390145427d2700abcef0aee21dc44cf90ab47103ed394b280d2643e55053c4</sha384>
+		<sha512>22e1c066053f274c43a4cf4cca679e62bd9eb50b335123c226d55ba152729b9fb456eae75b8f4eed36cf860ac6bdcd8004beee694ae9445bc1149d1b99d86286</sha512>
+		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+	</update>
+
+	<update>
+		<name>JComments Most Commented</name>
+		<description>This Module shows a list of most commented items.</description>
+		<element>mod_jcomments_most_commented</element>
+		<type>module</type>
+		<client>site</client>
+		<version>4.0.2</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_most_commented_4.0.2.zip</downloadurl>
+		</downloads>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
+		<sha256>af69e152ca6f706a479a0e4c588a762f0636fdc9cf7e81d8ef503f90fcc13f56</sha256>
+		<sha384>1d93952f789b6f5b3a5b893d1ecbf88d6f59210ada58d287edc5ee6c1981f96abd3851686781bcbc2063e4260543cb3d</sha384>
+		<sha512>5b8305992ab1776bd4029ad839e90ed704b893a7d570a11bc6e10eaca52bdbc66e9a54cc80be8127d3f56e3068021d0da089f473182c667639082e59ff5bd6d8</sha512>
+		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+	</update>
+
+	<update>
+		<name>JComments Top Posters</name>
+		<description>This Module shows a list of the top posters.</description>
+		<element>mod_jcomments_top_posters</element>
+		<type>module</type>
+		<client>site</client>
+		<version>4.0.4</version>
+		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
+		<downloads>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_top_posters_4.0.4.zip</downloadurl>
+		</downloads>
+		<maintainer>exstreme and Globulopolis</maintainer>
+		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
+		<sha256>de17323aa3e0a6010c5a7076da49c1be97c0e5a0b3a05ec14b6a1e454f9868db</sha256>
+		<sha384>4d662613b9f8a7c9decee985dde495709298998cd1cf0a74749bbeabd44d0caf534067c72dcae129388882a919a6bab2</sha384>
+		<sha512>41549585d4c587a1cc14a3fa49020e5ab614eaf80130a45cc5391e348cb288ed24f5275ceb410b96966026e93ef3a7ce52804a6b8c27ac57b557b917c49c8a15</sha512>
+		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+	</update>
+</updates>

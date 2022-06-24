@@ -2,9 +2,9 @@
 <extension type="package" method="upgrade">
 	<name>JComments package</name>
 	<author>JComments team</author>
-	<creationDate>January 2022</creationDate>
+	<creationDate>March 2022</creationDate>
 	<packagename>jcomments</packagename>
-	<version>4.0.14</version>
+	<version>4.0.18</version>
 	<url>https://github.com/exstreme/Jcomments-4</url>
 	<packager>JComments team</packager>
 	<packagerurl>https://github.com/exstreme/Jcomments-4</packagerurl>
@@ -14,6 +14,7 @@
 	<files folder="packages">
 		<file type="component" id="com_jcomments">com_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="content">plg_content_jcomments.zip</file>
+		<file type="plugin" id="jcommentslock" group="editors-xtd">plg_jcommentslock_jcomments.zip</file>
 		<file type="plugin" id="jcommentson" group="editors-xtd">plg_jcommentson_jcomments.zip</file>
 		<file type="plugin" id="jcommentsoff" group="editors-xtd">plg_jcommentsoff_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="system">plg_system_jcomments.zip</file>

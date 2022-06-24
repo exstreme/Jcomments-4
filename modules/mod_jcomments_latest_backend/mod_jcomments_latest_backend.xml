@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" client="administrator" method="upgrade">
+	<name>mod_jcomments_latest_backend</name>
+	<creationDate>February 2022</creationDate>
+	<author>JComments team</author>
+	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.0.2</version>
+	<description>MOD_JCOMMENTS_LATEST_BACKEND_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Module\LatestComments</namespace>
+
+	<files>
+		<folder>src</folder>
+		<folder>tmpl</folder>
+
+		<filename module="mod_jcomments_latest_backend">mod_jcomments_latest_backend.php</filename>
+		<filename>mod_jcomments_latest_backend.xml</filename>
+	</files>
+
+	<languages>
+		<language tag="bs-BA">language/bs-BA/mod_jcomments_latest_backend.ini</language>
+		<language tag="bs-BA">language/bs-BA/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="cs-CZ">language/cs-CZ/mod_jcomments_latest_backend.ini</language>
+		<language tag="cs-CZ">language/cs-CZ/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="da-DK">language/da-DK/mod_jcomments_latest_backend.ini</language>
+		<language tag="da-DK">language/da-DK/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="de-DE">language/de-DE/mod_jcomments_latest_backend.ini</language>
+		<language tag="de-DE">language/de-DE/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="en-GB">language/en-GB/mod_jcomments_latest_backend.ini</language>
+		<language tag="en-GB">language/en-GB/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="es-ES">language/es-ES/mod_jcomments_latest_backend.ini</language>
+		<language tag="es-ES">language/es-ES/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="fa-IR">language/fa-IR/mod_jcomments_latest_backend.ini</language>
+		<language tag="fa-IR">language/fa-IR/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="fr-FR">language/fr-FR/mod_jcomments_latest_backend.ini</language>
+		<language tag="fr-FR">language/fr-FR/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="lt-LT">language/lt-LT/mod_jcomments_latest_backend.ini</language>
+		<language tag="lt-LT">language/lt-LT/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="nl-NL">language/nl-NL/mod_jcomments_latest_backend.ini</language>
+		<language tag="nl-NL">language/nl-NL/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="pl-PL">language/pl-PL/mod_jcomments_latest_backend.ini</language>
+		<language tag="pl-PL">language/pl-PL/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="pt-BR">language/pt-BR/mod_jcomments_latest_backend.ini</language>
+		<language tag="pt-BR">language/pt-BR/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="pt-PT">language/pt-PT/mod_jcomments_latest_backend.ini</language>
+		<language tag="pt-PT">language/pt-PT/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/mod_jcomments_latest_backend.ini</language>
+		<language tag="ru-RU">language/ru-RU/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="sr-RS">language/sr-RS/mod_jcomments_latest_backend.ini</language>
+		<language tag="sr-RS">language/sr-RS/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="sr-YU">language/sr-YU/mod_jcomments_latest_backend.ini</language>
+		<language tag="sr-YU">language/sr-YU/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="sv-SE">language/sv-SE/mod_jcomments_latest_backend.ini</language>
+		<language tag="sv-SE">language/sv-SE/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="th-TH">language/th-TH/mod_jcomments_latest_backend.ini</language>
+		<language tag="th-TH">language/th-TH/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="tr-TR">language/tr-TR/mod_jcomments_latest_backend.ini</language>
+		<language tag="tr-TR">language/tr-TR/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="ug-CN">language/ug-CN/mod_jcomments_latest_backend.ini</language>
+		<language tag="ug-CN">language/ug-CN/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="uk-UA">language/uk-UA/mod_jcomments_latest_backend.ini</language>
+		<language tag="uk-UA">language/uk-UA/mod_jcomments_latest_backend.sys.ini</language>
+		<language tag="vi-VN">language/vi-VN/mod_jcomments_latest_backend.ini</language>
+		<language tag="vi-VN">language/vi-VN/mod_jcomments_latest_backend.sys.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field
+					name="count"
+					type="number"
+					default="5"
+					filter="integer"
+					min="1"
+					validate="number"
+					label="MOD_JCOMMENTS_LATEST_BACKEND_FIELD_ITEMS_LABEL"
+					description="MOD_JCOMMENTS_LATEST_BACKEND_FIELD_ITEMS_DESC"
+				/>
+	
+				<field
+					name="limit_comment_text"
+					type="number"
+					default="100"
+					filter="integer"
+					min="1"
+					validate="number"
+					label="MOD_JCOMMENTS_LATEST_BACKEND_FIELD_LIMIT_COMMENT_TEXT_LABEL"
+					description="MOD_JCOMMENTS_LATEST_BACKEND_FIELD_LIMIT_COMMENT_TEXT_DESC"
+				/>
+
+			</fieldset>
+
+			<fieldset name="advanced">
+				<field
+						name="layout"
+						type="modulelayout"
+						label="JFIELD_ALT_LAYOUT_LABEL"
+						class="form-select"
+						validate="moduleLayout"
+				/>
+
+				<field
+						name="moduleclass_sfx"
+						type="textarea"
+						label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
+						rows="3"
+						validate="CssIdentifier"
+				/>
+
+				<field
+						name="cache"
+						type="list"
+						label="COM_MODULES_FIELD_CACHING_LABEL"
+						default="1"
+						filter="integer"
+						validate="options"
+				>
+					<option value="1">JGLOBAL_USE_GLOBAL</option>
+					<option value="0">COM_MODULES_FIELD_VALUE_NOCACHING</option>
+				</field>
+
+				<field
+						name="cache_time"
+						type="number"
+						label="COM_MODULES_FIELD_CACHE_TIME_LABEL"
+						default="900"
+						filter="integer"
+						min="1"
+						validate="number"
+				/>
+
+				<field
+						name="cachemode"
+						type="hidden"
+						default="static"
+				>
+					<option value="static"></option>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+
+	<updateservers>
+		<server type="extension" priority="1" name="JComments Modules Update Site">
+			<![CDATA[https://raw.githubusercontent.com/exstreme/Jcomments-4/master/update-jcomments-modules.xml]]>
+		</server>
+	</updateservers>
+</extension>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade">
+	<name>com_jcomments</name>
+	<creationDate>January 2022</creationDate>
+	<author>JComments team</author>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.0.18</version>
+	<description>JComments lets your users comment on content items.</description>
+	<namespace path="src">Joomla\Component\Jcomments</namespace>
+
+	<install>
+		<sql>
+			<file driver="mysql" charset="utf8">install/sql/mysql/install.sql</file>
+			<file driver="mysqli" charset="utf8">install/sql/mysql/install.sql</file>
+		</sql>
+	</install>
+
+	<update>
+		<schemas>
+			<schemapath type="mysql">install/sql/updates/mysql</schemapath>
+			<schemapath type="mysqli">install/sql/updates/mysql</schemapath>
+		</schemas>
+	</update>
+
+	<files folder="site">
+		<filename>controller.php</filename>
+		<filename>jcomments.php</filename>
+		<filename>jcomments.ajax.php</filename>
+		<filename>jcomments.captcha.php</filename>
+		<filename>jcomments.class.php</filename>
+
+		<folder>classes</folder>
+		<folder>helpers</folder>
+		<folder>language</folder>
+		<folder>layouts</folder>
+		<folder>libraries</folder>
+		<folder>models</folder>
+		<folder>plugins</folder>
+		<folder>sef_ext</folder>
+		<folder>tpl</folder>
+		<folder>views</folder>
+	</files>
+
+	<media destination="com_jcomments" folder="media">
+		<folder>css</folder>
+		<folder>images</folder>
+		<folder>js</folder>
+	</media>
+
+	<languages folder="site">
+		<language tag="de-DE">language/de-DE/com_jcomments.ini</language>
+		<language tag="en-GB">language/en-GB/com_jcomments.ini</language>
+		<language tag="ru-RU">language/ru-RU/com_jcomments.ini</language>
+	</languages>
+
+	<administration>
+		<menu img="media/com_jcomments/images/icon-16-jcomments.png" view="comments">COM_JCOMMENTS</menu>
+		<submenu>
+			<menu view="comments" link="option=com_jcomments&amp;view=comments">COM_JCOMMENTS_COMMENTS</menu>
+			<menu view="smilies" link="option=com_jcomments&amp;view=smilies">COM_JCOMMENTS_SMILIES</menu>
+			<menu view="subscriptions" link="option=com_jcomments&amp;view=subscriptions">COM_JCOMMENTS_SUBSCRIPTIONS</menu>
+			<menu view="custombbcodes" link="option=com_jcomments&amp;view=custombbcodes">COM_JCOMMENTS_CUSTOM_BBCODE</menu>
+			<menu view="blacklists" link="option=com_jcomments&amp;view=blacklists">COM_JCOMMENTS_BLACKLIST</menu>
+			<menu view="mailqueues" link="option=com_jcomments&amp;view=mailqueues">COM_JCOMMENTS_MAILQ</menu>
+			<menu view="import" link="option=com_jcomments&amp;view=import">COM_JCOMMENTS_IMPORT</menu>
+			<menu view="settings" link="option=com_jcomments&amp;view=settings">COM_JCOMMENTS_SETTINGS</menu>
+			<menu view="about" link="option=com_jcomments&amp;view=about">COM_JCOMMENTS_ABOUT</menu>
+		</submenu>
+
+		<files folder="administrator">
+			<folder>controllers</folder>
+			<folder>classes</folder>
+			<folder>helpers</folder>
+			<folder>install</folder>
+			<folder>models</folder>
+			<folder>tables</folder>
+			<folder>views</folder>
+			<filename>controller.php</filename>
+			<filename>jcomments.php</filename>
+			<filename>access.xml</filename>
+			<filename>config.xml</filename>
+		</files>
+
+		<languages folder="administrator">
+			<language tag="en-GB">language/en-GB/com_jcomments.ini</language>
+			<language tag="en-GB">language/en-GB/com_jcomments.sys.ini</language>
+
+			<language tag="ru-RU">language/ru-RU/com_jcomments.ini</language>
+			<language tag="ru-RU">language/ru-RU/com_jcomments.sys.ini</language>
+		</languages>
+	</administration>
+</extension>
