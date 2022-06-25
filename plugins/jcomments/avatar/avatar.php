@@ -32,13 +32,13 @@ class PlgJcommentsAvatar extends CMSPlugin
 	/**
 	 * Prepare avatar for single comment
 	 *
-	 * @param   array  $comment  Array with comment object
+	 * @param   mixed  $comment  Array with comment object
 	 *
 	 * @return  void
 	 *
 	 * @since   1.5
 	 */
-	public function onPrepareAvatar(array &$comment)
+	public function onPrepareAvatar(&$comment)
 	{
 		$comments    = array();
 		$comments[0] = &$comment;
