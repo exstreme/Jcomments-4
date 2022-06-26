@@ -532,7 +532,10 @@ class JComments
 
 				$captchaEngine = $config->get('captcha_engine', 'kcaptcha');
 
-				if (($captchaEngine == 'kcaptcha') || ($captchaEngine == 'recaptcha') || ($captchaEngine == 'recaptcha_invisible'))
+				if (($captchaEngine == 'kcaptcha')
+					|| ($captchaEngine == 'recaptcha') || ($captchaEngine == 'recaptcha_invisible')
+					|| ($captchaEngine == 'hcaptcha') || ($captchaEngine == 'hcaptcha_invisible')
+				)
 				{
 					$tmpl->addVar('tpl_form', 'comments-form-captcha-html', $captchaEngine);
 				}
