@@ -1483,7 +1483,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		} else if (e.target && e.target.id == 'comments-form-send') {
 			e.preventDefault();
 
-			jcomments.saveComment();
+			jQuery.when(jcomments.saveComment()).done(function() {
+                var jc = window.jcomments;
+                if (jc) {
+                    setTimeout(() => {
+                        jc.showPage(jc.oi, jc.og, 0);
+                    }, 200);
+                }
+            });
 		} else if (e.target && e.target.id == 'comments-form-reset') {
 			e.preventDefault();
 
