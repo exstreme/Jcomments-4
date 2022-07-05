@@ -12,6 +12,9 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
+4.0.22
++ French language
+
 4.0.21
 + hCaptcha support
 
