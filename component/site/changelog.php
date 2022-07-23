@@ -12,6 +12,11 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
+4.0.22
++ French language
+
+4.0.21
++ hCaptcha support
 
 4.0.20
 # fixed bug with showing policy rules
