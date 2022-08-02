@@ -440,6 +440,124 @@
 				label="AP_FORM_FIELD_SMILIES_PATH"
 				filter="path"
 		/>
+	</fieldset>
+
+	<fieldset name="restrictions" label="A_RESTRICTIONS">
+		<field
+				name="username_maxlength"
+				type="text"
+				default="20"
+				filter="integer"
+				label="AP_USERNAME_MAXLENGTH"
+				description="AP_USERNAME_MAXLENGTH_DESC"
+		/>
+
+		<field
+				name="comment_minlength"
+				type="text"
+				default="0"
+				filter="integer"
+				label="AP_COMMENT_MINLENGTH"
+				description="AP_COMMENT_MINLENGTH_DESC"
+		/>
+
+		<field
+				name="comment_maxlength"
+				type="text"
+				default="1000"
+				filter="integer"
+				label="AP_COMMENT_MAXLENGTH"
+				description="AP_COMMENT_MAXLENGTH_DESC"
+		/>
+
+		<field
+				name="link_maxlength"
+				type="text"
+				default="50"
+				filter="integer"
+				label="AP_LINK_MAXLENGTH"
+				description="AP_LINK_MAXLENGTH_DESC"
+		/>
+
+		<field
+				name="flood_time"
+				type="text"
+				default="30"
+				filter="integer"
+				label="AP_FLOOD_TIME"
+				description="AP_FLOOD_TIME_DESC"
+		/>
+
+		<field
+				name="enable_nested_quotes"
+				type="radio"
+				class="btn-group"
+				default="1"
+				filter="integer"
+				label="AP_ENABLE_NESTED_QUOTES"
+				description="AP_ENABLE_NESTED_QUOTES_DESC"
+		>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
+				name="merge_time"
+				type="text"
+				default="0"
+				filter="integer"
+				label="AP_MERGE_TIME"
+				description="AP_MERGE_TIME_DESC"
+		/>
+
+		<field
+				name="max_comments_per_object"
+				type="text"
+				default="0"
+				filter="integer"
+				label="AP_MAX_COMMENTS_PER_OBJECT"
+				description="AP_MAX_COMMENTS_PER_OBJECT_DESC"
+		/>
+	</fieldset>
+
+	<fieldset name="security" label="A_SECURITY">
+		<field
+				name="enable_username_check"
+				type="radio"
+				class="btn-group"
+				default="1"
+				filter="integer"
+				label="AP_ENABLE_USERNAME_CHECK"
+				description="AP_ENABLE_USERNAME_CHECK_DESC"
+		>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
+				name="enable_blacklist"
+				type="radio"
+				class="btn-group"
+				default="0"
+				filter="integer"
+				label="AP_ENABLE_BLACKLIST"
+				description="AP_ENABLE_BLACKLIST_DESC"
+		>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
+				name="forbidden_names"
+				type="textarea"
+				rows="3"
+				cols="50"
+				filter="raw"
+				default="administrator,moderator,admin"
+				label="AP_FORBIDDEN_NAMES_LIST"
+				description="AP_FORBIDDEN_NAMES_LIST_DESC"
+				required="false"
+		/>
 
 		<field
 				name="captcha_engine"
@@ -575,123 +693,25 @@
 				default="90"
 				filter="integer"
 		/>
-	</fieldset>
-
-	<fieldset name="restrictions" label="A_RESTRICTIONS">
-		<field
-				name="username_maxlength"
-				type="text"
-				default="20"
-				filter="integer"
-				label="AP_USERNAME_MAXLENGTH"
-				description="AP_USERNAME_MAXLENGTH_DESC"
-		/>
 
 		<field
-				name="comment_minlength"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_COMMENT_MINLENGTH"
-				description="AP_COMMENT_MINLENGTH_DESC"
-		/>
-
-		<field
-				name="comment_maxlength"
-				type="text"
-				default="1000"
-				filter="integer"
-				label="AP_COMMENT_MAXLENGTH"
-				description="AP_COMMENT_MAXLENGTH_DESC"
-		/>
-
-		<field
-				name="link_maxlength"
-				type="text"
-				default="50"
-				filter="integer"
-				label="AP_LINK_MAXLENGTH"
-				description="AP_LINK_MAXLENGTH_DESC"
-		/>
-
-		<field
-				name="flood_time"
-				type="text"
-				default="30"
-				filter="integer"
-				label="AP_FLOOD_TIME"
-				description="AP_FLOOD_TIME_DESC"
-		/>
-
-		<field
-				name="enable_nested_quotes"
+				name="stopforumspam"
 				type="radio"
 				class="btn-group"
-				default="1"
+				default="0"
 				filter="integer"
-				label="AP_ENABLE_NESTED_QUOTES"
-				description="AP_ENABLE_NESTED_QUOTES_DESC"
+				label="StopForumSpam"
 		>
 			<option value="1">JYES</option>
 			<option value="0">JNO</option>
 		</field>
 
 		<field
-				name="merge_time"
-				type="text"
-				default="0"
+				name="antispam_request_timeout"
+				type="number"
+				label="Antispam API request timeout"
+				default="3"
 				filter="integer"
-				label="AP_MERGE_TIME"
-				description="AP_MERGE_TIME_DESC"
-		/>
-
-		<field
-				name="max_comments_per_object"
-				type="text"
-				default="0"
-				filter="integer"
-				label="AP_MAX_COMMENTS_PER_OBJECT"
-				description="AP_MAX_COMMENTS_PER_OBJECT_DESC"
-		/>
-	</fieldset>
-
-	<fieldset name="security" label="A_SECURITY">
-		<field
-				name="enable_username_check"
-				type="radio"
-				class="btn-group"
-				default="1"
-				filter="integer"
-				label="AP_ENABLE_USERNAME_CHECK"
-				description="AP_ENABLE_USERNAME_CHECK_DESC"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="enable_blacklist"
-				type="radio"
-				class="btn-group"
-				default="0"
-				filter="integer"
-				label="AP_ENABLE_BLACKLIST"
-				description="AP_ENABLE_BLACKLIST_DESC"
-		>
-			<option value="1">JYES</option>
-			<option value="0">JNO</option>
-		</field>
-
-		<field
-				name="forbidden_names"
-				type="textarea"
-				rows="3"
-				cols="50"
-				filter="raw"
-				default="administrator,moderator,admin"
-				label="AP_FORBIDDEN_NAMES_LIST"
-				description="AP_FORBIDDEN_NAMES_LIST_DESC"
-				required="false"
 		/>
 	</fieldset>
 
