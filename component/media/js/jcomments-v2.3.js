@@ -33,6 +33,10 @@ jQuery(document).ready(function ($) {
 	formIframe.on('load', function () {
 		const iframeDom = formIframe.contents();
 
+		if (window.parent.location.hash === '#addcomments') {
+			$(window.parent).scrollTop($(parent.document).find('#addcomments').offset().top);
+		}
+
 		iframeDom.on('click', '.cmd-showform', function (e) {
 			e.preventDefault();
 			$('.form-layout', iframeDom).toggle();

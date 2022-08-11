@@ -472,6 +472,28 @@
 					description="AP_FORBIDDEN_NAMES_LIST_DESC"
 					required="false"
 			/>
+
+			<field
+					name="stopforumspam"
+					type="radio"
+					class="btn-group"
+					default="0"
+					filter="integer"
+					label="AP_ANTISPAM_STOPFORUMSPAM"
+			>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+
+			<field
+					name="antispam_request_timeout"
+					type="number"
+					label="AP_ANTISPAM_TIMEOUT"
+					description="In seconds"
+					default="3"
+					filter="integer"
+					class="w-20"
+			/>
 		</fieldset>
 
 		<fieldset name="restrictions" label="A_RESTRICTIONS">

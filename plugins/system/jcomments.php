@@ -14,9 +14,13 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Http\HttpFactory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Event\DispatcherInterface;
+use Joomla\Http\Exception\InvalidResponseCodeException;
 use Joomla\Registry\Registry;
 
 /**
@@ -206,5 +210,52 @@ class PlgSystemJComments extends CMSPlugin
 			include_once $coreFile;
 			echo JComments::getCommentsCount($objectId, $objectGroup);
 		}
+	}
+
+	/**
+	 * Do spam checks before comment add.
+	 *
+	 * @param   object  $comment  Comment object
+	 *
+	 * @return  boolean  False if IP in spam database, true otherwise.
+	 *
+	 * @since   4.0.23
+	 */
+	public function onJCommentsCommentBeforeAdd($comment)
+	{
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if ($params->get('stopforumspam', 0) == 1)
+		{
+			try
+			{
+				$httpResponse = HttpFactory::getHttp()->get(
+					'https://api.stopforumspam.org/api?ip=' . $comment->ip . '&json',
+					array(),
+					$params->get('antispam_request_timeout', 3)
+				);
+				$responseBody = (string) $httpResponse->getBody();
+				$responseBody = json_decode($responseBody);
+
+				if ($responseBody->success)
+				{
+					// 1 - spam
+					if ($responseBody->ip->appears == 1)
+					{
+						// TODO Return error message?
+						/*$response = JCommentsFactory::getAjaxResponse();
+						$response->addAlert(Text::_('JERROR_AN_ERROR_HAS_OCCURRED', true));*/
+
+						return false;
+					}
+				}
+			}
+			catch (InvalidResponseCodeException $e)
+			{
+				Log::add('Invalid or undefined HTTP response code while fetching StopForumSpam API.', Log::ERROR, 'com_jcomments');
+			}
+		}
+
+		return true;
 	}
 }
