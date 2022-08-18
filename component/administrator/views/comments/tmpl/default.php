@@ -18,7 +18,10 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\String\StringHelper;
 
-HTMLHelper::_('behavior.multiselect');
+/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('multiselect')
+	->useScript('table.columns');
 
 $user           = Factory::getApplication()->getIdentity();
 $userId         = $user->get('id');
