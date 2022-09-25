@@ -1,14 +1,12 @@
 <?php
 /**
- * CB JComments - CommunityBuilder plugin displays a tab with the last user comments
+ * CB JComments - CommunityBuilder plugin displays a tab with the user comments
  *
- * @version       4.0
- * @package       JComments plugin for CommunityBuilder
- * @author        smart (smart@joomlatune.ru)
- * @copyright (C) 2006-2012 by smart (http://www.joomlatune.ru)
+ * @package       JComments
+ * @author        Sergey M. Litvinov (smart@joomlatune.ru) & Vladimir Globulopolis
+ * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- *
- **/
+ */
 
 if (!(defined('_VALID_CB') || defined('_JEXEC')))
 {
