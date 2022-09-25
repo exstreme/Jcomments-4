@@ -330,7 +330,7 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @since   2.0
 	 */
-	public function onUserAfterSave(array $data, bool $isNew, bool $result, string $error)
+	public function onUserAfterSave(array $data, bool $isNew, bool $result, ?string $error)
 	{
 		if ($data && !$isNew)
 		{
