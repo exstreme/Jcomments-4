@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
 	<name>plg_system_jcomments</name>
-	<creationDate>August 2018</creationDate>
+	<creationDate>October 2022</creationDate>
 	<author>JComments team</author>
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.2</version>
+	<version>4.0.3</version>
 	<description>PLG_SYSTEM_JCOMMENTS_XML_DESCRIPTION</description>
 
 	<files>
