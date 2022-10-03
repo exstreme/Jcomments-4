@@ -12,6 +12,10 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
+4.0.23
+# fixed bugs
++ Added stopforumspam checkings
+
 4.0.22
 + French language
 
