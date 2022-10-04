@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Captcha\Captcha;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
@@ -154,12 +155,17 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 			}
 			elseif ($html == 'recaptcha')
 			{
-				$recaptcha = JCaptcha::getInstance($html, array('namespace' => 'jcomments'));
+				$recaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
 				echo $recaptcha->display('recaptcha', 'dynamic_recaptcha_1', 'g-recaptcha');
+			}
+			elseif ($html == 'recaptcha_invisible')
+			{
+				$recaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
+				echo $recaptcha->display('recaptcha', 'dynamic_recaptcha_invisible_1', 'g-recaptcha');
 			}
 			elseif ($html == 'hcaptcha')
 			{
-				$hcaptcha = JCaptcha::getInstance($html, array('namespace' => 'jcomments'));
+				$hcaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
 				echo $hcaptcha->display('hcaptcha', 'dynamic_hcaptcha_1', 'hcaptcha');
 			}
 		endif; ?>

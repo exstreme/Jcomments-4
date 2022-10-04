@@ -2,7 +2,7 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version       3.0
+ * @version       4.0
  * @package       JComments
  * @author        Sergey M. Litvinov (smart@joomlatune.ru)
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
