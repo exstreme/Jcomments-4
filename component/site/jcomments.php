@@ -341,7 +341,7 @@ class JComments
 		$tmpl->freeAllTemplates();
 
 		// Send notifications
-		srand((float) microtime() * 10000000);
+		srand(self::makeSeed());
 		$randValue = rand(0, 100);
 
 		if ($randValue <= 30)
@@ -1533,5 +1533,19 @@ class JComments
 		$options['filter']       = $filter;
 
 		return JCommentsModel::getCommentsCount($options);
+	}
+
+	/**
+	 * Make new seed to use with srand()
+	 *
+	 * @return  integer
+	 *
+	 * @since   4.0
+	 */
+	private static function makeSeed(): int
+	{
+		list($usec, $sec) = explode(' ', microtime());
+
+		return ($sec . $usec) * 10000000;
 	}
 }
