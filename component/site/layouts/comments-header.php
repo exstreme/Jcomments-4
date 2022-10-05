@@ -19,7 +19,7 @@ $objectID    = $displayData->getVar('comment-object_id');
 $objectGroup = $displayData->getVar('comment-object_group');
 ?>
 <div class="comments-list-header">
-	<h6><?php echo Text::_('COMMENTS_LIST_HEADER'); ?>&nbsp;&nbsp;
+	<div class="h6"><?php echo Text::_('COMMENTS_LIST_HEADER'); ?>&nbsp;&nbsp;
 		<?php if ($displayData->getVar('comments-refresh', true)): ?>
 			<a href="#" title="<?php echo Text::_('BUTTON_REFRESH'); ?>"
 			   onclick="jcomments.showPage(<?php echo $objectID; ?>, '<?php echo $objectGroup; ?>', 0); return false;">
@@ -33,5 +33,5 @@ $objectGroup = $displayData->getVar('comment-object_group');
 				<span aria-hidden="true" class="icon-rss icon-fw"></span>
 			</a>
 		<?php endif; ?>
-	</h6>
+	</div>
 </div>

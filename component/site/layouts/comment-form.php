@@ -27,7 +27,7 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 		</a>
 	</div>
 <?php else: ?>
-	<h6><?php echo Text::_('FORM_HEADER'); ?></h6>
+	<div class="h6"><?php echo Text::_('FORM_HEADER'); ?></div>
 
 	<?php if ($displayData->getVar('comments-form-policy', 0) == 1): ?>
 		<div class="border rounded comments-policy"><?php echo $displayData->getVar('comments-policy'); ?></div>
