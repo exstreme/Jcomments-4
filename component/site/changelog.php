@@ -1,7 +1,7 @@
 <?php
 /**
  * @package JComments
- * @version 4.0.0
+ * @version 4.0
  * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
  * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
@@ -12,6 +12,13 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
+Not in release
+# fixed bug #112
+^ Headers changed to div's with header class in some layouts.
+
+4.0.24
++ Added Invisible Recaptcha v2 support
+
 4.0.23
 # fixed bugs
 + Added stopforumspam checkings
