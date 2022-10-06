@@ -1546,6 +1546,6 @@ class JComments
 	{
 		list($usec, $sec) = explode(' ', microtime());
 
-		return ($sec . $usec) * 10000000;
+		return (int) ($sec . $usec) * 10000000;
 	}
 }
