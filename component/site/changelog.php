@@ -12,7 +12,7 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
-4.0.25
+Not in release
 # fixed bug #112
 ^ Headers changed to div's with header class in some layouts.
 
