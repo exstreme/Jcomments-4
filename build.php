@@ -55,13 +55,54 @@ class PkgBuilder
 	);
 
 	/**
+	 * Download URLs
+	 *
+	 * @var   array
+	 * @since 0.1
+	 */
+	private $dlURL = array(
+		'package' => 'https://github.com/exstreme/Jcomments-4/releases/download/v{version}/pkg_jcomments_{version}.zip',
+		'modules' => array(
+			'mod_jcomments_latest'           => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_{version}.zip',
+			'mod_jcomments_latest_backend'   => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_backend_{version}.zip',
+			'mod_jcomments_latest_commented' => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_commented_{version}.zip',
+			'mod_jcomments_most_commented'   => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_most_commented_{version}.zip',
+			'mod_jcomments_top_posters'      => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_top_posters_{version}.zip'),
+		'plugins' => array(
+			'plg_jcomments_avatar' => 'https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_{version}.zip'
+		)
+	);
+
+	/**
+	 * Update xml file with new extension version
+	 *
+	 * @var   boolean
+	 * @since 0.1
+	 */
+	private $updateXML = false;
+
+	/**
+	 * Create a hash file alongside the zip file.
+	 *
+	 * @var   boolean
+	 * @since 0.1
+	 */
+	private $shaFile = false;
+
+	/**
 	 * Class constructor
 	 *
 	 * @since  0.1
 	 */
 	public function __construct()
 	{
-		$opts = getopt('', array('mod:', 'plg:', 'com'));
+		$opts = getopt('', array('mod:', 'plg:', 'com', 'u', 'shafile'));
+
+		// Create sha file with hashes
+		if (array_key_exists('shafile', $opts))
+		{
+			$this->shaFile = true;
+		}
 
 		// Build component, all modules and plugins
 		if (count($opts) == 0)
@@ -72,6 +113,12 @@ class PkgBuilder
 		}
 		else
 		{
+			// Test if we need to update xml file with new extension version, e.g. update-jcomments.xml after build component
+			if (array_key_exists('u', $opts))
+			{
+				$this->updateXML = true;
+			}
+
 			// Build component
 			if (array_key_exists('com', $opts))
 			{
@@ -110,7 +157,7 @@ class PkgBuilder
 	 *
 	 * @since   0.1
 	 */
-	private function zipFolder(string $srcPath, string $dstPath)
+	private function zipFolder(string $srcPath, string $dstPath): bool
 	{
 		$srcPath   = realpath($srcPath);
 		$dstFolder = dirname($dstPath);
@@ -154,10 +201,19 @@ class PkgBuilder
 	 *
 	 * @return void
 	 *
+	 * @throws Exception
 	 * @since  0.1
 	 */
 	private function makePackage()
 	{
+		// Get the component version
+		$componentManifest = $this->loadXmlFile(__DIR__ . '/component/jcomments.xml');
+
+		if ($componentManifest === false)
+		{
+			die(0);
+		}
+
 		$dst = __DIR__ . '/';
 
 		foreach ($this->componentFolders as $dst => $src)
@@ -174,22 +230,25 @@ class PkgBuilder
 			$dst = dirname(__DIR__ . '/' . $dst);
 		}
 
+		// Load package manifest and fix version from component manifest
+		$packageManifest = $this->loadXmlFile(__DIR__ . '/build/pkg_jcomments.xml');
+
+		if ($packageManifest === false)
+		{
+			die(0);
+		}
+
+		$packageManifest->version = $componentManifest->version;
+		$packageManifest->asXML(__DIR__ . '/build/pkg_jcomments.xml');
+
 		copy(__DIR__ . '/build/pkg_jcomments.php', dirname($dst) . '/pkg_jcomments.php');
 		copy(__DIR__ . '/build/pkg_jcomments.xml', dirname($dst) . '/pkg_jcomments.xml');
-
-		// Get the component version
-		$componentManifest = simplexml_load_file(__DIR__ . '/component/jcomments.xml');
-
-		// Load package manifest and fix version from component manifest
-		$packageManifest = simplexml_load_file(__DIR__ . '/build/pkg_jcomments.xml');
-		$packageManifest->version = $componentManifest->version;
-		$packageManifest->asXML(dirname($dst) . '/pkg_jcomments.xml');
 
 		$dstFilepath = __DIR__ . '/pkg_jcomments_' . $componentManifest->version . '.zip';
 
 		if ($this->zipFolder(dirname($dst), $dstFilepath))
 		{
-			echo 'Component package created at ' . $dstFilepath;
+			echo 'Component package created at ' . $dstFilepath . "\n";
 		}
 
 		// Remove temp folder
@@ -207,10 +266,36 @@ class PkgBuilder
 		}
 
 		// Calculate sha hash
-		$sha = 'sha256: ' . hash_file('sha256', $dstFilepath) . "\n";
-		$sha .= 'sha384: ' . hash_file('sha384', $dstFilepath) . "\n";
-		$sha .= 'sha512: ' . hash_file('sha512', $dstFilepath) . "\n";
-		file_put_contents(dirname($dst, 2) . '/' . basename($dstFilepath) . '.sha', $sha);
+		$sha256 = hash_file('sha256', $dstFilepath);
+		$sha384 = hash_file('sha384', $dstFilepath);
+		$sha512 = hash_file('sha512', $dstFilepath);
+
+		if ($this->shaFile)
+		{
+			$sha = 'sha256: ' . $sha256 . "\n";
+			$sha .= 'sha384: ' . $sha384 . "\n";
+			$sha .= 'sha512: ' . $sha512 . "\n";
+			file_put_contents(dirname($dst, 2) . '/' . basename($dstFilepath) . '.sha', $sha);
+		}
+
+		if ($this->updateXML)
+		{
+			$updateXML = $this->loadXmlFile(__DIR__ . '/update-jcomments.xml');
+
+			if ($updateXML === false)
+			{
+				die(0);
+			}
+
+			$updateXML->update->version = $componentManifest->version;
+			$updateXML->update->sha256  = $sha256;
+			$updateXML->update->sha384  = $sha384;
+			$updateXML->update->sha512  = $sha512;
+			$updateXML->update->downloads->downloadurl = str_replace('{version}', $componentManifest->version, $this->dlURL['package']);
+			$updateXML->asXML(__DIR__ . '/update-jcomments.xml');
+
+			echo 'update-jcomments.xml have a new ' . $componentManifest->version . ' version.' . "\n";
+		}
 	}
 
 	/**
@@ -221,6 +306,7 @@ class PkgBuilder
 	 *
 	 * @return  void
 	 *
+	 * @throws  Exception
 	 * @since   0.1
 	 */
 	private function packExtensions(string $type, array $ext = array())
@@ -235,7 +321,7 @@ class PkgBuilder
 		}
 		else
 		{
-			exit('Type error');
+			exit('Extension type error!');
 		}
 
 		/** @see $pluginsFolders */
@@ -248,7 +334,7 @@ class PkgBuilder
 		{
 			$folders = array();
 
-			// Reduce an array with listed extensions to listed in CMD
+			// Reduce an array with listed extensions in $this->$varFolders to listed in CMD.
 			foreach ($this->$varFolders as $dest => $source)
 			{
 				foreach ($ext as $value)
@@ -264,18 +350,78 @@ class PkgBuilder
 		}
 
 		$readme = file_get_contents(__DIR__ . '/build/' . $extType . '/README.md');
+		$xml    = false;
+
+		if ($this->updateXML)
+		{
+			$xml = $this->loadXmlFile(__DIR__ . '/update-jcomments-' . $extType . '.xml');
+		}
 
 		foreach ($folders as $dst => $src)
 		{
 			// Fix plugin/module filename version
-			$manifest    = simplexml_load_file($src);
+			$manifest = $this->loadXmlFile($src);
+
+			if ($manifest === false)
+			{
+				continue;
+			}
+
 			$pathInfo    = pathinfo(__DIR__ . '/' . $dst);
 			$dstFolder   = $pathInfo['dirname'];
 			$dstFilename = $pathInfo['filename'];
-			$dstPath = $dstFolder . '/' . $dstFilename . '_' . $manifest->version . '.zip';
+			$dstPath     = $dstFolder . '/' . $dstFilename . '_' . $manifest->version . '.zip';
 
 			if ($this->zipFolder(__DIR__ . '/' . dirname($src), $dstPath))
 			{
+				$sha256 = hash_file('sha256', $dstPath);
+				$sha384 = hash_file('sha384', $dstPath);
+				$sha512 = hash_file('sha512', $dstPath);
+
+				if ($this->shaFile)
+				{
+					$sha = 'sha256: ' . $sha256 . "\n";
+					$sha .= 'sha384: ' . $sha384 . "\n";
+					$sha .= 'sha512: ' . $sha512 . "\n";
+					file_put_contents($dstFolder . '/' . basename($dstPath) . '.sha', $sha);
+				}
+
+				if ($this->updateXML && $xml !== false)
+				{
+					foreach ($xml as $item)
+					{
+						$element = trim($item->element);
+						$_type = trim($item->type);
+
+						if ($_type == 'module')
+						{
+							if ($element === $dstFilename)
+							{
+								$item->version = $manifest->version;
+								$item->sha256  = $sha256;
+								$item->sha384  = $sha384;
+								$item->sha512  = $sha512;
+								$item->downloads->downloadurl = str_replace('{version}', $manifest->version, $this->dlURL[$extType][$element]);
+
+								break;
+							}
+						}
+						elseif ($_type == 'plugin')
+						{
+							if (strpos($dstFilename, $element) !== false)
+							{
+								$item->version = $manifest->version;
+								$item->sha256  = $sha256;
+								$item->sha384  = $sha384;
+								$item->sha512  = $sha512;
+								$item->downloads->downloadurl = str_replace('{version}', $manifest->version, $this->dlURL[$extType][$dstFilename]);
+
+								break;
+							}
+						}
+					}
+				}
+
 				echo $dstPath . ' created.' . "\n";
 			}
 			else
@@ -292,6 +438,13 @@ class PkgBuilder
 		}
 
 		file_put_contents(__DIR__ . '/build/' . $extType . '/README.md', $readme);
+
+		if ($this->updateXML && $xml !== false)
+		{
+			$xml->asXML(__DIR__ . '/update-jcomments-' . $extType . '.xml');
+
+			echo 'update-jcomments-' . $extType . '.xml have a new extension version(s).' . "\n";
+		}
 	}
 
 	/**
@@ -331,6 +484,36 @@ class PkgBuilder
 			},
 			$inputs
 		);
+	}
+
+	/**
+	 * Load XML file and parse errors if any.
+	 *
+	 * @param   string  $path  Path to a file
+	 *
+	 * @return  SimpleXMLElement|boolean  Return boolean false on error, SimpleXMLElement object otherwise.
+	 *
+	 * @since   0.1
+	 */
+	private function loadXmlFile(string $path)
+	{
+		libxml_use_internal_errors(true);
+
+		$xml = simplexml_load_file($path);
+
+		if ($xml === false)
+		{
+			$errors = libxml_get_errors();
+
+			foreach ($errors as $error)
+			{
+				echo 'Error "' . trim($error->message) . '" in "' . $error->file . '" at line ' . $error->line . '.' . "\n";
+			}
+		}
+
+		libxml_clear_errors();
+
+		return $xml;
 	}
 }
 
