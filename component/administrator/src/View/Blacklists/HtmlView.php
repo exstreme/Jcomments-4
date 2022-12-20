@@ -69,7 +69,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar = Toolbar::getInstance();
 		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
 
-		ToolbarHelper::title(Text::_('A_SUBMENU_BLACKLIST'));
+		ToolbarHelper::title(Text::_('A_SUBMENU_BLACKLIST'), 'ban-circle');
 
 		if (($canDo->get('core.create')))
 		{

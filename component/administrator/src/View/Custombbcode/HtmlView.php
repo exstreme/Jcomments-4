@@ -101,7 +101,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar    = Toolbar::getInstance();
 
 		$app->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(Text::_('A_CUSTOM_BBCODE'));
+		ToolbarHelper::title(Text::_('A_CUSTOM_BBCODE'), 'code');
 
 		if ($isNew && $canDo->get('core.create'))
 		{

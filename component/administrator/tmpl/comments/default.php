@@ -223,13 +223,3 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 		<?php echo HTMLHelper::_('form.token'); ?>
 	</div>
 </form>
-
-<?php // Load the refresh objects template.
-echo HTMLHelper::_(
-	'bootstrap.renderModal',
-	'refreshObjectsModal',
-	array(
-		'title'  => Text::_('A_REFRESH_OBJECTS_INFO')
-	),
-	$this->loadTemplate('modal_objects_update_body')
-);

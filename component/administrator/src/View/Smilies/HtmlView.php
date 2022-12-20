@@ -70,7 +70,7 @@ class HtmlView extends BaseHtmlView
 		$canDo   = JcommentsHelper::getActions('com_jcomments', 'component');
 		$user    = Factory::getApplication()->getIdentity();
 
-		ToolbarHelper::title(Text::_('A_SMILIES'));
+		ToolbarHelper::title(Text::_('A_SMILIES'), 'smiley');
 
 		if ($canDo->get('core.create'))
 		{

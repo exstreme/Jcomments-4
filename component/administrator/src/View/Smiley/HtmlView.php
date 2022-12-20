@@ -72,7 +72,7 @@ class HtmlView extends BaseHtmlView
 
 		$app->input->set('hidemainmenu', 1);
 
-		ToolbarHelper::title($isNew ? Text::_('A_SMILIES_SMILEY_NEW') : Text::_('A_SMILIES_SMILEY_EDIT'));
+		ToolbarHelper::title($isNew ? Text::_('A_SMILIES_SMILEY_NEW') : Text::_('A_SMILIES_SMILEY_EDIT'), 'smiley');
 
 		if ($isNew && $canDo->get('core.create'))
 		{

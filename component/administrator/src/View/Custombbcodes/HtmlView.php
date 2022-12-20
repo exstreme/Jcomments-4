@@ -68,7 +68,7 @@ class HtmlView extends BaseHtmlView
 		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
 		$user    = Factory::getApplication()->getIdentity();
 
-		ToolbarHelper::title(Text::_('A_SUBMENU_CUSTOM_BBCODE'));
+		ToolbarHelper::title(Text::_('A_SUBMENU_CUSTOM_BBCODE'), 'code');
 
 		if ($canDo->get('core.create'))
 		{

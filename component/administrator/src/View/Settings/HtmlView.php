@@ -35,7 +35,7 @@ class HtmlView extends BaseHtmlView
 	{
 		$canDo = ContentHelper::getActions('com_jcomments', 'component');
 
-		ToolbarHelper::title(Text::_('A_SETTINGS'));
+		ToolbarHelper::title(Text::_('A_SETTINGS'), 'cog config');
 
 		if ($canDo->get('core.admin'))
 		{

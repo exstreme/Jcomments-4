@@ -70,7 +70,7 @@ class HtmlView extends BaseHtmlView
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
 
 		$app->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(Text::_('A_COMMENT_EDIT'));
+		ToolbarHelper::title(Text::_('A_COMMENT_EDIT'), 'comment');
 
 		if (!$checkedOut && $canDo->get('core.edit'))
 		{

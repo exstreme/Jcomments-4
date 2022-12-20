@@ -13,8 +13,12 @@ let closeObjectsModal;
 
 jQuery(document).ready(function ($) {
 	closeObjectsModal = function () {
-		if (parseInt($('#step').val()) === 0) {
+		if (parseInt($('#finished').val()) === 1) {
 			window.location.reload();
+		}
+
+		if (parseInt($('#step').val()) > 0) {
+			return false;
 		}
 	}
 

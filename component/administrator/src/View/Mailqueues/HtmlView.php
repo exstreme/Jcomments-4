@@ -67,7 +67,7 @@ class HtmlView extends BaseHtmlView
 		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
 		$user    = Factory::getApplication()->getIdentity();
 
-		ToolbarHelper::title(Text::_('A_MAILQ'));
+		ToolbarHelper::title(Text::_('A_MAILQ'), 'pending');
 
 		if (($canDo->get('core.delete')))
 		{

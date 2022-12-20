@@ -40,7 +40,7 @@ class HtmlView extends BaseHtmlView
 		$this->items = $this->get('Items');
 		$this->state = $this->get('State');
 
-		ToolbarHelper::title(Text::_('A_IMPORT'));
+		ToolbarHelper::title(Text::_('A_IMPORT'), 'puzzle-piece install');
 
 		parent::display($tpl);
 

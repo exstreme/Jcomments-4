@@ -68,7 +68,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar = Toolbar::getInstance();
 
 		$app->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(Text::_('COM_JCOMMENTS_USER'));
+		ToolbarHelper::title(Text::_('COM_JCOMMENTS_USER'), 'user user-profile');
 
 		$toolbar->apply('user.apply');
 

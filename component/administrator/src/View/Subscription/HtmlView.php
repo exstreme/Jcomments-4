@@ -73,7 +73,7 @@ class HtmlView extends BaseHtmlView
 		$app->input->set('hidemainmenu', 1);
 
 		$title = $isNew ? Text::_('A_SUBSCRIPTION_NEW') : Text::_('A_SUBSCRIPTION_EDIT');
-		ToolbarHelper::title($title);
+		ToolbarHelper::title($title, 'envelope');
 
 		if ($isNew && $canDo->get('core.create'))
 		{

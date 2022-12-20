@@ -71,7 +71,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar    = Toolbar::getInstance();
 
 		$app->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(Text::_('A_BLACKLIST'));
+		ToolbarHelper::title(Text::_('A_BLACKLIST'), 'ban-circle');
 
 		if ($isNew && $canDo->get('core.create'))
 		{

@@ -31,13 +31,15 @@ $wa->useScript('jcomments.objects')
 		</div>
 		<ul class="list-group list-group-flush log"></ul>
 		<?php echo HTMLHelper::_('form.token'); ?>
-		<input type="hidden" name="step" id="step" value="0">
+		<input type="hidden" name="step" id="step" value="1">
 		<input type="hidden" name="finished" id="finished" value="0">
 		<div class="text-center">
 			<button type="submit" class="btn btn-success mt-3 cmd-objects-update">
 				<span class="icon-refresh" aria-hidden="true"></span>
-				<?php echo Text::_('A_REFRESH_OBJECTS_INFO'); ?>
+				<?php echo Text::_('A_REFRESH_OBJECTS_BUTTON'); ?>
 			</button>
+			<a href="<?php echo Route::_('index.php?option=com_jcomments&view=comments'); ?>" role="button"
+			   class="btn btn-secondary mt-3"><?php echo Text::_('JCLOSE'); ?></a>
 		</div>
 		<div class="alert alert-light" role="alert">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-patch-exclamation-fill" viewBox="0 0 16 16">

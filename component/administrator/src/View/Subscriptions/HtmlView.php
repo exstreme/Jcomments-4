@@ -68,7 +68,7 @@ class HtmlView extends BaseHtmlView
 		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
 		$user    = Factory::getApplication()->getIdentity();
 
-		ToolbarHelper::title(Text::_('A_SUBMENU_SUBSCRIPTIONS'));
+		ToolbarHelper::title(Text::_('A_SUBMENU_SUBSCRIPTIONS'), 'envelope');
 
 		if ($canDo->get('core.create'))
 		{
