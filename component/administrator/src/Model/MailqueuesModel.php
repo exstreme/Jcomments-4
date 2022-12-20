@@ -39,7 +39,7 @@ class MailqueuesModel extends ListModel
 
 	protected function getListQuery()
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 		$query = $db->getQuery(true);
 
 		$query->select(
@@ -68,18 +68,6 @@ class MailqueuesModel extends ListModel
 		$query->order($db->escape($ordering . ' ' . $direction));
 
 		return $query;
-	}
-
-	public function purge()
-	{
-		$db = $this->getDbo();
-		$query = $db->getQuery(true)
-			->delete($db->quoteName('#__jcomments_mailq'));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		return true;
 	}
 
 	protected function populateState($ordering = 'created', $direction = 'desc')

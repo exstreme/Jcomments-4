@@ -19,7 +19,11 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Session\Session;
 
-HTMLHelper::_('behavior.multiselect');
+/** @var Joomla\Component\Jcomments\Administrator\View\Smilies\HtmlView $this */
+
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('table.columns')
+	->useScript('multiselect');
 
 $user           = Factory::getApplication()->getIdentity();
 $userId         = $user->get('id');

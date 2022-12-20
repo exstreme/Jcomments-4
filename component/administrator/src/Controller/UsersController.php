@@ -14,25 +14,16 @@ namespace Joomla\Component\Jcomments\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\AdminController;
-use Joomla\CMS\Router\Route;
 
-class MailqueuesController extends AdminController
+/**
+ * Users list controller class.
+ * This class is just placeholder for tasks users.{method}.
+ *
+ * @since  1.6
+ */
+class UsersController extends AdminController
 {
-	public function purge()
-	{
-		$this->checkToken();
-
-		/** @var \Joomla\Component\Jcomments\Administrator\Model\MailqueueModel $model */
-		$model = $this->getModel();
-		$model->purge();
-
-		$this->setRedirect(Route::_('index.php?option=com_jcomments&view=mailqueues', false), Text::_('A_MAILQ_EMAILS_PURGED'));
-
-		return true;
-	}
-
 	/**
 	 * Proxy for getModel.
 	 *
@@ -44,7 +35,7 @@ class MailqueuesController extends AdminController
 	 *
 	 * @since   1.6
 	 */
-	public function getModel($name = 'Mailqueue', $prefix = 'Administrator', $config = array('ignore_request' => true))
+	public function getModel($name = 'User', $prefix = 'Administrator', $config = array('ignore_request' => true))
 	{
 		return parent::getModel($name, $prefix, $config);
 	}

@@ -30,6 +30,16 @@ class HtmlView extends BaseHtmlView
 	public $filterForm;
 	public $activeFilters;
 
+	/**
+	 * Execute and display a template script.
+	 *
+	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
 	public function display($tpl = null)
 	{
 		$this->items         = $this->get('Items');
@@ -45,6 +55,15 @@ class HtmlView extends BaseHtmlView
 
 	}
 
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 *
+	 * @throws  \Exception
+	 */
 	protected function addToolbar()
 	{
 		$toolbar = Toolbar::getInstance();

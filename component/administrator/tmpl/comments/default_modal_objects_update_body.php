@@ -12,15 +12,13 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
-$app = Factory::getApplication();
+/** @var Joomla\Component\Jcomments\Administrator\View\Comments\HtmlView $this */
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
-$wa = $app->getDocument()->getWebAssetManager();
+$wa = $this->document->getWebAssetManager();
 $wa->useScript('jcomments.objects')
 	->useScript('keepalive');
 ?>
@@ -34,6 +32,7 @@ $wa->useScript('jcomments.objects')
 		<ul class="list-group list-group-flush log"></ul>
 		<?php echo HTMLHelper::_('form.token'); ?>
 		<input type="hidden" name="step" id="step" value="0">
+		<input type="hidden" name="finished" id="finished" value="0">
 		<div class="text-center">
 			<button type="submit" class="btn btn-success mt-3 cmd-objects-update">
 				<span class="icon-refresh" aria-hidden="true"></span>

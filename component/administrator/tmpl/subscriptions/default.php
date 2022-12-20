@@ -18,7 +18,11 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 
-HTMLHelper::_('behavior.multiselect');
+/** @var Joomla\Component\Jcomments\Administrator\View\Subscriptions\HtmlView $this */
+
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('table.columns')
+	->useScript('multiselect');
 
 $user           = Factory::getApplication()->getIdentity();
 $userId         = $user->get('id');

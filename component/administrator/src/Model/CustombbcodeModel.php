@@ -87,7 +87,7 @@ class CustombbcodeModel extends AdminModel
 	{
 		$table = $this->getTable('Custombbcode');
 		$key   = $table->getKeyName();
-		$db    = $this->getDbo();
+		$db    = $this->getDatabase();
 
 		$query = $db->getQuery(true)
 			->update($table->getTableName())

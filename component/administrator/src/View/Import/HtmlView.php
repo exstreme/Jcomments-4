@@ -25,6 +25,16 @@ class HtmlView extends BaseHtmlView
 	protected $items;
 	protected $state;
 
+	/**
+	 * Execute and display a template script.
+	 *
+	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
 	public function display($tpl = null)
 	{
 		$this->items = $this->get('Items');

@@ -20,14 +20,16 @@ use Joomla\CMS\Router\Route;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\String\StringHelper;
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+/** @var Joomla\Component\Jcomments\Administrator\View\Comments\HtmlView $this */
+
 $wa = $this->document->getWebAssetManager();
 $wa->useStyle('jcomments.backend_style')
 	->useScript('jquery')
 	->useScript('kwood.plugin')
-	->useScript('kwood.more');
+	->useScript('kwood.more')
+	->useScript('table.columns')
+	->useScript('multiselect');
 
-HTMLHelper::_('behavior.multiselect');
 HTMLHelper::_('bootstrap.tooltip', '.hasTooltip');
 
 $user          = Factory::getApplication()->getIdentity();
@@ -84,8 +86,13 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 							<th scope="col" class="w-10 d-none d-md-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_COMMENT_OBJECT_TITLE', 'jo.title', $listDirection, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-5 d-none d-md-table-cell">
-								<?php echo HTMLHelper::_('searchtools.sort', 'A_COMMENT_DATE', 'jc.date', $listDirection, $listOrder, null, 'asc', 'A_COMMENT_DATE', 'icon-sort'); ?>
+							<th scope="col" class="w-7 d-none d-md-table-cell">
+								<?php echo HTMLHelper::_(
+									'searchtools.sort',
+									'A_COMMENT_DATE',
+									'jc.date',
+									$listDirection, $listOrder, null, 'asc', 'A_COMMENT_DATE', 'icon-sort'
+								); ?>
 							</th>
 							<th scope="col" class="w-10 d-none d-md-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_LANGUAGE', 'jc.lang', $listDirection, $listOrder); ?>
@@ -98,7 +105,9 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 						<tbody>
 						<?php foreach ($this->items as $i => $item):
 							$canEdit = $user->authorise('core.edit', 'com_jcomments');
-							$canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $userId || $item->checked_out == 0;
+							$canCheckin = $user->authorise('core.manage', 'com_checkin')
+								|| $item->checked_out == $userId
+								|| $item->checked_out == 0;
 							$canChange = $user->authorise('core.edit.state', 'com_jcomments') && $canCheckin;
 							$item->language = $item->lang;
 							$title = $item->title;
@@ -126,11 +135,13 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 								<th scope="row" class="has-context">
 									<div class="small break-word">
 										<?php if ($item->checked_out):
-											echo HTMLHelper::_('jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'comments.', $canCheckin);
+											echo HTMLHelper::_(
+												'jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'comments.', $canCheckin
+											);
 										endif; ?>
 										<?php if ($canEdit && $canCheckin): ?>
 											<a href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.edit&id=' . (int) $item->id); ?>"
-											   title="<?php echo Text::_('JACTION_EDIT'); ?> <?php echo $this->escape($title); ?>">
+											   title="<?php echo Text::_('JACTION_EDIT'); ?>">
 												<span class="read-more"><?php echo $this->escape($title); ?></span>
 											</a>
 										<?php else: ?>
@@ -150,7 +161,12 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 									<?php endif; ?>
 								</th>
 								<td class="small d-none d-md-table-cell text-break">
-									<?php echo $item->name; ?>
+									<?php if ($item->banned): ?>
+										<span class="text-decoration-line-through"
+											  title="<?php echo Text::_('A_BLACKLIST_BLACKLISTED'); ?>"><?php echo $item->name; ?></span>
+									<?php else:
+										echo $item->name;
+									endif; ?>
 								</td>
 								<td class="small d-none d-md-table-cell text-break">
 									<?php echo $item->ip; ?>
@@ -159,10 +175,11 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 									<?php echo $item->object_group; ?>
 								</td>
 								<td class="small d-none d-md-table-cell text-break">
-									<?php if (isset($item->object_link)): ?>
+									<?php if (isset($item->object_link)):
+										$item->object_link = Route::link('site', $item->object_link);
+									?>
 										<a href="<?php echo $item->object_link; ?>"
-										   title="<?php echo htmlspecialchars($item->object_title); ?>"
-										   target="_blank"><span class="read-more"><?php echo $item->object_title; ?></span></a>
+										   target="_blank"><span class="read-more"><?php echo $this->escape($item->object_title); ?></span></a>
 									<?php else: ?>
 										<span class="read-more"><?php echo $item->object_title; ?></span>
 									<?php endif; ?>

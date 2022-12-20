@@ -57,7 +57,7 @@ class CommentsModel extends ListModel
 
 	protected function getListQuery()
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 		$query = $db->getQuery(true);
 
 		$query->select(
@@ -88,16 +88,29 @@ class CommentsModel extends ListModel
 
 		// Join over the objects
 		$query->select('jo.title as object_title, jo.link as object_link')
-			->leftJoin($db->quoteName('#__jcomments_objects', 'jo'), 'jo.object_id = jc.object_id AND jo.object_group = jc.object_group AND jo.lang = jc.lang');
+			->leftJoin(
+				$db->quoteName('#__jcomments_objects', 'jo'),
+				'jo.object_id = jc.object_id AND jo.object_group = jc.object_group AND jo.lang = jc.lang'
+			);
 
 		// Join over the users
 		$query->select($db->quoteName('u.name', 'editor'))
 			->leftJoin($db->quoteName('#__users', 'u'), 'u.id = jc.checked_out');
 
+		// Join over the blacklist
+		$query->select($db->quoteName('ban.id', 'banned'))
+			->leftJoin(
+				$db->quoteName('#__jcomments_blacklist', 'ban'),
+				'ban.userid = jc.userid AND (ban.expire > NOW() AND ban.expire IS NOT NULL)'
+			);
+
 		// Join over the language
 		$query->select($db->quoteName('l.title', 'language_title'))
 			->select($db->quoteName('l.image', 'language_image'))
-			->leftJoin($db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('jc.lang'));
+			->leftJoin(
+				$db->quoteName('#__languages', 'l'),
+				$db->quoteName('l.lang_code') . ' = ' . $db->quoteName('jc.lang')
+			);
 
 		// Filter by published state
 		$published = $this->getState('filter.published');

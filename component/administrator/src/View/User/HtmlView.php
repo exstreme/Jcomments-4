@@ -10,17 +10,23 @@
  *
  **/
 
-namespace Joomla\Component\Jcomments\Administrator\View\Settings;
+namespace Joomla\Component\Jcomments\Administrator\View\User;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
 class HtmlView extends BaseHtmlView
 {
+	protected $item;
+	protected $form;
+
 	/**
 	 * Execute and display a template script.
 	 *
@@ -33,19 +39,44 @@ class HtmlView extends BaseHtmlView
 	 */
 	public function display($tpl = null)
 	{
-		$canDo = ContentHelper::getActions('com_jcomments', 'component');
+		$this->item = $this->get('Item');
+		$this->form = $this->get('Form');
 
-		ToolbarHelper::title(Text::_('A_SETTINGS'));
-
-		if ($canDo->get('core.admin'))
+		if (count($errors = $this->get('Errors')))
 		{
-			ToolbarHelper::preferences('com_jcomments');
+			throw new GenericDataException(implode("\n", $errors), 500);
+		}
 
-			parent::display($tpl);
-		}
-		else
+		$this->addToolbar();
+
+		parent::display($tpl);
+	}
+
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 *
+	 * @throws  \Exception
+	 */
+	protected function addToolbar()
+	{
+		$app     = Factory::getApplication();
+		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
+		$toolbar = Toolbar::getInstance();
+
+		$app->input->set('hidemainmenu', 1);
+		ToolbarHelper::title(Text::_('COM_JCOMMENTS_USER'));
+
+		$toolbar->apply('user.apply');
+
+		if ($canDo->get('core.create'))
 		{
-			throw new \RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+			$toolbar->save('user.save');
 		}
+
+		$toolbar->cancel('user.cancel', 'JTOOLBAR_CANCEL');
 	}
 }

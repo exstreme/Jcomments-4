@@ -18,14 +18,15 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+/** @var Joomla\Component\Jcomments\Administrator\View\Blacklists\HtmlView $this */
+
 $wa = $this->document->getWebAssetManager();
 $wa->useStyle('jcomments.backend_style')
 	->useScript('jquery')
 	->useScript('kwood.plugin')
-	->useScript('kwood.more');
-
-HTMLHelper::_('behavior.multiselect');
+	->useScript('kwood.more')
+	->useScript('table.columns')
+	->useScript('multiselect');
 
 $db        = Factory::getContainer()->get('DatabaseDriver');
 $userId    = $this->user->get('id');

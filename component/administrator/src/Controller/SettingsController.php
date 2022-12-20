@@ -109,6 +109,25 @@ class SettingsController extends BaseController
 
 			if ($errors === JSON_ERROR_NONE)
 			{
+				// Validate settings
+				$form = $model->getForm($data, false);
+
+				if (!$form)
+				{
+					$this->setRedirect($url, Text::_('JGLOBAL_VALIDATION_FORM_FAILED'), 'error');
+
+					return false;
+				}
+
+				$validData = $model->validate($form, $data);
+
+				if ($validData === false)
+				{
+					$this->setRedirect($url, $model->getError(), 'error');
+
+					return false;
+				}
+
 				if ($model->restoreConfig($data))
 				{
 					$this->setRedirect($url, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_SUCCESS'));
@@ -142,7 +161,7 @@ class SettingsController extends BaseController
 	 *
 	 * @since   3.1
 	 */
-	public function detectMime($path)
+	public function detectMime(string $path)
 	{
 		if (!empty($path) && is_file($path))
 		{

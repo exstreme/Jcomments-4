@@ -15,7 +15,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 
-/** @var \Joomla\Component\Jcomments\Administrator\View\About\HtmlView $this */
+/** @var Joomla\Component\Jcomments\Administrator\View\About\HtmlView $this */
 
 preg_match('(\d+\.\d+)', $this->component['version'], $matches);
 ?>

@@ -24,17 +24,57 @@ use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The groups this user is assigned to
+	 *
+	 * @var     array
+	 * @since   4.1
+	 */
+	protected $groups;
+
+	/**
+	 * The active item
+	 *
+	 * @var     object
+	 * @since   4.1
+	 */
 	protected $item;
+
+	/**
+	 * The Form object
+	 *
+	 * @var     \Joomla\CMS\Form\Form
+	 * @since   4.1
+	 */
 	protected $form;
 
+	/**
+	 * Execute and display a template script.
+	 *
+	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
 	public function display($tpl = null)
 	{
-		$this->item   = $this->get('Item');
-		$this->form   = $this->get('Form');
+		$this->item = $this->get('Item');
+		$this->form = $this->get('Form');
 
 		if (count($errors = $this->get('Errors')))
 		{
 			throw new GenericDataException(implode("\n", $errors), 500);
+		}
+
+		// Prevent user from modifying own group(s)
+		$user = Factory::getApplication()->getIdentity();
+
+		if ((int) $user->id != (int) $this->item->id || $user->authorise('core.admin'))
+		{
+			$groups = $this->form->getValue('button_acl');
+			$this->groups = explode(',', $groups);
 		}
 
 		$this->addToolbar();
@@ -42,6 +82,15 @@ class HtmlView extends BaseHtmlView
 		parent::display($tpl);
 	}
 
+	/**
+	 * Add the page title and toolbar.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 *
+	 * @throws  \Exception
+	 */
 	protected function addToolbar()
 	{
 		$app        = Factory::getApplication();

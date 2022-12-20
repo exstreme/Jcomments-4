@@ -17,28 +17,15 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 
-class CustombbcodesModel extends ListModel
+class UsersModel extends ListModel
 {
-	/**
-	 * Context string for the model type.  This is used to handle uniqueness
-	 * when dealing with the getStoreId() method and caching data structures.
-	 *
-	 * @var    string
-	 * @since  1.6
-	 */
-	protected $context = 'com_jcomments.custombbcodes';
+	protected $context = 'com_jcomments.users';
 
 	public function __construct($config = array())
 	{
 		if (empty($config['filter_fields']))
 		{
-			$config['filter_fields'] = array(
-				'id', 'jcb.id',
-				'name', 'jcb.name',
-				'button_enabled', 'jcb.button_enabled',
-				'published', 'jcb.published',
-				'ordering', 'jcb.ordering',
-			);
+			$config['filter_fields'] = array('ju.id', 'u.name', 'username');
 		}
 
 		parent::__construct($config);
@@ -46,54 +33,43 @@ class CustombbcodesModel extends ListModel
 
 	protected function getListQuery()
 	{
-		$db = $this->getDatabase();
+		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
 		$query->select(
 			$this->getState(
 				'list.select',
-				'jcb.*'
+				'ju.*'
 			)
 		);
-		$query->from($db->quoteName('#__jcomments_custom_bbcodes', 'jcb'));
+		$query->from($db->quoteName('#__jcomments_users', 'ju'));
 
 		// Join over the users
-		$query->select($db->quoteName('u.name', 'editor'))
-			->leftJoin($db->quoteName('#__users', 'u'), 'u.id = jcb.checked_out');
+		$query->select($db->quoteName('u.name', 'username'))
+			->leftJoin($db->quoteName('#__users', 'u'), 'u.id = ju.id');
 
-		// Filter by published state
-		$state = $this->getState('filter.published');
-
-		if (is_numeric($state))
-		{
-			$query->where('jcb.published = ' . (int) $state);
-		}
-
-		// Filter by search in name or email
+		// Filter by search in name
 		$search = $this->getState('filter.search');
 
 		if (!empty($search))
 		{
 			$search = $db->quote('%' . $db->escape($search, true) . '%');
-			$query->where('(jcb.name LIKE ' . $search . ' OR jcb.button_title LIKE ' . $search . ')');
+			$query->where('(u.name LIKE ' . $search . ')');
 		}
 
-		$ordering  = $this->state->get('list.ordering', 'ordering');
+		$ordering  = $this->state->get('list.ordering', 'ju.id');
 		$direction = $this->state->get('list.direction', 'asc');
 		$query->order($db->escape($ordering . ' ' . $direction));
 
 		return $query;
 	}
 
-	protected function populateState($ordering = 'ordering', $direction = 'asc')
+	protected function populateState($ordering = 'ju.id', $direction = 'asc')
 	{
 		$app = Factory::getApplication();
 
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
-
-		$published = $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '');
-		$this->setState('filter.published', $published);
 
 		parent::populateState($ordering, $direction);
 	}
@@ -115,7 +91,6 @@ class CustombbcodesModel extends ListModel
 	{
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
-		$id .= ':' . $this->getState('filter.published');
 
 		return parent::getStoreId($id);
 	}

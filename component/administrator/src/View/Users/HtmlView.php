@@ -10,7 +10,7 @@
  *
  **/
 
-namespace Joomla\Component\Jcomments\Administrator\View\Mailqueues;
+namespace Joomla\Component\Jcomments\Administrator\View\Users;
 
 defined('_JEXEC') or die;
 
@@ -19,7 +19,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\Component\Content\Administrator\Helper\ContentHelper;
+use Joomla\Component\Jcomments\Administrator\Helper\JcommentsHelper;
 
 class HtmlView extends BaseHtmlView
 {
@@ -41,15 +41,16 @@ class HtmlView extends BaseHtmlView
 	 */
 	public function display($tpl = null)
 	{
-		$this->items         = $this->get('Items');
-		$this->pagination    = $this->get('Pagination');
-		$this->filterForm    = $this->get('FilterForm');
-		$this->activeFilters = $this->get('ActiveFilters');
-		$this->state         = $this->get('State');
+		$this->items           = $this->get('Items');
+		$this->pagination      = $this->get('Pagination');
+		$this->filterForm      = $this->get('FilterForm');
+		$this->activeFilters   = $this->get('ActiveFilters');
+		$this->state           = $this->get('State');
 
 		$this->addToolbar();
 
 		parent::display($tpl);
+
 	}
 
 	/**
@@ -64,23 +65,27 @@ class HtmlView extends BaseHtmlView
 	protected function addToolbar()
 	{
 		$toolbar = Toolbar::getInstance();
-		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
+		$canDo   = JcommentsHelper::getActions('com_jcomments', 'component');
 		$user    = Factory::getApplication()->getIdentity();
 
-		ToolbarHelper::title(Text::_('A_MAILQ'));
+		ToolbarHelper::title(Text::_('COM_JCOMMENTS_USERS'));
 
-		if (($canDo->get('core.delete')))
+		if ($canDo->get('core.create'))
 		{
-			$toolbar->delete('mailqueues.delete')
+			ToolbarHelper::addNew('user.add');
+		}
+
+		if ($canDo->get('core.edit'))
+		{
+			ToolbarHelper::editList('user.edit');
+		}
+
+		if ($canDo->get('core.delete'))
+		{
+			$toolbar->delete('users.delete')
 				->text('JACTION_DELETE')
 				->message('JGLOBAL_CONFIRM_DELETE')
 				->listCheck(true);
-
-			$toolbar->confirmButton()
-				->text('A_MAILQ_PURGE_ITEMS')
-				->message('A_MAILQ_PURGE_ITEMS_CONFIRM')
-				->task('mailqueues.purge')
-				->icon('icon-purge');
 		}
 
 		if ($user->authorise('core.admin', 'com_jcomments') || $user->authorise('core.options', 'com_jcomments'))

@@ -10,28 +10,29 @@
  *
  **/
 
-namespace Joomla\Component\Jcomments\Administrator\Model;
+namespace Joomla\Component\Jcomments\Administrator\Table;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Table\Table;
+use Joomla\Database\DatabaseDriver;
 
-class MailqueueModel extends AdminModel
+/**
+ * JComments users table
+ *
+ * @since  4.1
+ */
+class UserTable extends Table
 {
-	public function getForm($data = array(), $loadData = true)
+	/**
+	 * Constructor
+	 *
+	 * @param   DatabaseDriver  $db  A database connector object
+	 *
+	 * @since   1.5
+	 */
+	public function __construct($db)
 	{
-		return null;
-	}
-
-	public function purge()
-	{
-		$db = $this->getDatabase();
-		$query = $db->getQuery(true)
-			->delete($db->quoteName('#__jcomments_mailq'));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		return true;
+		parent::__construct('#__jcomments_users', 'id', $db);
 	}
 }

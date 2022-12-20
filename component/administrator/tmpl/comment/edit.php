@@ -20,9 +20,8 @@ use Joomla\CMS\Session\Session;
 
 HTMLHelper::_('behavior.multiselect');
 
-/** @var \Joomla\Component\Jcomments\Administrator\View\Comment\HtmlView $this */
+/** @var Joomla\Component\Jcomments\Administrator\View\Comment\HtmlView $this */
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('jquery')
 	->useScript('keepalive')

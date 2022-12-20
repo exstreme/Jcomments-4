@@ -12,15 +12,14 @@
 
 defined('_JEXEC') or die;
 
-/** @var \Joomla\Component\Jcomments\Administrator\View\Settings\HtmlView $this */
-
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Utility\Utility;
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+/** @var Joomla\Component\Jcomments\Administrator\View\Settings\HtmlView $this */
+
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('keepalive');
 ?>

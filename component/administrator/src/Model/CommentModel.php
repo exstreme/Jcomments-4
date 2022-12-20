@@ -40,7 +40,7 @@ class CommentModel extends AdminModel
 	public function getReports($pk = null)
 	{
 		$pk = (!empty($pk)) ? $pk : (int) $this->getState($this->getName() . '.id');
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		try
 		{
@@ -74,7 +74,7 @@ class CommentModel extends AdminModel
 	 */
 	public function deleteReports(array $ids): bool
 	{
-		$db  = $this->getDbo();
+		$db  = $this->getDatabase();
 		$ids = ArrayHelper::toInteger($ids);
 
 		try
@@ -390,7 +390,7 @@ class CommentModel extends AdminModel
 		//$table->comment = JCommentsText::nl2br($table->comment); // TODO Remove JCommentsText::nl2br()
 		$data['comment'] = JcommentsFactory::getBbcode()->filter($data['comment']);
 
-		if ($data['date'] == $this->getDbo()->getNullDate() || empty($data['date']))
+		if ($data['date'] == $this->getDatabase()->getNullDate() || empty($data['date']))
 		{
 			$data['date'] = Factory::getDate()->toSql();
 		}

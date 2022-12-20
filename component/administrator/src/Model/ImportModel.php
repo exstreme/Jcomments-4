@@ -32,7 +32,7 @@ class ImportModel extends BaseDatabaseModel
 	public function getItems()
 	{
 		$app      = Factory::getApplication();
-		$tables   = $this->getDbo()->getTableList();
+		$tables   = $this->getDatabase()->getTableList();
 		$adapters = $this->getAdapters();
 
 		$items = array();
@@ -93,7 +93,7 @@ class ImportModel extends BaseDatabaseModel
 
 	public function updateParent($source)
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		$query = $db->getQuery(true)
 			->update($db->quoteName('#__jcomments') . ' AS c1, ' . $db->quoteName('#__jcomments') . ' AS c2')
@@ -110,7 +110,7 @@ class ImportModel extends BaseDatabaseModel
 
 	public function getCommentsCount($source)
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		$query = $db->getQuery(true)
 			->select('COUNT(*)')
@@ -124,7 +124,7 @@ class ImportModel extends BaseDatabaseModel
 
 	public function deleteComments($source)
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		$query = $db->getQuery(true)
 			->delete()

@@ -15,7 +15,8 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Router\Route;
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
+/** @var Joomla\Component\Jcomments\Administrator\View\Smiley\HtmlView $this */
+
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate');
@@ -23,9 +24,9 @@ $wa->useScript('keepalive')
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=smiley&layout=edit&id=' . (int) $this->item->id); ?>"
 	  method="post" name="adminForm" id="item-form" class="form-validate">
 	<div class="main-card">
-		<div class="row">
+		<div class="row bg-white">
 			<div class="col-12">
-				<fieldset id="fieldset-edit" class="options-form">
+				<fieldset id="fieldset-edit" class="my-4">
 					<?php echo $this->form->renderField('code'); ?>
 
 					<?php echo $this->form->renderField('name'); ?>

@@ -15,22 +15,24 @@ namespace Joomla\Component\Jcomments\Administrator\Model;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Form\Form;
+use Joomla\CMS\MVC\Model\FormModel;
 
-class SettingsModel extends BaseDatabaseModel
+class SettingsModel extends FormModel
 {
 	/**
 	 * Restore settings from file into DB
 	 *
 	 * @param   object  $data  Configuration
 	 *
-	 * @return boolean
+	 * @return  boolean
 	 *
-	 * @since  3.0
+	 * @throws  \Exception
+	 * @since   3.0
 	 */
-	public function restoreConfig($data)
+	public function restoreConfig($data): bool
 	{
-		$db     = $this->getDbo();
+		$db     = $this->getDatabase();
 		$params = json_encode($data->params);
 		$access = json_encode($data->access);
 		$query  = $db->getQuery(true);
@@ -65,5 +67,29 @@ class SettingsModel extends BaseDatabaseModel
 		}
 
 		return true;
+	}
+
+	/**
+	 * Method to get a form object.
+	 *
+	 * @param   array    $data      Data for the form.
+	 * @param   boolean  $loadData  True if the form is to load its own data (default case), false if not.
+	 *
+	 * @return  false|Form  A Form object on success, false on failure
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
+	public function getForm($data = array(), $loadData = true)
+	{
+		Form::addFormPath(JPATH_ADMINISTRATOR . '/components/com_jcomments/');
+		$form = $this->loadForm('com_jcomments.config', 'config', array('control' => 'form', 'load_data' => $loadData), false, '/config');
+
+		if (empty($form))
+		{
+			return false;
+		}
+
+		return $form;
 	}
 }
