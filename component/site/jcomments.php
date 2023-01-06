@@ -341,7 +341,7 @@ class JComments
 		$tmpl->freeAllTemplates();
 
 		// Send notifications
-		srand(self::makeSeed());
+		mt_srand(self::makeSeed());
 		$randValue = rand(0, 100);
 
 		if ($randValue <= 30)
@@ -1546,6 +1546,6 @@ class JComments
 	{
 		list($usec, $sec) = explode(' ', microtime());
 
-		return (int) ($sec . $usec) * 10000000;
+		return (int) $sec + $usec * 10000000;
 	}
 }
