@@ -231,6 +231,7 @@ div.comments-policy {
 	border: none;
 	cursor: pointer;
 	float: none;
+	display:inline-block;
 }
 
 #comments-form img.captcha {
