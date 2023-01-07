@@ -12,6 +12,7 @@ Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" targe
 - make backup
 - uninstall Jcomments 3 (your comments will be saved in the database)
 - install Jcomments 4 and run database repair (if need)
+- Go to administrator/index.php?option=com_config&view=component&component=com_jcomments and set up access rules again
 
 ## Modules
 
