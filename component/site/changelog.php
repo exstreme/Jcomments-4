@@ -12,8 +12,9 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
-Not in release
-# fixed bug #112
+4.0.26
+# fixed bugs #112,#117,#120
+# Update translations (French, English)
 ^ Headers changed to div's with header class in some layouts.
 
 4.0.24
