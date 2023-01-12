@@ -324,7 +324,7 @@ class JCommentsTableComment extends Table
 			$value     = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
 		}
 
-		//$value = JCommentsText::nl2br($value);
+		$value = JCommentsText::nl2br($value);
 
 		foreach ($map as $key => $code)
 		{
