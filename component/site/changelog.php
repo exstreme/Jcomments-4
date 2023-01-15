@@ -1,20 +1,34 @@
 <?php
 /**
- * @package JComments
- * @version 4.0
- * @author Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
-*/
+ * JComments - Joomla Comment System
+ *
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 ?>
 
 Changelog
 ------------
+4.0.27
+# fixed bug #123
+# fixed bug #119,#124
+# fixed kcaptha compatibility with php 8.1
+
 4.0.26
-# fixed bugs #112,#117,#120
-# Update translations (French, English)
+# fixed bug #117
+# fixed bug #112 again, introduced in #120
+# fixed bug with subscription list in backend.
+$ Updated French localizations.
+$ Updated English localizations.
+
+4.0.25
+# fixed bug #112
 ^ Headers changed to div's with header class in some layouts.
 
 4.0.24
