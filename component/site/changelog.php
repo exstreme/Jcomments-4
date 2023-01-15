@@ -15,8 +15,10 @@ defined('_JEXEC') or die;
 
 Changelog
 ------------
-Not in release
+4.0.27
 # fixed bug #123
+# fixed bug #119,#124
+# fixed kcaptha compatibility with php 8.1
 
 4.0.26
 # fixed bug #117
