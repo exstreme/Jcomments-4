@@ -66,7 +66,7 @@ class JCommentsAJAX
 				}
 
 				$v = trim(strip_tags($v));
-				//$v = JCommentsText::nl2br($v);
+				$v = JCommentsText::nl2br($v);
 
 				foreach ($tmp as $key => $code)
 				{
