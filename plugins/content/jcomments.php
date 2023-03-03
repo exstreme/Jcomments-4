@@ -188,7 +188,7 @@ class PlgContentJcomments extends CMSPlugin
 		}
 		else
 		{
-			if ($this->params->get('show_comments_event') == 'prepareContent')
+			if ($this->params->get('show_comments_event') == 'onContentBeforeDisplay')
 			{
 				$isEnabled = ((int) $config->get('comments_on', 0) == 1) && ((int) $config->get('comments_off', 0) == 0);
 
