@@ -98,6 +98,8 @@ class JCommentsModelSubscriptions extends JCommentsModelList
 			}
 		}
 
+		$query->group($db->quoteName('js.name'));
+
 		$ordering  = $this->state->get('list.ordering', 'js.name');
 		$direction = $this->state->get('list.direction', 'asc');
 		$query->order($db->escape($ordering . ' ' . $direction));

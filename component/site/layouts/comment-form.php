@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Captcha\Captcha;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
@@ -26,7 +27,7 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 		</a>
 	</div>
 <?php else: ?>
-	<h6><?php echo Text::_('FORM_HEADER'); ?></h6>
+	<div class="h6"><?php echo Text::_('FORM_HEADER'); ?></div>
 
 	<?php if ($displayData->getVar('comments-form-policy', 0) == 1): ?>
 		<div class="border rounded comments-policy"><?php echo $displayData->getVar('comments-policy'); ?></div>
@@ -152,10 +153,20 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 				</div>
 				<?php
 			}
-			else
+			elseif ($html == 'recaptcha')
 			{
-				$recaptcha = JCaptcha::getInstance($html, array('namespace' => 'jcomments'));
+				$recaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
 				echo $recaptcha->display('recaptcha', 'dynamic_recaptcha_1', 'g-recaptcha');
+			}
+			elseif ($html == 'recaptcha_invisible')
+			{
+				$recaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
+				echo $recaptcha->display('recaptcha', 'dynamic_recaptcha_invisible_1', 'g-recaptcha');
+			}
+			elseif ($html == 'hcaptcha')
+			{
+				$hcaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
+				echo $hcaptcha->display('hcaptcha', 'dynamic_hcaptcha_1', 'hcaptcha');
 			}
 		endif; ?>
 

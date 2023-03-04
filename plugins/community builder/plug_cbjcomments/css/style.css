@@ -1,0 +1,59 @@
+ul.cb-jcomments-latest {
+	list-style: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+ul.cb-jcomments-latest li ul {
+	list-style: none !important;
+	margin: 10px !important;
+	padding: 0 !important;
+}
+
+ul.cb-jcomments-latest li {
+	background-image: none;
+	margin: 0;
+	display: block;
+	overflow: hidden;
+}
+
+ul.cb-jcomments-latest img {
+	width: 32px;
+	height: 32px;
+	margin: 0 5px 5px 0;
+	float: left;
+}
+
+ul.cb-jcomments-latest .object-title {
+	text-decoration: none;
+}
+
+ul.cb-jcomments-latest .title {
+	margin: 0;
+	padding: 0;
+	text-decoration: none;
+}
+
+.cb-jcomments-latest .date {
+	font-size: .8em;
+	margin: 0;
+	padding: 0;
+	display: block;
+}
+
+ul.cb-jcomments-latest .comment {
+	margin: 0 0 5px 0;
+	padding: 0;
+	clear: both;
+}
+
+ul.cb-jcomments-latest .comment img {
+	width: auto;
+	height: auto;
+	float: none;
+}
+
+ul.cb-jcomments-latest .cb-jcomments-latest-readmore {
+	margin: 5px 0 !important;
+	text-align: right;
+}

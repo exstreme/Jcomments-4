@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
 	<name>com_jcomments</name>
-	<creationDate>January 2022</creationDate>
+	<creationDate>January 2023</creationDate>
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.18</version>
+	<version>4.0.27</version>
 	<description>JComments lets your users comment on content items.</description>
 	<namespace path="src">Joomla\Component\Jcomments</namespace>
 
@@ -31,8 +31,8 @@
 		<filename>jcomments.class.php</filename>
 
 		<folder>classes</folder>
+		<folder>controllers</folder>
 		<folder>helpers</folder>
-		<folder>language</folder>
 		<folder>layouts</folder>
 		<folder>libraries</folder>
 		<folder>models</folder>
@@ -51,6 +51,7 @@
 	<languages folder="site">
 		<language tag="de-DE">language/de-DE/com_jcomments.ini</language>
 		<language tag="en-GB">language/en-GB/com_jcomments.ini</language>
+		<language tag="fr-FR">language/fr-FR/com_jcomments.ini</language>
 		<language tag="ru-RU">language/ru-RU/com_jcomments.ini</language>
 	</languages>
 
@@ -69,6 +70,11 @@
 		</submenu>
 
 		<files folder="administrator">
+			<filename>controller.php</filename>
+			<filename>jcomments.php</filename>
+			<filename>access.xml</filename>
+			<filename>config.xml</filename>
+
 			<folder>controllers</folder>
 			<folder>classes</folder>
 			<folder>helpers</folder>
@@ -76,16 +82,13 @@
 			<folder>models</folder>
 			<folder>tables</folder>
 			<folder>views</folder>
-			<filename>controller.php</filename>
-			<filename>jcomments.php</filename>
-			<filename>access.xml</filename>
-			<filename>config.xml</filename>
 		</files>
 
 		<languages folder="administrator">
 			<language tag="en-GB">language/en-GB/com_jcomments.ini</language>
 			<language tag="en-GB">language/en-GB/com_jcomments.sys.ini</language>
-
+			<language tag="fr-FR">language/fr-FR/com_jcomments.ini</language>
+			<language tag="fr-FR">language/fr-FR/com_jcomments.sys.ini</language>
 			<language tag="ru-RU">language/ru-RU/com_jcomments.ini</language>
 			<language tag="ru-RU">language/ru-RU/com_jcomments.sys.ini</language>
 		</languages>

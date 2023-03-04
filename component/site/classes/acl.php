@@ -240,6 +240,30 @@ class JCommentsACL
 	}
 
 	/**
+	 * Check if need to see plicy message.
+	 *
+	 * @return  boolean
+	 *
+	 * @since   4.0
+	 */
+	public function showPolicy(): bool
+	{
+		$config       = ComponentHelper::getParams('com_jcomments');
+		$userGroups   = $this->user->getAuthorisedGroups();
+		$censorGroups = $config->get('show_policy');
+
+		foreach ($userGroups as $userGroup)
+		{
+			if (in_array($userGroup, $censorGroups))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Check if user allowed to see custom bbcode button.
 	 *
 	 * @param   string  $buttonACL  Comma separated string with usergroup IDs.

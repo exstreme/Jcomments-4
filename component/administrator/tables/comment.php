@@ -197,26 +197,6 @@ class JCommentsTableComment extends Table
 			$this->path = '0';
 		}
 
-		// Update language in objects table
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__jcomments_objects'))
-			->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-			->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-			->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		// Update language in subscriptions table
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__jcomments_subscriptions'))
-			->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-			->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-			->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-		$db->setQuery($query);
-		$db->execute();
-
 		if (isset($this->datetime))
 		{
 			unset($this->datetime);
@@ -324,7 +304,7 @@ class JCommentsTableComment extends Table
 			$value     = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
 		}
 
-		//$value = JCommentsText::nl2br($value);
+		$value = JCommentsText::nl2br($value);
 
 		foreach ($map as $key => $code)
 		{

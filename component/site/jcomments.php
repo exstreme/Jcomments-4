@@ -341,7 +341,7 @@ class JComments
 		$tmpl->freeAllTemplates();
 
 		// Send notifications
-		srand((float) microtime() * 10000000);
+		mt_srand(self::makeSeed());
 		$randValue = rand(0, 100);
 
 		if ($randValue <= 30)
@@ -461,7 +461,7 @@ class JComments
 
 			$policy = JCommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_policy_post', $lang->getTag());
 
-			if (($policy != '') && ($user->authorise('show_policy', 'com_jcomments')))
+			if ($policy != '' && $acl->showPolicy())
 			{
 				$policy = stripslashes($policy);
 
@@ -532,7 +532,10 @@ class JComments
 
 				$captchaEngine = $config->get('captcha_engine', 'kcaptcha');
 
-				if (($captchaEngine == 'kcaptcha') || ($captchaEngine == 'recaptcha') || ($captchaEngine == 'recaptcha_invisible'))
+				if (($captchaEngine == 'kcaptcha')
+					|| ($captchaEngine == 'recaptcha') || ($captchaEngine == 'recaptcha_invisible')
+					|| ($captchaEngine == 'hcaptcha') || ($captchaEngine == 'hcaptcha_invisible')
+				)
 				{
 					$tmpl->addVar('tpl_form', 'comments-form-captcha-html', $captchaEngine);
 				}
@@ -1530,5 +1533,19 @@ class JComments
 		$options['filter']       = $filter;
 
 		return JCommentsModel::getCommentsCount($options);
+	}
+
+	/**
+	 * Make new seed to use with srand()
+	 *
+	 * @return  integer
+	 *
+	 * @since   4.0
+	 */
+	private static function makeSeed(): int
+	{
+		list($usec, $sec) = explode(' ', microtime());
+
+		return (int) $sec + $usec * 10000000;
 	}
 }

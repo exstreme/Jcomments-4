@@ -6,7 +6,7 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.0</version>
+	<version>4.0.3</version>
 	<description>PLG_CONTENT_JCOMMENTS_XML_DESCRIPTION</description>
 
 	<files>
@@ -17,8 +17,10 @@
 	<languages folder="admin">
 		<language tag="en-GB">language/en-GB/plg_content_jcomments.ini</language>
 		<language tag="en-GB">language/en-GB/plg_content_jcomments.sys.ini</language>
-		<language tag="en-GB">language/ru-RU/plg_content_jcomments.ini</language>
-		<language tag="en-GB">language/ru-RU/plg_content_jcomments.sys.ini</language>
+		<language tag="fr-FR">language/fr-FR/plg_content_jcomments.ini</language>
+		<language tag="fr-FR">language/fr-FR/plg_content_jcomments.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_content_jcomments.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_content_jcomments.sys.ini</language>
 	</languages>
 
 	<config>

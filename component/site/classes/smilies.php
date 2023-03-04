@@ -90,7 +90,9 @@ class JCommentsSmilies
 	{
 		if (count($this->_replacements) > 0)
 		{
+			$str = JCommentsText::br2nl($str);
 			$str = preg_replace($this->_replacements['code'], $this->_replacements['icon'], $str);
+			$str = JCommentsText::nl2br($str);
 		}
 
 		return $str;
@@ -107,7 +109,9 @@ class JCommentsSmilies
 	{
 		if (count($this->_replacements) > 0)
 		{
+			$str = JCommentsText::br2nl($str);
 			$str = preg_replace($this->_replacements['code'], '\\1\\3', $str);
+			$str = JCommentsText::nl2br($str);
 		}
 
 		return $str;

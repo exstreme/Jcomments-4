@@ -122,7 +122,7 @@ class JCommentsModelComment extends JCommentsModelForm
 
 			$table->title   = stripslashes($table->title);
 			$table->comment = stripslashes($table->comment);
-			//$table->comment = JCommentsText::nl2br($table->comment); // TODO Remove JCommentsText::nl2br()
+			$table->comment = JCommentsText::nl2br($table->comment);
 			$table->comment = $bbcodes->filter($table->comment);
 
 			if (!$table->check())

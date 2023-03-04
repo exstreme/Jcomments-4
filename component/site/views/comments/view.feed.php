@@ -60,7 +60,7 @@ class JCommentsViewComments extends AbstractView
 		$lm          = $limit != (int) $config->get('feed_limit') ? ('&limit=' . $limit) : '';
 
 		// If no group or id specified - return 404
-		if ($objectID === 0 || empty($objectGroup))
+		if (empty($objectGroup))
 		{
 			header('HTTP/1.0 404 Not Found');
 
