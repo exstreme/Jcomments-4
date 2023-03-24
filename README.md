@@ -26,8 +26,8 @@ Available plugins can be downloaded <a href="https://github.com/exstreme/Jcommen
 ## FAQ
 
 * Does this component support hCaptcha plugin?
-* Yes! Download plugin from `https://extensions.joomla.org/extension/hcaptcha/`, install it, configure, activate, and select in component settings.
+* Yes! Download plugin from https://extensions.joomla.org/extension/hcaptcha/, install it, configure, activate, and select in component settings.
 
 
 * How do I get RSS for...
-* See `https://github.com/exstreme/Jcomments-4/issues/130#issuecomment-1409095204`
+* See https://github.com/exstreme/Jcomments-4/issues/130#issuecomment-1409095204
