@@ -302,7 +302,6 @@ class PlgJcommentsAvatar extends CMSPlugin
 							// $format = $uri->getVar('format', 'html');
 							$format = 'html';
 							$url .= '.' . $format;
-
 						}
 
 						if ($this->params->get('avatar_link') == 1)
@@ -390,6 +389,69 @@ class PlgJcommentsAvatar extends CMSPlugin
 		}
 
 		return ($id !== null) ? '&Itemid=' . $id : '';
+	}
+
+	/**
+	 * Get JomSocial URL and avatar
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0
+	 */
+	protected function getJomsocialImage(array $comments)
+	{
+		$users = $this->getUsers($comments);
+
+		if (count($users))
+		{
+			/** @var \Joomla\Database\DatabaseDriver $db */
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
+			$query = $db->getQuery(true)
+				->select(array($db->qn('userid'), $db->qn('thumb', 'avatar')))
+				->from($db->qn('#__community_users'))
+				->where($db->qn('userid') . ' IN (' . implode(',', $users) . ')');
+
+			try
+			{
+				$db->setQuery($query);
+				$avatars = $db->loadObjectList('userid');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+		}
+
+		$avatarA = JPATH_SITE . DS;
+		$avatarL = JURI::base() . '/';
+
+		foreach ($comments as &$comment)
+		{
+			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
+
+			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '' && $avatars[$uid]->avatar != 'components/com_community/assets/default_thumb.jpg')
+			{
+				if (is_file($avatarA . $avatars[$uid]->avatar))
+				{
+					$comment->avatar = $avatarL . $avatars[$uid]->avatar;
+				}
+			}
+			else
+			{
+				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			}
+
+			if ($this->params->get('avatar_link') == 1)
+			{
+				$comment->profileLink = $uid ? Route::_('index.php?option=com_community&view=profile&userid=' . $uid) : '';
+			}
+		}
 	}
 
 	/**
