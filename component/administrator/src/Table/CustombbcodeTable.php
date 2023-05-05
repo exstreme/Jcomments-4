@@ -20,6 +20,24 @@ use Joomla\Database\DatabaseDriver;
 /**
  * JComments CustomBBCodes table
  *
+ * @property string  $name
+ * @property string  $simple_pattern
+ * @property string  $simple_replacement_html
+ * @property string  $simple_replacement_text
+ * @property string  $pattern
+ * @property string  $replacement_html
+ * @property string  $replacement_text
+ * @property string  $button_acl
+ * @property string  $button_open_tag
+ * @property string  $button_close_tag
+ * @property string  $button_title
+ * @property string  $button_prompt
+ * @property string  $button_image
+ * @property string  $button_css
+ * @property integer $button_enabled
+ * @property integer $ordering
+ * @property integer $published
+ *
  * @since  1.5
  */
 class CustombbcodeTable extends Table

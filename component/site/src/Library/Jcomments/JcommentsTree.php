@@ -2,12 +2,13 @@
 /**
  * Simple tree class
  *
- * @version       1.0
- * @package       JoomlaTune.Framework
- * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JoomlaTune.Framework
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 
@@ -51,7 +52,7 @@ if (!defined('JOOMLATUNE_TREE'))
 			}
 		}
 
-		private function _buildTree($id, $list = array(), $maxlevel = 9999, $level = 0, $number = '')
+		private function buildTree($id, $list = array(), int $maxlevel = 9999, int $level = 0, $number = '')
 		{
 			if (isset($this->children[$id]) && $level <= $maxlevel)
 			{
@@ -69,7 +70,7 @@ if (!defined('JOOMLATUNE_TREE'))
 					$list[$id]->level    = $level;
 					$list[$id]->number   = $number . $i;
 					$list[$id]->children = isset($this->children[$id]) ? count($this->children[$id]) : 0;
-					$list                = $this->_buildTree($id, $list, $maxlevel, $level + 1, $list[$id]->number);
+					$list                = $this->buildTree($id, $list, $maxlevel, $level + 1, $list[$id]->number);
 					$i++;
 				}
 			}
@@ -77,7 +78,7 @@ if (!defined('JOOMLATUNE_TREE'))
 			return $list;
 		}
 
-		private function _getDescendants($id, $list = array(), $maxlevel = 9999, $level = 0)
+		private function getDescendants($id, $list = array(), int $maxlevel = 9999, int $level = 0)
 		{
 			if (isset($this->children[$id]) && $level <= $maxlevel)
 			{
@@ -85,7 +86,7 @@ if (!defined('JOOMLATUNE_TREE'))
 				{
 					$id     = $v->id;
 					$list[] = $v->id;
-					$list   = $this->_getDescendants($id, $list, $maxlevel, $level + 1);
+					$list   = $this->getDescendants($id, $list, $maxlevel, $level + 1);
 				}
 			}
 
@@ -101,9 +102,9 @@ if (!defined('JOOMLATUNE_TREE'))
 		 *
 		 * @since   1.0
 		 */
-		public function get($id = 0)
+		public function get(int $id = 0): array
 		{
-			return $this->_buildTree($id);
+			return $this->buildTree($id);
 		}
 
 		/**
@@ -115,7 +116,7 @@ if (!defined('JOOMLATUNE_TREE'))
 		 *
 		 * @since   1.0
 		 */
-		public function children($id = 0)
+		public function children(int $id = 0): array
 		{
 			return $this->children[$id] ?? array();
 		}
@@ -129,9 +130,9 @@ if (!defined('JOOMLATUNE_TREE'))
 		 *
 		 * @since   1.0
 		 */
-		public function descendants($id = 0)
+		public function descendants(int $id = 0): array
 		{
-			return $this->_getDescendants($id);
+			return $this->getDescendants($id);
 		}
 	}
 }

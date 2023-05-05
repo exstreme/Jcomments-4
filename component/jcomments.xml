@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
 	<name>com_jcomments</name>
-	<creationDate>January 2022</creationDate>
+	<creationDate>January 2023</creationDate>
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
@@ -49,7 +49,8 @@
 	</languages>
 
 	<administration>
-		<menu img="../media/com_jcomments/images/icon-16-jcomments.jpg" view="comments">COM_JCOMMENTS</menu>
+		<!-- img attribute for menu item is used in component dashboard -->
+		<menu img="../media/com_jcomments/images/icon-16-jcomments.jpg">COM_JCOMMENTS</menu>
 		<submenu>
 			<menu view="comments" link="option=com_jcomments&amp;view=comments">COM_JCOMMENTS_COMMENTS</menu>
 			<menu view="smilies" link="option=com_jcomments&amp;view=smilies">COM_JCOMMENTS_SMILIES</menu>
@@ -57,8 +58,8 @@
 			<menu view="custombbcodes" link="option=com_jcomments&amp;view=custombbcodes">COM_JCOMMENTS_CUSTOM_BBCODE</menu>
 			<menu view="blacklists" link="option=com_jcomments&amp;view=blacklists">COM_JCOMMENTS_BLACKLIST</menu>
 			<menu view="mailqueues" link="option=com_jcomments&amp;view=mailqueues">COM_JCOMMENTS_MAILQ</menu>
+			<menu view="users" link="option=com_jcomments&amp;view=users">COM_JCOMMENTS_SETTINGS</menu>
 			<menu view="import" link="option=com_jcomments&amp;view=import">COM_JCOMMENTS_IMPORT</menu>
-			<menu view="settings" link="option=com_jcomments&amp;view=settings">COM_JCOMMENTS_SETTINGS</menu>
 			<menu view="fields" link="option=com_fields&amp;view=fields&amp;context=com_jcomments.comment">COM_JCOMMENTS_FIELDS</menu>
 			<menu view="groups" link="option=com_fields&amp;view=groups&amp;context=com_jcomments.comment">COM_JCOMMENTS_FIELD_GROUPS</menu>
 			<menu view="about" link="option=com_jcomments&amp;view=about">COM_JCOMMENTS_ABOUT</menu>

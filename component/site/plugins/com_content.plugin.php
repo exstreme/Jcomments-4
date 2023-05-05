@@ -13,7 +13,9 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Access;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
@@ -21,15 +23,36 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 
 class jc_com_content extends JcommentsPlugin
 {
+	/**
+	 * Get object information for com_content
+	 *
+	 * @param   integer  $id        Article ID
+	 * @param   mixed    $language  Language tag
+	 *
+	 * @return  object
+	 *
+	 * @throws  \Exception
+	 * @since   1.5
+	 */
 	public function getObjectInfo($id, $language = null)
 	{
-		$app  = Factory::getApplication();
+		$app = Factory::getApplication();
 		$link = null;
 
 		/** @var Joomla\Component\Content\Site\Model\ArticleModel $model */
-		$model   = $app->bootComponent('com_content')->getMVCFactory()->createModel('Article', 'Site', ['ignore_request' => true]);
-		$model->setState('params', $app->getParams('com_content'));
-		$article = $model->getItem($id);
+		$model = $app->bootComponent('com_content')->getMVCFactory()->createModel('Article', 'Site', ['ignore_request' => true]);
+		$model->setState('params', ComponentHelper::getParams('com_content'));
+
+		try
+		{
+			$article = $model->getItem($id);
+		}
+		catch (\Exception $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+
+			return new JcommentsObjectinfo;
+		}
 
 		if (!empty($article))
 		{

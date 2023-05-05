@@ -15,6 +15,12 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 
+/**
+ * Displays an icon for quick access to comments in dashboard
+ *
+ * @since  4.1
+ * @noinspection PhpUnused
+ */
 class PlgQuickiconJComments extends CMSPlugin
 {
 	/**

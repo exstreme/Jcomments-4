@@ -17,6 +17,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
 
 /**
  * JComments BBCode
@@ -33,32 +34,99 @@ class JcommentsBbcode
 	 */
 	protected $codes = array();
 
+	/**
+	 * Initialize all bbcodes
+	 *
+	 * @since  3.0
+	 */
 	public function __construct()
 	{
 		ob_start();
+
 		$this->registerCode('b');
 		$this->registerCode('i');
 		$this->registerCode('u');
 		$this->registerCode('s');
 		$this->registerCode('sub');
 		$this->registerCode('sup');
-		$this->registerCode('url');
-		$this->registerCode('img');
+		$this->registerCode('separator1');
+		$this->registerCode('left');
+		$this->registerCode('center');
+		$this->registerCode('right');
+		$this->registerCode('justify');
+		$this->registerCode('separator2');
+		$this->registerCode('font');
+		$this->registerCode('size');
+		$this->registerCode('color');
+		$this->registerCode('removeformat');
+		$this->registerCode('separator3');
+		$this->registerCode('cut');
+		$this->registerCode('copy');
+		$this->registerCode('paste');
+		$this->registerCode('pastetext');
+		$this->registerCode('separator4');
 		$this->registerCode('list');
-		$this->registerCode('hide');
-		$this->registerCode('quote');
+		$this->registerCode('orderedlist');
+		$this->registerCode('indent');
+		$this->registerCode('outdent');
+		$this->registerCode('separator5');
+		$this->registerCode('table');
 		$this->registerCode('code');
+		$this->registerCode('quote');
+		$this->registerCode('separator6');
+		$this->registerCode('horizontalrule');
+		$this->registerCode('img');
+		$this->registerCode('email');
+		$this->registerCode('url');
+		$this->registerCode('unlink');
+		$this->registerCode('emoticon');
+		$this->registerCode('separator7');
+		$this->registerCode('youtube');
+		$this->registerCode('date');
+		$this->registerCode('time');
+		$this->registerCode('separator8');
+		$this->registerCode('ltr');
+		$this->registerCode('rtl');
+		$this->registerCode('separator9');
+		$this->registerCode('print');
+		$this->registerCode('maximize');
+		$this->registerCode('source');
+		$this->registerCode('hide');
+		$this->registerCode('spoiler');
+
 		ob_end_clean();
 	}
 
-	public function registerCode($str)
+	/**
+	 * @param   string  $str  Bbcode name
+	 *
+	 * @return  void
+	 *
+	 * @since   3.0
+	 */
+	public function registerCode(string $str)
 	{
-		$user = Factory::getApplication()->getIdentity();
-		$this->codes[$str] = $user->authorise('comment.bbcode.' . $str, 'com_jcomments');
+		$this->codes[$str] = Factory::getApplication()->getIdentity()->authorise('comment.bbcode.' . $str, 'com_jcomments');
 	}
 
-	public function getCodes()
+	/**
+	 * Get registered bbcodes, optionally filtered by key.
+	 *
+	 * @param   mixed  $keys  Keys to filter by. String separated by comma or array of values.
+	 *
+	 * @return  array
+	 *
+	 * @since   3.0
+	 */
+	public function get($keys = null): array
 	{
+		if (!empty($keys))
+		{
+			$keys = is_array($keys) ? $keys : explode(',', $keys);
+
+			return array_keys(array_intersect_key($this->codes, array_flip($keys)));
+		}
+
 		return array_keys($this->codes);
 	}
 
@@ -90,7 +158,7 @@ class JcommentsBbcode
 	 *
 	 * @since   3.0
 	 */
-	public function canUse($str)
+	public function canUse(string $str): bool
 	{
 		return (bool) $this->codes[$str];
 	}
@@ -264,7 +332,17 @@ class JcommentsBbcode
 		return $str;
 	}
 
-	public function replace($str)
+	/**
+	 * BBCode replacement with html
+	 *
+	 * @param   string  $str  Comment text
+	 *
+	 * @return  string|null
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
+	public function replace(string $str): ?string
 	{
 		ob_start();
 
@@ -321,7 +399,9 @@ class JcommentsBbcode
 		$replacements[] = '\\1';
 
 		// EMAIL
-		$patterns[]     = '#\[email\]([^\s\<\>\(\)\"\'\[\]]*?)\[\/email\]#iu';
+		$patterns[]     = '~\[email=(.*?)\](.*?)\[\/email\]~isu';
+		$replacements[] = '\\1';
+		$patterns[]     = '~\[email\]([^\s\<\>\(\)\"\'\[\]]*?)\[\/email\]~isu';
 		$replacements[] = '\\1';
 
 		// IMG
@@ -334,45 +414,56 @@ class JcommentsBbcode
 		// HIDE
 		$patterns[] = '/\[hide\](.*?)\[\/hide\]/iu';
 
-		if (Factory::getApplication()->getIdentity()->get('id'))
+		if (!Factory::getApplication()->getIdentity()->get('guest'))
 		{
-			$replacements[] = '\\1';
+			$replacements[] = '<span class="badge text-bg-light hide">\\1</span>';
 		}
 		else
 		{
-			$replacements[] = '<span class="badge bg-secondary text-wrap">' . Text::_('BBCODE_MESSAGE_HIDDEN_TEXT') . '</span>';
+			$replacements[] = '<span class="badge text-bg-light hide">' . Text::_('BBCODE_MESSAGE_HIDDEN_TEXT') . '</span>';
 		}
 
-		// CODE
-		$codePattern  = '#\[code\=?([a-z0-9]*?)\](.*?)\[\/code\]#ismu';
+		/*
+		 * CODE
+		 * Match programming language name in lower case and can contain symbols: #, ., +, !, --, ++, *, /.
+		 * See https://en.wikipedia.org/wiki/List_of_programming_languages
+		*/
+		$codePattern    = '#\[code=?([\p{L}0-9\#\.\+\!\-\-\+\+\*\/]*?)](.*?)\[/code]#ismu';
 		$patterns[]     = $codePattern;
-		$replacements[] = '<figure>
+		$replacements[] = '<figure class="codeblock">
 			<figcaption class="code">' . Text::_('COMMENT_TEXT_CODE') . '</figcaption>
-			<pre><code class="lang-\\1">\\2</code></pre>
+			<pre class="card card-body p-2"><code class="lang-\\1">\\2</code></pre>
 		</figure>';
 
-		$str = preg_replace_callback($codePattern, array($this, 'jcommentsProcessCode'), $str);
+		$str = preg_replace_callback(
+			$codePattern,
+			function ($matches)
+			{
+				$text = htmlspecialchars(trim($matches[0]));
+				$text = str_replace("\r", '', $text);
+
+				return str_replace("\n", '<br />', $text);
+			},
+			$str
+		);
 		$str = preg_replace($patterns, $replacements, $str);
 
 		// QUOTE
 		// Extended quote with authors name
-		$quotePattern = '#\[quote\s?name=\"([^\"\<\>\(\)]*?)\"\](<br\s?\/?\>)*?(.*?)(<br\s?\/?\>)*\[\/quote\](<br\s?\/?\>)*?#ismu';
-		$quoteReplace = '<figure>
-			<figcaption class="quote">' . Text::sprintf('COMMENT_TEXT_QUOTE_EXTENDED', '\\1') . '</figcaption>
-			<blockquote class="text-muted"><div>\\3</div></blockquote>
-		</figure>';
+		$quotePattern = '#\[quote\s?name=\"([^\"\<\>\(\)]*?)\"](<br\s?/?>)*?(.*?)(<br\s?/?>)*\[/quote](<br\s?/?>)*?#ismu';
+		$quoteReplace = '<blockquote class="blockquote">
+			<span class="cite d-block">' . Text::_('COMMENT_TEXT_QUOTE') . '<span class="author fst-italic fw-semibold">\\1</span></span>\\3
+		</blockquote>';
 
 		while (preg_match($quotePattern, $str))
 		{
+			// TODO Добавить поддержку значения аттрибута name вида author_name;comment_id
 			$str = preg_replace($quotePattern, $quoteReplace, $str);
 		}
 
 		// Simple quote
-		$quotePattern = '#\[quote[^\]]*?\](<br\s?\/?\>)*([^\[]+)(<br\s?\/?\>)*\[\/quote\](<br\s?\/?\>)*?#ismUu';
-		$quoteReplace = '<figure>
-			<figcaption class="quote">' . Text::_('COMMENT_TEXT_QUOTE') . '</figcaption>
-			<blockquote class="text-muted"><div>\\2</div></blockquote>
-		</figure>';
+		$quotePattern = '#\[quote[^]]*?](<br\s?/?>)*([^\[]+)(<br\s?/?>)*\[/quote](<br\s?/?>)*?#ismUu';
+		$quoteReplace = '<blockquote class="blockquote">\\2</blockquote>';
 
 		while (preg_match($quotePattern, $str))
 		{
@@ -381,24 +472,24 @@ class JcommentsBbcode
 
 		// LIST
 		$matches    = array();
-		$matchCount = preg_match_all('#\[list\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]#iu', $str, $matches);
+		$matchCount = preg_match_all('#\[list](<br\s?/?>)*(.*?)(<br\s?/?>)*\[/list]#iu', $str, $matches);
 
 		for ($i = 0; $i < $matchCount; $i++)
 		{
 			$textBefore = preg_quote($matches[2][$i]);
-			$textAfter  = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "</li><li>", $matches[2][$i]);
+			$textAfter  = preg_replace('#(<br\s?/?>)*\[\*\](<br\s?/?>)*#isu', "</li><li>", $matches[2][$i]);
 			$textAfter  = preg_replace('#^</?li>#u', '', $textAfter);
 			$textAfter  = str_replace("\n</li>", "</li>", $textAfter . "</li>");
-			$str        = preg_replace('#\[list\](<br\s?\/?\>)*' . $textBefore . '(<br\s?\/?\>)*\[/list\]#isu', "<ul>$textAfter</ul>", $str);
+			$str        = preg_replace('#\[list](<br\s?/?>)*' . $textBefore . '(<br\s?/?>)*\[/list]#isu', "<ul>$textAfter</ul>", $str);
 		}
 
 		$matches    = array();
-		$matchCount = preg_match_all('#\[list=(a|A|i|I|1)\](<br\s?\/?\>)*(.*?)(<br\s?\/?\>)*\[\/list\]#isu', $str, $matches);
+		$matchCount = preg_match_all('#\[list=(a|A|i|I|1)\](<br\s?/?>)*(.*?)(<br\s?/?>)*\[/list]#isu', $str, $matches);
 
 		for ($i = 0; $i < $matchCount; $i++)
 		{
 			$textBefore = preg_quote($matches[3][$i]);
-			$textAfter  = preg_replace('#(<br\s?\/?\>)*\[\*\](<br\s?\/?\>)*#isu', "</li><li>", $matches[3][$i]);
+			$textAfter  = preg_replace('#(<br\s?/?>)*\[\*\](<br\s?/?>)*#isu', "</li><li>", $matches[3][$i]);
 			$textAfter  = preg_replace('#^</?li>#u', '', $textAfter);
 			$textAfter  = str_replace("\n</li>", "</li>", $textAfter . "</li>");
 			$str        = preg_replace(
@@ -408,7 +499,33 @@ class JcommentsBbcode
 			);
 		}
 
-		$str = preg_replace('#\[\/?(b|i|u|s|sup|sub|url|img|list|quote|code|hide)\]#iu', '', $str);
+		mt_srand(ComponentHelper::makeSeed());
+
+		// Spoiler tag
+		$str = preg_replace_callback(
+			'~\[spoiler((=)(.*?))?](<br\s?/?>)*?(.*?)(<br\s?/?>)*\[/spoiler](<br\s?/?>)*?~ismu',
+			function ($matches)
+			{
+				if (empty($matches[5]))
+				{
+					return '';
+				}
+
+				$linkText  = !empty($matches[3]) ? $matches[3] : 'Spoiler title';
+				$randValue = rand(0, 1000);
+				$spoilerId = 'spoiler' . $randValue;
+
+				return '<div class="my-1 spoiler">
+					<a class="my-1 text-start btn btn-sm btn-light d-block spoiler-link" data-bs-toggle="collapse"
+					   href="#' . $spoilerId . '" role="button" aria-expanded="false"
+					   aria-controls="' . $spoilerId . '">' . $linkText . '</a>
+					<div class="spoiler-card collapse" id="' . $spoilerId . '"><div class="card card-body">' . $matches[5] . '</div></div>
+				</div>';
+			},
+			$str
+		);
+
+		$str = preg_replace('~\[/?(' . implode('|', $this->get()) . ')]~iu', '', $str);
 		ob_end_clean();
 
 		return $str;
@@ -416,24 +533,15 @@ class JcommentsBbcode
 
 	public function removeQuotes($text)
 	{
-		$text = preg_replace(array('#\n?\[quote.*?\].+?\[\/quote\]\n?#isu', '#\[\/quote\]#isu'), '', $text);
+		$text = preg_replace(array('#\n?\[quote.*?].+?\[/quote]\n?#isu', '#\[/quote]#isu'), '', $text);
 
-		return preg_replace('#<br\s?\/?\>+#is', '', $text);
+		return preg_replace('#<br\s?/?>+#is', '', $text);
 	}
 
 	public function removeHidden($text)
 	{
 		$text = preg_replace('#\[hide](.*?)\[/hide]#isu', '', $text);
 
-		return preg_replace('#<br\s?\/?\>+#is', '', $text);
-	}
-
-	public function jcommentsProcessCode($matches)
-	{
-		$text = htmlspecialchars(trim($matches[0]));
-		//$text = str_replace("\r", '', $text);
-
-		//return str_replace("\n", '<br />', $text);
-		return $text;
+		return preg_replace('#<br\s?/?>+#is', '', $text);
 	}
 }

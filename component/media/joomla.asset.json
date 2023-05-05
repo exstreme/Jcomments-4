@@ -8,40 +8,17 @@
     {
       "name": "jcomments.backend_style",
       "type": "style",
-      "uri": "com_jcomments/backend-style.min.css"
+      "uri": "com_jcomments/backend-style.css"
     },
     {
       "name": "jcomments.style",
       "type": "style",
-      "uri": "com_jcomments/style.css"
+      "uri": "com_jcomments/frontend-style.css"
     },
     {
       "name": "jcomments.admin.fields",
       "type": "script",
       "uri": "com_jcomments/admin-fields-es5.js"
-    },
-    {
-      "name": "jcomments.batch",
-      "type": "script",
-      "uri": "com_jcomments/admin-items-default-batch-footer.min.js",
-      "dependencies": [
-        "jcomments.batch.es5"
-      ],
-      "attributes": {
-        "type": "module"
-      }
-    },
-    {
-      "name": "jcomments.batch.es5",
-      "type": "script",
-      "uri": "com_jcomments/admin-items-default-batch-footer-es5.min.js",
-      "dependencies": [
-        "core"
-      ],
-      "attributes": {
-        "nomodule": true,
-        "defer": true
-      }
     },
     {
       "name": "jcomments.progressbar",
@@ -61,17 +38,30 @@
     {
       "name": "jcomments.frontend",
       "type": "script",
-      "uri": "com_jcomments/jcomments.js"
+      "uri": "com_jcomments/jcomments.min.js",
+      "dependencies": [
+        "jquery"
+      ],
+      "version": "4.1.0"
     },
     {
       "name": "kwood.plugin",
       "type": "script",
-      "uri": "com_jcomments/jquery.plugin.min.js"
+      "uri": "com_jcomments/jquery.plugin.min.js",
+      "dependencies": [
+        "jquery"
+      ],
+      "version": "1.0.1"
     },
     {
       "name": "kwood.more",
       "type": "script",
-      "uri": "com_jcomments/jquery.more.min.js"
+      "uri": "com_jcomments/jquery.more.min.js",
+      "dependencies": [
+        "jquery",
+        "kwood.plugin"
+      ],
+      "version": "2.0.1"
     }
   ]
 }

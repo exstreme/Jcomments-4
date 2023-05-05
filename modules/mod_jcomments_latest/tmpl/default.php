@@ -13,18 +13,24 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Helper\ModuleHelper;
+use Joomla\Module\LatestComments\Site\Helper\LatestCommentsHelper;
 
 /** @var object $params */
-/** @var boolean $grouped */
+/** @var string $layout */
 
-if (!empty($list))
+if (empty($list))
 {
-	if ($grouped)
-	{
-		require ModuleHelper::getLayoutPath('mod_jcomments_latest', $params->get('layout', 'default') . '_grouped');
-	}
-	else
-	{
-		require ModuleHelper::getLayoutPath('mod_jcomments_latest', $params->get('layout', 'default') . '_ungrouped');
-	}
+	return;
 }
+
+$layout           = '_ungrouped';
+$commentsGrouping = $params->get('comments_grouping', 'none');
+$itemHeading      = $params->get('item_heading', 4);
+
+if ($commentsGrouping !== 'none')
+{
+	$layout = '_grouped';
+	$list   = LatestCommentsHelper::groupBy($list, $commentsGrouping);
+}
+
+require ModuleHelper::getLayoutPath('mod_jcomments_latest', $params->get('layout', 'default') . $layout);

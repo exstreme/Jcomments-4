@@ -15,7 +15,6 @@ namespace Joomla\Component\Jcomments\Administrator\Model;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
-use Joomla\CMS\Event\Model\BeforeBatchEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
@@ -23,18 +22,25 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 
+/**
+ * Comment Model
+ *
+ * @since  4.0
+ */
 class CommentModel extends AdminModel
 {
 	/**
 	 * Get list of user reports.
 	 *
-	 * @param   integer  $pk  Comment ID
+	 * @param   mixed  $pk  Comment ID
 	 *
 	 * @return  mixed  An array on success, false on failure
 	 *
+	 * @throws  \Exception
 	 * @since   4.0
 	 */
 	public function getReports($pk = null)
@@ -104,6 +110,7 @@ class CommentModel extends AdminModel
 	 *
 	 * @return  Form|boolean  A Form object on success, false on failure
 	 *
+	 * @throws  \Exception
 	 * @since   1.6
 	 */
 	public function getForm($data = array(), $loadData = true)
@@ -146,76 +153,20 @@ class CommentModel extends AdminModel
 	}
 
 	/**
-	 * Batch language changes for a group of rows.
-	 *
-	 * @param   string  $value     The new value matching a language.
-	 * @param   array   $pks       An array of row IDs.
-	 * @param   array   $contexts  An array of item contexts.
-	 *
-	 * @return  boolean  True if successful, false otherwise and internal error is set.
-	 *
-	 * @since   2.5
-	 */
-	protected function batchLanguage($value, $pks, $contexts)
-	{
-		// Initialize re-usable member properties, and re-usable local variables
-		$this->initBatch();
-
-		foreach ($pks as $pk)
-		{
-			if ($this->user->authorise('core.edit', $contexts[$pk]))
-			{
-				$this->table->reset();
-				$this->table->load($pk);
-				$this->table->language = $value;
-
-				$event = new BeforeBatchEvent(
-					$this->event_before_batch,
-					['src' => $this->table, 'type' => 'language']
-				);
-				$this->dispatchEvent($event);
-
-				// Check the row.
-				if (!$this->table->check())
-				{
-					$this->setError($this->table->getError());
-
-					return false;
-				}
-
-				if (!$this->table->store())
-				{
-					$this->setError($this->table->getError());
-
-					return false;
-				}
-			}
-			else
-			{
-				$this->setError(Text::_('JLIB_APPLICATION_ERROR_BATCH_CANNOT_EDIT'));
-
-				return false;
-			}
-		}
-
-		$this->cleanCache('com_jcomments');
-
-		return true;
-	}
-
-	/**
 	 * Delete items
 	 *
 	 * @param   array  $pks  The primary keys related to the comment(s) that was deleted.
 	 *
 	 * @return  boolean
 	 *
+	 * @throws  \Exception
 	 * @since   3.7.0
 	 */
 	public function delete(&$pks)
 	{
-		$pks    = ArrayHelper::toInteger((array) $pks);
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
 		$table  = $this->getTable();
+		$pks    = ArrayHelper::toInteger((array) $pks);
 		$config = ComponentHelper::getParams('com_jcomments');
 
 		foreach ($pks as $i => $pk)
@@ -278,8 +229,6 @@ class CommentModel extends AdminModel
 			Factory::getApplication()->enqueueMessage(Text::plural('A_COMMENTS_HAS_BEEN_MARKED_N_DELETED', count($pks)));
 		}
 
-		$this->cleanCache('com_jcomments');
-
 		return true;
 	}
 
@@ -291,13 +240,16 @@ class CommentModel extends AdminModel
 	 *
 	 * @return  boolean  True on success.
 	 *
+	 * @throws  \Exception
 	 * @since   1.6
 	 */
 	public function publish(&$pks, $value = 1)
 	{
-		$user  = Factory::getApplication()->getIdentity();
-		$table = $this->getTable();
-		$pks   = ArrayHelper::toInteger((array) $pks);
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
+		$table  = $this->getTable();
+		$user   = Factory::getApplication()->getIdentity();
+		$params = ComponentHelper::getParams('com_jcomments');
+		$pks    = ArrayHelper::toInteger((array) $pks);
 
 		// Access checks.
 		foreach ($pks as $i => $pk)
@@ -332,16 +284,18 @@ class CommentModel extends AdminModel
 						return false;
 					}
 
-					// Send notifications only on publish state
-					if ($value == 1)
+					// Send notifications only on publish state. Unpublish state will process only on frontend.
+					if ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 1)
 					{
-						NotificationHelper::push($table, ($value == 1) ? 'comment-published' : 'comment-unpublished');
+						// Send notification to subscribed users.
+						NotificationHelper::push($table, 'comment-published');
+
+						// Send notification to administrator(moderator). List of emails from 'notification_email' option.
+						NotificationHelper::push($table, 'moderate-published');
 					}
 				}
 			}
 		}
-
-		$this->cleanCache('com_jcomments');
 
 		return true;
 	}
@@ -353,12 +307,16 @@ class CommentModel extends AdminModel
 	 *
 	 * @return  boolean  True on success.
 	 *
+	 * @throws  \Exception
 	 * @since   1.6
 	 */
 	public function save($data)
 	{
-		$prevPublished = 0;
-		$pk = !empty($data['id']) ? $data['id'] : (int) $this->getState($this->getName() . '.id');
+		$params     = ComponentHelper::getParams('com_jcomments');
+		$oldState   = 0;
+		$oldComment = '';
+		$pk         = !empty($data['id']) ? $data['id'] : (int) $this->getState($this->getName() . '.id');
+		$isNew      = empty($data['id']);
 
 		// Loading previous record to check for publishing state.
 		if ($pk > 0)
@@ -367,7 +325,8 @@ class CommentModel extends AdminModel
 			$origTable = $this->getTable();
 			$origTable->load($pk);
 
-			$prevPublished = $origTable->published;
+			$oldState = $origTable->published;
+			$oldComment = $origTable->comment;
 		}
 
 		if ($data['userid'] == 0)
@@ -387,7 +346,7 @@ class CommentModel extends AdminModel
 
 		$data['title']   = stripslashes($data['title']);
 		$data['comment'] = stripslashes($data['comment']);
-		//$table->comment = JCommentsText::nl2br($table->comment); // TODO Remove JCommentsText::nl2br()
+		$data['comment'] = JcommentsText::nl2br($data['comment']);
 		$data['comment'] = JcommentsFactory::getBbcode()->filter($data['comment']);
 
 		if ($data['date'] == $this->getDatabase()->getNullDate() || empty($data['date']))
@@ -397,12 +356,40 @@ class CommentModel extends AdminModel
 
 		if (parent::save($data))
 		{
-			if ($data['published'] && $prevPublished != $data['published'])
+			if ($params->get('enable_notification'))
 			{
-				NotificationHelper::push(ArrayHelper::toObject($data));
-			}
+				if ($isNew && $data['published'])
+				{
+					// Send notification about new comment added.
+					if (in_array(1, $params->get('notification_type')))
+					{
+						NotificationHelper::push($data);
+						NotificationHelper::push($data, 'moderate-new');
+					}
+				}
+				elseif (!$isNew && $data['published'] && $oldState != $data['published'])
+				{
+					if (in_array(3, $params->get('notification_type')))
+					{
+						NotificationHelper::push($data, 'comment-published');
+						NotificationHelper::push($data, 'moderate-published');
+					}
+				}
+				elseif (!$isNew && $oldComment != $data['comment'])
+				{
+					if (in_array(1, $params->get('notification_type')))
+					{
+						NotificationHelper::push($data, 'comment-update');
 
-			$this->cleanCache('com_jcomments');
+						// Change the 'comment' field by including the old and new comments so that the administrator sees changes.
+						$data['comment'] = $params->get('mail_style') == 'html'
+							? Text::sprintf('A_COMMENT_TEXT_FOR_MODDERS_HTML', $data['comment'], $oldComment)
+							: Text::sprintf('A_COMMENT_TEXT_FOR_MODDERS', $data['comment'], $oldComment);
+
+						NotificationHelper::push($data, 'moderate-update');
+					}
+				}
+			}
 
 			return true;
 		}

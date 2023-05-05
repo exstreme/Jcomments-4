@@ -20,6 +20,14 @@ use Joomla\Database\DatabaseDriver;
 /**
  * JComments report table
  *
+ * @property   integer  $commentid
+ * @property   integer  $userid
+ * @property   integer  $name
+ * @property   integer  $ip
+ * @property   integer  $date
+ * @property   integer  $reason
+ * @property   integer  $status
+ *
  * @since  1.5
  */
 class ReportTable extends Table

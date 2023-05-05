@@ -3,10 +3,10 @@
 	<name>plg_jcomments_avatar</name>
 	<creationDate>February 2022</creationDate>
 	<author>JComments team</author>
-	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.2.3</version>
+	<version>4.3.0</version>
 	<description>PLG_JCOMMENTS_AVATAR_XML_DESCRIPTION</description>
 
 	<files>
@@ -16,6 +16,8 @@
 	<languages>
 		<language tag="en-GB">language/en-GB/plg_jcomments_avatar.ini</language>
 		<language tag="en-GB">language/en-GB/plg_jcomments_avatar.sys.ini</language>
+		<language tag="fr-FR">language/fr-FR/plg_jcomments_avatar.ini</language>
+		<language tag="fr-FR">language/fr-FR/plg_jcomments_avatar.sys.ini</language>
 		<language tag="ru-RU">language/ru-RU/plg_jcomments_avatar.ini</language>
 		<language tag="ru-RU">language/ru-RU/plg_jcomments_avatar.sys.ini</language>
 	</languages>
@@ -38,6 +40,7 @@
 					<option value="kunena">Kunena</option>
 					<option value="phocagallery">PhocaGallery</option>
 					<option value="easysocial">EasySocial</option>
+					<option value="jomsocial">JomSocial</option>
 					<option value="phpbb3">phpBB3</option>
 					<option value="smf">Simple Machines Forum (SMF)</option>
 				</field>
@@ -67,6 +70,8 @@
 					type="textarea"
 					rows="5"
 					cols="25"
+					default="s=32;
+					d=mp;"
 					label="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_LABEL"
 					description="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_DESC"
 					showon="avatar_type:gravatar"

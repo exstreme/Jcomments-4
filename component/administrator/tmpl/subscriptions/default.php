@@ -136,21 +136,6 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 		</div>
 	</div>
 
-	<?php // Load the batch processing form.
-	if ($user->authorise('core.create', 'com_jcomments')
-		&& $user->authorise('core.edit', 'com_jcomments')
-		&& $user->authorise('core.edit.state', 'com_jcomments')):
-		echo HTMLHelper::_(
-			'bootstrap.renderModal',
-			'collapseModal',
-			array(
-				'title'  => Text::_('COM_JCOMMENTS_BATCH_OPTIONS'),
-				'footer' => $this->loadTemplate('batch_footer'),
-			),
-			$this->loadTemplate('batch_body')
-		);
-	endif; ?>
-
 	<input type="hidden" name="task" value=""/>
 	<input type="hidden" name="boxchecked" value="0"/>
 	<?php echo HTMLHelper::_('form.token'); ?>

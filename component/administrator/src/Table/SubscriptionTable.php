@@ -22,6 +22,16 @@ use Joomla\Database\ParameterType;
 /**
  * JComments subscriptions table
  *
+ * @property   integer  object_id
+ * @property   string   object_group
+ * @property   string   lang
+ * @property   integer  userid
+ * @property   string   name
+ * @property   string   email
+ * @property   string   hash
+ * @property   integer  published
+ * @property   string   source
+ *
  * @since  1.5
  */
 class SubscriptionTable extends Table
@@ -86,41 +96,9 @@ class SubscriptionTable extends Table
 			}
 		}
 
-		// Adjust lang field for batch operation.
-		if ($app->input->post->get('task', '') == 'subscription.batch')
-		{
-			$this->lang = $this->language;
-		}
-
 		if (empty($this->lang))
 		{
 			$this->lang = $app->getLanguage()->getTag();
-		}
-		// Update 'lang' in #__jcomments_objects, #__jcomments tables. If you do not change the value, this will lead
-		// to a loss of connection in the tables.
-		else
-		{
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__jcomments'))
-				->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-				->where($db->quoteName('object_id') . ' = :oid')
-				->where($db->quoteName('object_group') . ' = :ogroup')
-				->bind(':oid', $this->object_id, ParameterType::INTEGER)
-				->bind(':ogroup', $this->object_group);
-
-			$db->setQuery($query);
-			$db->execute();
-
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__jcomments_objects'))
-				->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-				->where($db->quoteName('object_id') . ' = :oid')
-				->where($db->quoteName('object_group') . ' = :ogroup')
-				->bind(':oid', $this->object_id, ParameterType::INTEGER)
-				->bind(':ogroup', $this->object_group);
-
-			$db->setQuery($query);
-			$db->execute();
 		}
 
 		$this->hash = $this->getHash();

@@ -103,19 +103,6 @@ class HtmlView extends BaseHtmlView
 				->listCheck(true);
 		}
 
-		// Add a batch button
-		if ($user->authorise('core.create', 'com_jcomments')
-			&& $user->authorise('core.edit', 'com_jcomments'))
-		{
-			if (Multilanguage::isEnabled())
-			{
-				$childBar->popupButton('batch')
-					->text('JTOOLBAR_BATCH')
-					->selector('collapseModal')
-					->listCheck(true);
-			}
-		}
-
 		if ($user->authorise('core.admin', 'com_jcomments') || $user->authorise('core.options', 'com_jcomments'))
 		{
 			$toolbar->preferences('com_jcomments');

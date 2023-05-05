@@ -2,12 +2,13 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version       4.0
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru) & exstreme (info@protectyoursite.ru) & Vladimir Globulopolis
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 namespace Joomla\Component\Jcomments\Site\Service;
 
@@ -47,7 +48,7 @@ class Router extends RouterView
 			unset($query['id']);
 		}
 
-		$total = \count($segments);
+		$total = count($segments);
 
 		for ($i = 0; $i < $total; $i++)
 		{
@@ -68,7 +69,7 @@ class Router extends RouterView
 	 */
 	public function parse(&$segments)
 	{
-		$total = \count($segments);
+		$total = count($segments);
 		$vars = array();
 
 		for ($i = 0; $i < $total; $i++)
@@ -77,14 +78,14 @@ class Router extends RouterView
 		}
 
 		// View is always the first element of the array
-		$count = \count($segments);
+		$count = count($segments);
 
 		if ($count)
 		{
 			$count--;
 			$segment = array_shift($segments);
 
-			if (\is_numeric($segment))
+			if (is_numeric($segment))
 			{
 				$vars['id'] = $segment;
 			}
@@ -98,7 +99,7 @@ class Router extends RouterView
 		{
 			$segment = array_shift($segments);
 
-			if (\is_numeric($segment))
+			if (is_numeric($segment))
 			{
 				$vars['id'] = $segment;
 			}

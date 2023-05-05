@@ -16,23 +16,24 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Cache\Cache;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
-use Joomla\CMS\Cache\Exception\CacheExceptionInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
-use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
-use Joomla\Database\DatabaseDriver;
 
 /**
  * JComments Factory class
+ *
+ * @since  1.0
  */
 class JcommentsFactory
 {
 	/**
 	 * Returns a reference to the global {@link JcommentsSmilies} object, only creating it if it does not already exist.
 	 *
-	 * @return JcommentsSmilies
+	 * @return  JcommentsSmilies
+	 *
+	 * @since   3.0
 	 */
 	public static function getSmilies()
 	{
@@ -81,76 +82,11 @@ class JcommentsFactory
 	}
 
 	/**
-	 * Returns a reference to the global {@link JoomlaTuneTemplateRender} object, only creating it if it does not already exist.
+	 * Returns a reference to the global {@link JCommentsAcl} object, only creating it if it doesn't already exist.
 	 *
-	 * @param   integer  $objectID
-	 * @param   string   $objectGroup
-	 * @param   boolean  $needThisUrl
+	 * @return  JCommentsAcl
 	 *
-	 * @return JoomlaTuneTemplateRender
-	 */
-	public static function getTemplate($objectID = 0, $objectGroup = 'com_content', $needThisUrl = true)
-	{
-		ob_start();
-
-		$app      = Factory::getApplication();
-		$language = $app->getLanguage();
-		$config   = ComponentHelper::getParams('com_jcomments');
-
-		$templateName = $config->get('template');
-
-		if (empty($templateName))
-		{
-			$templateName = 'default';
-			$config->set('template', $templateName);
-		}
-
-		include_once JPATH_ROOT . '/components/com_jcomments/libraries/joomlatune/template.php';
-
-		$templateDefaultDirectory = JPATH_ROOT . '/components/com_jcomments/tpl/' . $templateName;
-		$templateDirectory        = $templateDefaultDirectory;
-		$templateUrl              = Uri::root() . 'components/com_jcomments/tpl/' . $templateName;
-
-		$templateOverride = JPATH_SITE . '/templates/' . $app->getTemplate() . '/html/com_jcomments/' . $templateName;
-
-		if (is_dir($templateOverride))
-		{
-			$templateDirectory = $templateOverride;
-			$templateUrl       = Uri::root() . 'templates/' . $app->getTemplate() . '/html/com_jcomments/' . $templateName;
-		}
-
-		$tmpl = \JoomlaTuneTemplateRender::getInstance();
-		$tmpl->setRoot($templateDirectory);
-		$tmpl->setDefaultRoot($templateDefaultDirectory);
-		$tmpl->setBaseURI($templateUrl);
-		$tmpl->addGlobalVar('siteurl', Uri::root());
-		$tmpl->addGlobalVar('charset', 'utf-8');
-		$tmpl->addGlobalVar('ajaxurl', self::getLink('ajax', $objectID, $objectGroup));
-		$tmpl->addGlobalVar('smilesurl', self::getLink('smilies', $objectID, $objectGroup));
-		$tmpl->addGlobalVar('template', $templateName);
-		$tmpl->addGlobalVar('template_url', $templateUrl);
-		$tmpl->addGlobalVar('itemid', $app->input->getInt('Itemid') ?: 1);
-		$tmpl->addGlobalVar('direction', $language->isRTL() ? 'rtl' : 'ltr');
-		$tmpl->addGlobalVar('comment-object_id', $objectID);
-		$tmpl->addGlobalVar('comment-object_group', $objectGroup);
-
-		if ($needThisUrl == true)
-		{
-			$tmpl->addGlobalVar('thisurl', ObjectHelper::getObjectField('link', $objectID, $objectGroup, $language->getTag()));
-		}
-
-		ob_end_clean();
-
-		return $tmpl;
-	}
-
-	/**
-	 * Returns a reference to the global {@link JCommentsAcl} object,
-	 * only creating it if it doesn't already exist.
-	 *
-	 * @return JCommentsAcl
-	 *
-	 * @since  4.0
+	 * @since   4.0
 	 */
 	public static function getAcl()
 	{
@@ -159,24 +95,6 @@ class JcommentsFactory
 		if (!is_object($instance))
 		{
 			$instance = new JcommentsAcl;
-		}
-
-		return $instance;
-	}
-
-	/**
-	 * Returns a reference to the global {@link JoomlaTuneAjaxResponse} object,
-	 * only creating it if it doesn't already exist.
-	 *
-	 * @return JoomlaTuneAjaxResponse
-	 */
-	public static function getAjaxResponse()
-	{
-		static $instance = null;
-
-		if (!is_object($instance))
-		{
-			$instance = new JoomlaTuneAjaxResponse('utf-8');
 		}
 
 		return $instance;
@@ -274,11 +192,12 @@ class JcommentsFactory
 	/**
 	 * Return the current state of the language filter.
 	 *
-	 * @return	boolean
+	 * @return  boolean
 	 *
-	 * @since	4.0
+	 * @throws  \Exception
+	 * @since   4.0
 	 */
-	public static function getLanguageFilter()
+	public static function getLanguageFilter(): bool
 	{
 		static $enabled = null;
 
@@ -293,7 +212,7 @@ class JcommentsFactory
 			}
 			else
 			{
-				/** @var DatabaseDriver $db */
+				/** @var \Joomla\Database\DatabaseDriver $db */
 				$db = Factory::getContainer()->get('DatabaseDriver');
 
 				$query = $db->getQuery(true)
@@ -312,18 +231,18 @@ class JcommentsFactory
 	}
 
 	/**
-	 * Get the return URL.
+	 * Get the decoded return URL.
 	 *
 	 * If a "return" variable has been passed in the request
 	 *
 	 * @return  string    The return URL.
 	 *
+	 * @throws  \Exception
 	 * @since   4.0
 	 */
 	public static function getReturnPage(): string
 	{
-		$input  = Factory::getApplication()->input;
-		$return = $input->get('return', null, 'base64');
+		$return = Factory::getApplication()->input->getBase64('return');
 
 		if (empty($return) || !Uri::isInternal(base64_decode($return)))
 		{
@@ -353,60 +272,5 @@ class JcommentsFactory
 
 		/** @var Cache $cache */
 		return Factory::getContainer()->get(CacheControllerFactoryInterface::class)->createCacheController($handler, $options);
-	}
-
-	/**
-	 * Remove a cached data entry by ID and group
-	 *
-	 * @param   string  $id       The cache data ID
-	 * @param   string  $group    The cache data group
-	 * @param   array   $options  Additional options. It is necessary to add frontend 'language', otherwise the cache
-	 *                            key will be incorrect when calling this method from backend.
-	 *
-	 * @return  boolean
-	 *
-	 * @see CacheStorage::_getCacheId()
-	 * @since   4.0
-	 */
-	public static function removeCache($id, $group = null, $options = array())
-	{
-		$options['defaultgroup'] = $group;
-
-		try
-		{
-			$cache = self::getCache('callback', $options);
-
-			return $cache->remove($id, $group);
-		}
-		catch (CacheExceptionInterface $e)
-		{
-			return false;
-		}
-	}
-
-	/**
-	 * Remove a cached data entry by group
-	 *
-	 * @param   string  $group    The cache data group
-	 * @param   array   $options  Additional options
-	 *
-	 * @return  boolean
-	 *
-	 * @since   4.0
-	 */
-	public static function removeCacheGroup($group = null, $options = array())
-	{
-		$options['defaultgroup'] = $group;
-
-		try
-		{
-			$cache = self::getCache('callback', $options);
-
-			return $cache->clean($group);
-		}
-		catch (CacheExceptionInterface $e)
-		{
-			return false;
-		}
 	}
 }

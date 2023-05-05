@@ -14,6 +14,7 @@ namespace Joomla\Component\Jcomments\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Response\JsonResponse;
@@ -62,9 +63,12 @@ class UserController extends FormController
 		}
 
 		$objData = (object) $data;
-		$app->triggerEvent(
+		$this->getDispatcher()->dispatch(
 			'onContentNormaliseRequestData',
-			array($this->option . '.' . $this->context, $objData, $form)
+			AbstractEvent::create(
+				'onContentNormaliseRequestData',
+				array($this->option . '.' . $this->context, $objData, $form, 'subject' => new \stdClass)
+			)
 		);
 		$data = (array) $objData;
 

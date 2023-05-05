@@ -20,11 +20,11 @@ use Joomla\CMS\Language\Text;
 ?>
 <div class="list-group list-group-flush <?php echo $params->get('moduleclass_sfx'); ?>">
 	<?php foreach ($list as $item): ?>
-		<div class="list-group-item list-group-item-action">
+		<div class="list-group-item list-group-item-action p-0 pb-2 mb-2">
 			<?php if ($params->get('show_object_title')): ?>
 
-				<div class="d-flex justify-content-between">
-					<h<?php echo $itemHeading; ?> class="mb-1 w-75 text-truncate">
+				<div class="comment-info">
+					<h<?php echo $itemHeading; ?> class="mb-0 mod-item-heading">
 						<?php if ($params->get('link_object_title', 1) && $item->object_link != ''): ?>
 							<a href="<?php echo $item->object_link;?>"><?php echo $item->displayObjectTitle; ?></a>
 						<?php else: ?>
@@ -33,17 +33,19 @@ use Joomla\CMS\Language\Text;
 					</h<?php echo $itemHeading; ?>>
 
 					<?php if ($params->get('show_comment_date')): ?>
-						<small>
+						<div class="text-muted">
 							<?php if ($params->get('date_type') == 'absolute'): ?>
 								<span class="icon-calendar icon-fw" aria-hidden="true"></span>
 							<?php endif; ?>
 							<?php echo $item->displayDate; ?>
-						</small>
+						</div>
 					<?php endif; ?>
 				</div>
 				<p class="mb-1">
 					<?php if ($params->get('show_comment_title') && $item->displayCommentTitle): ?>
-						<span class="d-inline-block w-75 text-truncate"><strong><?php echo $item->displayCommentTitle; ?></strong></span><br>
+						<span class="d-inline-block comment-title text-muted w-100 text-truncate">
+							<strong><?php echo $item->displayCommentTitle; ?></strong>
+						</span><br>
 					<?php endif; ?>
 
 					<?php echo $item->displayCommentText; ?>
@@ -59,16 +61,18 @@ use Joomla\CMS\Language\Text;
 
 				<?php if ($params->get('show_comment_title') && $item->displayCommentTitle): ?>
 
-					<div class="d-flex justify-content-between">
-						<span class="mb-1 w-75 text-truncate"><strong><?php echo $item->displayCommentTitle; ?></strong></span>
+					<div>
+						<span class="d-inline-block comment-title text-muted w-100 text-truncate">
+							<strong><?php echo $item->displayCommentTitle; ?></strong>
+						</span><br>
 
 						<?php if ($params->get('show_comment_date')): ?>
-							<small>
+							<div class="comment-info text-muted">
 								<?php if ($params->get('date_type') == 'absolute'): ?>
 									<span class="icon-calendar icon-fw" aria-hidden="true"></span>
 								<?php endif; ?>
 								<?php echo $item->displayDate; ?>
-							</small>
+							</div>
 						<?php endif; ?>
 					</div>
 					<p class="mb-1">

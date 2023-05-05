@@ -60,8 +60,6 @@ $wa->useScript('keepalive')
 						</div>
 					</div>
 
-					<?php echo $this->form->renderField('lang'); ?>
-
 					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('published'); ?>

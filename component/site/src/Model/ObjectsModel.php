@@ -66,7 +66,7 @@ class ObjectsModel extends BaseDatabaseModel
 			}
 			catch (\RuntimeException $e)
 			{
-				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 				return false;
 			}
@@ -99,7 +99,7 @@ class ObjectsModel extends BaseDatabaseModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}*/
@@ -112,22 +112,24 @@ class ObjectsModel extends BaseDatabaseModel
 	 *
 	 * @param   integer  $objectID     Object ID
 	 * @param   string   $objectGroup  Object group. E.g. com_content
-	 * @param   string   $language     Object language tag
+	 * @param   mixed    $language     Object language tag or null
 	 * @param   boolean  $useCache     Load infromation from cache. If set to false when information will be loaded from DB.
 	 *
 	 * @return  object
 	 *
 	 * @since   3.0
 	 */
-	public function &getItem(int $objectID, string $objectGroup, string $language, bool $useCache = true)
+	public function &getItem(int $objectID, string $objectGroup, $language, bool $useCache = true)
 	{
 		if (!isset($this->_item))
 		{
+			$app      = Factory::getApplication();
+			$db       = $this->getDatabase();
+			$user     = $app->getIdentity();
+			$language = empty($language) ? $app->getLanguage()->getTag() : $language;
+
 			/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
 			$cache = Factory::getCache('com_jcomments_objects_' . strtolower($objectGroup), 'callback');
-
-			$db = $this->getDbo();
-			$user = Factory::getApplication()->getIdentity();
 
 			$loader = function ($objectID, $objectGroup, $language, $user) use ($db)
 			{
@@ -144,10 +146,10 @@ class ObjectsModel extends BaseDatabaseModel
 					->from($db->quoteName('#__jcomments_objects'))
 					->where($db->quoteName('object_id') . ' = :id')
 					->where($db->quoteName('object_group') . ' = :group')
-					->whereIn($db->quoteName('access'), $user->getAuthorisedViewLevels())
-					->whereIn($db->quoteName('lang'), array($language, '*'), ParameterType::STRING)
+					->where($db->quoteName('lang') . ' = :lang')
 					->bind(':id', $objectID, ParameterType::INTEGER)
-					->bind(':group', $objectGroup, ParameterType::STRING);
+					->bind(':group', $objectGroup)
+					->bind(':lang', $language);
 
 				$db->setQuery($query);
 
@@ -371,7 +373,7 @@ class ObjectsModel extends BaseDatabaseModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
@@ -450,7 +452,7 @@ class ObjectsModel extends BaseDatabaseModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
@@ -513,5 +515,29 @@ class ObjectsModel extends BaseDatabaseModel
 		}
 
 		return $info;
+	}
+
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * This method should only be called once per instantiation and is designed
+	 * to be called on the first call to the getState() method unless the model
+	 * configuration flag to ignore the request is set.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.1
+	 */
+	protected function populateState()
+	{
+		$app = Factory::getApplication();
+
+		$objectGroup = $app->input->getCmd('object_group', $app->input->getCmd('option'));
+		$this->setState('object_group', $objectGroup);
+
+		$objectID = $app->input->getInt('object_id', $app->input->getInt('id'));
+		$this->setState('object_id', $objectID);
 	}
 }

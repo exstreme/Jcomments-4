@@ -19,10 +19,29 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
 
+/**
+ * Form Field class for display available object groups.
+ *
+ * @since  1.7.0
+ * @noinspection  PhpUnused
+ */
 class ObjectgroupField extends ListField
 {
+	/**
+	 * The form field type.
+	 *
+	 * @var    string
+	 * @since  1.7.0
+	 */
 	protected $type = 'ObjectGroup';
 
+	/**
+	 * Method to get the field options.
+	 *
+	 * @return  array  The field option objects.
+	 *
+	 * @since   3.7.0
+	 */
 	protected function getOptions()
 	{
 		$options = array();

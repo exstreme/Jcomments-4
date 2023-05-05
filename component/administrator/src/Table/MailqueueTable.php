@@ -20,6 +20,15 @@ use Joomla\Database\DatabaseDriver;
 /**
  * JComments mail queue table
  *
+ * @property    string   $name
+ * @property    string   $email
+ * @property    string   $subject
+ * @property    string   $body
+ * @property    string   $created
+ * @property    integer  $attempts
+ * @property    integer  $priority
+ * @property    string   $session_id
+ *
  * @since  1.5
  */
 class MailqueueTable extends Table

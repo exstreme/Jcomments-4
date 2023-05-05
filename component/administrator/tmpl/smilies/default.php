@@ -136,7 +136,7 @@ if ($saveOrder)
 									<?php echo $item->code; ?>
 								</td>
 								<td class="text-center hidden-phone">
-									<?php echo HTMLHelper::image($this->liveSmiliesPath . $item->image, ''); ?>
+									<?php echo HTMLHelper::image($this->liveSmiliesPath . $item->image, $item->image); ?>
 								</td>
 								<td class="d-none d-md-table-cell">
 									<?php echo (int) $item->id; ?>

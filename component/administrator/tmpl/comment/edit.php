@@ -157,6 +157,15 @@ $this->useCoreUI = true;
 
 					<div class="control-group">
 						<div class="control-label">
+							<?php echo $this->form->getLabel('ip'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('ip'); ?>
+						</div>
+					</div>
+
+					<div class="control-group">
+						<div class="control-label">
 							<?php echo $this->form->getLabel('date'); ?>
 						</div>
 						<div class="controls">
@@ -222,8 +231,6 @@ $this->useCoreUI = true;
 							<?php endif; ?>
 						</div>
 					</div>
-
-					<?php echo $this->form->renderField('lang'); ?>
 				</div>
 			</div>
 

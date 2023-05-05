@@ -19,11 +19,40 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsTree;
 use Joomla\Database\DatabaseDriver;
+use Joomla\Database\ParameterType;
 
 /**
  * JComments comments table
+ *
+ * @property   integer $id
+ * @property   integer $parent
+ * @property   integer $thread_id
+ * @property   string  $path
+ * @property   integer $level
+ * @property   integer $object_id
+ * @property   string  $object_group
+ * @property   string  $lang
+ * @property   integer $userid
+ * @property   string  $name
+ * @property   string  $username
+ * @property   string  $email
+ * @property   string  $homepage
+ * @property   string  $title
+ * @property   string  $comment
+ * @property   string  $ip
+ * @property   string  $date
+ * @property   integer $isgood
+ * @property   integer $ispoor
+ * @property   integer $published
+ * @property   integer $deleted
+ * @property   integer $subscribe
+ * @property   string  $source
+ * @property   integer $source_id
+ * @property   integer $checked_out
+ * @property   string  $checked_out_time
  *
  * @since  1.5
  */
@@ -76,6 +105,7 @@ class CommentTable extends Table
 	 *
 	 * @return  boolean  True on success.
 	 *
+	 * @throws  \Exception
 	 * @since   1.6
 	 */
 	public function store($updateNulls = true)
@@ -133,7 +163,7 @@ class CommentTable extends Table
 		{
 			if (empty($this->title) && (int) $config->get('comment_title') == 1)
 			{
-				$title = ObjectHelper::getObjectField('title', $this->object_id, $this->object_group, $this->lang);
+				$title = ObjectHelper::getObjectField(null, 'title', $this->object_id, $this->object_group, $this->lang);
 
 				if (!empty($title))
 				{
@@ -143,32 +173,6 @@ class CommentTable extends Table
 
 			$this->path = '0';
 		}
-
-		// Adjust lang field for batch operation.
-		if ($app->input->post->get('task', '') == 'comment.batch')
-		{
-			$this->lang = $this->language;
-		}
-
-		// Update language in objects table
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__jcomments_objects'))
-			->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-			->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-			->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		// Update language in subscriptions table
-		$query = $db->getQuery(true)
-			->update($db->quoteName('#__jcomments_subscriptions'))
-			->set($db->quoteName('lang') . ' = ' . $db->quote($this->lang))
-			->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id)
-			->where($db->quoteName('object_group') . ' = ' .  $db->quote($this->object_group));
-
-		$db->setQuery($query);
-		$db->execute();
 
 		if (isset($this->datetime))
 		{
@@ -205,8 +209,10 @@ class CommentTable extends Table
 			$query = $db->getQuery(true)
 				->select($db->quoteName(array('id', 'parent')))
 				->from($db->quoteName('#__jcomments'))
-				->where($db->quoteName('object_group') . ' = ' . $db->quote($this->object_group))
-				->where($db->quoteName('object_id') . ' = ' . (int) $this->object_id);
+				->where($db->quoteName('object_id') . ' = :oid')
+				->where($db->quoteName('object_group') . ' = :ogroup')
+				->bind(':oid', $this->object_id, ParameterType::INTEGER)
+				->bind(':ogroup', $objectGroup);
 
 			$db->setQuery($query);
 			$rows = $db->loadObjectList();
@@ -254,9 +260,10 @@ class CommentTable extends Table
 	 *
 	 * @return  boolean
 	 *
+	 * @throws  \Exception
 	 * @since   3.0
 	 */
-	public function markAsDeleted()
+	public function markAsDeleted(): bool
 	{
 		$this->title   = '';
 		$this->deleted = 1;
@@ -280,7 +287,7 @@ class CommentTable extends Table
 			$value     = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
 		}
 
-		//$value = JCommentsText::nl2br($value);
+		$value = JcommentsText::nl2br($value);
 
 		foreach ($map as $key => $code)
 		{

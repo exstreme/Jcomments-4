@@ -19,10 +19,12 @@ use Joomla\CMS\Router\Route;
 /** @var Joomla\Component\Jcomments\Administrator\View\Comments\HtmlView $this */
 
 $wa = $this->document->getWebAssetManager();
-$wa->useScript('jcomments.objects')
+$wa->useScript('jquery')
+	->useScript('jcomments.objects')
 	->useScript('keepalive');
 ?>
 <div class="main-card p-3">
+	<?php /** @see Joomla\Component\Jcomments\Administrator\Controller\ObjectsController::refresh() */ ?>
 	<form action="<?php echo Route::_('index.php?option=com_jcomments&task=objects.refresh', false); ?>"
 		  name="objectsUpdateForm" id="objectsUpdateForm" autocomplete="off">
 		<div class="progress" style="height: 25px;">
@@ -39,7 +41,7 @@ $wa->useScript('jcomments.objects')
 				<?php echo Text::_('A_REFRESH_OBJECTS_BUTTON'); ?>
 			</button>
 			<a href="<?php echo Route::_('index.php?option=com_jcomments&view=comments'); ?>" role="button"
-			   class="btn btn-secondary mt-3"><?php echo Text::_('JCLOSE'); ?></a>
+			   class="btn btn-secondary mt-3 cmd-close"><?php echo Text::_('JCLOSE'); ?></a>
 		</div>
 		<div class="alert alert-light" role="alert">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-patch-exclamation-fill" viewBox="0 0 16 16">

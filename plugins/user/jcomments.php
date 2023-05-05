@@ -20,6 +20,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 
 /**
@@ -54,6 +55,14 @@ class PlgUserJComments extends CMSPlugin
 	protected $db;
 
 	/**
+	 * Component ID.
+	 *
+	 * @var    integer
+	 * @since  4.1
+	 */
+	private static $jcommentsId = 0;
+
+	/**
 	 * Inject the Jcomments data into the User Profile.
 	 *
 	 * This method is called whenever Joomla is preparing the data for an XML form for display.
@@ -78,14 +87,14 @@ class PlgUserJComments extends CMSPlugin
 			return true;
 		}
 
-		// We expect the numeric user ID in $data->id
+		// We expecting the numeric user ID in $data->id
 		if (!isset($data->id))
 		{
 			return true;
 		}
 
 		// Get the user ID
-		$userId = isset($data->id) ? intval($data->id) : 0;
+		$userId = (int) $data->id;
 
 		// Make sure we have a positive integer user ID
 		if ($userId <= 0)
@@ -106,8 +115,7 @@ class PlgUserJComments extends CMSPlugin
 		if ($this->app->input->get('layout') !== 'edit')
 		{
 			$db = $this->db;
-			$totalComments = 0;
-			$totalVotes = 0;
+			$langTag = $this->app->getLanguage()->getTag();
 
 			if ($this->params->get('show_comments_link', 0))
 			{
@@ -116,10 +124,13 @@ class PlgUserJComments extends CMSPlugin
 					$query = $db->getQuery(true)
 						->select('COUNT(id)')
 						->from($db->quoteName('#__jcomments'))
-						->where($db->quoteName('userid') . ' = ' . $userId);
+						->where($db->quoteName('userid') . ' = :uid')
+						->where($db->quoteName('deleted') . ' = 0')
+						->where($db->quoteName('published') . ' = 1')
+						->bind(':uid', $userId, ParameterType::INTEGER);
 
 					$db->setQuery($query);
-					$totalComments = $db->loadResult();
+					$totalComments = (int) $db->loadResult();
 				}
 				catch (\RuntimeException $e)
 				{
@@ -142,12 +153,17 @@ class PlgUserJComments extends CMSPlugin
 				try
 				{
 					$query = $db->getQuery(true)
-						->select('COUNT(id)')
-						->from($db->quoteName('#__jcomments_votes'))
-						->where($db->quoteName('userid') . ' = ' . $userId);
+						->select('COUNT(v.id)')
+						->from($db->quoteName('#__jcomments_votes', 'v'))
+						->leftJoin(
+							$db->quoteName('#__jcomments', 'c'),
+							$db->quoteName('c.id') . ' = ' . $db->quoteName('v.commentid')
+						)
+						->where($db->quoteName('v.userid') . ' = :uid')
+						->bind(':uid', $userId, ParameterType::INTEGER);
 
 					$db->setQuery($query);
-					$totalVotes = $db->loadResult();
+					$totalVotes = (int) $db->loadResult();
 				}
 				catch (\RuntimeException $e)
 				{
@@ -164,18 +180,49 @@ class PlgUserJComments extends CMSPlugin
 					HTMLHelper::register('users.total_votes', [__CLASS__, 'urlVotes']);
 				}
 			}
+
+			if ($this->params->get('show_subscriptions_link', 0))
+			{
+				try
+				{
+					$query = $db->getQuery(true)
+						->select('COUNT(id)')
+						->from($db->quoteName('#__jcomments_subscriptions'))
+						->where($db->quoteName('published') . ' = 1')
+						->where($db->quoteName('userid') . ' = :uid')
+						->bind(':uid', $userId, ParameterType::INTEGER);
+
+					$db->setQuery($query);
+					$totalSubcriptions = (int) $db->loadResult();
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
+
+					return false;
+				}
+
+				// Do not set this value to empty or 0 because it will display COM_USERS_PROFILE_VALUE_NOT_FOUND text instead of numeric zero.
+				$data->comments['subscriptions_link'] = Text::plural('PLG_USER_COMMENTS_SUBSCRIPTIONS_TOTAL_N', $totalSubcriptions);
+
+				if ($totalSubcriptions > 0 && !HTMLHelper::isRegistered('users.subscriptions_link'))
+				{
+					HTMLHelper::register('users.subscriptions_link', [__CLASS__, 'urlSubscriptions']);
+				}
+			}
 		}
 
 		return true;
 	}
 
 	/**
-	 * Returns an anchor tag.
+	 * Returns an anchor tag for comments.
 	 *
 	 * @param   string  $value  Field value
 	 *
-	 * @return  mixed|string
+	 * @return  mixed
 	 *
+	 * @throws  \Exception
 	 * @since   4.0
 	 */
 	public static function urlComment(string $value)
@@ -186,35 +233,12 @@ class PlgUserJComments extends CMSPlugin
 		}
 		else
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db = Factory::getContainer()->get('DatabaseDriver');
-
-			$query = $db->getQuery(true)
-				->select($db->quoteName('extension_id'))
-				->from($db->quoteName('#__extensions'))
-				->where(
-					array(
-						$db->quoteName('element') . ' = ' . $db->quote('com_jcomments'),
-						$db->quoteName('type') . ' = ' . $db->quote('component'),
-					)
-				);
-
-			try
-			{
-				$db->setQuery($query);
-				$itemid = $db->loadResult();
-			}
-			catch (RuntimeException $e)
-			{
-				Log::add($e->getMessage(), 'plg_user_jcomments');
-				$itemid = Factory::getApplication()->input->get('Itemid');
-			}
-
-			$url = Route::_('index.php?option=com_jcomments&view=comments&task=viewAllMyComments&Itemid=' . (int) $itemid);
+			$itemid = self::getItemid();
+			$url = Route::_('index.php?option=com_jcomments&task=user.comments&Itemid=' . $itemid);
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&view=comments&task=viewAllMyComments&Itemid=' . (int) $itemid
+				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.comments&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -226,9 +250,9 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @param   string  $value  Field value
 	 *
-	 * @return  mixed|string
+	 * @return  mixed
 	 *
-	 * @throws  Exception
+	 * @throws  \Exception
 	 * @since   4.0
 	 */
 	public static function urlVotes(string $value)
@@ -239,35 +263,42 @@ class PlgUserJComments extends CMSPlugin
 		}
 		else
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db = Factory::getContainer()->get('DatabaseDriver');
-
-			try
-			{
-				$query = $db->getQuery(true)
-					->select($db->quoteName('extension_id'))
-					->from($db->quoteName('#__extensions'))
-					->where(
-						array(
-							$db->quoteName('element') . ' = ' . $db->quote('com_jcomments'),
-							$db->quoteName('type') . ' = ' . $db->quote('component')
-						)
-					);
-
-				$db->setQuery($query);
-				$itemid = $db->loadResult();
-			}
-			catch (RuntimeException $e)
-			{
-				Log::add($e->getMessage(), Log::ERROR, 'plg_user_jcomments');
-				$itemid = Factory::getApplication()->input->get('Itemid');
-			}
-
-			$url = Route::_('index.php?option=com_jcomments&view=comments&task=viewAllMyVotes&Itemid=' . (int) $itemid);
+			$itemid = self::getItemid();
+			$url = Route::_('index.php?option=com_jcomments&task=user.votes&Itemid=' . $itemid);
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&view=comments&task=viewAllMyVotes&Itemid=' . (int) $itemid
+				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.votes&Itemid=' . $itemid
+				: $url;
+
+			return '<a href="' . $url . '">' . $value . '</a>';
+		}
+	}
+
+	/**
+	 * Returns an anchor tag for subscriptions.
+	 *
+	 * @param   string  $value  Field value
+	 *
+	 * @return  mixed
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
+	public static function urlSubscriptions(string $value)
+	{
+		if (empty($value))
+		{
+			return HTMLHelper::_('users.value', $value);
+		}
+		else
+		{
+			$itemid = self::getItemid();
+			$url = Route::_('index.php?option=com_jcomments&task=user.subscriptions&Itemid=' . $itemid);
+
+			// If component not found Route will return a Null value. Check it and set url w/o route.
+			$url = empty($url)
+				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.subscriptions&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -303,6 +334,7 @@ class PlgUserJComments extends CMSPlugin
 		{
 			$form->removeField('total_comments', 'comments');
 			$form->removeField('total_votes', 'comments');
+			$form->removeField('subscriptions_manage_link', 'comments');
 		}
 
 		if (!$this->params->get('show_comments_link'))
@@ -315,22 +347,27 @@ class PlgUserJComments extends CMSPlugin
 			$form->removeField('total_votes', 'comments');
 		}
 
+		if (!$this->params->get('show_subscriptions_link'))
+		{
+			$form->removeField('subscriptions_manage_link', 'comments');
+		}
+
 		return true;
 	}
 
 	/**
 	 * Saves user profile data
 	 *
-	 * @param   array    $data    entered user data
-	 * @param   boolean  $isNew   true if this is a new user
-	 * @param   boolean  $result  true if saving the user worked
-	 * @param   string   $error   error message
+	 * @param   array        $data    entered user data
+	 * @param   boolean      $isNew   true if this is a new user
+	 * @param   boolean      $result  true if saving the user worked
+	 * @param   string|null  $error   error message
 	 *
 	 * @return  void
 	 *
 	 * @since   2.0
 	 */
-	public function onUserAfterSave(array $data, bool $isNew, bool $result, string $error)
+	public function onUserAfterSave(array $data, bool $isNew, bool $result, ?string $error)
 	{
 		if ($data && !$isNew)
 		{
@@ -348,7 +385,8 @@ class PlgUserJComments extends CMSPlugin
 						->set($db->quoteName('name') . ' = ' . $db->quote($data['name']))
 						->set($db->quoteName('username') . ' = ' . $db->quote($data['username']))
 						->set($db->quoteName('email') . ' = ' . $db->quote($data['email']))
-						->where($db->quoteName('userid') . ' = ' . $userId);
+						->where($db->quoteName('userid') . ' = :uid')
+						->bind(':uid', $userId, ParameterType::INTEGER);
 
 					$db->setQuery($query);
 					$db->execute();
@@ -364,7 +402,8 @@ class PlgUserJComments extends CMSPlugin
 					$query = $db->getQuery(true)
 						->update($db->quoteName('#__jcomments_subscriptions'))
 						->set($db->quoteName('email') . ' = ' . $db->quote($data['email']))
-						->where($db->quoteName('userid') . ' = ' . $userId);
+						->where($db->quoteName('userid') . ' = :uid')
+						->bind(':uid', $userId, ParameterType::INTEGER);
 
 					$db->setQuery($query);
 					$db->execute();
@@ -403,32 +442,88 @@ class PlgUserJComments extends CMSPlugin
 				$query = $db->getQuery(true)
 					->update($db->quoteName('#__jcomments'))
 					->set($db->quoteName('userid') . ' = 0')
-					->where($db->quoteName('userid') . ' = ' . $userId);
+					->where($db->quoteName('userid') . ' = :uid')
+					->bind(':uid', $userId, ParameterType::INTEGER);
 
 				$db->setQuery($query);
 				$db->execute();
 
 				$query = $db->getQuery(true)
 					->delete($db->quoteName('#__jcomments_reports'))
-					->where($db->quoteName('userid') . ' = ' . $userId);
+					->where($db->quoteName('userid') . ' = :uid')
+					->bind(':uid', $userId, ParameterType::INTEGER);
 
 				$db->setQuery($query);
 				$db->execute();
 
 				$query = $db->getQuery(true)
 					->delete($db->quoteName('#__jcomments_subscriptions'))
-					->where($db->quoteName('userid') . ' = ' . $userId);
+					->where($db->quoteName('userid') . ' = :uid')
+					->bind(':uid', $userId, ParameterType::INTEGER);
+
+				$db->setQuery($query);
+				$db->execute();
+
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_users'))
+					->where($db->quoteName('userid') . ' = :uid')
+					->bind(':uid', $userId, ParameterType::INTEGER);
 
 				$db->setQuery($query);
 				$db->execute();
 
 				$query = $db->getQuery(true)
 					->delete($db->quoteName('#__jcomments_votes'))
-					->where($db->quoteName('userid') . ' = ' . $userId);
+					->where($db->quoteName('userid') . ' = :uid')
+					->bind(':uid', $userId, ParameterType::INTEGER);
 
 				$db->setQuery($query);
 				$db->execute();
 			}
 		}
+	}
+
+	/**
+	 * Get com_jcomments component id
+	 *
+	 * @return  integer
+	 *
+	 * @throws  Exception
+	 * @since   4.1
+	 */
+	private static function getItemid(): int
+	{
+		if (self::$jcommentsId > 0)
+		{
+			return self::$jcommentsId;
+		}
+
+		/** @var \Joomla\Database\DatabaseDriver $db */
+		$db = Factory::getContainer()->get('DatabaseDriver');
+
+		$query = $db->getQuery(true)
+			->select($db->quoteName('extension_id'))
+			->from($db->quoteName('#__extensions'))
+			->where(
+				array(
+					$db->quoteName('element') . ' = ' . $db->quote('com_jcomments'),
+					$db->quoteName('type') . ' = ' . $db->quote('component'),
+				)
+			);
+
+		try
+		{
+			$db->setQuery($query);
+			$itemid = $db->loadResult();
+		}
+		catch (RuntimeException $e)
+		{
+			Log::add($e->getMessage(), 'plg_user_jcomments');
+			$itemid = Factory::getApplication()->input->get('Itemid', 0);
+		}
+
+		self::$jcommentsId = (int) $itemid;
+
+		return (int) $itemid;
 	}
 }

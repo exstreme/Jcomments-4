@@ -16,20 +16,21 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Router\Route;
 
-/** @var $this Joomla\Component\Jcomments\Site\View\Comments\HtmlView */
+/** @var Joomla\Component\Jcomments\Site\View\Comments\HtmlView $this */
 
-$input = Factory::getApplication()->input;
+$input  = Factory::getApplication()->input;
+$return = base64_encode(Joomla\CMS\Uri\Uri::getInstance());
+$url    = 'index.php?option=com_jcomments&view=form&tmpl=component&object_id=' . $this->objectID
+	. '&object_group=' . $this->objectGroup . '&return=' . $return;
 ?>
 <div class="commentsFormWrapper" style="overflow: hidden;">
 	<?php echo HTMLHelper::_(
 		'iframe',
-		Route::_(
-			'index.php?option=com_jcomments&view=form&tmpl=component&object_id=' . $input->getInt('id') . '&object_group=com_content'
-		) . '&_=' . time(),
+		Route::_($url) . '&_=' . time(),
 		bin2hex(random_bytes(5)),
 		array(
 			'width'     => '100%',
-			'onload'    => 'iFrameHeight(this);',
+			'onload'    => 'Jcomments.iFrameHeight(this);',
 			'style'     => 'overflow: hidden;',
 			'scrolling' => 'no',
 			'class'     => 'commentsFormFrame',

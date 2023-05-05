@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
-	<fieldset addfieldprefix="Joomla\\Plugin\\System\\PrivacyConsent\\Field">
+	<fieldset addfieldprefix="Joomla\Plugin\System\PrivacyConsent\Field">
 		<field
-				name="id"
+				name="comment_id"
 				type="hidden"
-				label="COM_CONTENT_ID_LABEL"
-				size="10"
 				default="0"
 				readonly="true"
+		/>
+
+		<field
+				name="parent_id"
+				type="hidden"
+				default="0"
+				required="true"
 		/>
 
 		<field
@@ -16,7 +21,6 @@
 				label="FORM_NAME"
 				size="30"
 				filter="string"
-				labelclass="col-sm-2 col-form-label"
 		/>
 
 		<field
@@ -46,47 +50,48 @@
 				filter="string"
 		/>
 
-		<!--<field
-				name="comment"
-				type="editor"
-				label="COM_CONTENT_FIELD_ARTICLETEXT_LABEL"
-				hiddenLabel="true"
-				buttons="false"
-				filter="JComponentHelper::filterText"
-		/>-->
-
 		<field
+				addfieldprefix="Joomla\Component\Jcomments\Site\Field"
 				name="comment"
-				type="textarea"
-				label="COM_CONTENT_FIELD_ARTICLETEXT_LABEL"
+				type="Jceditor"
+				label="FORM_HEADER"
 				hiddenLabel="true"
+				hint="COMMENT_ITEM"
 				rows="10"
+				cols="100"
 				filter="JComponentHelper::filterText"
+				required="true"
+				width="100%"
+				height="250"
 		/>
 
 		<field
 				name="subscribe"
 				type="checkbox"
 				default="0"
-				label="BUTTON_SUBSCRIBE"
+				label="LINK_SUBSCRIBE"
 				filter="integer"
 		/>
 
 		<field
 				name="terms_of_use"
-				type="checkbox"
-				default="1"
+				id="terms_terms"
+				type="radio"
+				default="0"
 				label="FORM_TOS"
 				filter="integer"
 				required="true"
-		/>
+		>
+			<option value="1">FORM_TOS_ACCEPT</option>
+			<option value="0">FORM_TOS_DECLINE</option>
+		</field>
 
 		<field
-				name="captcha"
+				name="comment_captcha"
 				type="captcha"
 				label="FORM_CAPTCHA"
-				description="FORM_CAPTCHA_DESC"
 				validate="captcha"
+				namespace="comment"
 		/>
 	</fieldset>
 </form>

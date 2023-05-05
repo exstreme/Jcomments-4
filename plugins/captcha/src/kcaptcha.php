@@ -319,7 +319,7 @@ class Kcaptcha
 
 									for ($px = min($left, $this->width - 1); $px > $left - 200 && $px >= 0; $px -= 1)
 									{
-										$color = imagecolorat($img, $px, $py) & 0xff;
+										$color = imagecolorat($img, (int) $px, (int) $py) & 0xff;
 
 										if ($color + $opacity < 170)
 										{
@@ -348,7 +348,7 @@ class Kcaptcha
 					$shift = 1;
 				}
 
-				imagecopy($img, $font, $x - $shift, $y, $m['start'], 1, $m['end'] - $m['start'], $fontfileHeight);
+				imagecopy($img, $font, intval($x - $shift), (int) $y, $m['start'], 1, $m['end'] - $m['start'], $fontfileHeight);
 				$x += $m['end'] - $m['start'] - $shift;
 			}
 		}
@@ -412,10 +412,10 @@ class Kcaptcha
 				}
 				else
 				{
-					$color   = imagecolorat($img, $sx, $sy) & 0xFF;
-					$colorX  = imagecolorat($img, $sx + 1, $sy) & 0xFF;
-					$colorY  = imagecolorat($img, $sx, $sy + 1) & 0xFF;
-					$colorXY = imagecolorat($img, $sx + 1, $sy + 1) & 0xFF;
+					$color   = imagecolorat($img, (int) $sx, (int) $sy) & 0xFF;
+					$colorX  = imagecolorat($img, (int) $sx + 1, (int) $sy) & 0xFF;
+					$colorY  = imagecolorat($img, (int) $sx, (int) $sy + 1) & 0xFF;
+					$colorXY = imagecolorat($img, (int) $sx + 1, (int) $sy + 1) & 0xFF;
 				}
 
 				if ($color == 255 && $colorX == 255 && $colorY == 255 && $colorXY == 255)
@@ -454,7 +454,7 @@ class Kcaptcha
 					$newblue  = $newcolor0 * $this->foregroundColor[2] + $newcolor * $this->backgroundColor[2];
 				}
 
-				imagesetpixel($img2, $x, $y, imagecolorallocate($img2, $newred, $newgreen, $newblue));
+				imagesetpixel($img2, $x, $y, imagecolorallocate($img2, (int) $newred, (int) $newgreen, (int) $newblue));
 			}
 		}
 

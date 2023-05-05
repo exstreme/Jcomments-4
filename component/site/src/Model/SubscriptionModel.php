@@ -14,15 +14,13 @@ namespace Joomla\Component\Jcomments\Site\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Cache\CacheControllerFactoryInterface;
-use Joomla\CMS\Cache\Exception\CacheExceptionInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Database\ParameterType;
 
 /**
@@ -32,22 +30,6 @@ use Joomla\Database\ParameterType;
  */
 class SubscriptionModel extends BaseDatabaseModel
 {
-	/**
-	 * Cached item object
-	 *
-	 * @var    object
-	 * @since  1.6
-	 */
-	protected $_item;
-
-	/**
-	 * Cache group name
-	 *
-	 * @var    string
-	 * @since  4.0
-	 */
-	protected $cacheGroup = 'com_jcomments_subscriptions';
-
 	/**
 	 * Add a new subscription.
 	 *
@@ -64,7 +46,7 @@ class SubscriptionModel extends BaseDatabaseModel
 	 */
 	public function subscribe(int $objectID, string $objectGroup, int $userID, string $name, string $email, string $lang): bool
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		if (!empty($userID))
 		{
@@ -100,7 +82,7 @@ class SubscriptionModel extends BaseDatabaseModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
@@ -128,7 +110,7 @@ class SubscriptionModel extends BaseDatabaseModel
 			{
 				$result = false;
 
-				Log::add($subscription->getError(), Log::ERROR, 'com_jcomments');
+				Log::add($subscription->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 			}
 		}
 		else
@@ -153,7 +135,7 @@ class SubscriptionModel extends BaseDatabaseModel
 				{
 					$result = false;
 
-					Log::add($subscription->getError(), Log::ERROR, 'com_jcomments');
+					Log::add($subscription->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 				}
 			}
 			else
@@ -162,12 +144,6 @@ class SubscriptionModel extends BaseDatabaseModel
 
 				$this->setError(Text::_('ERROR_ALREADY_SUBSCRIBED'));
 			}
-		}
-
-		if ($result)
-		{
-			$cacheGroup = strtolower($this->cacheGroup . '_' . $objectGroup);
-			JcommentsFactory::removeCache(md5($cacheGroup . $objectID), $cacheGroup);
 		}
 
 		return $result;
@@ -187,7 +163,7 @@ class SubscriptionModel extends BaseDatabaseModel
 	 */
 	public function unsubscribe(int $objectID, string $objectGroup, int $userID = null, string $lang = null): bool
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		$query = $db->getQuery(true)
 			->delete($db->quoteName('#__jcomments_subscriptions'))
@@ -215,13 +191,10 @@ class SubscriptionModel extends BaseDatabaseModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
-
-		$cacheGroup = strtolower($this->cacheGroup . '_' . $objectGroup);
-		JcommentsFactory::removeCache(md5($cacheGroup . $objectID), $cacheGroup);
 
 		return true;
 	}
@@ -238,7 +211,7 @@ class SubscriptionModel extends BaseDatabaseModel
 	 */
 	public function unsubscribeByHash(string $hash, int $userid)
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 
 		$query = $db->getQuery(true)
 			->select($db->quoteName(array('object_id', 'object_group', 'lang', 'userid')))
@@ -264,9 +237,6 @@ class SubscriptionModel extends BaseDatabaseModel
 					$db->setQuery($query);
 					$db->execute();
 
-					$cacheGroup = strtolower($this->cacheGroup . '_' . $result['object_group']);
-					JcommentsFactory::removeCache(md5($cacheGroup . $result['object_id']), $cacheGroup);
-
 					return $result;
 				}
 				else
@@ -284,123 +254,10 @@ class SubscriptionModel extends BaseDatabaseModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
-	}
-
-	/**
-	 * Checks if given user is subscribed to new comments notifications for an object
-	 *
-	 * @param   integer  $objectID     The object identifier
-	 * @param   string   $objectGroup  The object group (component name)
-	 * @param   integer  $userid       The registered user identifier
-	 * @param   string   $email        The user email (for guests only)
-	 * @param   string   $language     The object language
-	 *
-	 * @return  boolean
-	 *
-	 * @since   4.0
-	 */
-	public function isSubscribed(int $objectID, string $objectGroup, int $userid, string $email = '', string $language = ''): bool
-	{
-		$items  = $this->getItems($objectID, $objectGroup);
-		$result = false;
-
-		if (!empty($items))
-		{
-			foreach ($items as $item)
-			{
-				if ($item->userid === $userid)
-				{
-					$result = true;
-					break;
-				}
-			}
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Get subscription items
-	 *
-	 * @param   integer   $objectID     The object identifier
-	 * @param   string    $objectGroup  The object group (component name)
-	 * @param   int|null  $userid       The registered user identifier
-	 * @param   string    $email        The user email (for guests only)
-	 * @param   string    $language     The object language
-	 *
-	 * @return  array  Array with rows
-	 *
-	 * @throws \Exception
-	 * @since   4.0
-	 */
-	public function &getItems(int $objectID, string $objectGroup, int $userid = null, string $email = '', string $language = '')
-	{
-		if (!isset($this->_item))
-		{
-			if (empty($language))
-			{
-				$language = Factory::getApplication()->getLanguage()->getTag();
-			}
-
-			$cacheGroup = strtolower($this->cacheGroup . '_' . $objectGroup);
-
-			/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
-			$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-				->createCacheController('callback', array('defaultgroup' => $cacheGroup));
-
-			$db = $this->getDbo();
-
-			$loader = function ($objectID, $objectGroup, $userid, $email, $language) use ($db)
-			{
-				$query = $db->getQuery(true)
-					->select($db->quoteName(array('id', 'object_id', 'object_group', 'lang', 'userid')))
-					->from($db->quoteName('#__jcomments_subscriptions'))
-					->where($db->quoteName('object_id') . ' = :oid')
-					->where($db->quoteName('object_group') . ' = :ogroup')
-					->where($db->quoteName('published') . ' = 1')
-					->bind(':oid', $objectID, ParameterType::INTEGER)
-					->bind(':ogroup', $objectGroup);
-
-				if (!is_null($userid))
-				{
-					if ($userid === 0)
-					{
-						$query->where($db->quoteName('email') . ' = :email')
-							->bind(':email', $email);
-					}
-					else
-					{
-						$query->where($db->quoteName('userid') . ' = :uid')
-							->bind(':uid', $userid, ParameterType::INTEGER);
-					}
-				}
-
-				if (Multilanguage::isEnabled())
-				{
-					$query->where($db->quoteName('lang') . ' = :lang')
-						->bind(':lang', $language);
-				}
-
-				$db->setQuery($query);
-
-				return $db->loadObjectList();
-			};
-
-			try
-			{
-				$this->_item = $cache->get($loader, array($objectID, $objectGroup, $userid, $email, $language), md5($cacheGroup . $objectID));
-			}
-			catch (CacheExceptionInterface $e)
-			{
-				$this->_item = $loader($objectID, $objectGroup, $userid, $email, $language);
-			}
-		}
-
-		return $this->_item;
 	}
 
 	/**
@@ -417,19 +274,22 @@ class SubscriptionModel extends BaseDatabaseModel
 	 */
 	public function getSubscribers(int $objectID, string $objectGroup, string $lang, string $type): object
 	{
-		$db = $this->getDbo();
+		$db = $this->getDatabase();
 		$subscribers = array();
 
 		switch ($type)
 		{
 			case 'moderate-new':
 			case 'moderate-update':
+			case 'moderate-published':
+			case 'moderate-unpublished':
+			case 'moderate-delete':
 			case 'report':
 				$config = ComponentHelper::getParams('com_jcomments');
 
 				if ($config->get('notification_email') != '')
 				{
-					$filter = new \Joomla\Filter\InputFilter;
+					$filter = InputFilter::getInstance();
 					$emails = explode(',', $config->get('notification_email'));
 					$emails = array_map(
 						function (string $value) use ($filter): string
@@ -456,7 +316,6 @@ class SubscriptionModel extends BaseDatabaseModel
 						$subscriber->name   = isset($users[$email]) ? $users[$email]->name : '';
 						$subscriber->email  = $email;
 						$subscriber->hash   = md5($email);
-						$subscriber->hash   = md5($email);
 
 						$subscribers[] = $subscriber;
 					}
@@ -466,6 +325,8 @@ class SubscriptionModel extends BaseDatabaseModel
 			case 'comment-new':
 			case 'comment-reply':
 			case 'comment-update':
+			case 'comment-published':
+			case 'comment-unpublished':
 			default:
 				$query = $db->getQuery(true)
 					->select('DISTINCTROW js.name, js.email, js.hash, js.userid')
@@ -493,7 +354,7 @@ class SubscriptionModel extends BaseDatabaseModel
 				}
 				catch (\RuntimeException $e)
 				{
-					Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+					Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 				}
 
 				break;

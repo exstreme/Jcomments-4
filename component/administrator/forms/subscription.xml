@@ -37,15 +37,6 @@
 		/>
 
 		<field
-				name="lang"
-				type="contentlanguage"
-				label="JFIELD_LANGUAGE_LABEL"
-				description="A_COMMENT_FIELD_LANGUAGE_DESC"
-		>
-			<option value="*">JALL</option>
-		</field>
-
-		<field
 				name="published"
 				type="list"
 				label="JSTATUS"

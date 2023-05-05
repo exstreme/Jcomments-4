@@ -7,7 +7,8 @@
 					type="category"
 					extension="com_content"
 					default="*"
-					multiple="multiple"
+					multiple="true"
+					layout="joomla.form.field.list-fancy-select"
 					label="A_CATEGORIES"
 					description="AP_CATEGORIES_DESC"
 			>
@@ -17,14 +18,16 @@
 
 		<fieldset name="view" label="A_VIEW">
 			<field
-					name="template"
-					type="folderlist"
-					directory="components/com_jcomments/tpl"
-					default="default"
+					name="custom_css"
+					type="filelist"
+					directory="media/com_jcomments/css/"
+					default="frontend-style"
 					hide_none="true"
-					hide_default="true"
-					label="AP_TEMPLATE"
-					description="AP_TEMPLATE_DESC"
+					fileFilter="\.css$"
+					exclude="backend-style|frontend-style"
+					stripext="true"
+					label="AP_STYLE"
+					description="AP_STYLE_DESC"
 			/>
 
 			<field
@@ -106,12 +109,24 @@
 
 			<field
 					name="feed_limit"
-					type="text"
-					default="100"
+					type="list"
 					filter="integer"
+					validate="options"
+					useglobal="true"
 					label="AP_FEED_LIMIT"
-					description="AP_FEED_LIMIT_DESC"
-			/>
+					description="AP_FEED_LIMIT_DESC">
+				<option value="0">0</option>
+				<option value="5">J5</option>
+				<option value="10">J10</option>
+				<option value="15">J15</option>
+				<option value="20">J20</option>
+				<option value="25">J25</option>
+				<option value="30">J30</option>
+				<option value="50">J50</option>
+				<option value="100">J100</option>
+				<option value="200">J200</option>
+				<option value="500">J500</option>
+			</field>
 
 			<field
 					name="enable_plugins"
@@ -190,24 +205,26 @@
 		</field>
 
 		<field
-				name="comments_per_page"
-				type="text"
-				default="10"
+				name="list_limit"
+				type="list"
 				filter="integer"
+				validate="options"
+				useglobal="true"
 				label="AP_COMMENTS_PER_PAGE"
 				description="AP_COMMENTS_PER_PAGE_DESC"
-				showon="template_view:list"
-		/>
-
-		<field
-				name="comments_page_limit"
-				type="text"
-				default="15"
-				filter="integer"
-				label="AP_COMMENTS_PAGE_LIMIT"
-				description="AP_COMMENTS_PAGE_LIMIT_DESC"
-				showon="template_view:list"
-		/>
+				showon="template_view:list">
+			<option value="0">0</option>
+			<option value="5">J5</option>
+			<option value="10">J10</option>
+			<option value="15">J15</option>
+			<option value="20">J20</option>
+			<option value="25">J25</option>
+			<option value="30">J30</option>
+			<option value="50">J50</option>
+			<option value="100">J100</option>
+			<option value="200">J200</option>
+			<option value="500">J500</option>
+		</field>
 
 		<field
 				name="comments_pagination"
@@ -252,8 +269,9 @@
 		<field
 				name="show_policy"
 				type="usergrouplist"
-				multiple="multiple"
+				multiple="true"
 				default="2,9"
+				layout="joomla.form.field.list-fancy-select"
 				label="AP_SHOW_POLICY"
 				description="AP_SHOW_POLICY_DESC"
 		/>
@@ -326,10 +344,21 @@
 		<field
 				name="smilies_path"
 				type="text"
-				default="media/com_jcomments/images/smilies/"
+				default="media/com_jcomments/images/tmpl/default/smilies/"
 				label="AP_FORM_FIELD_SMILIES_PATH"
 				filter="path"
 		/>
+
+		<field
+				name="custom_fields_enable"
+				type="radio"
+				layout="joomla.form.field.radio.switcher"
+				label="JGLOBAL_CUSTOM_FIELDS_ENABLE_LABEL"
+				default="1"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
 	</fieldset>
 
 	<fieldset name="notifications" label="A_NOTIFICATIONS">
@@ -351,12 +380,14 @@
 					name="notification_type"
 					type="list"
 					default="1,2"
-					multiple="multiple"
+					multiple="true"
 					label="AP_NOTIFICATION_TYPES"
 					showon="enable_notification:1"
 			>
 				<option value="1">AP_NOTIFICATION_TYPES_NOTIFICATIONS</option>
 				<option value="2">AP_NOTIFICATION_TYPES_REPORTS</option>
+				<option value="3">AP_NOTIFICATION_TYPES_STATE</option>
+				<option value="4">AP_NOTIFICATION_TYPES_DELETE</option>
 			</field>
 
 			<field
@@ -367,6 +398,18 @@
 					description="AP_ENABLE_NOTIFICATION_EMAIL_DESC"
 					showon="enable_notification:1"
 			/>
+
+			<field
+					name="mail_style"
+					type="list"
+					label="AP_NOTIFICATION_MAILS_FIELD_MAIL_STYLE_LABEL"
+					default="plaintext"
+					validate="options"
+					showon="enable_notification:1"
+			>
+				<option value="plaintext">AP_NOTIFICATION_MAILS_FIELD_OPTION_PLAINTEXT</option>
+				<option value="html">AP_NOTIFICATION_MAILS_FIELD_OPTION_HTML</option>
+			</field>
 
 			<field
 					name="enable_quick_moderation"
@@ -474,6 +517,18 @@
 			/>
 
 			<field
+					name="captcha"
+					type="plugins"
+					label="CAPTCHA"
+					folder="captcha"
+					filter="cmd"
+					useglobal="true"
+					translateLabel="false"
+			>
+				<option value="0">JOPTION_DO_NOT_USE</option>
+			</field>
+
+			<field
 					name="stopforumspam"
 					type="radio"
 					class="btn-group"
@@ -489,7 +544,7 @@
 					name="antispam_request_timeout"
 					type="number"
 					label="AP_ANTISPAM_TIMEOUT"
-					description="In seconds"
+					description="AP_ANTISPAM_TIMEOUT_DESC"
 					default="3"
 					filter="integer"
 					class="w-20"
@@ -578,8 +633,9 @@
 			<field
 					name="enable_autocensor"
 					type="usergrouplist"
-					multiple="multiple"
+					multiple="true"
 					default="2,9"
+					layout="joomla.form.field.list-fancy-select"
 					label="AP_ENABLE_AUTOCENSOR"
 			/>
 
@@ -622,129 +678,145 @@
 		</fieldset>
 	</fieldset>
 
-	<fieldset name="messages" label="A_MESSAGES" addfieldprefix="Joomla\Component\Content\Administrator\Field">
-		<field
-				name="consentbox_text"
-				type="textarea"
-				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_LABEL"
-				description="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_DESC"
-				hint="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_DEFAULT"
-				cols="20"
-				filter="html"
-		/>
+	<fieldset name="messages_privacy" label="A_MESSAGES_CONSENT">
+		<fieldset name="privacy" label="A_CONSENT" addfieldprefix="Joomla\Component\Content\Administrator\Field"
+				  description="A_CONSENT_CONFIRMCONSENT_PLUGIN_ENABLE">
+			<field
+					name="consentbox_text"
+					type="textarea"
+					label="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_LABEL"
+					description="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_DESC"
+					hint="PLG_CONTENT_CONFIRMCONSENT_FIELD_NOTE_DEFAULT"
+					cols="20"
+					filter="html"
+			/>
 
-		<field
-				name="privacy_type"
-				type="list"
-				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_LABEL"
-				default="article"
-				validate="options"
-		>
-			<option value="article">PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_ARTICLE</option>
-			<option value="menu_item">PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_MENU_ITEM</option>
-		</field>
+			<field
+					name="privacy_type"
+					type="list"
+					label="PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_LABEL"
+					default="article"
+					validate="options"
+			>
+				<option value="article">PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_ARTICLE</option>
+				<option value="menu_item">PLG_CONTENT_CONFIRMCONSENT_FIELD_TYPE_MENU_ITEM</option>
+			</field>
 
-		<field
-				name="privacy_article"
-				type="modal_article"
-				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_ARTICLE_LABEL"
-				description="PLG_CONTENT_CONFIRMCONSENT_FIELD_ARTICLE_DESC"
-				select="true"
-				new="true"
-				edit="true"
-				clear="true"
-				filter="integer"
-				showon="privacy_type:article"
-		/>
+			<field
+					name="privacy_article"
+					type="modal_article"
+					label="PLG_CONTENT_CONFIRMCONSENT_FIELD_ARTICLE_LABEL"
+					description="PLG_CONTENT_CONFIRMCONSENT_FIELD_ARTICLE_DESC"
+					select="true"
+					new="true"
+					edit="true"
+					clear="true"
+					filter="integer"
+					showon="privacy_type:article"
+			/>
 
-		<field
-				addfieldprefix="Joomla\Component\Menus\Administrator\Field"
-				name="privacy_menu_item"
-				type="modal_menu"
-				label="PLG_CONTENT_CONFIRMCONSENT_FIELD_MENU_ITEM_LABEL"
-				select="true"
-				new="true"
-				edit="true"
-				clear="true"
-				filter="integer"
-				showon="privacy_type:menu_item"
-		/>
+			<field
+					addfieldprefix="Joomla\Component\Menus\Administrator\Field"
+					name="privacy_menu_item"
+					type="modal_menu"
+					label="PLG_CONTENT_CONFIRMCONSENT_FIELD_MENU_ITEM_LABEL"
+					select="true"
+					new="true"
+					edit="true"
+					clear="true"
+					filter="integer"
+					showon="privacy_type:menu_item"
+			/>
+		</fieldset>
 
-		<field
-				name="messages_fields"
-				type="subform"
-				label=""
-				hiddenLabel="true"
-				multiple="true"
-				min="1"
-				buttons="add,remove"
-				default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned.","message_terms_of_use":"Before posting a comment you must accept our terms of use."}}'
-		>
-			<form>
-				<field
-						name="lang"
-						type="contentlanguage"
-						label="JFIELD_LANGUAGE_LABEL"
-				>
-					<option value="*">JALL</option>
-				</field>
+		<fieldset name="messages" label="A_MESSAGES">
+			<field
+					name="messages_fields"
+					type="subform"
+					label=""
+					hiddenLabel="true"
+					multiple="true"
+					min="1"
+					buttons="add,remove"
+					default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned.","message_terms_of_use":"Before posting a comment you must accept our terms of use."}}'
+			>
+				<form>
+					<field
+							name="lang"
+							type="contentlanguage"
+							label="JFIELD_LANGUAGE_LABEL"
+					>
+						<option value="*">JALL</option>
+					</field>
 
-				<field
-						name="message_policy_post"
-						type="textarea"
-						rows="2"
-						cols="50"
-						filter="raw"
-						label="A_MESSAGES_POLICY_POST"
-						description="A_MESSAGES_POLICY_POST_DESC"
-						required="false"
-				/>
+					<field
+							name="message_policy_post"
+							type="textarea"
+							rows="2"
+							cols="50"
+							filter="raw"
+							label="A_MESSAGES_POLICY_POST"
+							description="A_MESSAGES_POLICY_POST_DESC"
+							required="false"
+					/>
 
-				<field
-						name="message_policy_whocancomment"
-						type="textarea"
-						rows="2"
-						cols="50"
-						filter="raw"
-						label="A_MESSAGES_POLICY_WHOCANCOMMENT"
-						description="A_MESSAGES_POLICY_WHOCANCOMMENT_DESC"
-						required="false"
-				/>
+					<field
+							name="message_policy_whocancomment"
+							type="textarea"
+							rows="2"
+							cols="50"
+							filter="raw"
+							label="A_MESSAGES_POLICY_WHOCANCOMMENT"
+							description="A_MESSAGES_POLICY_WHOCANCOMMENT_DESC"
+							required="false"
+					/>
 
-				<field
-						name="message_locked"
-						type="textarea"
-						rows="2"
-						cols="50"
-						filter="raw"
-						label="A_MESSAGES_LOCKED"
-						description="A_MESSAGES_LOCKED_DESC"
-						required="false"
-				/>
+					<field
+							name="message_locked"
+							type="textarea"
+							rows="2"
+							cols="50"
+							filter="raw"
+							label="A_MESSAGES_LOCKED"
+							description="A_MESSAGES_LOCKED_DESC"
+							required="false"
+					/>
 
-				<field
-						name="message_banned"
-						type="textarea"
-						rows="2"
-						cols="50"
-						filter="raw"
-						label="A_MESSAGES_BANNED"
-						description="A_MESSAGES_BANNED_DESC"
-						required="false"
-				/>
+					<field
+							name="message_banned"
+							type="textarea"
+							rows="2"
+							cols="50"
+							filter="raw"
+							label="A_MESSAGES_BANNED"
+							description="A_MESSAGES_BANNED_DESC"
+							required="false"
+					/>
 
-				<field
-						name="message_terms_of_use"
-						type="textarea"
-						rows="2"
-						cols="50"
-						filter="raw"
-						label="A_MESSAGES_TOS"
-						description="A_MESSAGES_TOS_DESC"
-						required="false"
-				/>
-			</form>
-		</field>
+					<field
+							name="message_terms_of_use"
+							type="textarea"
+							rows="2"
+							cols="50"
+							filter="raw"
+							label="A_MESSAGES_TOS"
+							description="A_MESSAGES_TOS_DESC"
+							required="false"
+					/>
+
+					<field
+							name="message_terms_of_use_article"
+							type="modal_article"
+							label="A_MESSAGES_TOS_FIELD_ARTICLE_LABEL"
+							select="true"
+							new="true"
+							edit="true"
+							clear="true"
+							filter="integer"
+					/>
+				</form>
+			</field>
+		</fieldset>
 	</fieldset>
 
 	<fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
@@ -757,6 +829,16 @@
 				validate="rules"
 				component="com_jcomments"
 				section="component"
+		/>
+	</fieldset>
+
+	<fieldset name="backup" label="A_BACKUP">
+		<field
+				addfieldprefix="Joomla\Component\Jcomments\Administrator\Field"
+				name="upload_config"
+				type="ConfigRestore"
+				accept="application/json"
+				hiddenLabel="true"
 		/>
 	</fieldset>
 </config>

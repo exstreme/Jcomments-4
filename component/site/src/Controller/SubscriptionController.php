@@ -115,14 +115,14 @@ class SubscriptionController extends BaseController
 		if ($state === 1)
 		{
 			$result = $model->subscribe($objectID, $objectGroup, $user->get('id'), '', '', $langTag);
-			$title  = Text::_('BUTTON_UNSUBSCRIBE');
+			$title  = Text::_('LINK_UNSUBSCRIBE');
 			$task   = 'subscription.remove';
 			$msg    = Text::_('SUCCESSFULLY_SUBSCRIBED');
 		}
 		else
 		{
 			$result = $model->unsubscribe($objectID, $objectGroup, $user->get('id'), $langTag);
-			$title  = Text::_('BUTTON_SUBSCRIBE');
+			$title  = Text::_('LINK_SUBSCRIBE');
 			$task   = 'subscription.add';
 			$msg    = Text::_('SUCCESSFULLY_UNSUBSCRIBED');
 		}
@@ -194,7 +194,7 @@ class SubscriptionController extends BaseController
 			return;
 		}
 
-		$redirect = ObjectHelper::getObjectField('link', $result['object_id'], $result['object_group'], $result['lang']);
+		$redirect = ObjectHelper::getObjectField(null, 'link', $result['object_id'], $result['object_group'], $result['lang']);
 
 		if (empty($redirect))
 		{
@@ -234,7 +234,7 @@ class SubscriptionController extends BaseController
 	 */
 	private function setResponse(array $data = null, string $url = '', string $msg = null, $type = null)
 	{
-		$format = $this->app->input->getWord('format');
+		$format = $this->input->getWord('format');
 
 		if ($format == 'json')
 		{

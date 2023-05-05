@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Site\Helper;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
@@ -22,30 +23,42 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Log\Log;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
+use Joomla\Utilities\ArrayHelper;
 
 /**
  * JComments Notification Helper
  *
- * @since  4.0
+ * @since  4.1
  */
 class NotificationHelper
 {
 	/**
 	 * Pushes the email notification to the mail queue
 	 *
-	 * @param   object  $data  An object of notification data
+	 * @param   mixed   $data  An array or object with notification data.
 	 * @param   string  $type  Type of notification
 	 *
 	 * @return  boolean
 	 *
 	 * @throws  \Exception
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	public static function push($data, string $type = 'comment-new'): bool
 	{
+		if (is_array($data))
+		{
+			$data = ArrayHelper::toObject($data);
+		}
+
 		if (isset($data->id))
 		{
 			$app = Factory::getApplication();
+			$dispatcher = $app->getDispatcher();
+
+			$dispatcher->dispatch(
+				'onMailBeforeNotificationPush',
+				AbstractEvent::create('onMailBeforeNotificationPush', array('subject' => new \stdClass, 'data' => $data, 'type' => $type))
+			);
 
 			/** @var \Joomla\Component\Jcomments\Site\Model\SubscriptionModel $model */
 			$model = $app->bootComponent('com_jcomments')->getMVCFactory()
@@ -74,39 +87,57 @@ class NotificationHelper
 
 				foreach ($subscribers as $subscriber)
 				{
-					// Do not send notifications if admin or user email is the same with email from comment object
+					$table->name     = $subscriber->name;
+					$table->email    = $subscriber->email;
+					$table->subject  = self::getMessageSubject($data);
+					$table->body     = self::getMessageBody($data, $subscriber);
+					$table->priority = self::getMessagePriority($type);
+					$table->created  = Factory::getDate()->toSql();
+					$table->attempts = 0;
+
+					// Do not push notifications if admin or user email is the same with email from comment object
 					// and if user isn't subsribed to this article comments.
 					if (($data->email <> $subscriber->email) && ($email <> $subscriber->email))
 					{
 						if ($data->userid == 0 || $data->userid <> $subscriber->userid)
 						{
-							$table->name     = $subscriber->name;
-							$table->email    = $subscriber->email;
-							$table->subject  = self::getMessageSubject($data);
-							$table->body     = self::getMessageBody($data, $subscriber);
-							$table->priority = self::getMessagePriority($type);
-							$table->created  = Factory::getDate()->toSql();
-
 							if (!$table->store())
 							{
-								Log::add($table->getError(), Log::ERROR, 'com_jcomments');
+								Log::add($table->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 							}
+						}
+					}
+
+					// Push notifications for admin on report even if they not subscribed to this article.
+					if ($data->email <> $email && $type == 'report')
+					{
+						if (!$table->store())
+						{
+							Log::add($table->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 						}
 					}
 				}
 
-				self::send();
+				$sendResult = self::send();
+
+				$dispatcher->dispatch(
+					'onMailAfterNotificationPush',
+					AbstractEvent::create(
+						'onMailAfterNotificationPush',
+						array('subject' => new \stdClass, 'data' => $data, 'type' => $type, 'sendResult' => $sendResult)
+					)
+				);
 			}
 			else
 			{
-				Log::add('No subscribed users to send notification!', Log::INFO, 'com_jcomments');
+				Log::add('No subscribed users to send notification! ' . __METHOD__, Log::INFO, 'com_jcomments');
 
 				return false;
 			}
 		}
 		else
 		{
-			Log::add('Comment object cannot be empty on notification push!', Log::ERROR, 'com_jcomments');
+			Log::add('Comment object cannot be empty on notification push! ' . __METHOD__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
@@ -122,7 +153,7 @@ class NotificationHelper
 	 * @return  boolean
 	 *
 	 * @throws  \Exception
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	public static function send(int $limit = 10): bool
 	{
@@ -147,7 +178,7 @@ class NotificationHelper
 			}
 			catch (\RuntimeException $e)
 			{
-				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 				return false;
 			}
@@ -156,7 +187,7 @@ class NotificationHelper
 			{
 				if (self::lock(array_keys($items)) === false)
 				{
-					Log::add('Cannot set lock state to Mailqueue table for current session.', Log::ERROR, 'com_jcomments');
+					Log::add('Cannot set lock state to Mailqueue table for current session. ' . __METHOD__, Log::ERROR, 'com_jcomments');
 
 					return false;
 				}
@@ -166,15 +197,32 @@ class NotificationHelper
 
 				foreach ($items as $item)
 				{
-					if ($table->load($item->id))
+					if ($table->load((int) $item->id))
 					{
 						if (empty($table->session_id) || $table->session_id == $app->getSession()->getId())
 						{
+							$dispatcher = $app->getDispatcher();
+							$dispatcher->dispatch(
+								'onMailBeforeSend',
+								AbstractEvent::create(
+									'onMailBeforeSend',
+									array('subject' => new \stdClass, 'data' => $table)
+								)
+							);
+
 							$result = self::sendMail($senderEmail, $senderName, $table->email, $table->subject, $table->body);
 
 							if ($result)
 							{
 								$table->delete();
+
+								$dispatcher->dispatch(
+									'onMailAfterSend',
+									AbstractEvent::create(
+										'onMailAfterSend',
+										array('subject' => new \stdClass, 'data' => $table)
+									)
+								);
 							}
 							else
 							{
@@ -205,7 +253,7 @@ class NotificationHelper
 		}
 		else
 		{
-			Log::add('Cannot send notification email due to empty sender name and sender email.', Log::WARNING, 'com_jcomments');
+			Log::add('Cannot send notification email due to empty sender name and sender email. ' . __METHOD__, Log::WARNING, 'com_jcomments');
 
 			return false;
 		}
@@ -218,7 +266,7 @@ class NotificationHelper
 	 *
 	 * @return  boolean
 	 *
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	public static function purge(): bool
 	{
@@ -235,7 +283,7 @@ class NotificationHelper
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
@@ -251,7 +299,7 @@ class NotificationHelper
 	 * @return  boolean
 	 *
 	 * @throws  \Exception
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	private static function lock(array $keys): bool
 	{
@@ -271,7 +319,7 @@ class NotificationHelper
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}
@@ -287,7 +335,8 @@ class NotificationHelper
 	 *
 	 * @return  object
 	 *
-	 * @since   3.0
+	 * @throws  \Exception
+	 * @since   4.1
 	 */
 	private static function prepareData(object $data, string $type)
 	{
@@ -323,7 +372,7 @@ class NotificationHelper
 	 *
 	 * @return  integer
 	 *
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	private static function getMessagePriority(string $type): int
 	{
@@ -331,6 +380,8 @@ class NotificationHelper
 		{
 			case 'moderate-new':
 			case 'moderate-update':
+			case 'moderate-published':
+			case 'moderate-unpublished':
 				$priority = 10;
 				break;
 
@@ -359,7 +410,7 @@ class NotificationHelper
 	 *
 	 * @return  string
 	 *
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	private static function getMessageSubject(object $data): string
 	{
@@ -384,7 +435,10 @@ class NotificationHelper
 
 			case 'comment-published':
 			case 'comment-unpublished':
-				$txt = $data->notification_type == 'comment-published' ? 'NOTIFICATION_SUBJECT_STATE_1' : 'NOTIFICATION_SUBJECT_STATE_0';
+			case 'moderate-published':
+			case 'moderate-unpublished':
+				$txt = $data->notification_type == 'comment-published' || $data->notification_type == 'moderate-published'
+					? 'NOTIFICATION_SUBJECT_STATE_1' : 'NOTIFICATION_SUBJECT_STATE_0';
 				$subject = Text::sprintf($txt, $objectTitle);
 				break;
 
@@ -407,18 +461,19 @@ class NotificationHelper
 	 *
 	 * @return  string
 	 *
-	 * @since   3.0
+	 * @since   4.1
 	 */
 	private static function getMessageBody(object $data, object $subscriber): string
 	{
-		$config    = ComponentHelper::getParams('com_jcomments');
-		$mailStyle = ComponentHelper::getParams('com_mails')->get('mail_style');
-		$layout    = ($mailStyle == 'html') ? 'email-html' : 'email-plain';
+		$config = ComponentHelper::getParams('com_jcomments');
+		$layout = ($config->get('mail_style') == 'html') ? 'email-html' : 'email-plain';
 
 		switch ($data->notification_type)
 		{
 			case 'moderate-new':
 			case 'moderate-update':
+			case 'moderate-published':
+			case 'moderate-unpublished':
 				$layoutData = array('data' => $data, 'hash' => $subscriber->hash, 'isAdmin' => true, 'report' => false, 'config' => $config);
 				break;
 
@@ -452,11 +507,11 @@ class NotificationHelper
 	 *
 	 * @return  boolean  True on success
 	 *
-	 * @since   3.0
+	 * @since   4.1
 	 */
-	private static function sendMail(string $from, string $fromName, $recipient, string $subject, string $body): bool
+	private static function sendMail(string $from, string $fromName, $recipient, string $subject, string $body)
 	{
-		$mailStyle = ComponentHelper::getParams('com_mails')->get('mail_style');
+		$mailStyle = ComponentHelper::getParams('com_jcomments')->get('mail_style');
 		$isHtml = ($mailStyle == 'html');
 
 		try
@@ -472,7 +527,7 @@ class NotificationHelper
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
 		}

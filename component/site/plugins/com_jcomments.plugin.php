@@ -63,7 +63,7 @@ class jc_com_jcomments extends JcommentsPlugin
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return null;
 		}

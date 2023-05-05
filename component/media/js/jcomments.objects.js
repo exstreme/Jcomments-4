@@ -9,28 +9,21 @@
  *
  **/
 
-let closeObjectsModal;
-
 jQuery(document).ready(function ($) {
-	closeObjectsModal = function () {
-		if (parseInt($('#finished').val()) === 1) {
-			window.location.reload();
-		}
-
-		if (parseInt($('#step').val()) > 0) {
-			return false;
-		}
-	}
-
 	$('#objectsUpdateForm').on('submit', function (e) {
 		e.preventDefault();
 
-		const step_input = $('#step');
+		const step_input = $('#step'),
+			update_btn = $('.cmd-objects-update'),
+			close_btn = $('.cmd-close');
 
-		//$('.cmd-objects-update').attr('disabled', 'disabled');
 		if (parseInt(step_input.val()) === 0) {
-			$('.progress-bar').attr('aria-valuenow', 0).text('0%').width('0%');
+			$('.progress-bar').prop('aria-valuenow', 0).text('0%').width('0%');
 		}
+
+		update_btn.prop('disabled', true);
+		close_btn.addClass('disabled');
+		close_btn.prop({'aria-disabled': true, 'tab-index': -1});
 
 		$.ajax({
 			type: 'POST',
@@ -39,7 +32,7 @@ jQuery(document).ready(function ($) {
 			dataType: 'json'
 		}).done(function (response) {
 			/** @var response.messages object|null */
-			if (!response.success) {
+			/*if (!response.success) {
 				let messages = [];
 
 				// Show all enqueued messages
@@ -65,18 +58,25 @@ jQuery(document).ready(function ($) {
 
 				log.append('<li class="list-group-item">' + response.data.log + '</li>');
 
-				$('#objectsUpdateForm').trigger('submit');
+				$('#objectsUpdateForm').trigger('submit');*/
+
+
+
+
 				/*if (response.data.count < response.data.total) {
 					$('#objectsUpdateForm').trigger('submit');
 				} else {
 					step_input.val('0');
 					$('.cmd-objects-update').removeAttr('disabled');
 				}*/
-			}
+			//}
 		}).fail(function (xhr) {
 			Joomla.renderMessages({'error': [xhr.status + ' ' + xhr.statusText]}, '.main-card');
-			$('.progress-bar').attr('aria-valuenow', 0).text('0%').width('0%');
-			$('.cmd-objects-update').removeAttr('disabled');
+			$('.progress-bar').prop('aria-valuenow', 0).text('0%').width('0%');
+			update_btn.prop('disabled', false);
+			close_btn.removeClass('disabled');
+			close_btn.removeProp('aria-disabled');
+			close_btn.prop('tab-index', 0);
 		});
 	});
 	/*var JCommentsObjects = {

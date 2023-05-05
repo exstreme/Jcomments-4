@@ -20,15 +20,45 @@
 		<action name="comment.delete" title="AP_CAN_DELETE" description="AP_CAN_DELETE_DESC"/>
 		<action name="comment.delete.own" title="AP_CAN_DELETE_OWN" description="AP_CAN_DELETE_OWN_DESC"/>
 		<action name="comment.delete.own.articles" title="AP_CAN_DELETE_FOR_MY_OBJECT" description="AP_CAN_DELETE_FOR_MY_OBJECT_DESC"/>
-		<action name="comment.bbcode.b" title="AP_ENABLE_BBCODE_B" description="AP_ENABLE_BBCODE_B_DESC"/>
-		<action name="comment.bbcode.i" title="AP_ENABLE_BBCODE_I" description="AP_ENABLE_BBCODE_I_DESC"/>
-		<action name="comment.bbcode.u" title="AP_ENABLE_BBCODE_U" description="AP_ENABLE_BBCODE_U_DESC"/>
-		<action name="comment.bbcode.s" title="AP_ENABLE_BBCODE_S" description="AP_ENABLE_BBCODE_S_DESC"/>
-		<action name="comment.bbcode.url" title="AP_ENABLE_BBCODE_URL" description="AP_ENABLE_BBCODE_URL_DESC"/>
-		<action name="comment.bbcode.img" title="AP_ENABLE_BBCODE_IMG" description="AP_ENABLE_BBCODE_IMG_DESC"/>
-		<action name="comment.bbcode.list" title="AP_ENABLE_BBCODE_LIST" description="AP_ENABLE_BBCODE_LIST_DESC"/>
-		<action name="comment.bbcode.hide" title="AP_ENABLE_BBCODE_HIDE" description="AP_ENABLE_BBCODE_HIDE_DESC"/>
+		<action name="comment.bbcode.b" title="AP_ENABLE_BBCODE_B"/>
+		<action name="comment.bbcode.i" title="AP_ENABLE_BBCODE_I"/>
+		<action name="comment.bbcode.u" title="AP_ENABLE_BBCODE_U"/>
+		<action name="comment.bbcode.s" title="AP_ENABLE_BBCODE_S"/>
+		<action name="comment.bbcode.sub" title="AP_ENABLE_BBCODE_SUB"/>
+		<action name="comment.bbcode.sup" title="AP_ENABLE_BBCODE_SUP"/>
+		<action name="comment.bbcode.left" title="AP_ENABLE_BBCODE_LEFT"/>
+		<action name="comment.bbcode.center" title="AP_ENABLE_BBCODE_CENTER"/>
+		<action name="comment.bbcode.right" title="AP_ENABLE_BBCODE_RIGHT"/>
+		<action name="comment.bbcode.justify" title="AP_ENABLE_BBCODE_JUSTIFY"/>
+		<action name="comment.bbcode.font" title="AP_ENABLE_BBCODE_FONT"/>
+		<action name="comment.bbcode.size" title="AP_ENABLE_BBCODE_SIZE"/>
+		<action name="comment.bbcode.color" title="AP_ENABLE_BBCODE_COLOR"/>
+		<action name="comment.bbcode.removeformat" title="AP_ENABLE_BBCODE_REMFORMAT"/>
+		<action name="comment.bbcode.cut" title="AP_ENABLE_BBCODE_CUT"/>
+		<action name="comment.bbcode.copy" title="AP_ENABLE_BBCODE_COPY"/>
+		<action name="comment.bbcode.paste" title="AP_ENABLE_BBCODE_PASTE"/>
+		<action name="comment.bbcode.pastetext" title="AP_ENABLE_BBCODE_PASTETEXT"/>
+		<action name="comment.bbcode.list" title="AP_ENABLE_BBCODE_LIST"/>
+		<action name="comment.bbcode.orderedlist" title="AP_ENABLE_BBCODE_ORDERLIST"/>
+		<action name="comment.bbcode.indent" title="AP_ENABLE_BBCODE_INDENT"/>
+		<action name="comment.bbcode.outdent" title="AP_ENABLE_BBCODE_OUTDENT"/>
+		<action name="comment.bbcode.table" title="AP_ENABLE_BBCODE_TABLE"/>
+		<action name="comment.bbcode.code" title="AP_ENABLE_BBCODE_CODE"/>
 		<action name="comment.bbcode.quote" title="AP_ENABLE_BBCODE_QUOTE" description="AP_ENABLE_BBCODE_QUOTE_DESC"/>
+		<action name="comment.bbcode.horizontalrule" title="AP_ENABLE_BBCODE_HR"/>
+		<action name="comment.bbcode.img" title="AP_ENABLE_BBCODE_IMG"/>
+		<action name="comment.bbcode.email" title="AP_ENABLE_BBCODE_EMAIL"/>
+		<action name="comment.bbcode.url" title="AP_ENABLE_BBCODE_URL"/>
+		<action name="comment.bbcode.unlink" title="AP_ENABLE_BBCODE_UNLINK"/>
+		<action name="comment.bbcode.emoticon" title="AP_ENABLE_BBCODE_SMILIES"/>
+		<action name="comment.bbcode.date" title="AP_ENABLE_BBCODE_DATE"/>
+		<action name="comment.bbcode.time" title="AP_ENABLE_BBCODE_TIME"/>
+		<action name="comment.bbcode.ltr" title="AP_ENABLE_BBCODE_LTR"/>
+		<action name="comment.bbcode.rtl" title="AP_ENABLE_BBCODE_RTL"/>
+		<action name="comment.bbcode.print" title="AP_ENABLE_BBCODE_PRINT"/>
+		<action name="comment.bbcode.maximize" title="AP_ENABLE_BBCODE_MAX"/>
+		<action name="comment.bbcode.source" title="AP_ENABLE_BBCODE_SRC"/>
+		<action name="comment.bbcode.hide" title="AP_ENABLE_BBCODE_HIDE"/>
 		<action name="comment.autolink" title="AP_ENABLE_AUTOLINKURLS" description="AP_ENABLE_AUTOLINKURLS_DESC"/>
 		<action name="comment.email.protect" title="AP_ENABLE_EMAILPROTECTION" description="AP_ENABLE_EMAILPROTECTION_DESC"/>
 		<action name="comment.avatar" title="AP_ENABLE_AVATAR"/>

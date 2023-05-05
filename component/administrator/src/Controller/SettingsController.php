@@ -20,6 +20,7 @@ use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\Response\JsonResponse;
 
 /**
  * Settings controller.
@@ -35,7 +36,7 @@ class SettingsController extends BaseController
 	 *
 	 * @since   4.0
 	 */
-	public function saveConfig()
+	public function backup()
 	{
 		// Check if the user is authorized to do this.
 		if (!$this->app->getIdentity()->authorise('core.admin', 'com_jcomments'))
@@ -72,33 +73,37 @@ class SettingsController extends BaseController
 	/**
 	 * Method to restore component configuration from json file.
 	 *
-	 * @return  boolean
+	 * @return  void
 	 *
-	 * @since  3.0
+	 * @since   4.0
 	 */
-	public function restoreConfig()
+	public function restore()
 	{
-		$this->checkToken();
+		if ($this->checkToken('post', false) === false)
+		{
+			echo new JsonResponse(null, Text::_('JINVALID_TOKEN_NOTICE'), true, true);
+
+			$this->app->close();
+		}
 
 		// Check if the user is authorized to do this.
 		if (!$this->app->getIdentity()->authorise('core.admin', 'com_jcomments'))
 		{
-			$this->app->redirect('index.php', Text::_('JERROR_ALERTNOAUTHOR'));
+			echo new JsonResponse(null, Text::_('JERROR_ALERTNOAUTHOR'), true, true);
 
-			return false;
+			$this->app->close();
 		}
 
 		/** @var \Joomla\Component\Jcomments\Administrator\Model\SettingsModel $model */
 		$model        = $this->getModel();
-		$file         = $this->input->files->get('form_upload_config', '', 'array');
+		$file         = $this->input->files->get('upload_config', '', 'array');
 		$file['name'] = File::makeSafe($file['name']);
-		$url          = 'index.php?option=com_jcomments&view=settings';
 
 		if ($this->detectMime($file['tmp_name']) != 'application/json' || File::getExt($file['name']) != 'json')
 		{
-			$this->setRedirect($url, Text::_('A_SETTINGS_RESTORE_INVALID_REQUEST'), 'error');
+			echo new JsonResponse(null, Text::_('A_SETTINGS_RESTORE_INVALID_REQUEST'), true, true);
 
-			return false;
+			$this->app->close();
 		}
 
 		if (isset($file['name']))
@@ -114,42 +119,42 @@ class SettingsController extends BaseController
 
 				if (!$form)
 				{
-					$this->setRedirect($url, Text::_('JGLOBAL_VALIDATION_FORM_FAILED'), 'error');
+					echo new JsonResponse(null, Text::_('JGLOBAL_VALIDATION_FORM_FAILED'), true, true);
 
-					return false;
+					$this->app->close();
 				}
 
 				$validData = $model->validate($form, $data);
 
 				if ($validData === false)
 				{
-					$this->setRedirect($url, $model->getError(), 'error');
+					echo new JsonResponse(null, $model->getError(), true, true);
 
-					return false;
+					$this->app->close();
 				}
 
 				if ($model->restoreConfig($data))
 				{
-					$this->setRedirect($url, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_SUCCESS'));
+					echo new JsonResponse(null, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_SUCCESS'));
 				}
 				else
 				{
-					$this->setRedirect($url, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_ERROR'), 'error');
+					echo new JsonResponse(null, Text::_('A_SETTINGS_BUTTON_RESTORECONFIG_ERROR'), true, true);
 				}
 
-				return false;
+				$this->app->close();
 			}
 			else
 			{
-				$this->setRedirect($url, Text::_('A_SETTINGS_RESTORE_INVALID_FILE'), 'error');
+				echo new JsonResponse(null, Text::_('A_SETTINGS_RESTORE_INVALID_FILE'), true, true);
 			}
 		}
 		else
 		{
-			$this->setRedirect($url, Text::_('A_SETTINGS_RESTORE_INVALID_REQUEST'), 'error');
+			echo new JsonResponse(null, Text::_('A_SETTINGS_RESTORE_INVALID_REQUEST'), true, true);
 		}
 
-		return true;
+		$this->app->close();
 	}
 
 	/**
@@ -159,9 +164,9 @@ class SettingsController extends BaseController
 	 *
 	 * @return  string
 	 *
-	 * @since   3.1
+	 * @since   4.0
 	 */
-	public function detectMime(string $path)
+	public function detectMime(string $path): string
 	{
 		if (!empty($path) && is_file($path))
 		{

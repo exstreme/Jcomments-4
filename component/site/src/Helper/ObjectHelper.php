@@ -27,6 +27,7 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 class ObjectHelper
 {
 	/**
+	 * @param   mixed    $objectInfo   Object info
 	 * @param   string   $field        Object field
 	 * @param   integer  $objectID     Object ID
 	 * @param   string   $objectGroup  Option, e.g. com_content
@@ -36,11 +37,19 @@ class ObjectHelper
 	 *
 	 * @since   4.0
 	 */
-	public static function getObjectField(string $field, int $objectID, string $objectGroup = 'com_content', $language = null)
+	public static function getObjectField($objectInfo, string $field, int $objectID, string $objectGroup = 'com_content', $language = null)
 	{
-		$info = self::getObjectInfo($objectID, $objectGroup, $language);
+		if (!is_object($objectInfo))
+		{
+			$objectInfo = self::getObjectInfo($objectID, $objectGroup, $language);
+		}
 
-		return $info->$field;
+		if (!property_exists($objectInfo, $field))
+		{
+			$objectInfo->$field = null;
+		}
+
+		return $objectInfo->$field;
 	}
 
 	/**
@@ -120,6 +129,11 @@ class ObjectHelper
 		// Retrieve object information via getObjectInfo plugin's method
 		$info = self::call($class, 'getObjectInfo', array($objectID, $language));
 
+		if (is_null($info))
+		{
+			$info = new \StdClass;
+		}
+
 		$info->lang         = $language;
 		$info->object_id    = $objectID;
 		$info->object_group = $objectGroup;
@@ -154,7 +168,7 @@ class ObjectHelper
 		$object = $model->getItem($objectID, $objectGroup, $language);
 
 		if ($object)
-		{echo 1;
+		{//echo 1;
 			// Use object information stored in database
 			$info = new JcommentsObjectinfo($object);
 		}
@@ -174,9 +188,9 @@ class ObjectHelper
 				}
 			}
 		}
-echo '<pre>';
-var_dump($info);
-echo '</pre>';
+//echo '<pre>';
+//var_dump($info);
+//echo '</pre>';
 //exit;
 		return $info;
 	}

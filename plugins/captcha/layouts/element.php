@@ -12,36 +12,23 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 
 /** @var object $displayData */
 $params = $displayData->params;
-$url = Route::_('index.php?option=com_ajax&plugin=kcaptcha&group=captcha&format=raw');
 
 \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.tooltip', '#cmd-captcha-help');
 
-/** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
-$wa = Factory::getApplication()->getDocument()->getWebAssetManager();
-$wa->addInlineStyle('
-	.captcha-container img.captcha {
-		padding: 0;
-		margin: 0 0 3px 0;
-		border: 1px solid #ccc;
-	}
-	
-	.captcha-container span.captcha {
-		color: #777;
-		cursor: pointer;
-		display: inline-block;
-	}'
-);
 ?>
 <div class="captcha-container">
-	<img class="captcha" id="<?php echo $displayData->id; ?>_image" src="<?php echo $url; ?>"
-		 width="<?php echo $params->get('width'); ?>" height="<?php echo $params->get('height'); ?>"
-		 alt="<?php echo Text::_('FORM_CAPTCHA'); ?>">
+	<span style="color: #777; display: inline-block;">
+		<img class="captcha" id="<?php echo $displayData->id; ?>_image"
+			 src="<?php echo Route::_('index.php?option=com_ajax&plugin=kcaptcha&group=captcha&format=raw'); ?>"
+			 width="<?php echo $params->get('width'); ?>" height="<?php echo $params->get('height'); ?>"
+			 alt="<?php echo Text::_('FORM_CAPTCHA'); ?>"
+			 style="padding: 0; margin: 0 0 3px 0; border: 1px solid #ccc;">
+	</span>
 	<br>
 	<div class="captcha-reload">
 		<a href="javascript:void(0);" id="cmd-captcha-reload">
@@ -54,3 +41,7 @@ $wa->addInlineStyle('
 	<input class="form-control form-control captcha" id="<?php echo $displayData->id; ?>" type="text" name="<?php echo $displayData->name; ?>"
 		   value="" size="5" autocomplete="off" required style="width: <?php echo $params->get('width'); ?>px;">
 </div>
+<?php
+if (\Joomla\CMS\Factory::getApplication()->input->getWord('format', '') == 'raw'): ?>
+<script type="text/javascript"><?php echo file_get_contents(JPATH_BASE . '/media/plg_captcha_kcaptcha/js/kcaptcha.min.js'); ?></script>
+<?php endif;

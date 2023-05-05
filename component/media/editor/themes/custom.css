@@ -1,0 +1,7 @@
+.sceditor-container {
+	border-radius: .25rem;
+}
+
+div.sceditor-toolbar:empty {
+	display: none;
+}

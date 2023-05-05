@@ -17,11 +17,19 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Database\DatabaseDriver;
+use Joomla\Utilities\IpHelper;
 
 /**
  * JComments blacklist table
+ *
+ * @property    string   $ip
+ * @property    integer  $userid
+ * @property    string   $created
+ * @property    integer  $created_by
+ * @property    string   $expire
+ * @property    string   $reason
+ * @property    string   $notes
  *
  * @since  1.5
  */
@@ -56,7 +64,7 @@ class BlacklistTable extends Table
 	 */
 	public function check()
 	{
-		if ($this->ip == JcommentsFactory::getAcl()->getIP())
+		if ($this->ip == IpHelper::getIp())
 		{
 			$this->setError(Text::_('A_BLACKLIST_ERROR_YOU_CAN_NOT_BAN_YOUR_IP'));
 

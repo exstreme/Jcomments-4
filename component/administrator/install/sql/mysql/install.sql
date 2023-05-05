@@ -116,7 +116,8 @@ CREATE TABLE IF NOT EXISTS `#__jcomments_blacklist` (
     `checked_out_time` DATETIME,
     PRIMARY KEY  (`id`),
     KEY `idx_checkout` (`checked_out`),
-    KEY `idx_ip` (`ip`)
+    KEY `idx_ip` (`ip`),
+    KEY `idx_userid` (`userid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `#__jcomments_objects` (
@@ -162,4 +163,11 @@ CREATE TABLE IF NOT EXISTS `#__jcomments_smilies` (
     `checked_out_time` datetime,
     PRIMARY KEY (`id`),
     KEY `idx_checkout` (`checked_out`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `#__jcomments_users` (
+    `id` int(11) unsigned NOT NULL,
+    `labels` text NOT NULL,
+    `terms_of_use` tinyint(1) NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;

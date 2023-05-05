@@ -14,8 +14,7 @@ namespace Joomla\Component\Jcomments\Site\View\Form;
 
 defined('_JEXEC') or die;
 
-define('JCOMMENTS_SHOW', 1);
-
+use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
@@ -27,37 +26,36 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 /**
  * HTML View class for the Jcomments component
  *
- * @since  4.0.0
+ * @since  4.1
  */
 class HtmlView extends BaseHtmlView
 {
 	/**
+	 * The Form object
+	 *
 	 * @var    \Joomla\CMS\Form\Form
-	 * @since  4.0.0
+	 * @since  4.1
 	 */
 	protected $form;
 
 	/**
 	 * @var    object
-	 * @since  4.0.0
+	 * @since  4.1
 	 */
 	protected $item;
 
 	/**
+	 * The page to return to after the form is submitted
+	 *
 	 * @var    string
-	 * @since  4.0.0
+	 * @see    \Joomla\Component\Jcomments\Site\Model\FormModel::getReturnPage()
+	 * @since  4.1
 	 */
-	protected $return_page;
+	protected $returnPage = '';
 
 	/**
 	 * @var    \Joomla\Registry\Registry
-	 * @since  4.0.0
-	 */
-	protected $state;
-
-	/**
-	 * @var    \Joomla\Registry\Registry
-	 * @since  4.0.0
+	 * @since  4.1
 	 */
 	protected $params;
 
@@ -65,17 +63,32 @@ class HtmlView extends BaseHtmlView
 	 * Should we show a captcha form for the submission of the comment?
 	 *
 	 * @var    boolean
-	 *
-	 * @since  3.7.0
+	 * @since  4.1
 	 */
 	protected $captchaEnabled = false;
 
 	/**
-	 * @var    \Joomla\Component\Jcomments\Site\Library\Jcomments\JCommentsAcl|null
-	 * @since  4.0.0
+	 * Option value from request
+	 *
+	 * @var    string
+	 * @since  4.1
 	 */
-	protected $acl;
+	protected $objectGroup = '';
 
+	/**
+	 * Object ID
+	 *
+	 * @var    integer
+	 * @since  4.1
+	 */
+	protected $objectID = 0;
+
+	/**
+	 * String with error text
+	 *
+	 * @var    string
+	 * @since  4.1
+	 */
 	protected $error = '';
 
 	/**
@@ -86,46 +99,95 @@ class HtmlView extends BaseHtmlView
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0.0
+	 * @since   4.1
 	 */
 	public function display($tpl = null)
 	{
+		if ($this->getLayout() == 'report')
+		{
+			$this->displayReportForm($tpl);
+		}
+		else
+		{
+			$this->displayCommentForm($tpl);
+		}
+	}
+
+	/**
+	 * Execute and display a comment form template script.
+	 *
+	 * @param   string  $tpl   The name of the template file to parse; automatically searches through the template paths.
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	public function displayCommentForm($tpl = null)
+	{
 		$app               = Factory::getApplication();
 		$user              = $app->getIdentity();
-		$this->acl         = JcommentsFactory::getACL();
-		$this->state       = $this->get('State');
+		$acl               = JcommentsFactory::getACL();
+		$state             = $this->get('State');
 		$this->form        = $this->get('Form');
+		$this->item        = $this->get('Item');
 		$lang              = $app->getLanguage();
-		$this->params      = $app->getParams('com_jcomments');
-		$this->objectGroup = $app->input->getCmd('option', 'com_content');
-		$this->objectID    = $app->input->getInt('id', 0);
+		$this->params      = $state->get('params');
+		$this->objectGroup = $state->get('object_group');
+		$this->objectID    = $state->get('object_id');
 
+		PluginHelper::importPlugin('jcomments');
+
+		// Set up document title
+		$title = empty($this->item->id) ? 'FORM_HEADER' : 'FORM_HEADER_EDIT';
+		$this->setDocumentTitle(Text::_($title));
+
+		$this->document->getWebAssetManager()
+			->useScript('bootstrap.alert')
+			->addInlineScript(
+				"document.addEventListener('DOMContentLoaded', function () {
+					const alert = document.querySelector('.jc-alert');
+					
+					if (alert) {
+						alert.addEventListener('close.bs.alert', function () {
+							const editFormIframe = parent.document.querySelector('.commentsEditFormFrame');
+							
+							if (editFormIframe) {
+								editFormIframe.remove();
+							}
+						});
+					}
+				});"
+			);
+
+		/** @see ./plugins/content/jcomments/jcomments.php#L125 */
 		if ($this->params->get('comments_locked'))
 		{
 			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_locked', $lang->getTag());
 
 			if ($message != '')
 			{
-				$this->error = '<div class="alert alert-secondary text-center mt-2" role="alert">'
-					. nl2br(htmlspecialchars($message, ENT_QUOTES)) . '</div>';
+				echo '<div class="alert alert-secondary text-center mt-2" role="alert">'
+					. nl2br($this->escape($message)) . '</div>';
 			}
-
-			parent::display($tpl);
 
 			return;
 		}
 
-		if ($this->acl->isUserBlocked())
+		if ($acl->isUserBlocked())
 		{
+			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
+			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
+				->createModel('Blacklist', 'Site', array('ignore_request' => true));
 			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_banned', $lang->getTag());
+			$reason  = $blacklistModel->getBlacklistReason($acl->userID);
 
 			if ($message != '')
 			{
-				$this->error = '<div class="alert alert-warning text-center mt-2" role="alert">'
-					. nl2br(htmlspecialchars($message, ENT_QUOTES)) . '</div>';
+				$reason = !empty($reason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($reason) : '';
 			}
 
-			parent::display($tpl);
+			echo $this->alert(nl2br($this->escape($message)) . $reason);
 
 			return;
 		}
@@ -140,55 +202,128 @@ class HtmlView extends BaseHtmlView
 
 			if ($message != '')
 			{
-				$this->error = '<div class="alert alert-warning text-center mt-2" role="alert">'
-					. nl2br(htmlspecialchars($message, ENT_QUOTES)) . '</div>';
+				echo $this->alert(nl2br($this->escape($message)));
 			}
 
-			parent::display($tpl);
-
 			return;
 		}
 
-		// Disable edit form for guest. Guests still able to add new comment if it allowed.
-		if ($user->get('guest') && $app->input->getInt('comment_id'))
+		// Access check when edit comment.
+		if ($app->input->getInt('comment_id') > 0)
 		{
-			echo '<div class="alert alert-warning text-center mt-2" role="alert">' . Text::_('ERROR_CANT_EDIT') . '</div>';
+			if ($acl->isLocked($this->item))
+			{
+				echo $this->alert(Text::_('ERROR_BEING_EDITTED'));
 
-			return;
+				return;
+			}
+			elseif (!$acl->canEdit($this->item))
+			{
+				if ($this->item->deleted == 1)
+				{
+					echo $this->alert(Text::_('ERROR_NOT_FOUND'));
+				}
+				else
+				{
+					echo $this->alert(Text::_('ERROR_CANT_EDIT'));
+				}
+
+				return;
+			}
 		}
 
-		$this->return_page = $this->get('ReturnPage');
+		$this->returnPage = $this->get('ReturnPage');
 
 		if (count($errors = $this->get('Errors')))
 		{
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
-		/** @see \Joomla\Component\Jcomments\Site\Model\FormModel::getTotalCommentsForObject() $commentsCount */
+		/** @see \Joomla\Component\Jcomments\Site\Model\FormModel::getTotalCommentsForObject() */
 		$commentsCount = $this->get('TotalCommentsForObject');
 
 		$this->displayForm = ((int) $this->params->get('form_show') == 1)
-			|| ((int) $this->params->get('form_show') == 2 && $commentsCount == 0);
-		$this->policy      = JcommentsText::getMessagesBasedOnLanguage(
+			|| ((int) $this->params->get('form_show') == 2 && $commentsCount == 0)
+			|| $app->input->getInt('comment_id') > 0;
+
+		if ($acl->showPolicy())
+		{
+			$this->policy = JcommentsText::getMessagesBasedOnLanguage(
+				$this->params->get('messages_fields'),
+				'message_policy_post', $lang->getTag()
+			);
+		}
+		else
+		{
+			$this->policy = '';
+		}
+
+		$this->terms = JcommentsText::getMessagesBasedOnLanguage(
 			$this->params->get('messages_fields'),
-			'message_policy_post', $lang->getTag()
+			'message_terms_of_use', $lang->getTag()
 		);
+		$this->terms = !empty($this->terms) ? $this->terms : Text::_('FORM_ACCEPT_TERMS_OF_USE');
 
 		if ($this->params->get('enable_plugins'))
 		{
+			$dispatcher = $this->getDispatcher();
 			$this->event = new \StdClass;
 
-			$results = $app->triggerEvent('onJCommentsFormBeforeDisplay', array($this->objectID, $this->objectGroup));
-			$this->event->jcommentsFormBeforeDisplay = trim(implode("\n", $results));
+			$eventResults = $dispatcher->dispatch(
+				'onJCommentsFormBeforeDisplay',
+				AbstractEvent::create(
+					'onJCommentsFormBeforeDisplay',
+					array(
+						'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+						'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+					)
+				)
+			)->getArgument('result', array());
+			$this->event->jcommentsFormBeforeDisplay = trim(
+				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+			);
 
-			$results = $app->triggerEvent('onJCommentsFormAfterDisplay', array($this->objectID, $this->objectGroup));
-			$this->event->jcommentsFormAfterDisplay = trim(implode("\n", $results));
+			$eventResults = $dispatcher->dispatch(
+				'onJCommentsFormAfterDisplay',
+				AbstractEvent::create(
+					'onJCommentsFormAfterDisplay',
+					array(
+						'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+						'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+					)
+				)
+			)->getArgument('result', array());
+			$this->event->jcommentsFormAfterDisplay = trim(
+				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+			);
 
-			$results = $app->triggerEvent('onJCommentsFormPrepend', array($this->objectID, $this->objectGroup));
-			$this->event->jcommentsFormPrepend = trim(implode("\n", $results));
+			$eventResults = $dispatcher->dispatch(
+				'onJCommentsFormPrepend',
+				AbstractEvent::create(
+					'onJCommentsFormPrepend',
+					array(
+						'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+						'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+					)
+				)
+			)->getArgument('result', array());
+			$this->event->jcommentsFormPrepend = trim(
+				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+			);
 
-			$results = $app->triggerEvent('onJCommentsFormAppend', array($this->objectID, $this->objectGroup));
-			$this->event->jcommentsFormAppend = trim(implode("\n", $results));
+			$eventResults = $dispatcher->dispatch(
+				'onJCommentsFormAppend',
+				AbstractEvent::create(
+					'onJCommentsFormAppend',
+					array(
+						'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+						'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+					)
+				)
+			)->getArgument('result', array());
+			$this->event->jcommentsFormAppend = trim(
+				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+			);
 		}
 
 		$captchaSet = $this->params->get('captcha', $app->get('captcha', '0'));
@@ -202,8 +337,112 @@ class HtmlView extends BaseHtmlView
 			}
 		}
 
-		$this->document = $app->getDocument();
+		parent::display($tpl);
+	}
+
+	/**
+	 * Execute and display a report form template script.
+	 *
+	 * @param   string  $tpl   The name of the template file to parse; automatically searches through the template paths.
+	 *
+	 * @return  void|boolean
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	public function displayReportForm($tpl = null)
+	{
+		$app          = Factory::getApplication();
+		$acl          = JcommentsFactory::getACL();
+		$state        = $this->get('State');
+		$this->form   = $this->get('Form');
+		$lang         = $app->getLanguage();
+		$this->params = $state->get('params');
+		$commentId    = $app->input->getInt('comment_id', 0);
+
+		// Set up document title
+		$this->setDocumentTitle(Text::_('REPORT_TO_ADMINISTRATOR'));
+
+		// Blocked user cannot report to admin
+		if ($acl->isUserBlocked())
+		{
+			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
+			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
+				->createModel('Blacklist', 'Site', array('ignore_request' => true));
+			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_banned', $lang->getTag());
+			$reason  = $blacklistModel->getBlacklistReason($acl->userID);
+
+			if ($message != '')
+			{
+				$reason = !empty($reason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($reason) : '';
+			}
+
+			echo $this->alert(nl2br($this->escape($message)) . $reason);
+
+			return false;
+		}
+
+		// Comment ID must not be empty
+		if (empty($commentId))
+		{
+			throw new GenericDataException(Text::_('ERROR_NOT_FOUND'), 500);
+		}
+
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
+		$table = $this->getModel()->getTable();
+		$table->load($commentId);
+
+		$this->item = (object) array();
+		$this->item->deleted = $table->get('deleted');
+
+		if (!$acl->canReport($this->item))
+		{
+			echo $this->alert(Text::_('ERROR_YOU_HAVE_NO_RIGHTS_TO_REPORT'));
+
+			return false;
+		}
+
+		if ($table->get('userid') == $acl->userID)
+		{
+			echo $this->alert(Text::_('ERROR_YOU_CANNOT_REPORT_OWN'));
+
+			return false;
+		}
+
+		if (count($errors = $this->get('Errors')))
+		{
+			throw new GenericDataException(implode("\n", $errors), 500);
+		}
+
+		$captchaSet = $this->params->get('captcha', $app->get('captcha', '0'));
+
+		foreach (PluginHelper::getPlugin('captcha') as $plugin)
+		{
+			if ($captchaSet === $plugin->name)
+			{
+				$this->captchaEnabled = true;
+				break;
+			}
+		}
 
 		parent::display($tpl);
+	}
+
+	/**
+	 * Return formatted message.
+	 *
+	 * @param   string   $msg    Message.
+	 * @param   boolean  $close  Close button.
+	 *
+	 * @return  string
+	 *
+	 * @since   4.1
+	 */
+	private function alert(string $msg, bool $close = true): string
+	{
+		$closeBtn = $close ? '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . Text::_('JCLOSE') . '"></button>' : '';
+		$closeBtnClass = $close ? ' alert-dismissible' : '';
+
+		return '<div class="jc-alert alert alert-warning mt-2 fade show' . $closeBtnClass . '" role="alert">' . $msg . $closeBtn . '</div>';
 	}
 }

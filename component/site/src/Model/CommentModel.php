@@ -17,16 +17,17 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Cache\Exception\CacheExceptionInterface;
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\User\User;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Database\ParameterType;
 use Joomla\String\StringHelper;
-use Joomla\Utilities\ArrayHelper;
+use Joomla\Utilities\IpHelper;
 
 /**
  * Comment item class
@@ -42,14 +43,6 @@ class CommentModel extends BaseDatabaseModel
 	 * @since  1.6
 	 */
 	protected $_item;
-
-	/**
-	 * Cache group name. Same as in CommentsModel
-	 *
-	 * @var    string
-	 * @since  4.0
-	 */
-	protected $cacheGroup = 'com_jcomments';
 
 	/**
 	 * Gets a comment object
@@ -71,22 +64,85 @@ class CommentModel extends BaseDatabaseModel
 			$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
 				->createCacheController('callback', array('defaultgroup' => $cacheGroup));
 
-			$table = $this->getTable();
+			$db     = $this->getDatabase();
+			$params = ComponentHelper::getParams('com_jcomments');
+			$user   = Factory::getApplication()->getIdentity();
 
-			$loader = function ($id) use ($table)
+			$loader = function ($id) use ($db, $params, $user)
 			{
-				$return = $table->load($id);
+				$query = $db->getQuery(true)
+					->select('c.*')
+					->select('CASE WHEN ' . $db->quoteName('c.parent') . ' = 0'
+						. ' THEN UNIX_TIMESTAMP(' . $db->quoteName('c.date') . ') ELSE 0 END'
+						. ' AS ' . $db->quoteName('threaddate')
+					)
+					->select(
+						array(
+							$db->quoteName('o.title', 'object_title'),
+							$db->quoteName('o.link', 'object_link'),
+							$db->quoteName('o.access', 'object_access'),
+							$db->quoteName('o.userid', 'object_owner'),
+							$db->quoteName('usr.block', 'user_blocked')
+						)
+					)
+					->select('(CASE WHEN ' . $db->quoteName('b.id') . ' > 0 THEN 1 ELSE 0 END) AS ' . $db->quoteName('banned'))
+					->select(
+						array(
+							$db->quoteName('l.lang_code', 'language'),
+							$db->quoteName('l.title', 'language_title'),
+							$db->quoteName('l.image', 'language_image')
+						)
+					)
+					->from($db->quoteName('#__jcomments', 'c'))
+					->leftJoin(
+						$db->quoteName('#__jcomments_objects', 'o'),
+						$db->quoteName('c.object_id') . ' = ' . $db->quoteName('o.object_id')
+					)
+					->leftJoin(
+						$db->quoteName('#__jcomments_blacklist', 'b'),
+						$db->quoteName('b.userid') . ' = ' . $db->quoteName('c.userid')
+						. ' AND ('
+						. 'ISNULL(' . $db->quoteName('b.expire') . ')'
+						. ' OR ' . $db->quoteName('b.expire') . ' >= NOW()'
+						. ')'
+					)
+					->leftJoin(
+						$db->quoteName('#__users', 'usr'),
+						$db->quoteName('usr.id') . ' = ' . $db->quoteName('c.userid')
+					)
+					->leftJoin(
+						$db->quoteName('#__languages', 'l'),
+						$db->quoteName('l.lang_code') . ' = ' . $db->quoteName('c.lang')
+					)
+					->where($db->quoteName('c.id') . ' = :id')
+					->bind(':id', $id, ParameterType::INTEGER);
 
-				if ($return === false && $table->getError())
+				// Join over labels
+				$query->select(array($db->quoteName('u.labels'), $db->quoteName('u.terms_of_use')))
+					->leftJoin(
+						$db->quoteName('#__jcomments_users', 'u'),
+						$db->quoteName('u.id') . ' = ' . $db->quoteName('c.userid')
+					);
+
+				if ($params->get('enable_voting') == 1)
 				{
-					$this->setError($table->getError());
-
-					return false;
+					$query->select($db->quoteName('v.value', 'voted'));
+					$query->leftJoin(
+						$db->quoteName('#__jcomments_votes', 'v'),
+						$db->quoteName('c.id') . ' = ' . $db->quoteName('v.commentid')
+						. ($user->get('id')
+							? ' AND ' . $db->quoteName('v.userid') . ' = ' . (int) $user->get('id')
+							: ' AND ' . $db->quoteName('v.userid') . ' = 0 AND ' . $db->quoteName('v.ip') . ' = ' . $db->quote(IpHelper::getIp()))
+					);
+				}
+				else
+				{
+					$query->select('1 AS voted');
 				}
 
-				$properties = $table->getProperties(1);
+				$db->setQuery($query);
 
-				return ArrayHelper::toObject($properties, new \stdClass);
+				return $db->loadObject();
 			};
 
 			try
@@ -141,7 +197,7 @@ class CommentModel extends BaseDatabaseModel
 			}
 			catch (\RuntimeException $e)
 			{
-				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 			}
 		}
 
@@ -211,7 +267,7 @@ class CommentModel extends BaseDatabaseModel
 			}
 			catch (\RuntimeException $e)
 			{
-				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 			}
 		}
 
@@ -249,72 +305,11 @@ class CommentModel extends BaseDatabaseModel
 			}
 			catch (\RuntimeException $e)
 			{
-				Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 			}
 		}
 
 		return false;
-	}
-
-	/**
-	 * Check if userid or IP are not listed in blacklist.
-	 *
-	 * @param   string  $ip    IP address
-	 * @param   User    $user  User object
-	 *
-	 * @return  boolean  True if blacklisted, false otherwise
-	 *
-	 * @since   3.0
-	 * @see     JcommentsAcl::isUserBlocked()
-	 */
-	public function isBlacklisted(string $ip, User $user): bool
-	{
-		$db     = $this->getDbo();
-		$result = false;
-
-		$query = $db->getQuery(true)
-			->select('COUNT(id)')
-			->from($db->quoteName('#__jcomments_blacklist'));
-
-		// Check by IP only if user is guest.
-		if ($user->get('guest'))
-		{
-			if (!empty($ip))
-			{
-				$parts = explode('.', $ip);
-
-				if (count($parts) == 4)
-				{
-					$conditions   = array();
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote($ip);
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.%s.*', $parts[0], $parts[1], $parts[2]));
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.*.*', $parts[0], $parts[1]));
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.*.*.*', $parts[0]));
-
-					$query->where($conditions, 'OR');
-				}
-				else
-				{
-					$query->where($db->quoteName('ip') . ' = ' . $db->quote($ip));
-				}
-			}
-		}
-		else
-		{
-			$query->where($db->quoteName('userid') . ' = ' . $user->get('id'));
-		}
-
-		try
-		{
-			$db->setQuery($query);
-			$result = $db->loadResult() > 0;
-		}
-		catch (\RuntimeException $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
-		}
-
-		return $result;
 	}
 
 	/**
@@ -325,12 +320,14 @@ class CommentModel extends BaseDatabaseModel
 	 *
 	 * @return  boolean  True on success.
 	 *
-	 * @since   1.6
+	 * @throws  \Exception
+	 * @since   4.1
 	 */
 	public function publish(int $pk, int $value = 1): bool
 	{
-		$user = Factory::getApplication()->getIdentity();
-		$table = $this->getTable();
+		$params = ComponentHelper::getParams('com_jcomments');
+		$user   = Factory::getApplication()->getIdentity();
+		$table  = $this->getTable();
 
 		$table->reset();
 
@@ -360,13 +357,20 @@ class CommentModel extends BaseDatabaseModel
 			return false;
 		}
 
-		if ($value === 1)
+		// Send notifications on publish state
+		if ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 1)
 		{
-			NotificationHelper::push($table, 'comment-update');
-		}
+			// Send notification to subscribed users.
+			NotificationHelper::push($table, 'comment-published');
 
-		$cacheGroup = strtolower($this->cacheGroup);
-		JcommentsFactory::removeCache(md5($cacheGroup . $table->object_id), $cacheGroup);
+			// Send notification to administrator(moderator). List of emails from 'notification_email' option.
+			NotificationHelper::push($table, 'moderate-published');
+		}
+		// Send notifications on unpublished state only to administrator(moderator)
+		elseif ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 0)
+		{
+			NotificationHelper::push($table, 'moderate-unpublished');
+		}
 
 		return true;
 	}
@@ -388,7 +392,7 @@ class CommentModel extends BaseDatabaseModel
 
 			/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
 			$table = $this->getTable();
-			$return = $table->load($data->id);
+			$return = $table->load((int) $data->id);
 
 			if ($return === false && $table->getError())
 			{
@@ -396,8 +400,6 @@ class CommentModel extends BaseDatabaseModel
 
 				return false;
 			}
-
-			$objectID = $table->object_id;
 
 			if ($config->get('delete_mode') == 0)
 			{
@@ -409,18 +411,192 @@ class CommentModel extends BaseDatabaseModel
 				$return = $table->markAsDeleted();
 			}
 
-			if ($return)
-			{
-				JcommentsFactory::removeCache(md5($this->cacheGroup . $objectID), $this->cacheGroup);
-			}
-			else
+			if (!$return)
 			{
 				$this->setError($table->getError());
 
 				return false;
 			}
 
-			NotificationHelper::push($table, 'comment-delete');
+			if ($config->get('enable_notification') && in_array(4, $config->get('enable_notification')))
+			{
+				NotificationHelper::push($table, 'comment-delete');
+				NotificationHelper::push($table, 'moderate-delete');
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Vote for comment.
+	 *
+	 * @param   integer  $id     Comment ID.
+	 * @param   integer  $value  Value. Can be 1 or -1.
+	 *
+	 * @return  boolean  True on success, false otherwise
+	 *
+	 * @since   4.0
+	 */
+	public function vote(int $id, $value): bool
+	{
+		$app  = Factory::getApplication();
+		$user = $app->getIdentity();
+		$db   = $this->getDatabase();
+		$acl  = JcommentsFactory::getAcl();
+
+		if ($this->isVoted($id) === false)
+		{
+			/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
+			$table = $this->getTable();
+			$result = $table->load($id);
+
+			if ($result === false && $table->getError())
+			{
+				$this->setError($table->getError());
+
+				return false;
+			}
+
+			if ($acl->canVote($table))
+			{
+				$dispatcher = $this->getDispatcher();
+				$eventResult = $dispatcher->dispatch(
+					'onJCommentsCommentBeforeVote',
+					AbstractEvent::create(
+						'onJCommentsCommentBeforeVote',
+						array('subject' => new \stdClass, 'table' => $table, 'value' => $value)
+					)
+				);
+
+				if (!$eventResult->getArgument('abort', false))
+				{
+					if ($value > 0)
+					{
+						$table->isgood++;
+					}
+					else
+					{
+						$table->ispoor++;
+					}
+
+					if (!$table->store())
+					{
+						Log::add($table->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+						$this->setError(Text::_('ERROR_CANT_VOTE'));
+
+						return false;
+					}
+
+					$now    = Factory::getDate()->toSql();
+					$values = array($table->id, $user->get('id'), IpHelper::getIp(), $now, $value);
+					$query  = $db->getQuery(true)
+						->insert($db->quoteName('#__jcomments_votes'))
+						->columns(
+							array(
+								$db->quoteName('commentid'),
+								$db->quoteName('userid'),
+								$db->quoteName('ip'),
+								$db->quoteName('date'),
+								$db->quoteName('value')
+							)
+						)
+						->values(':id, :uid, :ip, :datetime, :value')
+						->bind(
+							array(':id', ':uid', ':ip', ':datetime', ':value'),
+							$values,
+							array(
+								ParameterType::INTEGER,
+								ParameterType::INTEGER,
+								ParameterType::STRING,
+								ParameterType::STRING,
+								ParameterType::INTEGER
+							)
+						);
+
+					try
+					{
+						$db->setQuery($query);
+						$db->execute();
+					}
+					catch (\RuntimeException $e)
+					{
+						Log::add($e->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+						$this->setError(Text::_('ERROR_CANT_VOTE'));
+
+						return false;
+					}
+
+					$dispatcher->dispatch(
+						'onJCommentsCommentAfterVote',
+						AbstractEvent::create(
+							'onJCommentsCommentAfterVote',
+							array('subject' => new \stdClass, 'table' => $table, 'value' => $value)
+						)
+					);
+				}
+			}
+			else
+			{
+				$this->setError(Text::_('ERROR_CANT_VOTE'));
+
+				return false;
+			}
+		}
+		else
+		{
+			$this->setError(Text::_('ERROR_ALREADY_VOTED'));
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if user already voted for comment.
+	 *
+	 * @param   integer  $id  Comment ID.
+	 *
+	 * @return  boolean  True on success, false otherwise
+	 *
+	 * @since   4.0
+	 */
+	public function isVoted(int $id): bool
+	{
+		$db     = $this->getDatabase();
+		$user   = Factory::getApplication()->getIdentity();
+		$ip     = IpHelper::getIp();
+		$userId = $user->get('id');
+
+		$query = $db->getQuery(true)
+			->select('COUNT(*)')
+			->from($db->quoteName('#__jcomments_votes'))
+			->where($db->quoteName('commentid') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		if ($user->get('id'))
+		{
+			$query->where($db->quoteName('userid') . ' = :uid')
+				->bind(':uid', $userId, ParameterType::INTEGER);
+		}
+		else
+		{
+			$query->where($db->quoteName('userid') . ' = 0')
+				->where($db->quoteName('ip') . ' = :ip')
+				->bind(':ip', $ip);
+		}
+
+		try
+		{
+			$db->setQuery($query);
+
+			return !($db->loadResult() == 0);
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+			$this->setError(Text::_('ERROR_CANT_VOTE'));
 		}
 
 		return true;

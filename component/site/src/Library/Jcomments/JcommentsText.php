@@ -16,6 +16,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 
 /**
  * JComments common text functions
@@ -139,7 +140,7 @@ class JcommentsText
 	 *
 	 * @since  3.0
 	 */
-	public static function cleanText($text)
+	public static function cleanText(string $text): string
 	{
 		$text = JCommentsFactory::getBBCode()->filter($text, true);
 
@@ -164,7 +165,7 @@ class JcommentsText
 	/**
 	 * Get language aware message strings for comment rules, no access rights for comment, comments closed, user banned.
 	 *
-	 * @param   array   $messages  Array in subform format. E.g. array(subform => array(form => value, ...))
+	 * @param   object  $messages  Object in subform format. E.g. array(subform => array(form => value, ...))
 	 * @param   string  $field     Field name to search.
 	 * @param   string  $lang      Language tag.
 	 *
@@ -172,7 +173,7 @@ class JcommentsText
 	 *
 	 * @since   4.0
 	 */
-	public static function getMessagesBasedOnLanguage($messages, string $field, string $lang = '')
+	public static function getMessagesBasedOnLanguage(object $messages, string $field, string $lang = ''): string
 	{
 		$data = array();
 
@@ -183,11 +184,29 @@ class JcommentsText
 
 		if (empty($lang) || $lang == '*')
 		{
+			// Get messages for 'All' language
 			$message = $data['*']->$field;
 		}
 		else
 		{
-			$message = array_key_exists($lang, $data) ? $data[$lang]->$field : $data['*']->$field;
+			// Get messages for current item language
+			if (array_key_exists($lang, $data))
+			{
+				$message = $data[$lang]->$field;
+			}
+			// If not found, fallback to 'All' language messages
+			else
+			{
+				if (array_key_exists('*', $data))
+				{
+					$message = $data['*']->$field;
+				}
+				// Give up. User not defined messages for proper language in component settings.
+				else
+				{
+					$message = Text::_('ERROR');
+				}
+			}
 		}
 
 		return $message;
@@ -196,14 +215,14 @@ class JcommentsText
 	/**
 	 * Get replacement string for current language.
 	 *
-	 * @param   array   $replaces  Array in subform format. E.g. array(subform => array(form => value, ...))
+	 * @param   object  $replaces  Object in subform format. E.g. array(subform => array(form => value, ...))
 	 * @param   string  $lang      Language tag.
 	 *
 	 * @return  string  Returns the string according to current frontend language.
 	 *
 	 * @since   4.0
 	 */
-	private static function getCensorReplace($replaces, $lang)
+	private static function getCensorReplace(object $replaces, string $lang): string
 	{
 		$data = array();
 

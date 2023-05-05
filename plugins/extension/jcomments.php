@@ -16,7 +16,8 @@ use Joomla\CMS\Plugin\CMSPlugin;
 /**
  * Jcomments master extension plugin.
  *
- * @since  4.0
+ * @since  4.1
+ * @noinspection PhpUnused
  */
 class PlgExtensionJcomments extends CMSPlugin
 {
@@ -36,7 +37,8 @@ class PlgExtensionJcomments extends CMSPlugin
 	 *
 	 * @return  boolean
 	 *
-	 * @since   1.6
+	 * @since   3.2
+	 * @see     Joomla\Component\Config\Administrator\Model\ComponentModel::save()
 	 */
 	public function onExtensionBeforeSave($context, $table, $isNew = false)
 	{
@@ -49,7 +51,7 @@ class PlgExtensionJcomments extends CMSPlugin
 		// Component params
 		$params = json_decode($table->params, true);
 
-		// Ajust some JComments settings before save.
+		// Adjust some JComments settings before save.
 		if (!empty($params['forbidden_names']))
 		{
 			$params['forbidden_names'] = preg_replace("#[\n|\r]+#", ',', $params['forbidden_names']);

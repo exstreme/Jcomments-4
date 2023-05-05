@@ -2,7 +2,6 @@
 /**
  * JComments Latest - Shows latest comments in Joomla's backend
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
@@ -18,14 +17,11 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Log\Log;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
-
-// @TODO Must be removed later when component frontend will use namespaces.
-include_once JPATH_ROOT . '/components/com_jcomments/classes/bbcode.php';
-include_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
-include_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
-include_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
 
 /**
  * Helper for mod_jcomments_latest_backend
@@ -74,7 +70,7 @@ class LatestCommentsHelper
 
 		if (count($list))
 		{
-			$bbcode           = \JCommentsFactory::getBBCode();
+			$bbcode           = JcommentsFactory::getBBCode();
 			$limitCommentText = (int) $params->get('limit_comment_text', 0);
 
 			foreach ($list as &$item)
@@ -86,12 +82,10 @@ class LatestCommentsHelper
 					$item->link = 'index.php?option=com_jcomments&task=comment.edit&id=' . $item->id;
 				}
 
-				$item->author = \JCommentsContent::getCommentAuthorName($item);
-
-				// @TODO Must be changed later when component frontend will use namespaces.
-				$text = \JCommentsText::censor($item->comment);
+				$item->author = JcommentsContentHelper::getCommentAuthorName($item);
+				$text = JcommentsText::censor($item->comment);
 				$text = $bbcode->filter($text, true);
-				$text = \JCommentsText::cleanText($text);
+				$text = JcommentsText::cleanText($text);
 
 				if ($limitCommentText && StringHelper::strlen($text) > $limitCommentText)
 				{

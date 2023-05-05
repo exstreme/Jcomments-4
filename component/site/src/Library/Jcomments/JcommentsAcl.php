@@ -14,9 +14,11 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Access\Access;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
+use Joomla\Utilities\IpHelper;
 
 /**
  * JComments ACL
@@ -133,7 +135,7 @@ class JcommentsAcl
 	 * @var    integer
 	 * @since  3.0
 	 */
-	protected $userID = 0;
+	public $userID = 0;
 
 	/**
 	 * @var    integer
@@ -170,9 +172,7 @@ class JcommentsAcl
 		$this->canViewHomepage       = $user->authorise('comment.view.site', 'com_jcomments');
 		$this->canVote               = $user->authorise('comment.vote', 'com_jcomments');
 		$this->canReport             = $user->authorise('comment.report', 'com_jcomments')
-											&& $config->get('enable_reports')
-											&& ($config->get('enable_notification') != 0
-												|| $config->get('notification_type', 2) == true);
+											&& $config->get('enable_reports');
 		$this->canBan                = $user->authorise('comment.ban', 'com_jcomments');
 		$this->canQuote              = $user->authorise('comment.comment', 'com_jcomments')
 											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
@@ -180,17 +180,17 @@ class JcommentsAcl
 											&& $user->authorise('comment.reply', 'com_jcomments')
 											&& $config->get('template_view') == 'tree';
 		$this->userID                = $user->get('id');
-		$this->userBlocked           = false;
 		$this->deleteMode            = (int) $config->get('delete_mode');
 		$this->commentsLocked        = false;
 
 		if ($config->get('enable_blacklist', 0) == 1)
 		{
-			/** @var \Joomla\Component\Jcomments\Site\Model\CommentModel $commentModel */
-			$commentModel = $app->bootComponent('com_jcomments')->getMVCFactory()
-				->createModel('Comment', 'Site', array('ignore_request' => true));
+			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
+			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
+				->createModel('Blacklist', 'Site', array('ignore_request' => true));
 
-			if ($commentModel->isBlacklisted(self::getIP(), $user))
+			// Check of logged in user is not banned.
+			if ($blacklistModel->isBlacklisted(IpHelper::getIp(), $user))
 			{
 				$this->userBlocked = true;
 				$this->canQuote    = false;
@@ -241,7 +241,7 @@ class JcommentsAcl
 	}
 
 	/**
-	 * Check if need to see plicy message.
+	 * Check if need to see policy message. This parameter is located on the "Comment form" tab -> "Show policies".
 	 *
 	 * @return  boolean
 	 *
@@ -273,7 +273,7 @@ class JcommentsAcl
 	 *
 	 * @since   4.0
 	 */
-	public function enableCustomBBCode($buttonACL)
+	public function enableCustomBBCode(string $buttonACL): bool
 	{
 		$userGroups = $this->user->getAuthorisedGroups();
 
@@ -290,31 +290,55 @@ class JcommentsAcl
 	}
 
 	/**
-	 * Check if user is blocked
+	 * Check if user is blocked.
+	 *
+	 * @param   mixed  $ip   IP address.
+	 * @param   mixed  $uid  User object or user ID.
 	 *
 	 * @return  boolean
 	 *
+	 * @throws  \Exception
 	 * @since   3.0
 	 */
-	public function isUserBlocked(): bool
+	public function isUserBlocked($ip = null, $uid = null): bool
 	{
-		return $this->userBlocked;
+		$app    = Factory::getApplication();
+		$config = ComponentHelper::getParams('com_jcomments');
+
+		if (empty($ip) && empty($uid))
+		{
+			return $this->userBlocked;
+		}
+
+		if ($config->get('enable_blacklist', 0) == 1)
+		{
+			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
+			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
+				->createModel('Blacklist', 'Site', array('ignore_request' => true));
+
+			if ($blacklistModel->isBlacklisted($ip, $uid))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
 	 * Check if comment is bein edited by someone else.
 	 *
-	 * @param   object  $object  Comment item.
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function isLocked($object): bool
+	public function isLocked($comment): bool
 	{
-		if (isset($object) && ($object != null))
+		if (isset($comment) && ($comment != null))
 		{
-			return $object->checked_out && $object->checked_out != $this->userID;
+			return $comment->checked_out && $comment->checked_out != $this->userID;
 		}
 
 		return false;
@@ -323,21 +347,25 @@ class JcommentsAcl
 	/**
 	 * Test if user is owner of the object
 	 *
-	 * @param   object  $object  Comment object
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function isObjectOwner($object): bool
+	public function isObjectOwner($comment): bool
 	{
-		if (is_null($object))
+		if (is_null($comment))
 		{
 			return false;
 		}
 		else
 		{
-			$objectOwner = $this->userID ? ObjectHelper::getObjectField('userid', $object->object_id, $object->object_group) : 0;
+			$objectOwner = $this->userID
+				? (property_exists($comment, 'object_owner')
+					? $comment->object_owner
+					: ObjectHelper::getObjectField($comment, 'userid', $comment->object_id, $comment->object_group))
+				: 0;
 
 			return $this->userID && $this->userID == $objectOwner;
 		}
@@ -346,48 +374,55 @@ class JcommentsAcl
 	/**
 	 * Check if user can delete comment
 	 *
-	 * @param   object  $object  Comment object
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canDelete($object): bool
+	public function canDelete($comment): bool
 	{
-		return ($this->canDelete || ($this->canDeleteForMyObject && $this->isObjectOwner($object))
-				|| ($this->canDeleteOwn && ($object->userid == $this->userID)))
-			&& (!$this->isLocked($object)) && (!$object->deleted || $this->deleteMode == 0);
+		return ($this->canDelete || ($this->canDeleteForMyObject && $this->isObjectOwner($comment))
+				|| ($this->canDeleteOwn && ($comment->userid == $this->userID)))
+			&& (!$this->isLocked($comment)) && (!$comment->deleted || $this->deleteMode == 0);
 	}
 
 	/**
 	 * Check if user can edit comment
 	 *
-	 * @param   object  $object  Comment object
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canEdit($object): bool
+	public function canEdit($comment): bool
 	{
-		return ($this->canEdit || ($this->canEditForMyObject && $this->isObjectOwner($object))
-				|| ($this->canEditOwn && ($object->userid == $this->userID)))
-			&& (!$this->isLocked($object)) && (!$object->deleted);
+		return ($this->canEdit || ($this->canEditForMyObject && $this->isObjectOwner($comment))
+				|| ($this->canEditOwn && ($comment->userid == $this->userID)))
+			&& (!$this->isLocked($comment)) && (!$comment->deleted);
 	}
 
 	/**
 	 * Check if user can publish comment
 	 *
-	 * @param   object  $object  Comment object
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canPublish($object = null): bool
+	public function canPublish($comment = null): bool
 	{
-		return ($this->canPublish || ($this->canPublishForMyObject && $this->isObjectOwner($object)))
-			&& (!$this->isLocked($object)) && (!$object->deleted);
+		if (is_null($comment))
+		{
+			return ($this->canPublish || ($this->canPublishForMyObject && $this->isObjectOwner($comment)));
+		}
+		else
+		{
+			return ($this->canPublish || ($this->canPublishForMyObject && $this->isObjectOwner($comment)))
+				&& (!$this->isLocked($comment)) && (!$comment->deleted);
+		}
 	}
 
 	/**
@@ -395,43 +430,44 @@ class JcommentsAcl
 	 *
 	 * @param   integer  $objectID     Object ID
 	 * @param   string   $objectGroup  Object group
+	 * @param   mixed    $object       Object information
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canPublishForObject(int $objectID, string $objectGroup): bool
+	public function canPublishForObject(int $objectID, string $objectGroup, $object = null): bool
 	{
 		return $this->userID
 			&& $this->canPublishForMyObject
-			&& $this->userID == ObjectHelper::getObjectField('userid', $objectID, $objectGroup);
+			&& $this->userID == ObjectHelper::getObjectField($object, 'userid', $objectID, $objectGroup);
 	}
 
 	/**
 	 * Check if user can view IP
 	 *
-	 * @param   object|null  $object  Comment object
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canViewIP($object = null): bool
+	public function canViewIP($comment = null): bool
 	{
-		if (is_null($object))
+		if (is_null($comment))
 		{
 			return $this->canViewIP;
 		}
 		else
 		{
-			return $this->canViewIP && ($object->ip != '') && (!$object->deleted);
+			return $this->canViewIP && ($comment->ip != '') && (!$comment->deleted);
 		}
 	}
 
 	/**
 	 * Check if user can view email
 	 *
-	 * @param   string|null  $email  User email from comment
+	 * @param   mixed  $email  User email from comment
 	 *
 	 * @return  boolean
 	 *
@@ -453,7 +489,7 @@ class JcommentsAcl
 	 *
 	 * Check if user can view homepage.
 	 *
-	 * @param   string|null  $url  URL.
+	 * @param   mixed  $url  URL.
 	 *
 	 * @return  boolean
 	 *
@@ -475,21 +511,21 @@ class JcommentsAcl
 	 *
 	 * Check if user can quote.
 	 *
-	 * @param   object|null  $object  Comment object.
+	 * @param   mixed  $comment  Comment object.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canQuote($object = null): bool
+	public function canQuote($comment = null): bool
 	{
-		if (is_null($object))
+		if (is_null($comment))
 		{
 			return $this->canQuote && !$this->commentsLocked;
 		}
 		else
 		{
-			return $this->canQuote && !$this->commentsLocked && (!$object->deleted);
+			return $this->canQuote && !$this->commentsLocked && (!$comment->deleted);
 		}
 	}
 
@@ -497,21 +533,21 @@ class JcommentsAcl
 	 *
 	 * Check if user can reply.
 	 *
-	 * @param   object|null  $object  Comment object.
+	 * @param   mixed  $comment  Comment object.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canReply($object = null): bool
+	public function canReply($comment = null): bool
 	{
-		if (is_null($object))
+		if (is_null($comment))
 		{
 			return $this->canReply && !$this->commentsLocked;
 		}
 		else
 		{
-			return $this->canReply && !$this->commentsLocked && (!$object->deleted);
+			return $this->canReply && !$this->commentsLocked && (!$comment->deleted);
 		}
 	}
 
@@ -531,21 +567,21 @@ class JcommentsAcl
 	 *
 	 * Check if user can vote.
 	 *
-	 * @param   object  $object  Comment object.
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canVote($object): bool
+	public function canVote($comment): bool
 	{
 		if ($this->userID)
 		{
-			return ($this->canVote && $object->userid != $this->userID && !isset($object->voted) && (!$object->deleted));
+			return ($this->canVote && $comment->userid != $this->userID && !isset($comment->voted) && (!$comment->deleted));
 		}
 		else
 		{
-			return ($this->canVote && $object->ip != self::getIP() && !isset($object->voted) && (!$object->deleted));
+			return ($this->canVote && $comment->ip != IpHelper::getIp() && !isset($comment->voted) && (!$comment->deleted));
 		}
 	}
 
@@ -553,21 +589,21 @@ class JcommentsAcl
 	 *
 	 * Check if user can report bad comment.
 	 *
-	 * @param   object|null  $object  Comment object.
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canReport($object = null): bool
+	public function canReport($comment = null): bool
 	{
-		if (is_null($object))
+		if (is_null($comment))
 		{
 			return $this->canReport;
 		}
 		else
 		{
-			return $this->canReport && (!$object->deleted);
+			return $this->canReport && (!$comment->deleted);
 		}
 	}
 
@@ -575,38 +611,58 @@ class JcommentsAcl
 	 *
 	 * Check if user can do some moderator actions.
 	 *
-	 * @param   object  $object  Comment object.
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canModerate($object)
+	public function canModerate($comment): bool
 	{
-		return ($this->canEdit($object) || $this->canDelete($object) || $this->canPublish($object)
-			|| $this->canViewIP($object) || $this->canBan($object)) && (!$object->deleted || $this->deleteMode == 0);
+		return ($this->canEdit($comment) || $this->canDelete($comment) || $this->canPublish($comment)
+			|| $this->canViewIP($comment) || $this->canBan($comment)) && (!$comment->deleted || $this->deleteMode == 0);
 	}
 
 	/**
 	 *
 	 * Check if user can ban.
 	 *
-	 * @param   object|null  $item  Comment item or null.
+	 * @param   mixed  $comment  Comment item.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canBan($item = null): bool
+	public function canBan($comment = null): bool
 	{
-		if (is_null($item))
+		if (is_null($comment))
 		{
 			return $this->canBan;
 		}
 		else
 		{
-			return $this->canBan && (!$item->deleted);
+			return $this->canBan && (!$comment->deleted);
 		}
+	}
+
+	/**
+	 * Method to return a list of view levels for which the user is authorised.
+	 *
+	 * @param   integer  $uid  User Id
+	 *
+	 * @return  array
+	 *
+	 * @since   4.1
+	 */
+	public function getAuthorisedViewLevels(int $uid): array
+	{
+		// B/C access levels
+		$viewLevels = array_merge(
+			array(0),
+			Access::getAuthorisedViewLevels($uid)
+		);
+
+		return array_unique($viewLevels);
 	}
 
 	public function setCommentsLocked($value)
@@ -618,30 +674,5 @@ class JcommentsAcl
 
 		$this->canQuote = $this->canQuote && !$this->commentsLocked;
 		$this->canReply = $this->canReply && !$this->commentsLocked;
-	}
-
-	/**
-	 * Returns the most accurate IP address available for the current user, in
-	 * IPv4 format. This could be the proxy client's IP address.
-	 *
-	 * @return string IP address in presentation format.
-	 * @see https://matomo.org/faq/how-to-install/faq_98/
-	 */
-	public function getIP()
-	{
-		\JLoader::registerNamespace('Matomo\Network', JPATH_ROOT . '/components/com_jcomments/src/Library/Matomo/network/src');
-		\JLoader::registerNamespace('Piwik', JPATH_ROOT . '/components/com_jcomments/src/Library/Matomo');
-
-		$options = array(
-			'proxy_client_headers' => array(
-				'HTTP_CF_CONNECTING_IP',
-				'HTTP_CLIENT_IP',
-				'HTTP_X_FORWARDED_FOR'
-			),
-			'proxy_ips' => array(),
-			'proxy_ip_read_last_in_list' => false
-		);
-
-		return \Piwik\IP::getIpFromHeader($options);
 	}
 }

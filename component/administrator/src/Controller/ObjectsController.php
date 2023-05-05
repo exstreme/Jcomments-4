@@ -30,16 +30,26 @@ class ObjectsController extends BaseController
 	 *
 	 * @return  void
 	 *
+	 * @throws  \Exception
 	 * @since   4.1
 	 */
 	public function refresh()
 	{
+		header('Content-type: application/json');
+
 		if (!$this->checkToken('post', false))
 		{
+			http_response_code(403);
+
 			echo new JsonResponse(null, Text::_('JINVALID_TOKEN'), true);
 
 			$this->app->close();
 		}
+
+		$this->app->close();
+
+
+
 
 		/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
 		$model = $this->getModel();

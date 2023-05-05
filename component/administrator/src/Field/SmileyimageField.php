@@ -22,12 +22,31 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Administrator\Helper\JcommentsHelper;
 
+/**
+ * Form Field class for display smilies dropdown with image preview.
+ *
+ * @since  1.7.0
+ * @noinspection  PhpUnused
+ */
 class SmileyimageField extends FormField
 {
+	/**
+	 * The form field type.
+	 *
+	 * @var    string
+	 * @since  1.7.0
+	 */
 	protected $type = 'SmileyImage';
 
 	protected static $initialised = false;
 
+	/**
+	 * Method to get the field input markup.
+	 *
+	 * @return  string  The field input markup.
+	 *
+	 * @since   1.7.0
+	 */
 	protected function getInput()
 	{
 		$smiliesPath = JcommentsHelper::getSmiliesPath();
@@ -94,6 +113,15 @@ class SmileyimageField extends FormField
 
 	}
 
+	/**
+	 * Method to get the field options.
+	 *
+	 * @param   string  $directory  Smile directory
+	 *
+	 * @return  array  The field option objects.
+	 *
+	 * @since   3.7.0
+	 */
 	protected function getOptions($directory)
 	{
 		$options   = array();

@@ -16,11 +16,17 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\CMS\Pagination\Pagination;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
-use Joomla\Database\DatabaseDriver;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPagination;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsTree;
 use Joomla\Database\ParameterType;
+use Joomla\Utilities\ArrayHelper;
+use Joomla\Utilities\IpHelper;
 
 /**
  * JComments model
@@ -30,219 +36,304 @@ use Joomla\Database\ParameterType;
 class CommentsModel extends ListModel
 {
 	/**
-	 * Returns a comments count for given object
-	 *
-	 * @param   array  $options  Array with columns from comments table.
-	 *
-	 * @return  integer
-	 *
-	 * @since   4.0
+	 * @var    integer  Object ID
+	 * @since  4.1
 	 */
-	public function getCommentsCount(array $options = array()): int
+	public $objectId = null;
+
+	/**
+	 * @var    string  Object group
+	 * @since  4.1
+	 */
+	public $objectGroup = '';
+
+	/**
+	 * @var    array  List of fields to exclude from main query
+	 * @since  4.1
+	 */
+	private $excludeFields = array();
+
+	/**
+	 * Constructor.
+	 *
+	 * @param   array  $config  An optional associative array of configuration settings.
+	 *
+	 * @throws  \Exception
+	 * @since   1.6
+	 */
+	public function __construct($config = array())
 	{
-		$db    = $this->getDbo();
-		$total = 0;
+		$input = Factory::getApplication()->input;
 
-		try
+		if (empty($config['filter_fields']))
 		{
-			$db->setQuery($this->getCommentsCountQuery($options));
-			$total = $db->loadResult();
-		}
-		catch (\RuntimeException $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			$config['filter_fields'] = array(
+				'date', 'c.date'
+			);
 		}
 
-		return $total;
+		$this->objectId = $config['object_id'] ?? $input->getInt('id');
+		$this->objectGroup = $config['object_group'] ?? $input->getCmd('option');
+
+		if (isset($config['object_title']))
+		{
+			$this->setState('title', $config['object_title']);
+		}
+
+		if (isset($config['exclude_fields']))
+		{
+			$this->excludeFields = $config['exclude_fields'];
+		}
+
+		parent::__construct($config);
 	}
 
 	/**
-	 * Method to get a list of articles.
+	 * Method to get a Pagination object for the data set.
+	 *
+	 * @return  Pagination  A Pagination object for the data set.
+	 *
+	 * @since   1.6
+	 */
+	public function getPagination()
+	{
+		// Get a storage key.
+		$store = $this->getStoreId('getPagination');
+
+		// Try to load the data from internal storage.
+		if (isset($this->cache[$store]))
+		{
+			return $this->cache[$store];
+		}
+
+		$limit = (int) $this->getState('list.limit') - (int) $this->getState('list.links');
+
+		// Create the pagination object and add the object to the internal cache.
+		$this->cache[$store] = new JcommentsPagination($this->getTotal(), $this->getStart(), $limit);
+
+		return $this->cache[$store];
+	}
+
+	/**
+	 * Method to get a list of comments.
 	 *
 	 * @return  mixed  An array of objects on success, false on failure.
 	 *
-	 * @since   1.6
-	 * @deprecated 4.0
-	 * @todo Need refactoring
+	 * @since   4.1
 	 */
 	public function getItems()
 	{
-		$params = ComponentHelper::getParams('com_jcomments', true);
-		/*if (!isset($options['orderBy']))
+		$db = $this->getDatabase();
+		$limit = $this->getState('list.limit');
+
+		// TODO Where is this and for what?
+		$pagination = $this->getState('list.options.pagination');
+
+		if (isset($limit) && $pagination == 'tree')
 		{
-			$options['orderBy'] = $this->getDefaultOrder();
-		}*/
+			// Code bellow going from an old Jcomments version and do nothing(?).
+			$this->setState('list.options.level', 0);
 
-		$db = $this->getDbo();
-		$rows = array();
-		$pagination = $options['pagination'] ?? '';
+			$items = parent::getItems();
 
-		if ($params->get('template_view') == 'tree')
-		{
-			/*$options['level'] = 0;
-
-			$db->setQuery(self::getCommentsQuery($options));
-			$rows = $db->loadObjectList();
-
-			if (count($rows))
+			if (count($items))
 			{
 				$threads = array();
 
-				foreach ($rows as $row)
+				foreach ($items as $item)
 				{
-					$threads[] = $row->id;
+					$threads[] = (int) $item->id;
 				}
 
-				unset($options['level']);
-				unset($options['limit']);
+				$this->setState('list.options.level');
+				$this->setState('list.options.limit');
 
-				$options['filter'] = ($options['filter'] ? $options['filter'] . ' AND ' : '') . 'c.thread_id IN (' . implode(', ', $threads) . ')';
+				$filter = $this->getState('list.options.filter');
+				$this->setState(
+					'list.options.filter',
+					($filter ? $filter . ' AND ' : '') . $db->quoteName('c.thread_id') . ' IN (' . implode(', ', $threads) . ')'
+				);
 
-				$db->setQuery(self::getCommentsQuery($options));
-				$rows = array_merge($rows, $db->loadObjectList());
-			}*/
+				try
+				{
+					// Do not use parent::getItems() because changed model state will be ignored.
+					$db->setQuery($this->getListQuery());
+					$_items = $db->loadObjectList();
+
+					$items = array_merge($items, $_items);
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+				}
+			}
 		}
-
-		return parent::getItems();
-	}
-
-	public static function getLastComment($objectID, $objectGroup = 'com_content', $parent = 0)
-	{
-		/** @var DatabaseDriver $db */
-		$db      = Factory::getContainer()->get('DatabaseDriver');
-		$config  = ComponentHelper::getParams('com_jcomments');
-		$comment = null;
-
-		$options['object_id']    = (int) $objectID;
-		$options['object_group'] = trim($objectGroup);
-		$options['parent']       = (int) $parent;
-		$options['published']    = 1;
-		$options['orderBy']      = 'c.date DESC';
-		$options['limit']        = 1;
-		$options['limitStart']   = 0;
-		$options['votes']        = (int) $config->get('enable_voting');
-
-		$db->setQuery(self::getCommentsQuery($options));
-		$rows = $db->loadObjectList();
-
-		if (count($rows))
+		else
 		{
-			$comment = $rows[0];
+			$items = parent::getItems();
 		}
 
-		return $comment;
+		return $items;
 	}
 
 	/**
-	 * Delete all comments for given ids
+	 * Delete all comments, votes, reports for given comments ids
 	 *
 	 * @param   array  $ids  Array of comments ids.
 	 *
-	 * @return  void
+	 * @return  boolean
 	 *
+	 * @throws  \RuntimeException
 	 * @since   3.0
-	 * @deprecated 4.0
-	 * @todo Need refactoring
 	 */
-	public static function deleteCommentsByIds($ids)
+	private function deleteCommentsByIds(array $ids): bool
 	{
-		if (is_array($ids))
+		$ids = ArrayHelper::toInteger($ids);
+
+		if (count($ids))
 		{
-			if (count($ids))
+			$db = $this->getDatabase();
+
+			$query = $db->getQuery(true)
+				->select('DISTINCT ' . $db->quoteName('object_group') . ', ' . $db->quoteName('object_id'))
+				->from($db->quoteName('#__jcomments'))
+				->whereIn($db->quoteName('parent'), $ids);
+
+			$db->setQuery($query);
+			$objects = $db->loadObjectList();
+
+			if (count($objects))
 			{
-				/** @var DatabaseDriver $db */
-				$db = Factory::getContainer()->get('DatabaseDriver');
+				$descendants = array();
 
-				$query = $db->getQuery(true)
-					->select('DISTINCT object_group, object_id')
-					->from($db->quoteName('#__jcomments'))
-					->where($db->quoteName('parent') . ' IN (' . implode(',', $ids) . ')');
-
-				$db->setQuery($query);
-				$objects = $db->loadObjectList();
-
-				if (count($objects))
+				foreach ($objects as $object)
 				{
-					require_once JPATH_ROOT . '/components/com_jcomments/libraries/joomlatune/tree.php';
+					$query = $db->getQuery(true)
+						->select($db->quoteName(array('id', 'parent')))
+						->from($db->quoteName('#__jcomments'))
+						->where($db->quoteName('object_group') . ' = :ogroup')
+						->where($db->quoteName('object_id') . ' = :oid')
+						->bind(':ogroup', $object->object_group)
+						->bind(':oid', $object->object_id, ParameterType::INTEGER);
 
-					$descendants = array();
+					$db->setQuery($query);
+					$comments = $db->loadObjectList();
 
-					foreach ($objects as $o)
+					$tree = new JcommentsTree($comments);
+
+					foreach ($ids as $id)
 					{
-						$query = $db->getQuery(true)
-							->select($db->quoteName(array('id', 'parent')))
-							->from($db->quoteName('#__jcomments'))
-							->where($db->quoteName('object_group') . ' = ' . $db->quote($o->object_group))
-							->where($db->quoteName('object_id') . ' = ' . (int) $o->object_id);
-
-						$db->setQuery($query);
-						$comments = $db->loadObjectList();
-
-						$tree = new JoomlaTuneTree($comments);
-
-						foreach ($ids as $id)
-						{
-							$descendants = array_merge($descendants, $tree->descendants((int) $id));
-						}
-
-						unset($tree);
-						$descendants = array_unique($descendants);
+						$descendants = array_merge($descendants, $tree->descendants((int) $id));
 					}
 
-					$ids = array_merge($ids, $descendants);
+					unset($tree);
+					$descendants = array_unique($descendants);
 				}
 
-				unset($descendants);
-
-				$ids = implode(',', $ids);
-
-				$query = $db->getQuery(true)
-					->delete($db->quoteName('#__jcomments'))
-					->where($db->quoteName('id') . ' IN (' . $ids . ')');
-
-				$db->setQuery($query);
-				$db->execute();
-
-				$query = $db->getQuery(true)
-					->delete($db->quoteName('#__jcomments_votes'))
-					->where($db->quoteName('commentid') . ' IN (' . $ids . ')');
-
-				$db->setQuery($query);
-				$db->execute();
-
-				$query = $db->getQuery(true)
-					->delete($db->quoteName('#__jcomments_reports'))
-					->where($db->quoteName('commentid') . ' IN (' . $ids . ')');
-
-				$db->setQuery($query);
-				$db->execute();
+				$ids = array_merge($ids, $descendants);
 			}
+
+			unset($descendants);
+
+			$query = $db->getQuery(true)
+				->delete($db->quoteName('#__jcomments'))
+				->whereIn($db->quoteName('id'), $ids);
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$query = $db->getQuery(true)
+				->delete($db->quoteName('#__jcomments_votes'))
+				->whereIn($db->quoteName('commentid'), $ids);
+
+			$db->setQuery($query);
+			$db->execute();
+
+			$query = $db->getQuery(true)
+				->delete($db->quoteName('#__jcomments_reports'))
+				->whereIn($db->quoteName('commentid'), $ids);
+
+			$db->setQuery($query);
+			$db->execute();
+
+			return true;
+		}
+
+		throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+	}
+
+	/**
+	 * Delete one comment or list of comments
+	 *
+	 * @param   mixed   $objectID     Object ID
+	 * @param   string  $objectGroup  Object group
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 */
+	public function delete($objectID, $objectGroup = 'com_content'): bool
+	{
+		$db          = $this->getDatabase();
+		$objectGroup = trim($objectGroup);
+		$objectIDs   = is_array($objectID) ? implode(',', $objectID) : array($objectID);
+		$objectIDs   = ArrayHelper::toInteger($objectIDs);
+
+		try
+		{
+			$query = $db->getQuery(true)
+				->select($db->quoteName('id'))
+				->from($db->quoteName('#__jcomments'))
+				->where($db->quoteName('object_group') . ' = :ogroup')
+				->whereIn($db->quoteName('object_id'), $objectIDs)
+				->bind(':ogroup', $objectGroup);
+
+			$db->setQuery($query);
+			$cids = $db->loadColumn();
+
+			if (!$this->deleteCommentsByIds($cids))
+			{
+				return false;
+			}
+
+			$query = $db->getQuery(true)
+				->delete($db->quoteName('#__jcomments_objects'))
+				->where($db->quoteName('object_group') . ' = :ogroup')
+				->whereIn($db->quoteName('object_id'), $objectIDs)
+				->bind(':ogroup', $objectGroup);
+
+			$db->setQuery($query);
+
+			return $db->execute();
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+
+			return false;
 		}
 	}
 
-	public static function deleteComments($objectID, $objectGroup = 'com_content')
+	/**
+	 * Delete user votes.
+	 *
+	 * @param   array  $pks  An array of record primary keys.
+	 *
+	 * @return  boolean
+	 *
+	 * @since   4.1
+	 */
+	public function deleteVotes(&$pks): bool
 	{
-		$objectGroup = trim($objectGroup);
-		$objectIDs   = is_array($objectID) ? implode(',', $objectID) : (int) $objectID;
-
-		/** @var DatabaseDriver $db */
-		$db = Factory::getContainer()->get('DatabaseDriver');
+		$pks = ArrayHelper::toInteger((array) $pks);
+		$db  = $this->getDatabase();
+		$uid = Factory::getApplication()->getIdentity()->get('id');
 
 		$query = $db->getQuery(true)
-			->select($db->quoteName('id'))
-			->from($db->quoteName('#__jcomments'))
-			->where($db->quoteName('object_group') . ' = ' . $db->quote($objectGroup))
-			->where($db->quoteName('object_id') . ' IN (' . $objectIDs . ')');
-
-		$db->setQuery($query);
-		$cids = $db->loadColumn();
-
-		self::deleteCommentsByIds($cids);
-
-		$query = $db->getQuery(true)
-			->delete($db->quoteName('#__jcomments_objects'))
-			->where($db->quoteName('object_group') . ' = ' . $db->quote($objectGroup))
-			->where($db->quoteName('object_id') . ' IN (' . $objectIDs . ')');
+			->delete($db->quoteName('#__jcomments_votes'))
+			->whereIn($db->quoteName('id'), $pks)
+			->where($db->quoteName('userid') . ' = :uid')
+			->bind(':uid', $uid, ParameterType::INTEGER);
 
 		try
 		{
@@ -251,141 +342,178 @@ class CommentsModel extends ListModel
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+			$this->setError($e->getMessage());
 
 			return false;
 		}
+
+		return true;
 	}
 
 	/**
-	 * Build a query for count comments
+	 * Method to get a store id based on model configuration state.
 	 *
-	 * @param   array  $options  Filter options
+	 * This is necessary because the model is used by the component and
+	 * different modules that might need different sets of data or different
+	 * ordering requirements.
+	 *
+	 * @param   string  $id  A prefix for the store id.
+	 *
+	 * @return  string  A store id.
+	 *
+	 * @since   1.6
+	 */
+	protected function getStoreId($id = '')
+	{
+		// Compile the store id.
+		$id .= ':' . serialize($this->getState('filter.published'));
+		$id .= ':' . $this->getState('filter.access');
+
+		return parent::getStoreId($id);
+	}
+
+	/**
+	 * Get the master query for retrieving a list of items subject to the model state.
 	 *
 	 * @return  \Joomla\Database\QueryInterface
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   1.6
 	 */
-	protected function getCommentsCountQuery($options)
+	protected function getListQuery()
 	{
-		$db = $this->getDbo();
-
-		$objectID    = $options['object_id'] ?? null;
-		$objectGroup = $options['object_group'] ?? null;
-		$published   = $options['published'] ?? null;
-		$userid      = $options['userid'] ?? null;
-		$parent      = $options['parent'] ?? null;
-		$level       = $options['level'] ?? null;
-		$lang        = $options['lang'] ?? null;
-
-		/** @see JCommentsPagination::getCommentPage() for example */
-		$filter      = @$options['filter'];
-
-		$query = $db->getQuery(true)
-			->select('COUNT(c.id)')
-			->from($db->quoteName('#__jcomments', 'c'));
-
-		if (!empty($objectID))
+		if (Factory::getApplication()->input->getCmd('task') == 'votes')
 		{
-			$query->where($db->quoteName('c.object_id') . ' = :oid')
-				->bind(':oid', $objectID, ParameterType::INTEGER);
+			return $this->getVotesQuery();
 		}
 
-		if (!empty($objectGroup))
-		{
-			$query->where($db->quoteName('c.object_group') . ' = :ogroup')
-				->bind(':ogroup', $objectGroup);
-		}
-
-		if ($parent !== null)
-		{
-			$query->where($db->quoteName('c.parent') . ' = :parent')
-				->bind(':parent', $parent, ParameterType::INTEGER);
-		}
-
-		if ($level !== null)
-		{
-			$query->where($db->quoteName('c.level') . ' = :level')
-				->bind(':level', $level, ParameterType::INTEGER);
-		}
-
-		if ($published !== null)
-		{
-			$query->where($db->quoteName('c.published') . ' = :state')
-				->bind(':state', $published, ParameterType::INTEGER);
-		}
-
-		if ($userid !== null)
-		{
-			$query->where($db->quoteName('c.userid') . ' = :uid')
-				->bind(':uid', $userid, ParameterType::INTEGER);
-		}
-
-		if (JcommentsFactory::getLanguageFilter())
-		{
-			if ($lang)
-			{
-				$query->where($db->quoteName('c.lang') . ' = :lang')
-					->bind(':lang', $lang);
-			}
-		}
-
-		if ($filter != '')
-		{
-			$query->where($filter);
-		}
-
-		return $query;
+		return $this->getCommentsQuery();
 	}
 
 	/**
 	 * Get the master query for retrieving a list of comments subject to the model state.
 	 *
-	 * @return  \Joomla\Database\DatabaseQuery
+	 * @return  \Joomla\Database\QueryInterface
 	 *
 	 * @throws  \Exception
-	 * @since   1.6
-	 * @deprecated 4.0
-	 * @todo Need refactoring
+	 * @since   4.1
 	 */
-	protected function getListQuery()
+	protected function getCommentsQuery()
 	{
-		$db     = $this->getDbo();
-		$user   = Factory::getApplication()->getIdentity();
-		$params = ComponentHelper::getParams('com_jcomments');
-		$state  = $this->getState('comments.list.data');
+		$db          = $this->getDatabase();
+		$user        = Factory::getApplication()->getIdentity();
+		$params      = ComponentHelper::getParams('com_jcomments');
+		$objectID    = $this->getState('object_id');
+		$objectGroup = $this->getState('object_group');
 
-		$objectID    = $state['object_id'] ?? null;
-		$objectGroup = $state['object_group'] ?? null;
-		/*$parent      = $options['parent'] ?? null;
-		$level       = $options['level'] ?? null;
-		$userid      = $options['userid'] ?? null;
-		$filter      = $options['filter'] ?? null;
-		$orderBy     = $options['orderBy'] ?? null;
-		$limitStart  = $options['limitStart'] ?? 0;
-		$limit       = $options['limit'] ?? null;*/
-		$objectinfo  = $state['object_info'] ?? false;
+		$excludeFields = array_map(
+			function ($value) use ($db)
+			{
+				return $db->quoteName($value);
+			},
+			$this->excludeFields
+		);
 
 		$query = $db->getQuery(true)
 			->select(
-				$db->quoteName(
-					array(
-						'c.id', 'c.parent', 'c.object_id', 'c.object_group', 'c.userid', 'c.name', 'c.username',
-						'c.title', 'c.comment', 'c.email', 'c.homepage', 'c.date', 'c.ip', 'c.published', 'c.deleted',
-						'c.checked_out', 'c.checked_out_time', 'c.isgood', 'c.ispoor'
+				$this->getState(
+					'list.select',
+					array_diff(
+						array(
+							$db->quoteName('c.id'),
+							$db->quoteName('c.parent'),
+							$db->quoteName('c.object_id'),
+							$db->quoteName('c.object_group'),
+							$db->quoteName('c.userid'),
+							$db->quoteName('c.name'),
+							$db->quoteName('c.username'),
+							$db->quoteName('c.title'),
+							$db->quoteName('c.comment'),
+							$db->quoteName('c.email'),
+							$db->quoteName('c.homepage'),
+							$db->quoteName('c.date'),
+							$db->quoteName('c.date', 'datetime'),
+							$db->quoteName('c.ip'),
+							$db->quoteName('c.published'),
+							$db->quoteName('c.deleted'),
+							$db->quoteName('c.isgood'),
+							$db->quoteName('c.ispoor'),
+							$db->quoteName('c.checked_out'),
+							$db->quoteName('c.checked_out_time'),
+							'CASE WHEN ' . $db->quoteName('c.parent') . ' = 0'
+							. ' THEN UNIX_TIMESTAMP(' . $db->quoteName('c.date') . ') ELSE 0 END'
+							. ' AS ' . $db->quoteName('threaddate')
+						),
+						$excludeFields
 					)
 				)
-			)
-			->select($db->quoteName('c.date', 'datetime'));
+			);
 
-		if ($params->get('enable_voting') == 1)
+		$query->from($db->quoteName('#__jcomments', 'c'));
+
+		// Join over language for comments list in user profile
+		$commentLang = $this->getState('list.options.comment_lang');
+
+		if ($commentLang)
+		{
+			$query->select(
+				array(
+					$db->quoteName('l.lang_code', 'language'),
+					$db->quoteName('l.title', 'language_title'),
+					$db->quoteName('l.image', 'language_image')
+				)
+			)->leftJoin(
+				$db->quoteName('#__languages', 'l'),
+				$db->quoteName('l.lang_code') . ' = ' . $db->quoteName('c.lang')
+			);
+		}
+
+		// Join over labels
+		$labels = $this->getState('list.options.labels');
+
+		if ($labels)
+		{
+			$query->select(array($db->quoteName('u.labels'), $db->quoteName('u.terms_of_use')))
+				->leftJoin(
+					$db->quoteName('#__jcomments_users', 'u'),
+					$db->quoteName('u.id') . ' = ' . $db->quoteName('c.userid')
+				);
+		}
+
+		// Join over blacklist and users
+		$blacklist = $this->getState('list.options.blacklist');
+
+		if ($blacklist)
+		{
+			$query->select('(CASE WHEN ' . $db->quoteName('b.id') . ' > 0 THEN 1 ELSE 0 END) AS ' . $db->quoteName('banned'))
+				->leftJoin(
+					$db->quoteName('#__jcomments_blacklist', 'b'),
+					$db->quoteName('b.userid') . ' = ' . $db->quoteName('c.userid')
+					. ' AND ('
+					. 'ISNULL(' . $db->quoteName('b.expire') . ')'
+					. ' OR ' . $db->quoteName('b.expire') . ' >= NOW()'
+					. ')'
+				);
+
+			// Get user block state from main user table
+			$query->select($db->quoteName('usr.block', 'user_blocked'))
+				->leftJoin(
+					$db->quoteName('#__users', 'usr'),
+					$db->quoteName('usr.id') . ' = ' . $db->quoteName('c.userid')
+				);
+		}
+
+		$votes = $this->getState('list.options.votes');
+
+		if ($votes == 1)
 		{
 			$query->select($db->quoteName('v.value', 'voted'));
-			$query->leftJoin($db->quoteName('#__jcomments_votes', 'v'), 'c.id = v.commentid'
+			$query->leftJoin(
+				$db->quoteName('#__jcomments_votes', 'v'),
+				$db->quoteName('c.id') . ' = ' . $db->quoteName('v.commentid')
 				. ($user->get('id')
-					? ' AND  v.userid = ' . $user->get('id')
-					: ' AND v.userid = 0 AND v.ip = ' . $db->quote(JcommentsFactory::getAcl()->getIP()))
+					? ' AND ' . $db->quoteName('v.userid') . ' = ' . (int) $user->get('id')
+					: ' AND ' . $db->quoteName('v.userid') . ' = 0 AND ' . $db->quoteName('v.ip') . ' = ' . $db->quote(IpHelper::getIp()))
 			);
 		}
 		else
@@ -393,15 +521,25 @@ class CommentsModel extends ListModel
 			$query->select('1 AS voted');
 		}
 
-		$query->select('CASE WHEN c.parent = 0 THEN UNIX_TIMESTAMP(c.date) ELSE 0 END AS threaddate');
+		$objectInfo = $this->getState('list.options.object_info');
 
-		if ($objectinfo)
+		if ($objectInfo)
 		{
-			$query->select($db->quoteName('jo.title', 'object_title'))
-				->select($db->quoteName('jo.link', 'object_link'))
-				->select($db->quoteName('jo.access', 'object_access'));
+			$query->select(
+				array(
+					$db->quoteName('jo.title', 'object_title'),
+					$db->quoteName('jo.link', 'object_link'),
+					$db->quoteName('jo.access', 'object_access'),
+					$db->quoteName('jo.userid', 'object_owner')
+				)
+			);
 
-			$query->leftJoin($db->quoteName('#__jcomments_objects', 'jo'), 'jo.object_id = c.object_id AND jo.object_group = c.object_group AND jo.lang = c.lang');
+			$query->leftJoin(
+				$db->quoteName('#__jcomments_objects', 'jo'),
+				$db->quoteName('jo.object_id') . ' = ' . $db->quoteName('c.object_id')
+					. ' AND ' . $db->quoteName('jo.object_group') . ' = ' . $db->quoteName('c.object_group')
+					. ' AND ' . $db->quoteName('jo.lang') . ' = ' . $db->quoteName('c.lang')
+			);
 		}
 		else
 		{
@@ -411,108 +549,252 @@ class CommentsModel extends ListModel
 				->select('0 AS object_owner');
 		}
 
-		$query->from($db->quoteName('#__jcomments', 'c'));
-
 		if (!empty($objectID))
 		{
-			$query->where($db->quoteName('c.object_id') . ' = ' . (int) $objectID);
+			$query->where($db->quoteName('c.object_id') . ' = :oid')
+				->bind(':oid', $objectID, ParameterType::INTEGER);
 		}
 
 		if (!empty($objectGroup))
 		{
 			if (is_array($objectGroup))
 			{
-				$query->where('(' . $db->quoteName('c.object_group') . " = '" . implode("' OR c.object_group = '", $objectGroup) . "')");
+				$filter = InputFilter::getInstance();
+				$objectGroup = array_map(
+					function ($objectGroup) use ($filter)
+					{
+						return $filter->clean($objectGroup, 'cmd');
+					},
+					$objectGroup
+				);
+
+				$query->where(
+					'(' . $db->quoteName('c.object_group') . " = '"
+						. implode("' OR " . $db->quoteName('c.object_group') . " = '", $objectGroup) . "')"
+				);
 			}
 			else
 			{
-				$query->where($db->quoteName('c.object_group') . ' = ' . $db->quote($objectGroup));
+				$query->where($db->quoteName('c.object_group') . ' = :ogroup')
+					->bind(':ogroup', $objectGroup);
 			}
 		}
 
-		/*if ($parent !== null)
+		$parent = $this->getState('list.options.parent');
+
+		if ($parent !== null)
 		{
-			$query->where($db->quoteName('c.parent') . ' = ' . $parent);
+			$query->where($db->quoteName('c.parent') . ' = :parent')
+				->bind(':parent', $parent, ParameterType::INTEGER);
 		}
+
+		$level = $this->getState('list.options.level');
 
 		if ($level !== null)
 		{
-			$query->where($db->quoteName('c.level') . ' = ' . (int) $level);
-		}*/
-
-		$query->where($db->quoteName('c.published') . ' = 1');
-
-		/*if ($userid !== null)
-		{
-			$query->where($db->quoteName('c.userid') . ' = ' . (int) $userid);
-		}*/
-
-		if (JCommentsFactory::getLanguageFilter())
-		{
-			$language = $options['lang'] ?? Factory::getApplication()->getLanguage()->getTag();
-			$query->where($db->quoteName('c.lang') . ' = ' . $db->quote($language));
+			$query->where($db->quoteName('c.level') . ' = :level')
+				->bind(':level', $level, ParameterType::INTEGER);
 		}
 
-		/*if ($objectinfo && isset($options['access']))
+		$published = $this->getState('list.options.published');
+
+		if ($published !== null)
 		{
-			if (is_array($options['access']))
+			$query->where($db->quoteName('c.published') . ' = :state')
+				->bind(':state', $published, ParameterType::INTEGER);
+		}
+
+		$userid = $this->getState('list.options.userid');
+
+		if ($userid !== null)
+		{
+			$query->where($db->quoteName('c.userid') . ' = :uid')
+				->bind(':uid', $userid, ParameterType::INTEGER);
+		}
+
+		if (JcommentsFactory::getLanguageFilter())
+		{
+			$lang = $this->getState('list.options.lang');
+
+			if ($lang !== null)
 			{
-				$query->where($db->quoteName('jo.access') . ' IN (' . implode(',', $options['access']) . ')');
+				$query->where($db->quoteName('c.lang') . ' = :lang')
+					->bind(':lang', $lang);
+			}
+		}
+
+		$access = $this->getState('list.options.access');
+
+		if ($objectInfo && isset($access))
+		{
+			if (is_array($access))
+			{
+				$access = ArrayHelper::toInteger($access);
+
+				$query->whereIn($db->quoteName('jo.access'), $access);
 			}
 			else
 			{
-				$query->where($db->quoteName('jo.access') . ' <= ' . (int) $options['access']);
+				$query->where($db->quoteName('jo.access') . ' <= :access')
+					->bind(':access', $access, ParameterType::INTEGER);
 			}
-		}*/
+		}
 
-		/*if ($filter != '')
+		$filter = $this->getState('list.options.filter');
+
+		if ($filter != '')
 		{
 			$query->where($filter);
-		}*/
+		}
 
-		$query->order($this->getDefaultOrder());
+		$query->order(
+			$db->escape(
+				$this->getDefaultOrder(
+					$params->get('template_view'),
+					$params->get('comments_' . strtolower($params->get('template_view')) . '_order')
+				)
+			)
+		);
 
-		/*if ($limit > 0)
+		return $query;
+	}
+
+	/**
+	 * Get the master query for retrieving a list of votes subject to the model state.
+	 *
+	 * @return  \Joomla\Database\QueryInterface
+	 *
+	 * @since   4.1
+	 */
+	public function getVotesQuery()
+	{
+		$db       = $this->getDatabase();
+		$uid      = $this->getState('list.options.userid');
+		$objectId = $this->getState('object_id');
+
+		$query = $db->getQuery(true)
+			->select(
+				$this->getState(
+					'list.select',
+					array(
+						$db->quoteName('v.id'),
+						$db->quoteName('v.commentid'),
+						$db->quoteName('v.userid'),
+						$db->quoteName('v.date'),
+						$db->quoteName('v.value'),
+						$db->quoteName('c.id'),
+						$db->quoteName('c.parent'),
+						$db->quoteName('c.object_id'),
+						$db->quoteName('c.object_group'),
+						$db->quoteName('c.userid'),
+						$db->quoteName('c.name'),
+						$db->quoteName('c.username'),
+						$db->quoteName('c.title'),
+						$db->quoteName('c.comment'),
+						$db->quoteName('c.email'),
+						$db->quoteName('c.homepage'),
+						$db->quoteName('c.date'),
+						$db->quoteName('c.date', 'datetime'),
+						$db->quoteName('c.ip'),
+						$db->quoteName('c.published'),
+						$db->quoteName('c.deleted'),
+						$db->quoteName('c.isgood'),
+						$db->quoteName('c.ispoor'),
+						$db->quoteName('c.checked_out'),
+						$db->quoteName('c.checked_out_time')
+					)
+				)
+			)
+			->select(
+				array(
+					$db->quoteName('l.lang_code', 'language'),
+					$db->quoteName('l.title', 'language_title'),
+					$db->quoteName('l.image', 'language_image')
+				)
+			)
+			->from($db->quoteName('#__jcomments_votes', 'v'))
+			->leftJoin(
+				$db->quoteName('#__jcomments', 'c'),
+				$db->quoteName('c.id') . ' = ' . $db->quoteName('v.commentid')
+			)
+			->leftJoin(
+				$db->quoteName('#__languages', 'l'),
+				$db->quoteName('l.lang_code') . ' = ' . $db->quoteName('c.lang')
+			)
+			->where($db->quoteName('v.userid') . ' = :uid')
+			->bind(':uid', $uid, ParameterType::INTEGER);
+
+		if ($objectId > 0)
 		{
-			$query->setLimit($limit, $limitStart);
-		}*/
-echo '<pre>';
-echo $query;
-echo '</pre>';
+			$query->where($db->quoteName('c.object_id') . ' = :oid')
+				->bind(':oid', $objectId, ParameterType::INTEGER);
+		}
+
+		$objectInfo = $this->getState('list.options.object_info');
+
+		if ($objectInfo)
+		{
+			$query->select(
+				array(
+					$db->quoteName('jo.title', 'object_title'),
+					$db->quoteName('jo.link', 'object_link'),
+					$db->quoteName('jo.access', 'object_access'),
+					$db->quoteName('jo.userid', 'object_owner')
+				)
+			);
+
+			$query->leftJoin(
+				$db->quoteName('#__jcomments_objects', 'jo'),
+				$db->quoteName('jo.object_id') . ' = ' . $db->quoteName('c.object_id')
+				. ' AND ' . $db->quoteName('jo.object_group') . ' = ' . $db->quoteName('c.object_group')
+				. ' AND ' . $db->quoteName('jo.lang') . ' = ' . $db->quoteName('c.lang')
+			);
+		}
+		else
+		{
+			$query->select('CAST(NULL AS CHAR(0)) AS object_title')
+				->select('CAST(NULL AS CHAR(0)) AS object_link')
+				->select('0 AS object_access')
+				->select('0 AS object_owner');
+		}
+
+		$query->order($db->escape($this->getDefaultOrder('list', 'DESC')));
+
 		return $query;
 	}
 
 	/**
 	 * Returns default order for comments list
 	 *
+	 * @param   string  $listType  List view. Can be 'tree' or 'list'
+	 * @param   string  $order     Items ordering
+	 *
 	 * @return  string
 	 *
-	 * @since   3.0
-	 * @deprecated 4.0
-	 * @todo Need refactoring
+	 * @since   4.1
 	 */
-	protected function getDefaultOrder()
+	protected function getDefaultOrder(string $listType, string $order): string
 	{
-		$params = ComponentHelper::getParams('com_jcomments');
+		$db = $this->getDatabase();
 
-		if ($params->get('template_view') == 'tree')
+		if ($listType == 'tree')
 		{
-			switch ((int) $params->get('comments_tree_order'))
+			switch ($order)
 			{
 				case 2:
-					$result = 'threadDate DESC, c.date ASC';
+					$result = $db->quoteName('threadDate') . ' DESC, ' . $db->quoteName('c.date') . ' ASC';
 					break;
 				case 1:
-					$result = 'c.parent, c.date DESC';
+					$result = $db->quoteName('c.parent') . ', ' . $db->quoteName('c.date') . ' DESC';
 					break;
 				default:
-					$result = 'c.parent, c.date ASC';
+					$result = $db->quoteName('c.parent') . ', ' . $db->quoteName('c.date') . ' ASC';
 					break;
 			}
 		}
 		else
 		{
-			$result = 'c.date ' . $params->get('comments_list_order');
+			$result = $db->quoteName('c.date') . ' ' . $order;
 		}
 
 		return $result;
@@ -532,22 +814,70 @@ echo '</pre>';
 	 *
 	 * @return  void
 	 *
-	 * @since   3.0.1
-	 * @todo Need refactoring
+	 * @throws  \Exception
+	 * @since   4.1
 	 */
-	/*protected function populateState($ordering = 'c.date', $direction = 'ASC')
+	protected function populateState($ordering = 'c.date', $direction = 'ASC')
 	{
+		parent::populateState($ordering, $direction);
+
 		$app = Factory::getApplication();
+		$acl = JcommentsFactory::getAcl();
+
+		// Load the parameters.
 		$params = ComponentHelper::getParams('com_jcomments');
+		$this->setState('params', $params);
 
-		// List state information
-		/*$value = $app->input->get('limit', $app->get('list_limit', 0), 'uint');
-		$this->setState('list.limit', $value);
+		$objectGroup = $app->input->getCmd('object_group', $this->objectGroup);
+		$this->setState('object_group', $objectGroup);
 
-		$value = $app->input->get('limitstart', 0, 'uint');
-		$this->setState('list.start', $value);*/
+		$objectID = $app->input->getInt('object_id', $this->objectId);
+		$this->setState('object_id', $objectID);
 
-		/*$this->setState('list.ordering', $ordering);
-		$this->setState('list.direction', $params->get('comments_list_order'));
-	}*/
+		if ($params->get('template_view') == 'list')
+		{
+			// List state information
+			$limit = $app->input->get('jc_limit', $params->get('list_limit', $app->get('list_limit', 0)), 'uint');
+			$this->setState('list.limit', $limit);
+
+			$limitstart = $app->input->get('jc_limitstart', 0, 'uint');
+			$this->setState('list.start', $limitstart);
+
+			$orderCol = $app->input->get('filter_order', 'c.date');
+
+			if (!in_array($orderCol, $this->filter_fields))
+			{
+				$orderCol = 'c.date';
+			}
+
+			$this->setState('list.ordering', $orderCol);
+
+			$listOrder = $app->input->get('filter_order_Dir', $params->get('comments_list_order'));
+
+			if (!in_array(strtoupper($listOrder), array('ASC', 'DESC', '')))
+			{
+				$listOrder = 'ASC';
+			}
+
+			$this->setState('list.direction', $listOrder);
+		}
+		else
+		{
+			$this->setState('list.limit', 0);
+			$this->setState('list.start', 0);
+		}
+
+		$this->setState('list.options.parent');
+		$this->setState('list.options.level');
+		$this->setState('list.options.published', $acl->canPublish() || $acl->canPublishForObject($objectID, $objectGroup) ? null : 1);
+		$this->setState('list.options.userid');
+		$this->setState('list.options.access');
+		$this->setState('list.options.filter');
+		$this->setState('list.options.votes', $params->get('enable_voting', 0));
+		$this->setState('list.options.lang', $app->getLanguage()->getTag());
+		$this->setState('list.options.object_info', false);
+		$this->setState('list.options.labels', true);
+		$this->setState('list.options.blacklist', true);
+		$this->setState('list.options.comment_lang', true);
+	}
 }

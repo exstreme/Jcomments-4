@@ -12,12 +12,17 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+
 /** @var object $params */
 
 if (!empty($list)): ?>
 	<ul class="jcomments-most-commented list-group list-group-flush <?php echo $params->get('moduleclass_sfx'); ?>">
-		<?php foreach ($list as $item): ?>
-		<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+		<?php foreach ($list as $item):
+			$itemid = JcommentsContentHelper::getItemid(\Joomla\CMS\Factory::getApplication()->input->getWord('view'));
+			$item->link = Route::_($item->link . '&Itemid=' . $itemid); ?>
+		<li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
 			<a href="<?php echo $item->link; ?>#comments"><?php echo $item->title; ?></a>
 
 			<?php if ($params->get('showCommentsCount')): ?>

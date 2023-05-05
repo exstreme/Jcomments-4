@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset name="report" label="REPORT_TO_ADMINISTRATOR">
+		<field
+				name="comment_id"
+				type="hidden"
+				default="0"
+				readonly="true"
+		/>
+
+		<field
+				name="name"
+				type="text"
+				label="REPORT_NAME"
+				size="30"
+				filter="string"
+				maxlength="60"
+				class="form-control-sm"
+		/>
+
+		<field
+				name="email"
+				type="email"
+				label="JGLOBAL_EMAIL"
+				size="30"
+				filter="string"
+				validate="email"
+				validDomains="com_users.domains"
+				required="true"
+				class="form-control-sm"
+		/>
+
+		<field
+				name="reason"
+				type="text"
+				label="REPORT_REASON"
+				size="30"
+				filter="string"
+				required="true"
+				class="form-control-sm"
+		/>
+
+		<field
+				name="report_captcha"
+				type="captcha"
+				label="FORM_CAPTCHA"
+				validate="captcha"
+				namespace="report"
+		/>
+	</fieldset>
+</form>

@@ -1,0 +1,79 @@
+/*! SCEditor | (C) 2011-2013, Sam Clarke | sceditor.com/license */
+@import "../../../../templates/site/cassiopeia/css/template.min.css";
+
+html, body, p, code:before, table {
+	margin: 0;
+	padding: 0;
+	line-height: 1.25;
+	overflow: visible;
+}
+html {
+	height: 100%;
+}
+.ios {
+	/* Needed for iOS scrolling bug fix */
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+}
+.ios body {
+	/* Needed for iOS scrolling bug fix */
+	position: relative;
+	overflow: auto;
+}
+body {
+	/* Needed to make sure body covers the whole editor and that
+		long lines don't cause horizontal scrolling */
+	min-height: 100%;
+	word-wrap: break-word;
+}
+
+body.placeholder::before {
+	content: attr(placeholder);
+	color: #555;
+	font-style: italic;
+}
+
+ul, ol {
+	margin-top: 0;
+	margin-bottom: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+table, td {
+	border: 1px dotted #000;
+	empty-cells: show;
+}
+
+table td {
+	min-width: 5px;
+}
+
+blockquote {
+	border-left: 0.25em solid #849B9F;
+	color: #5b6b6e;
+	font-size: 1em !important;
+	padding: .5em;
+}
+
+blockquote span.cite {
+	font-size: .9em;
+	padding-bottom: .5em;
+}
+
+span.hide {
+	white-space: normal !important;
+}
+
+.codeblock, .codeblock pre {
+	margin-bottom: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	padding: 0; margin: 0;
+}
+
+/* Prevent empty paragraphs from collapsing */
+div, p {
+	min-height: 1.25em;
+}

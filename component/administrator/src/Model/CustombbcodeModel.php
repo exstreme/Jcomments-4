@@ -134,8 +134,6 @@ class CustombbcodeModel extends AdminModel
 			}
 		}
 
-		$this->cleanCache();
-
 		return true;
 	}
 
@@ -274,9 +272,6 @@ class CustombbcodeModel extends AdminModel
 
 				return false;
 			}
-
-			$this->cleanCache('com_jcomments');
-
 		}
 		catch (\Exception $e)
 		{

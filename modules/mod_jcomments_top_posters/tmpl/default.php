@@ -22,7 +22,7 @@ if (!empty($list)): ?>
 		<?php foreach ($list as $key => $item):
 			$ariaDescribed = 'top-posters-' . $module->id . '-' . $key;
 			?>
-			<li class="list-group-item d-flex justify-content-between align-items-center" style="padding-left: 0; padding-right: 0;">
+			<li class="list-group-item d-flex justify-content-between align-items-center px-0">
 				<div class="user-name start-0 text-truncate">
 					<?php if ($params->get('show_avatar')):
 						if (!empty($item->profileLink)): ?>

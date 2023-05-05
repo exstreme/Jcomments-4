@@ -25,6 +25,11 @@ class HtmlView extends BaseHtmlView
 {
 	protected $item;
 	protected $reports;
+
+	/**
+	 * @var    \Joomla\CMS\Form\Form
+	 * @since  4.1
+	 */
 	protected $form;
 
 	/**

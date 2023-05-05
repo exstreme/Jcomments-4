@@ -24,8 +24,6 @@ use Joomla\String\StringHelper;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useStyle('jcomments.backend_style')
-	->useScript('jquery')
-	->useScript('kwood.plugin')
 	->useScript('kwood.more')
 	->useScript('table.columns')
 	->useScript('multiselect');
@@ -40,7 +38,12 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 <script type="text/javascript">
 	(function ($) {
 		$(document).ready(function () {
-			$('.read-more').more({length: 80, wordBreak: true});
+			$('.read-more').more({
+				length: 80,
+				wordBreak: true,
+				moreText: '<?php echo Text::_('JSHOW'); ?>',
+				lessText: '<?php echo Text::_('JHIDE'); ?>'
+			});
 		});
 	})(jQuery);
 </script>
@@ -202,21 +205,6 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 				<?php endif; ?>
 			</div>
 		</div>
-
-		<?php // Load the batch processing form.
-		if ($user->authorise('core.create', 'com_jcomments')
-			&& $user->authorise('core.edit', 'com_jcomments')
-			&& $user->authorise('core.edit.state', 'com_jcomments')):
-			echo HTMLHelper::_(
-				'bootstrap.renderModal',
-				'collapseModal',
-				array(
-					'title'  => Text::_('COM_JCOMMENTS_BATCH_OPTIONS'),
-					'footer' => $this->loadTemplate('batch_footer'),
-				),
-				$this->loadTemplate('batch_body')
-			);
-		endif; ?>
 
 		<input type="hidden" name="task" value=""/>
 		<input type="hidden" name="boxchecked" value="0"/>

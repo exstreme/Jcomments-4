@@ -18,10 +18,29 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 
+/**
+ * Form Field class for smiley ordering.
+ *
+ * @since  1.7.0
+ * @noinspection  PhpUnused
+ */
 class SmileyorderingField extends FormField
 {
+	/**
+	 * The form field type.
+	 *
+	 * @var    string
+	 * @since  1.7.0
+	 */
 	protected $type = 'SmileyOrdering';
 
+	/**
+	 * Method to get the field input markup.
+	 *
+	 * @return  string  The field input markup.
+	 *
+	 * @since   1.7.0
+	 */
 	protected function getInput()
 	{
 		$html = array();

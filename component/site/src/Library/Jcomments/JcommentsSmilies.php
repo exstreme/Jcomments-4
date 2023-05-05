@@ -17,24 +17,41 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
-use Joomla\Database\DatabaseDriver;
 
 /**
  * JComments smilies support
+ *
+ * @since  3.0
  */
 class JcommentsSmilies
 {
-	protected $_smilies = array();
-	protected $_replacements = array();
+	/**
+	 * @var   array  Associative array with smilies.
+	 *
+	 * @since 3.0
+	 */
+	protected $smilies = array();
 
+	/**
+	 * @var   array  Array with replacements to replace codes with image or clean up text from smilies.
+	 *
+	 * @since 3.0
+	 */
+	protected $replacements = array();
+
+	/**
+	 * Constructor
+	 *
+	 * @since  3.0
+	 */
 	public function __construct()
 	{
-		if (count($this->_replacements) == 0)
+		if (count($this->replacements) == 0)
 		{
 			$config = ComponentHelper::getParams('com_jcomments');
 			$path   = Uri::root(true) . '/' . trim(str_replace('\\', '/', $config->get('smilies_path')), '/') . '/';
 
-			/** @var DatabaseDriver $db */
+			/** @var \Joomla\Database\DatabaseDriver $db */
 			$db = Factory::getContainer()->get('DatabaseDriver');
 
 			// Get smilies from database.
@@ -50,24 +67,24 @@ class JcommentsSmilies
 			{
 				foreach ($smilies as $smiley)
 				{
-					$this->_smilies[$smiley['code']] = $smiley['image'];
+					$this->smilies[$smiley['code']] = $smiley['image'];
 				}
 			}
 
-			$list = $this->_smilies;
+			$list = $this->smilies;
 			uksort($list, array($this, 'compare'));
 
 			foreach ($list as $code => $image)
 			{
-				$this->_replacements['code'][] = '#(^|\s|\n|\r|\>)(' . preg_quote($code, '#') . ')(\s|\n|\r|\<|$)#ismu';
-				$this->_replacements['icon'][] = '\\1 \\2 \\3';
-				$this->_replacements['code'][] = '#(^|\s|\n|\r|\>)(' . preg_quote($code, '#') . ')(\s|\n|\r|\<|$)#ismu';
-				$this->_replacements['icon'][] = '\\1<img src="' . $path . $image . '" alt="' . htmlspecialchars($code) . '" />\\3';
+				$this->replacements['code'][] = '#(^|\s|\n|\r|\>)(' . preg_quote($code, '#') . ')(\s|\n|\r|\<|$)#ismu';
+				$this->replacements['icon'][] = '\\1 \\2 \\3';
+				$this->replacements['code'][] = '#(^|\s|\n|\r|\>)(' . preg_quote($code, '#') . ')(\s|\n|\r|\<|$)#ismu';
+				$this->replacements['icon'][] = '\\1<img src="' . $path . $image . '" alt="' . htmlspecialchars($code) . '" />\\3';
 			}
 		}
 	}
 
-	public function compare($a, $b)
+	public function compare($a, $b): int
 	{
 		if (strlen($a) == strlen($b))
 		{
@@ -77,40 +94,86 @@ class JcommentsSmilies
 		return (strlen($a) > strlen($b)) ? -1 : 1;
 	}
 
-	public function getList()
-	{
-		return $this->_smilies;
-	}
-
 	/**
-	 * @param   string  $str  Comment text
+	 * Get emoticons list
 	 *
-	 * @return  string
+	 * @param   string   $listType     List type to return. Default all three lists will be returned.
+	 *                                 Can be 'all', 'dropdown', 'more', 'hidden'.
+	 * @param   integer  $firstLimit   Number of emoticons to be included in the dropdown.
+	 * @param   integer  $secondLimit  Number of emoticons to be included in the more section.
+	 *
+	 * @return  object
 	 *
 	 * @since   3.0
 	 */
-	public function replace($str)
+	public function getList(string $listType = 'all', int $firstLimit = 15, int $secondLimit = 36)
 	{
-		if (count($this->_replacements) > 0)
+		$list = '';
+
+		if (count($this->smilies) > 0)
 		{
-			$str = preg_replace($this->_replacements['code'], $this->_replacements['icon'], $str);
+			$list = (object) array(
+				'dropdown' => (object) array(),
+				'more'     => (object) array(),
+				'hidden'   => (object) array()
+			);
+			$i = 0;
+
+			foreach ($this->smilies as $code => $icon)
+			{
+				if ((0 <= $i) && ($i <= $firstLimit))
+				{
+					$list->dropdown->$code = $icon;
+				}
+				elseif (($firstLimit <= $i) && ($i <= $secondLimit))
+				{
+					$list->more->$code = $icon;
+				}
+				else
+				{
+					$list->hidden->$code = $icon;
+				}
+
+				$i++;
+			}
 		}
 
-		return $str;
+		return $listType == 'all' ? $list : (property_exists($list, $listType) ? $list->$listType : $list);
 	}
 
 	/**
+	 * Replace smilies' codes with images
+	 *
+	 * @param   string  $text  Comment text
+	 *
+	 * @return  string
+	 *
+	 * @since   3.0
+	 */
+	public function replace(string $text): string
+	{
+		if (count($this->replacements) > 0)
+		{
+			$text = preg_replace($this->replacements['code'], $this->replacements['icon'], $text);
+		}
+
+		return $text;
+	}
+
+	/**
+	 * Remove smilies' codes from comment text
+	 *
 	 * @param   string  $str  Comment text
 	 *
 	 * @return  string
 	 *
 	 * @since   3.0
 	 */
-	public function strip($str)
+	public function strip(string $str): string
 	{
-		if (count($this->_replacements) > 0)
+		if (count($this->replacements) > 0)
 		{
-			$str = preg_replace($this->_replacements['code'], '\\1\\3', $str);
+			$str = preg_replace($this->replacements['code'], '\\1\\3', $str);
 		}
 
 		return $str;

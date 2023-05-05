@@ -3,18 +3,18 @@
 	<name>mod_jcomments_top_posters</name>
 	<creationDate>February 2022</creationDate>
 	<author>JComments team</author>
-	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.4</version>
+	<version>4.1.0</version>
 	<description>MOD_JCOMMENTS_TOP_POSTERS_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Module\TopPosters</namespace>
 
 	<files>
+		<folder module="mod_jcomments_top_posters">services</folder>
 		<folder>src</folder>
 		<folder>tmpl</folder>
 
-		<filename module="mod_jcomments_top_posters">mod_jcomments_top_posters.php</filename>
 		<filename>mod_jcomments_top_posters.xml</filename> 
 	</files>
 

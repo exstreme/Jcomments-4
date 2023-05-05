@@ -49,6 +49,13 @@
 		/>
 
 		<field
+				name="ip"
+				type="text"
+				size="22"
+				label="A_BLACKLIST_IP"
+		/>
+
+		<field
 				name="date"
 				type="calendar"
 				readonly="true"
@@ -65,15 +72,6 @@
 				label="A_COMMENT_NAME"
 				validate="UserId"
 		/>
-
-		<field
-				name="lang"
-				type="contentlanguage"
-				label="JFIELD_LANGUAGE_LABEL"
-				description="A_COMMENT_FIELD_LANGUAGE_DESC"
-		>
-			<option value="*">JALL</option>
-		</field>
 
 		<field
 				name="name"

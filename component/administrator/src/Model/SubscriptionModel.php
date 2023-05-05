@@ -14,7 +14,6 @@ namespace Joomla\Component\Jcomments\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Event\Model\BeforeBatchEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
@@ -59,68 +58,6 @@ class SubscriptionModel extends AdminModel
 		}
 
 		return $data;
-	}
-
-	/**
-	 * Batch language changes for a group of rows.
-	 *
-	 * @param   string  $value     The new value matching a language.
-	 * @param   array   $pks       An array of row IDs.
-	 * @param   array   $contexts  An array of item contexts.
-	 *
-	 * @return  boolean  True if successful, false otherwise and internal error is set.
-	 *
-	 * @since   2.5
-	 */
-	protected function batchLanguage($value, $pks, $contexts)
-	{
-		$groups = array();
-
-		// Initialize re-usable member properties, and re-usable local variables
-		$this->initBatch();
-
-		foreach ($pks as $pk)
-		{
-			if ($this->user->authorise('core.edit', $contexts[$pk]))
-			{
-				$this->table->reset();
-				$this->table->load($pk);
-				$this->table->language = $value;
-
-				$event = new BeforeBatchEvent(
-					$this->event_before_batch,
-					['src' => $this->table, 'type' => 'language']
-				);
-				$this->dispatchEvent($event);
-
-				// Check the row.
-				if (!$this->table->check())
-				{
-					$this->setError($this->table->getError());
-
-					return false;
-				}
-
-				if (!$this->table->store())
-				{
-					$this->setError($this->table->getError());
-
-					return false;
-				}
-
-				$groups[] = $this->table->object_group;
-			}
-			else
-			{
-				$this->setError(Text::_('JLIB_APPLICATION_ERROR_BATCH_CANNOT_EDIT'));
-
-				return false;
-			}
-		}
-
-		$this->cleanCache($groups);
-
-		return true;
 	}
 
 	/**
@@ -180,8 +117,6 @@ class SubscriptionModel extends AdminModel
 				return false;
 			}
 		}
-
-		$this->cleanCache($groups);
 
 		return true;
 	}
@@ -254,28 +189,6 @@ class SubscriptionModel extends AdminModel
 			return false;
 		}
 
-		$this->cleanCache($groups);
-
 		return true;
-	}
-
-	protected function cleanCache($groups = null)
-	{
-		if (is_array($groups))
-		{
-			$groups = array_filter($groups);
-
-			if (count($groups) > 0)
-			{
-				foreach ($groups as $group)
-				{
-					parent::cleanCache(strtolower('com_jcomments_subscriptions_' . $group));
-				}
-			}
-		}
-		else
-		{
-			parent::cleanCache(strtolower('com_jcomments_subscriptions_' . $groups));
-		}
 	}
 }

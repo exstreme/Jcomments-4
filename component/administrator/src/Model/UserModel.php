@@ -102,16 +102,19 @@ class UserModel extends AdminModel
 				$query = $db->getQuery(true)
 					->update($db->quoteName('#__jcomments_users'))
 					->set($db->quoteName('labels') . ' = ' . $db->quote($data['labels']))
+					->set($db->quoteName('terms_of_use') . ' = :tos')
 					->where($db->quoteName('id') . ' = :id')
-					->bind(':id', $id, ParameterType::INTEGER);
+					->bind(':id', $id, ParameterType::INTEGER)
+					->bind(':tos', $data['terms_of_use'], ParameterType::INTEGER);
 			}
 			elseif (empty($id) && !empty($data['id']) && $loadData === false)
 			{
 				$isNew = true;
 				$query = $db->getQuery(true)
 					->insert($db->quoteName('#__jcomments_users'))
-					->values(':id, ' . $db->quote($data['labels']))
-					->bind(':id', $data['id'], ParameterType::INTEGER);
+					->values(':id, ' . $db->quote($data['labels']) . ', :tos')
+					->bind(':id', $data['id'], ParameterType::INTEGER)
+					->bind(':tos', $data['terms_of_use'], ParameterType::INTEGER);
 			}
 			else
 			{

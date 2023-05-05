@@ -39,6 +39,7 @@ class DisplayController extends BaseController
 	 *
 	 * @return  DisplayController  This object to support chaining.
 	 *
+	 * @throws  \Exception
 	 * @since   1.5
 	 */
 	public function display($cachable = false, $urlparams = array())
@@ -46,10 +47,10 @@ class DisplayController extends BaseController
 		$cachable = true;
 
 		// Set the default view name and format from the Request.
-		$vName = $this->input->get('view', 'comments');
-		$this->input->set('view', $vName);
+		$viewName = $this->input->get('view', 'comments');
+		$this->input->set('view', $viewName);
 
-		if ($this->app->getIdentity()->get('id') || ($this->input->getMethod() === 'POST'))
+		if ($this->input->getMethod() === 'POST' || $viewName === 'form')
 		{
 			$cachable = false;
 		}
@@ -65,14 +66,17 @@ class DisplayController extends BaseController
 	/**
 	 * Method to display a privacy info.
 	 *
+	 * Used in email templates and can be used as link 'index.php?option=com_jcomments&task=privacy' in privacy message
+	 * in component settings.
+	 *
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.1
 	 */
 	public function privacy()
 	{
-		$params = $this->app->getParams('com_jcomments');
+		$params = ComponentHelper::getParams('com_jcomments');
 		$lang   = $this->app->getLanguage();
 
 		if (PluginHelper::isEnabled('system', 'privacyconsent'))
@@ -145,17 +149,51 @@ class DisplayController extends BaseController
 	/**
 	 * Method to display terms of use info.
 	 *
+	 * Used in email templates and can be used as link 'index.php?option=com_jcomments&task=terms' in terms of use
+	 * message in component settings.
+	 *
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.1
 	 */
 	public function terms()
 	{
-		echo JcommentsText::getMessagesBasedOnLanguage(
-			ComponentHelper::getParams('com_jcomments')->get('messages_fields'),
+		$params    = ComponentHelper::getParams('com_jcomments');
+		$lang      = $this->app->getLanguage();
+		$articleId = JcommentsText::getMessagesBasedOnLanguage(
+			$params->get('messages_fields'),
+			'message_terms_of_use_article',
+			$this->app->getLanguage()->getTag()
+		);
+		$msg       = JcommentsText::getMessagesBasedOnLanguage(
+			$params->get('messages_fields'),
 			'message_terms_of_use',
 			$this->app->getLanguage()->getTag()
 		);
+
+		if (!empty($articleId))
+		{
+			if ($articleId > 0 && Associations::isEnabled())
+			{
+				$termsAssociated = Associations::getAssociations('com_content', '#__content', 'com_content.item', $articleId);
+				$currentLang = $lang->getTag();
+
+				if (isset($termsAssociated[$currentLang]))
+				{
+					$articleId = $termsAssociated[$currentLang]->id;
+				}
+			}
+
+			$item = (new \Joomla\Component\Content\Site\Model\ArticleModel)->getItem($articleId);
+			$slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
+			$link = RouteHelper::getArticleRoute($slug, $item->catid, $item->language);
+
+			$this->setRedirect(Route::_($link, false));
+		}
+		else
+		{
+			echo $msg != '' ? $msg : Text::_('FORM_TOS');
+		}
 	}
 }

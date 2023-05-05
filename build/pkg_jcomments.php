@@ -2,12 +2,13 @@
 /**
  * JComments - Joomla Comment System
  *
- * @version       3.0
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2022 by Sergey M. Litvinov (http://www.joomlatune.ru) & exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 
@@ -153,7 +154,7 @@ class pkg_jcommentsInstallerScript
 
 		$data           = new stdClass;
 		$data->finish   = Text::_('A_INSTALL_COMPLETE');
-		$data->next     = Uri::root() . 'administrator/index.php?option=com_jcomments&view=settings';
+		$data->next     = Uri::root() . 'administrator/index.php?option=com_config&view=component&component=com_jcomments&return=';
 		$data->action   = $action;
 		$data->xml      = $componentXML;
 
@@ -351,8 +352,6 @@ class pkg_jcommentsInstallerScript
 		}
 
 		// Set some special field values
-		$params['captcha_engine']   = 'kcaptcha';
-		$params['kcaptcha_credits'] = '';
 		$params['badwords']         = '';
 		unset($params['rules']);
 
