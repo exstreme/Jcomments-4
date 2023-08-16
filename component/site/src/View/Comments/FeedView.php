@@ -92,10 +92,9 @@ class FeedView extends AbstractView
 				$app->close();
 			}
 
-			$objectInfo = ObjectHelper::getObjectInfo($objectId, $objectGroup, $app->getLanguage()->getTag());
-
-			$this->document->title = $objectInfo->title;
-			$this->document->link = Route::_($objectInfo->link);
+			$objectInfo                     = ObjectHelper::getObjectInfo($objectId, $objectGroup, $app->getLanguage()->getTag());
+			$this->document->title          = $objectInfo->title;
+			$this->document->link           = htmlspecialchars($objectInfo->link, ENT_COMPAT, 'UTF-8');
 			$this->document->syndicationURL = Route::_(
 				'index.php?option=com_jcomments&task=rss&object_id=' . $objectId . '&object_group=' . $objectGroup . '&type=rss&format=feed',
 				true, 0, true

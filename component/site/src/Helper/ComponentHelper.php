@@ -75,7 +75,7 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 			}
 		}
 
-		$wa->useScript('jcomments.frontend');
+		$wa->useScript('jcomments.core')->useScript('jcomments.frontend');
 	}
 
 	/**

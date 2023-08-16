@@ -9,10 +9,17 @@
 		/>
 
 		<field
-				name="parent_id"
+				name="parent"
 				type="hidden"
 				default="0"
 				required="true"
+		/>
+
+		<field
+				name="userid"
+				type="hidden"
+				default="0"
+				readonly="true"
 		/>
 
 		<field
@@ -62,7 +69,7 @@
 				filter="JComponentHelper::filterText"
 				required="true"
 				width="100%"
-				height="250"
+				height="350"
 		/>
 
 		<field

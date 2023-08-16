@@ -23,7 +23,6 @@ use Joomla\CMS\Fields\FieldsServiceInterface;
 use Joomla\CMS\HTML\HTMLRegistryAwareTrait;
 use Joomla\CMS\Language\Text;
 use Joomla\Component\Jcomments\Administrator\Service\Html\Jcomments;
-use Joomla\Component\Menus\Administrator\Helper\MenusHelper;
 use Psr\Container\ContainerInterface;
 
 /**

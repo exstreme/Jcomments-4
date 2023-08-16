@@ -21,14 +21,17 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
+use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Table\Table;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Database\ParameterType;
+use Joomla\String\StringHelper;
 use Joomla\Utilities\IpHelper;
 
 /**
@@ -109,6 +112,11 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	protected function loadFormData()
 	{
+		if (Factory::getApplication()->input->getInt('quote') > 0)
+		{
+			return $this->getQuotedItem();
+		}
+
 		return $this->getItem();
 	}
 
@@ -169,6 +177,8 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$app         = Factory::getApplication();
 		$db          = $this->getDatabase();
 		$user        = $app->getIdentity();
+		$params      = ComponentHelper::getParams('com_jcomments');
+		$bbcode      = JcommentsFactory::getBbcode();
 		$objectGroup = $this->getState('object_group');
 		$objectId    = $this->getState('object_id');
 		$userId      = $user->get('id');
@@ -185,14 +195,12 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		{
 			$query->where($db->quoteName('c.object_id') . ' = :oid')
 				->bind(':oid', $objectId, ParameterType::INTEGER);
-
 		}
 
 		if ($objectGroup !== null)
 		{
 			$query->where($db->quoteName('c.object_group') . ' = :ogroup')
 				->bind(':ogroup', $objectGroup);
-
 		}
 			//->where($db->quoteName('c.object_id') . ' = :oid')
 			//->where($db->quoteName('c.object_group') . ' = :ogroup')
@@ -248,7 +256,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			}
 			else
 			{
-				$result->title = JcommentsText::br2nl($result->title);
+				$result->title = StringHelper::trim($result->title);
 				$result->comment = JcommentsText::br2nl($result->comment);
 			}
 
@@ -267,11 +275,83 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			{
 				$result->terms_of_use = 0;
 			}
-
 		}
 		catch (\RuntimeException $e)
 		{
 			return false;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Method to get form data for quoted comment.
+	 *
+	 * @return  false|object  Data object on success, false on failure.
+	 *
+	 * @throws  \Exception
+	 *
+	 * @since   4.1
+	 */
+	public function getQuotedItem()
+	{
+		$app           = Factory::getApplication();
+		$params        = ComponentHelper::getParams('com_jcomments');
+		$user          = $app->getIdentity();
+		$bbcode        = JcommentsFactory::getBbcode();
+		$commentId     = $app->input->getInt('parent');
+		$result        = (object) array();
+		$parentComment = $this->getItem($commentId);
+
+		if (empty($parentComment))
+		{
+			return $result;
+		}
+
+		$result->comment = $parentComment->comment;
+
+		if ($params->get('editor_format') == 'bbcode')
+		{
+			if (!$params->get('enable_nested_quotes'))
+			{
+				$result->comment = $bbcode->removeQuotes($result->comment);
+			}
+
+			if ($params->get('enable_custom_bbcode'))
+			{
+				$customBBCode = JcommentsFactory::getCustomBBCode();
+				$result->comment = $customBBCode->filter($result->comment, true);
+			}
+
+			if ($user->get('id') == 0)
+			{
+				$result->comment = $bbcode->removeHidden($result->comment);
+			}
+		}
+		else
+		{
+			// TODO Not implemented for html
+		}
+
+		if ($result->comment != '')
+		{
+			if (JcommentsFactory::getAcl()->enableAutocensor())
+			{
+				$result->comment = JcommentsText::censor($result->comment);
+			}
+
+			$authorName = ContentHelper::getCommentAuthorName($parentComment);
+
+			if ($params->get('editor_format') == 'bbcode')
+			{
+				$result->comment = '[quote name="' . $authorName . ';' . $commentId . '"]' . $result->comment . '[/quote]' . "\n";
+			}
+			else
+			{
+				$result->comment = '<blockquote class="blockquote" data-quoted="' . $commentId . '">
+					<span class="cite d-block">' . Text::_('COMMENT_TEXT_QUOTE') . '<span class="author fst-italic fw-semibold">' . $authorName . '</span></span>' . $result->comment . '
+				</blockquote><br>';
+			}
 		}
 
 		return $result;
@@ -562,6 +642,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$user   = $app->getIdentity();
 		$params = ComponentHelper::getParams('com_jcomments');
 		$acl    = JcommentsFactory::getACL();
+		$bbcode = JcommentsFactory::getBbcode();
 
 		if ($user->authorise('comment.captcha', 'com_jcomments'))
 		{
@@ -587,6 +668,11 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			parent::preprocessForm($form, $data, $group);
 
 			return;
+		}
+
+		if ($app->input->getInt('quote') == 1)
+		{
+			$form->setValue('parent', '', $app->input->getInt('parent'));
 		}
 
 		$usernameMaxlength = $params->get('username_maxlength');
@@ -763,7 +849,13 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			$form->setFieldAttribute('email', 'disabled', true);
 		}
 
-		$form->setFieldAttribute('comment', 'maxlength', $params->get('comment_maxlength'));
+		$form->setFieldAttribute(
+			'comment',
+			'maxlength',
+			$user->authorise('comment.length_check', 'com_jcomments') ? 0 : $params->get('comment_maxlength')
+		);
+
+		$form->setValue('userid', '', $user->get('id'));
 
 		parent::preprocessForm($form, $data, $group);
 	}

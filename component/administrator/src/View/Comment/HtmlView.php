@@ -14,6 +14,7 @@ namespace Joomla\Component\Jcomments\Administrator\View\Comment;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
@@ -25,6 +26,7 @@ class HtmlView extends BaseHtmlView
 {
 	protected $item;
 	protected $reports;
+	protected $params;
 
 	/**
 	 * @var    \Joomla\CMS\Form\Form
@@ -47,6 +49,7 @@ class HtmlView extends BaseHtmlView
 		$this->item    = $this->get('Item');
 		$this->reports = $this->get('Reports');
 		$this->form    = $this->get('Form');
+		$this->params  = ComponentHelper::getParams('com_jcomments');
 
 		if (count($errors = $this->get('Errors')))
 		{

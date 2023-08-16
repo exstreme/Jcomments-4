@@ -101,7 +101,7 @@ $wa->useStyle('jcomments.backend_style');
 							<th scope="col" class="w-1 text-center">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_CUSTOM_BBCODE_BUTTON', 'jcb.button_enabled', $listDirection, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-1 text-center">
+							<th scope="col" class="w-1 text-center d-none d-md-table-cell">
 								<?php echo Text::_('A_CUSTOM_BBCODE_BUTTON_ICON'); ?>
 							</th>
 							<th scope="col" class="w-5 d-none d-md-table-cell">
@@ -177,7 +177,7 @@ $wa->useStyle('jcomments.backend_style');
 										'jgrid.state', $buttonStates, $item->button_enabled, $i, 'custombbcodes.', true, true, 'cb'
 									); ?>
 								</td>
-								<td class="text-center hidden-phone">
+								<td class="text-center d-none d-md-table-cell">
 									<?php echo $icon; ?>
 								</td>
 								<td class="d-none d-md-table-cell">

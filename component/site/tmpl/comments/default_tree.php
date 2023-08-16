@@ -60,7 +60,7 @@ $j            = 0;
 
 	<div class="comment-container <?php echo $i % 2 ? 'odd' : 'even'; ?>" id="comment-item-<?php echo $id; ?>">
 	<?php
-		echo LayoutHelper::render('comment', array('comment' => $comment), '', array('component' => 'com_jcomments'));
+		echo LayoutHelper::render('comment', array('comment' => $comment, 'params' => $this->params), '', array('component' => 'com_jcomments'));
 
 	if ($comment->children == 0)
 	{

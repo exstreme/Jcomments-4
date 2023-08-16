@@ -20,24 +20,28 @@ use Joomla\CMS\Router\Route;
 /** @var Joomla\Component\Jcomments\Site\View\Form\HtmlView $this */
 
 $wa = $this->document->getWebAssetManager();
-$wa->useScript('form.validate');
+$wa->useStyle('jcomments.style')
+	->useScript('form.validate')
+	->useScript('jcomments.core')
+	->useScript('bootstrap.collapse');
 
-// Display form, hide `show form` button
-if ($this->displayForm)
+if ($this->displayForm || !empty($this->form->getValue('comment_id')) || $this->form->getValue('parent') > 0)
 {
+	// Display form, hide `show form` button
 	$displayBtnForm = 'd-none';
 	$displayForm = 'show visible';
 }
-// Hide form, display `show form` button
 else
 {
+	// Hide form, display `show form` button
 	$displayBtnForm = 'show visible';
 	$displayForm = 'd-none';
 }
-?>
-<?php if (empty($this->form->getValue('comment_id')) && !$this->displayForm): ?>
+
+
+if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this->form->getValue('parent'))): ?>
 <div class="d-grid my-2 showform-btn-container">
-	<a href="#addcomments" class="btn btn-primary cmd-showform <?php echo $displayBtnForm; ?>">
+	<a href="#addcomment" class="btn btn-primary cmd-showform <?php echo $displayBtnForm; ?>" onclick="Jcomments.showAddForm();return false;">
 		<span class="icon-comment icon-fw"></span> <?php echo Text::_('FORM_HEADER'); ?>
 	</a>
 </div>
@@ -45,7 +49,7 @@ else
 
 <div class="form-layout <?php echo ($this->form->getValue('comment_id') > 0) ? 'mt-1 mb-4' : 'my-4'; ?> p-1 <?php echo $displayForm; ?>"
 	 id="editForm">
-	<div class="h6"><?php echo empty($this->item->id) ? Text::_('FORM_HEADER') : Text::_('FORM_HEADER_EDIT'); ?></div>
+	<div class="h6"><?php echo empty($this->form->getValue('comment_id')) ? Text::_('FORM_HEADER') : Text::_('FORM_HEADER_EDIT'); ?></div>
 
 	<?php if ($this->policy != ''): ?>
 		<div class="mb-2 alert alert-info comments-policy" role="alert"><?php echo $this->policy; ?></div>
@@ -111,7 +115,13 @@ else
 			<div class="col-12"><?php echo $this->form->getInput('comment'); ?></div>
 			<?php if ($this->params->get('show_commentlength')): ?>
 				<div class="col-12 text-secondary small jce-counter">
-					<?php echo Text::_('FORM_CHARSLEFT_PREFIX'); ?> <span class="chars"><?php echo $this->params->get('comment_maxlength'); ?></span> <?php echo Text::_('FORM_CHARSLEFT_SUFFIX'); ?>
+
+				<?php if ($this->form->getFieldAttribute('comment', 'maxlength', '') > 0): ?>
+					<?php echo Text::sprintf('FORM_CHARSLEFT', '<span class="chars">' . $this->form->getFieldAttribute('comment', 'maxlength', 0) . '</span>'); ?>
+				<?php else: ?>
+					<?php echo Text::sprintf('FORM_CHARSLEFT', Text::_('FORM_CHARSLEFT_NOLIMIT')); ?>
+				<?php endif; ?>
+
 				</div>
 			<?php endif; ?>
 		</div>
@@ -168,18 +178,30 @@ else
 		?>
 
 		<?php echo $this->form->getInput('comment_id'); ?>
-		<?php echo $this->form->getInput('parent_id'); ?>
+		<?php echo $this->form->getInput('parent'); ?>
+		<?php echo $this->form->getInput('userid'); ?>
 		<input type="hidden" name="object_id" value="<?php echo $this->objectID; ?>">
 		<input type="hidden" name="object_group" value="<?php echo $this->objectGroup; ?>">
 		<input type="hidden" name="task" value="comment.save">
 		<input type="hidden" name="return" value="<?php echo $this->returnPage; ?>">
 		<?php echo HTMLHelper::_('form.token'); ?>
 
-		<div class="start-0">
+		<div class="start-0 btn-container">
 			<input class="btn btn-success" id="comments-form-send" type="submit" value="<?php echo Text::_('JSUBMIT'); ?>"
 					title="<?php echo Text::_('FORM_SEND_HINT'); ?>">
-			<?php if ($this->form->getValue('comment_id') > 0 || $this->params->get('form_show') != 1): ?>
+			<button class="btn btn-primary" id="comments-form-preview" type="button"
+					onclick="Jcomments.saveComment(this, true);return false;"
+					title="<?php echo Text::_('FORM_PREVIEW'); ?>"><?php echo Text::_('FORM_PREVIEW'); ?></button>
+			<?php if ($this->form->getValue('comment_id') > 0 || $this->params->get('form_show') != 1):
+				$btnCancelEvent = 'Jcomments.hideAddForm();return false;';
+
+				if ($this->form->getValue('comment_id') > 0 || $this->form->getValue('parent') > 0)
+				{
+					$btnCancelEvent = 'Jcomments.hideEditForm(this);return false;';
+				}
+			?>
 				<button class="btn btn-secondary" id="comments-form-cancel" type="button"
+						onclick="<?php echo $btnCancelEvent; ?>"
 						title="<?php echo Text::_('JCANCEL'); ?>"><?php echo Text::_('JCANCEL'); ?></button>
 			<?php endif; ?>
 		</div>

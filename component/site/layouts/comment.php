@@ -25,6 +25,7 @@ use Joomla\CMS\Router\Route;
  */
 
 $comment        = $displayData['comment'];
+$params         = $displayData['params'];
 $app            = Factory::getApplication();
 $user           = $app->getIdentity();
 $commentData    = $comment->commentData;
@@ -38,6 +39,10 @@ $usernameClass  = '';
 $boxClass       = '';
 $userGroup      = '';
 $publishedClass = !$comment->published ? ' bg-secondary bg-opacity-10 text-muted' : '';
+$comment->date  = $comment->date ?? 'now';
+
+// True by default
+$comment->bottomPanel = !isset($comment->bottomPanel);
 
 if (is_object($comment->labels) && $comment->labels->enable == 1 && $comment->deleted == 0)
 {
@@ -94,51 +99,55 @@ Text::script('BUTTON_DELETE_CONIRM');
 			<?php endif; ?>
 
 			<div class="row row-cols-auto text-muted comment-info">
+				<?php if (isset($comment->permaLink)): ?>
 				<div class="col permalink">
 					<a href="<?php echo $comment->permaLink; ?>" onclick="Jcomments.scrollToByHash(this.href);return false;"
 					   class="link-secondary comment-anchor" title="<?php echo Text::_('BUTTON_PERMALINK'); ?>">
 						<span class="fa fa-hashtag" aria-hidden="true"></span> <?php echo $commentData->get('number'); ?>
 					</a>
 				</div>
+				<?php endif; ?>
 
-				<div class="col createdby" itemprop="author" itemscope itemtype="https://schema.org/Person">
-					<?php
-					if ($comment->user_blocked == 1)
-					{
-						$usernameBlocked = ' text-decoration-line-through';
-						$usernameTitle = Text::_('NOTIFICATION_COMMENT_NAME') . '. ' . Text::_('ERROR_USER_BLOCKED');
-					}
-					else
-					{
-						$usernameBlocked = '';
-						$usernameTitle = Text::_('NOTIFICATION_COMMENT_NAME');
-					}
+				<?php if (!empty($comment->author)): ?>
+					<div class="col createdby" itemprop="author" itemscope itemtype="https://schema.org/Person">
+						<?php
+						if ($comment->user_blocked == 1)
+						{
+							$usernameBlocked = ' text-decoration-line-through';
+							$usernameTitle = Text::_('NOTIFICATION_COMMENT_NAME') . '. ' . Text::_('ERROR_USER_BLOCKED');
+						}
+						else
+						{
+							$usernameBlocked = '';
+							$usernameTitle = Text::_('NOTIFICATION_COMMENT_NAME');
+						}
 
-					if ($commentData->get('showHomepage') && !empty($comment->homepage)): ?>
-						<a href="<?php echo $comment->homepage; ?>" rel="nofollow" itemprop="url" target="_blank"
-						   class="<?php echo $usernameClass; ?> username"
-						   title="<?php echo $usernameTitle; ?>">
-							<span class="fa icon-user" aria-hidden="true"></span> <span itemprop="name"
-								  class="<?php echo $usernameBlocked; ?>"><?php echo $comment->author; ?></span>
-						</a>
-					<?php else: ?>
-						<span class="<?php echo $usernameClass; ?> username"
-							  title="<?php echo $usernameTitle; ?>">
-							<span class="fa icon-user" aria-hidden="true"></span> <span itemprop="name"
-								  class="<?php echo $usernameBlocked; ?>"><?php echo $comment->author ?></span>
-						</span>
-					<?php endif; ?>
+						if ($commentData->get('showHomepage') && !empty($comment->homepage)): ?>
+							<a href="<?php echo $comment->homepage; ?>" rel="nofollow" itemprop="url" target="_blank"
+							   class="<?php echo $usernameClass; ?> username"
+							   title="<?php echo $usernameTitle; ?>">
+								<span class="fa icon-user" aria-hidden="true"></span> <span itemprop="name"
+									  class="<?php echo $usernameBlocked; ?>"><?php echo $comment->author; ?></span>
+							</a>
+						<?php else: ?>
+							<span class="<?php echo $usernameClass; ?> username"
+								  title="<?php echo $usernameTitle; ?>">
+								<span class="fa icon-user" aria-hidden="true"></span> <span itemprop="name"
+									  class="<?php echo $usernameBlocked; ?>"><?php echo $comment->author; ?></span>
+							</span>
+						<?php endif; ?>
 
-					<?php if ($groupClass > '' && $comment->deleted == 0): ?>
-						<span class="<?php echo $comment->labels->group_css; ?> usergroup">
-							<span itemprop="jobTitle"><?php echo $userGroup ?></span>
-						</span>
-					<?php endif; ?>
+						<?php if ($groupClass > '' && $comment->deleted == 0): ?>
+							<span class="<?php echo $comment->labels->group_css; ?> usergroup">
+								<span itemprop="jobTitle"><?php echo $userGroup; ?></span>
+							</span>
+						<?php endif; ?>
 
-					<?php if (($commentData->get('showEmail') > 0) && (!empty($comment->email))): ?>
-						<span class="email"><?php echo $comment->email; ?></span>
-					<?php endif; ?>
-				</div>
+						<?php if (($commentData->get('showEmail') > 0) && (!empty($comment->email))): ?>
+							<span class="email"><?php echo $comment->email; ?></span>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 
 				<div class="col published">
 					<span class="fa icon-calendar" aria-hidden="true"></span>
@@ -191,14 +200,15 @@ Text::script('BUTTON_DELETE_CONIRM');
 		<div class="comment-text<?php echo $comment->deleted == 1 ? ' text-secondary' : ''; ?>"><?php echo $comment->comment; ?></div>
 	</div>
 
-	<?php if ($comment->deleted == 0): ?>
+	<?php if ($comment->bottomPanel && $comment->deleted == 0): ?>
 	<div class="row mx-1 pt-1 border-top comment-panels">
 		<?php if ($comment->adminPanel->get('show')): ?>
 			<div class="col-auto ps-0 admin-panel">
 
 				<?php if ($comment->adminPanel->get('button.edit')): ?>
 					<a class="toolbar-button-edit" href="#" title="<?php echo Text::_('JACTION_EDIT'); ?>"
-					   data-edit-url="<?php echo Route::_($editUrl . '&comment_id=' . $comment->id, true, 0, true); ?>">
+					   data-edit-url="<?php echo Route::_($editUrl . '&comment_id=' . $comment->id, true, 0, true); ?>"
+					   onclick="Jcomments.showEditForm(this);return false;">
 						<span class="icon-edit" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -255,41 +265,32 @@ Text::script('BUTTON_DELETE_CONIRM');
 			$userPanelLinkClass = !$comment->published ? ' pe-none' : '';
 			$userPanelLinkAriaAttr = !$comment->published ? ' tabindex="-1" aria-disabled="true"' : '' ?>
 			<div class="col pe-0 text-end user-panel">
-				<?php if ($comment->userPanel->get('button.reply')): ?>
-					<a href="#" class="toolbar-button-reply<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>>
+				<?php if ($comment->userPanel->get('button.reply') && $app->input->getCmd('task') != 'show'): ?>
+					<a href="#" class="toolbar-button-reply<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>
+					   onclick="Jcomments.showAddForm(true);return false;">
 						<?php echo Text::_('BUTTON_REPLY'); ?>
-					</a>
-					<?php if ($comment->userPanel->get('button.quote')): ?>
-						&vert; <a href="#" class="toolbar-button-reply-quote<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>>
-							<?php echo Text::_('BUTTON_REPLY_WITH_QUOTE'); ?>
-						</a> &vert;
-					<?php endif; ?>
+					</a><?php if ($comment->userPanel->get('button.quote') || ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id'))): ?> &vert;<?php endif; ?>
 				<?php endif; ?>
 
 				<?php if ($comment->userPanel->get('button.quote')): ?>
-					<a href="#" class="toolbar-button-quote<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>>
-						<?php echo Text::_('BUTTON_QUOTE'); ?>
+					<a href="#" class="toolbar-button-reply-quote<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>
+					   data-edit-url="<?php echo Route::_($editUrl . '&parent=' . $comment->id . '&quote=1', true, 0, true); ?>"
+					   onclick="Jcomments.showEditForm(this);return false;">
+						<?php echo Text::_('BUTTON_REPLY_WITH_QUOTE'); ?>
 					</a>
 				<?php endif; ?>
 
 				<?php if ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id')): ?>
-					<?php if ($comment->userPanel->get('button.quote') || $comment->userPanel->get('button.reply')): ?>
-						&vert;
-					<?php endif; ?>
+					<?php if ($comment->userPanel->get('button.quote') && $comment->userPanel->get('button.reply')): ?> &vert;<?php endif; ?>
 					<a href="#" data-url="<?php echo Route::_($reportUrl . '&return=' . base64_encode($reportUrl), true, 0, true); ?>"
 					   class="toolbar-button-report link-warning" title="<?php echo Text::_('BUTTON_REPORT'); ?>">
 						<span class="fa icon-exclamation-triangle" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
 
-				<?php if (isset($comment->children) && $comment->children != 0) : ?>
-					<?php if ($comment->userPanel->get('button.quote')
-						|| $comment->userPanel->get('button.reply')
-						|| $comment->userPanel->get('button.report')):
-					?>
-						&vert;
-					<?php endif; ?>
-					<a href="#" title="<?php echo Text::_('BUTTON_HIDE'); ?>" class="toolbar-button-child-toggle"
+				<?php if (isset($comment->children) && $comment->children != 0): ?>
+					<?php if ($params->get('template_view') == 'tree'): ?> &vert;<?php endif; ?>
+					<a href="#" title="<?php echo Text::_('BUTTON_HIDE'); ?>" class="toolbar-button-child-toggle link-secondary"
 					   data-title-hide="<?php echo Text::_('BUTTON_HIDE'); ?>"
 					   data-title-show="<?php echo Text::_('BUTTON_SHOW'); ?>">
 						<span class="icon-chevron-up" aria-hidden="true"></span>
@@ -297,30 +298,35 @@ Text::script('BUTTON_DELETE_CONIRM');
 				<?php endif; ?>
 			</div>
 		<?php else: ?>
-			<div class="col pe-0 text-end user-panel">
-				<a href="#" title="<?php echo Text::_('BUTTON_HIDE'); ?>" class="toolbar-button-child-toggle"
-				   data-title-hide="<?php echo Text::_('BUTTON_HIDE'); ?>"
-				   data-title-show="<?php echo Text::_('BUTTON_SHOW'); ?>">
-					<span class="icon-chevron-up" aria-hidden="true"></span>
-				</a>
-			</div>
+			<?php if ($params->get('template_view') == 'tree'): ?>
+				<div class="col pe-0 text-end user-panel">
+					<a href="#" title="<?php echo Text::_('BUTTON_HIDE'); ?>" class="toolbar-button-child-toggle link-secondary"
+					   data-title-hide="<?php echo Text::_('BUTTON_HIDE'); ?>"
+					   data-title-show="<?php echo Text::_('BUTTON_SHOW'); ?>">
+						<span class="icon-chevron-up" aria-hidden="true"></span>
+					</a>
+				</div>
+			<?php endif; ?>
 		<?php endif; ?>
 	</div>
 	<?php endif; ?>
 </div>
 
 <?php
-// This will loaded only once
-echo HTMLHelper::_(
-	'bootstrap.renderModal',
-	'reportModal',
-	array(
-		'title'  => Text::_('REPORT_TO_ADMINISTRATOR'),
-		'backdrop' => 'static',
-		'height' => '100%',
-		'width'  => '100%',
-		'footer' => ''
-	),
-	'<iframe width="100%" onload="Jcomments.iFrameHeight(this);" style="overflow: hidden;" class="reportFormFrame"'
-	. ' id="reportFormFrame" name="' . bin2hex(random_bytes(4)) . '"></iframe>'
-);
+if ($comment->bottomPanel)
+{
+	// This will be loaded only once.
+	echo HTMLHelper::_(
+		'bootstrap.renderModal',
+		'reportModal',
+		array(
+			'title'  => Text::_('REPORT_TO_ADMINISTRATOR'),
+			'backdrop' => 'static',
+			'height' => '100%',
+			'width'  => '100%',
+			'footer' => ''
+		),
+		'<iframe width="100%" onload="Jcomments.iframeHeight(this);" style="overflow: hidden;" class="reportFormFrame"'
+		. ' id="reportFormFrame" name="' . bin2hex(random_bytes(4)) . '"></iframe>'
+	);
+}

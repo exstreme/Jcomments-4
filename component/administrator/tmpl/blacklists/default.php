@@ -64,25 +64,25 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							<td class="w-1 text-center">
 								<?php echo HTMLHelper::_('grid.checkall'); ?>
 							</td>
-							<th scope="col" class="w-20 d-md-table-cell">
+							<th scope="col" class="w-20 d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_BLACKLIST_IP', 'jb.ip', $listDirn, $listOrder, null, 'asc', 'A_BLACKLIST_IP', 'icon-sort'); ?>
 							</th>
-							<th scope="col">
+							<th scope="col" class="d-none d-sm-table-cell">
 								<?php echo Text::_('A_BLACKLIST_REASON'); ?>
 							</th>
-							<th scope="col" class="d-none d-md-table-cell">
+							<th scope="col" class="d-none d-sm-table-cell">
 								<?php echo Text::_('A_BLACKLIST_NOTES'); ?>
 							</th>
-							<th scope="col" class="w-10 d-md-table-cell">
+							<th scope="col" class="w-10 d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_CREATED_BY', 'u.name', $listDirn, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-10 d-none d-md-table-cell">
+							<th scope="col" class="w-10 d-none d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_CREATED_DATE', 'jb.created', $listDirn, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-10 d-none d-md-table-cell">
+							<th scope="col" class="w-10 d-none d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_BLACKLIST_EXPIRE', 'jb.expire', $listDirn, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-5 d-none d-md-table-cell">
+							<th scope="col" class="w-5 d-none d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'jb.id', $listDirn, $listOrder); ?>
 							</th>
 						</tr>
@@ -124,23 +124,27 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 											<?php echo $this->escape($item->ip); ?>
 										<?php endif; ?>
 									</div>
+									<div class="fw-normal d-md-none">
+										<strong><?php echo Text::_('A_BLACKLIST_REASON'); ?>:</strong>
+										<span class="read-more"><?php echo $item->reason; ?></span>
+									</div>
 								</th>
-								<td class="small d-md-table-cell">
+								<td class="small d-none d-sm-table-cell">
 									<span class="read-more"><?php echo $item->reason; ?></span>
 								</td>
-								<td class="small d-none d-md-table-cell">
+								<td class="small d-none d-sm-table-cell">
 									<span class="read-more"><?php echo $item->notes; ?></span>
 								</td>
 								<td class="d-md-table-cell">
 									<?php echo $item->name; ?>
 								</td>
-								<td class="d-none d-md-table-cell">
+								<td class="d-none d-sm-table-cell">
 									<?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC6')); ?>
 								</td>
-								<td class="d-none d-md-table-cell">
+								<td class="d-none d-sm-table-cell">
 									<?php echo $expireText; ?>
 								</td>
-								<td class="d-none d-md-table-cell">
+								<td class="d-none d-sm-table-cell">
 									<?php echo (int) $item->id; ?>
 								</td>
 							</tr>

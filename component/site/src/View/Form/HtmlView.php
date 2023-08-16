@@ -120,7 +120,6 @@ class HtmlView extends BaseHtmlView
 	 *
 	 * @return  void
 	 *
-	 * @throws  \Exception
 	 * @since   4.1
 	 */
 	public function displayCommentForm($tpl = null)
@@ -130,7 +129,6 @@ class HtmlView extends BaseHtmlView
 		$acl               = JcommentsFactory::getACL();
 		$state             = $this->get('State');
 		$this->form        = $this->get('Form');
-		$this->item        = $this->get('Item');
 		$lang              = $app->getLanguage();
 		$this->params      = $state->get('params');
 		$this->objectGroup = $state->get('object_group');
@@ -139,7 +137,7 @@ class HtmlView extends BaseHtmlView
 		PluginHelper::importPlugin('jcomments');
 
 		// Set up document title
-		$title = empty($this->item->id) ? 'FORM_HEADER' : 'FORM_HEADER_EDIT';
+		$title = empty($this->form->getValue('comment_id')) ? 'FORM_HEADER' : 'FORM_HEADER_EDIT';
 		$this->setDocumentTitle(Text::_($title));
 
 		$this->document->getWebAssetManager()
@@ -150,7 +148,7 @@ class HtmlView extends BaseHtmlView
 					
 					if (alert) {
 						alert.addEventListener('close.bs.alert', function () {
-							const editFormIframe = parent.document.querySelector('.commentsEditFormFrame');
+							const editFormIframe = parent.document.querySelector('.commentEditFormFrame');
 							
 							if (editFormIframe) {
 								editFormIframe.remove();
@@ -209,8 +207,10 @@ class HtmlView extends BaseHtmlView
 		}
 
 		// Access check when edit comment.
-		if ($app->input->getInt('comment_id') > 0)
+		if ($app->input->getInt('comment_id') > 0 && !$app->input->getInt('quote'))
 		{
+			$this->item = $this->get('Item');
+
 			if ($acl->isLocked($this->item))
 			{
 				echo $this->alert(Text::_('ERROR_BEING_EDITTED'));
@@ -219,7 +219,7 @@ class HtmlView extends BaseHtmlView
 			}
 			elseif (!$acl->canEdit($this->item))
 			{
-				if ($this->item->deleted == 1)
+				if ($this->item->get('deleted') == 1)
 				{
 					echo $this->alert(Text::_('ERROR_NOT_FOUND'));
 				}
@@ -230,6 +230,14 @@ class HtmlView extends BaseHtmlView
 
 				return;
 			}
+
+			if (!$user->get('guest'))
+			{
+				/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
+				$table = $app->bootComponent('com_jcomments')->getMVCFactory()
+					->createTable('Comment', 'Administrator');
+				$table->checkOut($user->get('id'), $this->form->getValue('comment_id'));
+			}
 		}
 
 		$this->returnPage = $this->get('ReturnPage');
@@ -238,6 +246,8 @@ class HtmlView extends BaseHtmlView
 		{
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
+
+		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
 		/** @see \Joomla\Component\Jcomments\Site\Model\FormModel::getTotalCommentsForObject() */
 		$commentsCount = $this->get('TotalCommentsForObject');

@@ -38,6 +38,8 @@
 		<filename>joomla.asset.json</filename>
 
 		<folder>css</folder>
+		<folder>editor</folder>
+		<folder>fonts</folder>
 		<folder>images</folder>
 		<folder>js</folder>
 	</media>

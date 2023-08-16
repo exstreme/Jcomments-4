@@ -18,6 +18,7 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Log\Log;
@@ -26,9 +27,12 @@ use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Input\Input;
+use Joomla\Utilities\ArrayHelper;
 use Joomla\Utilities\IpHelper;
 
 /**
@@ -90,12 +94,13 @@ class CommentController extends FormController
 				->useScript('jquery')
 				->useScript('bootstrap.modal')
 				->useScript('bootstrap.collapse')
+				->useScript('jcomments.core')
 				->useScript('jcomments.frontend');
 		}
 
 		echo '<div class="comments-list-container">
 			<div class="comment-container" id="comment-item-' . $id . '">'
-				. LayoutHelper::render('comment', array('comment' => $comment))
+				. LayoutHelper::render('comment', array('comment' => $comment, 'params' => ComponentHelper::getParams('com_jcomments')))
 		. '</div>
 		</div>';
 	}
@@ -154,6 +159,13 @@ class CommentController extends FormController
 		if (!isset($comment->id))
 		{
 			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
+
+		if ($acl->isLocked($comment))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_BEING_EDITTED'), 'error');
 
 			return;
 		}
@@ -239,6 +251,13 @@ class CommentController extends FormController
 		if (!isset($comment->id))
 		{
 			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
+
+		if ($acl->isLocked($comment))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_BEING_EDITTED'), 'error');
 
 			return;
 		}
@@ -391,6 +410,52 @@ class CommentController extends FormController
 	}
 
 	/**
+	 * Method to cancel an edit.
+	 *
+	 * @param   string  $key  The name of the primary key of the URL variable.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.6
+	 */
+	public function cancel($key = 'comment_id')
+	{
+		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+
+		if (!$this->checkToken('post', false))
+		{
+			$this->setResponse(null, $return, Text::_('JINVALID_TOKEN'), 'error');
+
+			return;
+		}
+
+		$model   = $this->getModel();
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
+		$table   = $model->getTable();
+		$context = "$this->option.edit.$this->context";
+
+		if (empty($key))
+		{
+			$key = $table->getKeyName();
+		}
+
+		$recordId = $this->input->getInt($key);
+		$acl = JCommentsFactory::getACL();
+
+		// Attempt to check-in the current record.
+		if ($recordId && $table->hasField('checked_out') && $table->checkin($recordId) === false && !$acl->isLocked($table))
+		{
+			// Check-in failed, go back to the record and display a notice.
+			$this->setResponse(null, $return, Text::sprintf('JLIB_APPLICATION_ERROR_CHECKIN_FAILED', $table->getError()), 'error');
+
+			return;
+		}
+
+		$this->releaseEditId($context, $recordId);
+		$this->setResponse(null, '', Text::_('JOK'), 'success');
+	}
+
+	/**
 	 * Save user report.
 	 *
 	 * @return  void
@@ -485,6 +550,98 @@ class CommentController extends FormController
 	}
 
 	/**
+	 * Method to preview a record.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.1
+	 */
+	public function preview()
+	{
+		if (!$this->checkToken('post', false))
+		{
+			$this->setResponse(null, '', Text::_('JINVALID_TOKEN'), 'error');
+
+			return;
+		}
+
+		$acl = JcommentsFactory::getAcl();
+
+		if ($acl->isUserBlocked())
+		{
+			$app = Factory::getApplication();
+
+			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
+			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
+				->createModel('Blacklist', 'Site', array('ignore_request' => true));
+			$params         = ComponentHelper::getParams('com_jcomments');
+			$lang           = $app->getLanguage();
+			$message        = JcommentsText::getMessagesBasedOnLanguage($params->get('messages_fields'), 'message_banned', $lang->getTag());
+			$reason         = $blacklistModel->getBlacklistReason($acl->userID);
+
+			if ($message != '')
+			{
+				$reason = !empty($reason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $reason : '';
+			}
+
+			$this->setResponse(null, '', nl2br($message) . $reason, 'error');
+
+			return;
+		}
+
+		$data = $this->input->post->get('jform', array(), 'array');
+
+		if (!isset($data))
+		{
+			$this->setResponse(null, '', Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
+
+		$filter             = new InputFilter;
+		$params             = ComponentHelper::getParams('com_jcomments');
+		$data               = ArrayHelper::toObject($data);
+		$data->deleted      = 0;
+		$data->published    = 1;
+		$data->object_id    = $this->input->getInt('object_id');
+		$data->object_group = $this->input->getString('object_group', 'com_content');
+		$data->parent       = $this->input->getInt('parent_id');
+		$data->id           = $this->input->getInt('comment_id');
+		$data->user_blocked = 0;
+		$data->bottomPanel  = 1;
+		$data->comment      = $filter->clean($data->comment);
+		$data->comment      = JcommentsText::nl2br($data->comment);
+
+		if ($params->get('editor_format') == 'bbcode')
+		{
+			$data->comment = JcommentsFactory::getBbcode()->filter($data->comment);
+
+			if ((int) $params->get('enable_custom_bbcode'))
+			{
+				$data->comment = JCommentsFactory::getCustomBBCode()->filter($data->comment);
+			}
+		}
+		else
+		{
+			// TODO Filter HTML
+		}
+
+		JcommentsContentHelper::prepareComment($data, true);
+
+		$html = '<div class="comment-preview">
+			<style>@import url("' . Uri::base() . 'media/com_jcomments/css/' . $params->get('custom_css') . '.css");</style>
+			<div class="comments-list-container">
+				<div class="comment-container" id="comment-item-">'
+				. LayoutHelper::render('comment', array('comment' => $data, 'params' => $params))
+				. '</div>
+			</div>
+			<div class="my-2 border-bottom border-success border-3"></div>
+		</div>';
+
+		$this->setResponse($html, '', '', 'success');
+	}
+
+	/**
 	 * Method to save a record.
 	 *
 	 * @param   string  $key     The name of the primary key of the URL variable.
@@ -496,7 +653,20 @@ class CommentController extends FormController
 	 */
 	public function save($key = null, $urlVar = 'comment_id')
 	{
-		echo 'Ok';
+		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+
+		if (!$this->checkToken('post', false))
+		{
+			$this->setResponse(null, $return, Text::_('JINVALID_TOKEN'), 'error');
+
+			return false;
+		}
+
+		$data = $this->input->post->get('jform', array(), 'array');
+
+		echo '<pre>';
+		var_dump($data);
+		echo '</pre>';
 	}
 
 	/**

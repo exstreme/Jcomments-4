@@ -37,7 +37,12 @@ if (($this->params->get('comments_pagination') == 'top'  || $this->params->get('
 
 	<?php foreach ($this->items as $id => $comment): ?>
 		<div class="comment-container <?php echo $i % 2 ? 'odd' : 'even'; ?>" id="comment-item-<?php echo $id; ?>">
-			<?php echo LayoutHelper::render('comment', array('comment' => $comment), '', array('component' => 'com_jcomments')); ?>
+			<?php echo LayoutHelper::render(
+				'comment',
+				array('comment' => $comment, 'params' => $this->params),
+				'',
+				array('component' => 'com_jcomments')
+			); ?>
 		</div>
 		<?php $i++;
 	endforeach; ?>

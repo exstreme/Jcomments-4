@@ -31,7 +31,7 @@ endif;
 ?>
 >------------------------------------------
 <?php if ($displayData['report']): ?>
-><?php echo htmlspecialchars_decode(Text::sprintf('REPORT_NOTIFICATION_MESSAGE', $comment->author, $comment->report_name)); ?>
+><?php echo htmlspecialchars_decode(Text::sprintf('REPORT_NOTIFICATION_MESSAGE', $comment->author, $comment->report_name, $comment->ip)); ?>
 	<?php if ($comment->report_reason != ''): ?>
 <?php echo "\n>\n>"; ?><?php echo Text::_('REPORT_NOTIFICATION_MESSAGE_REASON'); ?> - <?php echo $comment->report_reason; ?>
 	<?php endif; ?>
@@ -98,4 +98,4 @@ endif; ?>
 >------------------------------------------
 <?php echo Text::_('NOTIFICATION_COMMENT_UNSUBSCRIBE_LINK'); ?>
 
-<?php echo Route::link('site', 'index.php?option=com_jcomments&task=subscription.remove&hash=' . $displayData['hash'], false, 0, true); ?>
+<?php echo Route::link('site', 'index.php?option=com_jcomments&task=subscription.remove&hash=' . $displayData['hash'], false, 0, true);

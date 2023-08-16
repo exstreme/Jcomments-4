@@ -24,10 +24,10 @@ $wa = $this->document->getWebAssetManager();
 $wa->useScript('bootstrap.modal')
 	->useScript('bootstrap.collapse');
 
-$locked      = $this->params->get('comments_locked');
-$feedUrl     = 'index.php?option=com_jcomments&view=comments&task=rss&object_id=' . $this->objectID
+$locked  = $this->params->get('comments_locked');
+$feedUrl = 'index.php?option=com_jcomments&view=comments&task=rss&object_id=' . $this->objectID
 	. '&object_group=' . $this->objectGroup . '&type=rss&format=feed';
-$view        = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
+$view    = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 ?>
 <div class="container-fluid px-0 mt-2 comments" id="comments">
 	<?php if ($this->params->get('form_position') && $view != 'comments'):
@@ -47,8 +47,7 @@ $view        = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 			<?php endif; ?>
 
 			<?php if ($this->params->get('enable_rss') && !$locked): ?>
-				<a href="<?php echo Route::_($feedUrl); ?>"
-				   title="<?php echo Text::_('BUTTON_RSS'); ?>" target="_blank">
+				<a href="<?php echo Route::_($feedUrl); ?>" title="<?php echo Text::_('BUTTON_RSS'); ?>" target="_blank">
 					<span aria-hidden="true" class="fa icon-rss"></span>
 				</a>
 			<?php endif; ?>
@@ -87,8 +86,7 @@ $view        = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 
 		<?php if ($this->params->get('enable_rss') && !$locked): ?>
 			<div class="comments-rss">
-				<a href="<?php echo Route::_($feedUrl); ?>"
-				   title="<?php echo Text::_('BUTTON_RSS'); ?>" target="_blank">
+				<a href="<?php echo Route::_($feedUrl); ?>" title="<?php echo Text::_('BUTTON_RSS'); ?>" target="_blank">
 					<span aria-hidden="true" class="fa icon-rss me-1"></span><?php echo Text::_('BUTTON_RSS'); ?>
 				</a>
 			</div>

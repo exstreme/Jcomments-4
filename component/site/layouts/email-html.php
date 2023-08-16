@@ -36,13 +36,13 @@ $logo    = @file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-
 		<?php echo @file_get_contents(JPATH_ROOT . '/media/com_jcomments/editor/themes/content/component.css'); ?>
 		.container {
 			display: block !important;
-			max-width: 600px !important;
+			max-width: 800px !important;
 			margin: 0 auto !important; /* makes it centered */
 			clear: both !important;
 		}
 		.content {
 			padding: 10px 15px;
-			max-width: 600px;
+			max-width: 800px;
 			margin: 0 auto;
 			display: block;
 		}
@@ -100,7 +100,7 @@ $logo    = @file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-
 						<tr>
 							<td>
 								<p class="report">
-									<?php echo Text::sprintf('REPORT_NOTIFICATION_MESSAGE', $comment->author, $comment->report_name); ?>
+									<?php echo Text::sprintf('REPORT_NOTIFICATION_MESSAGE', $comment->author, $comment->report_name, $comment->ip); ?>
 									<?php if ($comment->report_reason != ''): ?>
 										<br />
 										<span>
@@ -160,8 +160,8 @@ $logo    = @file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-
 				<td class="container">
 					<p class="content">
 						<?php if ($displayData['config']->get('enable_quick_moderation')):
-							$aTag     = array();
-							$return   = '&return=' . base64_encode($comment->object_link);
+							$aTag   = array();
+							$return = '&return=' . base64_encode($comment->object_link);
 
 							// Publish/unpublish link
 							$action = ($comment->published == 0) ? 'publish' : 'unpublish';

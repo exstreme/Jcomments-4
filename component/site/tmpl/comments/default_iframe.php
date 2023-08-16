@@ -30,11 +30,11 @@ $url    = 'index.php?option=com_jcomments&view=form&tmpl=component&object_id=' .
 		bin2hex(random_bytes(5)),
 		array(
 			'width'     => '100%',
-			'onload'    => 'Jcomments.iFrameHeight(this);',
+			'onload'    => 'Jcomments.iframeHeight(this);',
 			'style'     => 'overflow: hidden;',
 			'scrolling' => 'no',
-			'class'     => 'commentsFormFrame',
-			'id'        => 'addcomments'
+			'class'     => 'commentFormFrame addcomment',
+			'id'        => 'addcomment'
 		)
 	); ?>
 </div>

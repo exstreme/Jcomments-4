@@ -171,7 +171,7 @@ class ContentHelper
 	 */
 	public static function clear($row)
 	{
-		$patterns     = array('/{jcomments\s+(off|on|lock)}/is');
+		$patterns     = array('/{jcomments\s+(off|on|lock)}/i');
 		$replacements = array('');
 
 		self::processTags($row, $patterns, $replacements);
@@ -316,14 +316,15 @@ class ContentHelper
 	/**
 	 * Prepare comment, set some initial data
 	 *
-	 * @param   object  $comment  Comment object
+	 * @param   object   $comment  Comment object
+	 * @param   boolean  $text     Prepare only comment field
 	 *
 	 * @return  void
 	 *
 	 * @throws  \Exception
 	 * @since   4.1
 	 */
-	public static function prepareComment(&$comment)
+	public static function prepareComment($comment, bool $text = false)
 	{
 		if (isset($comment->_skip_prepare) && $comment->_skip_prepare == 1)
 		{
@@ -331,7 +332,7 @@ class ContentHelper
 		}
 
 		$app        = Factory::getApplication();
-		$config     = ComponentHelper::getParams('com_jcomments');
+		$params     = ComponentHelper::getParams('com_jcomments');
 		$acl        = JcommentsFactory::getACL();
 		$user       = $app->getIdentity();
 		$dispatcher = $app->getDispatcher();
@@ -361,10 +362,9 @@ class ContentHelper
 				'email.cloak',
 				$comment->email,
 				true,
-				'<span class="fa icon-envelope" aria-hidden="true"></span> ' . $comment->email,
+				'<span class="fa icon-envelope pe-1" aria-hidden="true"></span>' . $comment->email,
 				true,
-				'class="link-secondary"',
-				'title="' . Text::_('NOTIFICATION_COMMENT_EMAIL') . '" itemprop="email"'
+				'class="link-secondary" title="' . Text::_('NOTIFICATION_COMMENT_EMAIL') . '" itemprop="email"'
 			);
 		}
 
@@ -382,57 +382,90 @@ class ContentHelper
 			$comment->ispoor   = 0;
 		}
 
-		// Replace BBCode tags
-		$comment->comment = JcommentsFactory::getBBCode()->replace($comment->comment);
-
-		if ((int) $config->get('enable_custom_bbcode'))
+		if ($params->get('editor_format') == 'bbcode')
 		{
-			$comment->comment = JcommentsFactory::getCustomBBCode()->replace($comment->comment);
+			// Replace BBCode tags
+			$comment->comment = JcommentsFactory::getBBCode()->replace($comment->comment);
+
+			if ((int) $params->get('enable_custom_bbcode'))
+			{
+				$comment->comment = JcommentsFactory::getCustomBBCode()->replace($comment->comment);
+			}
+		}
+		else
+		{
+			// TODO Process html tags
 		}
 
 		if ($user->authorise('comment.email.protect', 'com_jcomments'))
 		{
 			/** @note Joomla email cloak plugin did not support IDN in emails. */
-			$matches = array();
-			$count = preg_match_all('#([\w\.\-]+)@(\w+[\w\.\-]*\.\w{2,6})#iu', $comment->comment, $matches);
+			$comment->comment = preg_replace_callback(
+				'~([\w\.\-]+)@(\w+[\w\.\-]*\.\w{2,6})~iu',
+				function ($matches) use ($text)
+				{
+					if (MailHelper::isEmailAddress($matches[0]))
+					{
+						if ($text)
+						{
+							$email = '<a href="mailto:' . $matches[0] . '" class="email">' . $matches[0] . '</a>';
+						}
+						else
+						{
+							/** @see \Joomla\CMS\HTML\Helpers\Email::cloak */
+							$email = HTMLHelper::_(
+								'email.cloak',
+								$matches[0],
+								true,
+								'',
+								true,
+								'class="email"'
+							);
+						}
+					}
+					else
+					{
+						$email = $matches[0];
+					}
 
-			for ($i = 0; $i < $count; $i++)
-			{
-				echo HTMLHelper::_(
-					'email.cloak',
-					$matches[0][$i],
-					true,
-					'<span class="fa icon-envelope" aria-hidden="true"></span> ' . $matches[1][$i],
-					true,
-					'class="link-secondary"',
-					'itemprop="email"'
-				);
-
-				/** @see \Joomla\CMS\HTML\Helpers\Email::cloak */
-				//$email = MailHelper::isEmailAddress($matches[0][$i]) ? HTMLHelper::_('email.cloak', $matches[0][$i]) : '';
-				//$comment->comment = str_replace($matches[0][$i], $email, $comment->comment);
-			}
+					return $email;
+				},
+				$comment->comment
+			);
 		}
 
 		// Autolink urls, emails always displayed as link.
 		if ($user->authorise('comment.autolink', 'com_jcomments'))
 		{
-			$comment->comment = preg_replace_callback(
+			// TODO Broken links in bbcodes
+			/*$comment->comment = preg_replace_callback(
 				'#(^|\s|\>|\()((http://|https://|news://|ftp://|www.)\w+[^\s\<\>\"\'\)]+)#iu',
 				'self::urlProcessor',
 				$comment->comment
-			);
+			);*/
+
+			/*$comment->comment = preg_replace_callback(
+				'#(^|\s|\>|\()((http://|https://|news://|ftp://|www.)\w+[^\s\<\>\"\'\)]+)#iu',
+				function ($matches)
+				{
+					return '';
+				},
+				$comment->comment
+			);*/
 		}
 
 		// Replace smilies' codes with images
-		if ($config->get('enable_smilies') == '1')
+		if ($params->get('enable_smilies') == '1')
 		{
 			$comment->comment = JcommentsFactory::getSmilies()->replace($comment->comment);
 		}
 
-		$comment->author = self::getCommentAuthorName($comment);
-		$comment->permaLink = self::getPermalink($comment);
-		$comment->parentLink = self::getParentLink($comment);
+		if ($text === false)
+		{
+			$comment->author     = self::getCommentAuthorName($comment);
+			$comment->permaLink  = self::getPermalink($comment);
+			$comment->parentLink = self::getParentLink($comment);
+		}
 
 		// Avatar support. Set default values if plugin is not enabled.
 		if (empty($comment->avatar))
@@ -444,30 +477,35 @@ class ContentHelper
 		$comment->adminPanel  = self::initialCommentData('adminPanel');
 		$comment->userPanel   = self::initialCommentData('userPanel');
 		$comment->commentData = self::initialCommentData('commentData');
+		$comment->object_link = '';
+		$comment->labels      = null;
 
-		if ($acl->canModerate($comment))
+		if ($text === false)
 		{
-			$comment->adminPanel->set('show', true);
-			$comment->adminPanel->set('button.edit', $acl->canEdit($comment));
-			$comment->adminPanel->set('button.delete', $acl->canDelete($comment));
-			$comment->adminPanel->set('button.publish', $acl->canPublish($comment));
-			$comment->adminPanel->set('button.ip', $acl->canViewIP($comment));
-			$comment->adminPanel->set('button.ban', $acl->canBan($comment));
+			if ($acl->canModerate($comment))
+			{
+				$comment->adminPanel->set('show', true);
+				$comment->adminPanel->set('button.edit', $acl->canEdit($comment));
+				$comment->adminPanel->set('button.delete', $acl->canDelete($comment));
+				$comment->adminPanel->set('button.publish', $acl->canPublish($comment));
+				$comment->adminPanel->set('button.ip', $acl->canViewIP($comment));
+				$comment->adminPanel->set('button.ban', $acl->canBan($comment));
+			}
+
+			$comment->userPanel->set('button.vote', $acl->canVote($comment));
+			$comment->userPanel->set('button.quote', $acl->canQuote($comment));
+			$comment->userPanel->set('button.reply', $acl->canReply($comment));
+			$comment->userPanel->set('button.report', $acl->canReport($comment));
+
+			$comment->commentData->set('showVote', $params->get('enable_voting'));
+			$comment->commentData->set('showEmail', $acl->canViewEmail($comment));
+			$comment->commentData->set('showHomepage', $acl->canViewHomepage($comment));
+			$comment->commentData->set('showTitle', $params->get('display_title'));
+			$comment->commentData->set('showAvatar', $user->authorise('comment.avatar', 'com_jcomments') && !$comment->deleted);
+
+			$comment->object_link = $comment->object_link . '&Itemid=' . self::getItemid($app->input->getWord('view'));
+			$comment->labels      = isset($comment->labels) ? json_decode($comment->labels) : null;
 		}
-
-		$comment->userPanel->set('button.vote', $acl->canVote($comment));
-		$comment->userPanel->set('button.quote', $acl->canQuote($comment));
-		$comment->userPanel->set('button.reply', $acl->canReply($comment));
-		$comment->userPanel->set('button.report', $acl->canReport($comment));
-
-		$comment->commentData->set('showVote', $config->get('enable_voting'));
-		$comment->commentData->set('showEmail', $acl->canViewEmail($comment));
-		$comment->commentData->set('showHomepage', $acl->canViewHomepage($comment));
-		$comment->commentData->set('showTitle', $config->get('display_title'));
-		$comment->commentData->set('showAvatar', $user->authorise('comment.avatar', 'com_jcomments') && !$comment->deleted);
-
-		$comment->object_link = $comment->object_link . '&Itemid=' . self::getItemid($app->input->getWord('view'));
-		$comment->labels      = isset($comment->labels) ? json_decode($comment->labels) : null;
 
 		$dispatcher->dispatch(
 			'onJCommentsCommentAfterPrepare',
@@ -542,7 +580,7 @@ class ContentHelper
 	{
 		$input = Factory::getApplication()->input;
 
-		// Single comment have custom links.
+		// Single comment have a custom links.
 		if ($input->getCmd('controller') . '.' . $input->getCmd('task') == 'comment.show')
 		{
 			$permaLink = Route::_(

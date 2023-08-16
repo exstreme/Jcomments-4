@@ -84,11 +84,13 @@ class PlgSystemJcomments extends CMSPlugin
 
 		$buffer = $this->app->getBody();
 
+		// Cleanup RSS from {jcomments}
 		if ($this->params->get('clear_rss', 0) == 1
 			&& $this->app->input->get('option') == 'com_content'
 			&& $this->app->getDocument()->getType() === 'feed')
 		{
-			$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#is', '', $buffer);
+			$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#i', '', $buffer);
+			$buffer = \Joomla\String\StringHelper::str_ireplace('{jcomments}', '', $buffer);
 			$this->app->setBody($buffer);
 		}
 	}

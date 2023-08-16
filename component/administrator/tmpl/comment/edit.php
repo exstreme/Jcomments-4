@@ -104,6 +104,8 @@ $this->useCoreUI = true;
 					if ($('input[name="checkall-toggle"]:checked').length) {
 						$('input[name="checkall-toggle"]').trigger('click');
 					}
+
+					$('.rep-items').text('(' + $('#reportsTable input[name="cid[]"]').length + ')');
 				} else {
 					Joomla.renderMessages({'error': [response.message]});
 				}
@@ -152,6 +154,18 @@ $this->useCoreUI = true;
 						</div>
 						<div class="controls">
 							<?php echo $this->form->getInput('comment'); ?>
+
+							<?php if ($this->params->get('show_commentlength')): ?>
+								<div class="col-12 text-secondary small jce-counter">
+
+									<?php if ($this->form->getFieldAttribute('comment', 'maxlength', '') > 0): ?>
+										<?php echo Text::sprintf('FORM_CHARSLEFT', '<span class="chars">' . $this->form->getFieldAttribute('comment', 'maxlength', 0) . '</span>'); ?>
+									<?php else: ?>
+										<?php echo Text::sprintf('FORM_CHARSLEFT', Text::_('FORM_CHARSLEFT_NOLIMIT')); ?>
+									<?php endif; ?>
+
+								</div>
+							<?php endif; ?>
 						</div>
 					</div>
 
@@ -238,9 +252,8 @@ $this->useCoreUI = true;
 
 		<?php echo LayoutHelper::render('joomla.edit.params', $this); ?>
 
-		<?php $totalRep = count($this->reports);
-		$repTabTitle  = Text::_('A_REPORTS_LIST');
-		$repTabTitle .= count($this->reports) ? ' <span class="rep-items">(' . $totalRep . ')</span>' : '';
+		<?php
+		$repTabTitle  = Text::_('A_REPORTS_LIST') . ' <span class="rep-items">(' . count($this->reports) . ')</span>';
 		echo HTMLHelper::_('uitab.addTab', 'myTab', 'reports', $repTabTitle); ?>
 
 		<table class="table table-sm table-hover" id="reportsTable">

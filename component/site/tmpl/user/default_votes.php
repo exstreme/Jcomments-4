@@ -23,6 +23,7 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('multiselect')
+	->useScript('bootstrap.collapse')
 	->useScript('kwood.more')
 	->useStyle('jcomments.style');
 
@@ -82,9 +83,9 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 										<div class="col-9">
 											<?php if (empty($item->object_title)): ?>
 												<span class="text-warning">
-											<span class="icon-exclamation-triangle" aria-hidden="true"></span>
-											<?php echo Text::_('OBJECT_NOT_FOUND'); ?>
-										</span>
+													<span class="icon-exclamation-triangle" aria-hidden="true"></span>
+													<?php echo Text::_('OBJECT_NOT_FOUND'); ?>
+												</span>
 											<?php else: ?>
 												<a href="<?php echo Route::_($item->object_link); ?>" target="_blank"
 												   class="read-more"><?php echo $item->object_title; ?></a>
@@ -94,13 +95,13 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 											<span class="small text-muted"><?php echo LayoutHelper::render('joomla.content.language', $item); ?></span>
 										</div>
 									</div>
-									<div class="row h6 bg-secondary bg-opacity-10 py-2">
+									<div class="row h6 bg-light py-2">
 										<div class="col-8"><?php echo Text::_('COMMENT_ITEM'); ?></div>
 										<div class="col-3"><?php echo Text::_('JDATE'); ?></div>
 										<div class="col-1"></div>
 									</div>
 									<div class="row">
-										<div class="col-8">
+										<div class="col-8 comment-text text-break">
 											<span class="read-more">
 												<?php
 												JcommentsContentHelper::prepareComment($item);

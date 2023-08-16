@@ -21,7 +21,8 @@ use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelp
 /** @var Joomla\Component\Jcomments\Site\View\User\HtmlView $this */
 
 $wa = $this->document->getWebAssetManager();
-$wa->useScript('kwood.more')
+$wa->useScript('bootstrap.collapse')
+	->useScript('kwood.more')
 	->useStyle('jcomments.style');
 ?>
 <script type="text/javascript">
@@ -55,7 +56,7 @@ $wa->useScript('kwood.more')
 					<table class="table table-hover itemList">
 						<thead>
 							<tr>
-								<th scope="col" style="min-width: 100px;">
+								<th scope="col" style="min-width: 100px; border: none;">
 									<?php echo Text::_('JOBJECT'); ?> / <?php echo Text::_('JARTICLE'); ?>
 								</th>
 							</tr>
@@ -63,14 +64,14 @@ $wa->useScript('kwood.more')
 						<tbody>
 						<?php foreach ($this->items as $i => $item): ?>
 							<tr>
-								<td>
+								<td class="card mb-2">
 									<div class="row mb-1">
 										<div class="col-9">
 											<?php if (empty($item->object_title)): ?>
 												<span class="text-warning">
-											<span class="icon-exclamation-triangle" aria-hidden="true"></span>
-											<?php echo Text::_('OBJECT_NOT_FOUND'); ?>
-										</span>
+													<span class="icon-exclamation-triangle" aria-hidden="true"></span>
+													<?php echo Text::_('OBJECT_NOT_FOUND'); ?>
+												</span>
 											<?php else: ?>
 												<a href="<?php echo Route::_($item->object_link); ?>" target="_blank"
 												   class="read-more"><?php echo $item->object_title; ?></a>
@@ -80,7 +81,7 @@ $wa->useScript('kwood.more')
 											<span class="small text-muted"><?php echo LayoutHelper::render('joomla.content.language', $item); ?></span>
 										</div>
 									</div>
-									<div class="row h6 bg-secondary bg-opacity-10 py-2">
+									<div class="row h6 bg-light py-2">
 										<div class="col-9">
 											<a href="<?php echo JcommentsContentHelper::getPermalink($item); ?>"
 											   target="_blank"><?php echo Text::_('COMMENT_ITEM'); ?></a>
@@ -88,7 +89,7 @@ $wa->useScript('kwood.more')
 										<div class="col-3"><?php echo Text::_('JDATE'); ?></div>
 									</div>
 									<div class="row">
-										<div class="col-9">
+										<div class="col-9 comment-text text-break">
 											<span class="read-more">
 												<?php JcommentsContentHelper::prepareComment($item);
 												echo $item->comment;

@@ -1,5 +1,9 @@
 /*! SCEditor | (C) 2011-2013, Sam Clarke | sceditor.com/license */
-@import "../../../../templates/site/cassiopeia/css/template.min.css";
+@import url("../../../../vendor/bootstrap/css/bootstrap.min.css");
+@font-face {
+	font-family: "Twemoji Mozilla";
+	src: url("../../../../com_jcomments/fonts/Twemoji.Mozilla.ttf");
+}
 
 html, body, p, code:before, table {
 	margin: 0;
@@ -27,10 +31,17 @@ body {
 	word-wrap: break-word;
 }
 
-body.placeholder::before {
+/* Override Bootstrap placeholder style */
+.placeholder {
 	content: attr(placeholder);
 	color: #555;
 	font-style: italic;
+	display: revert;
+	min-height: 100%;
+	vertical-align: middle;
+	cursor: revert;
+	background-color: initial;
+	opacity: 100;
 }
 
 ul, ol {
@@ -76,4 +87,26 @@ h1, h2, h3, h4, h5, h6 {
 /* Prevent empty paragraphs from collapsing */
 div, p {
 	min-height: 1.25em;
+}
+
+span.emoji-char {
+	display: inline-block;
+	font-family: "Noto Color Emoji", "Apple Color Emoji", "Twemoji Mozilla", "Segoe UI Emoji", Times, Symbola, Aegyptus, Code2000, Code2001, Code2002, Musica, serif, LastResort;
+	/*width: 21px;
+	height: 21px;*/
+	font-size: 1.4em;
+}
+
+span.emoji-char-bg {
+	background-color: transparent;
+	background-position: top left;
+	background-repeat: no-repeat;
+	display: inline-block;
+	width: 21px;
+	height: 21px;
+}
+
+/* Set default image width if Twemoji is used */
+img.emoji {
+	width: 21px;
 }

@@ -177,8 +177,8 @@ class JcommentsAcl
 		$this->canQuote              = $user->authorise('comment.comment', 'com_jcomments')
 											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
 		$this->canReply              = $user->authorise('comment.comment', 'com_jcomments')
-											&& $user->authorise('comment.reply', 'com_jcomments')
-											&& $config->get('template_view') == 'tree';
+											&& $user->authorise('comment.reply', 'com_jcomments');
+											//&& $config->get('template_view') == 'tree';
 		$this->userID                = $user->get('id');
 		$this->deleteMode            = (int) $config->get('delete_mode');
 		$this->commentsLocked        = false;
@@ -330,7 +330,7 @@ class JcommentsAcl
 	 *
 	 * @param   mixed  $comment  Comment item.
 	 *
-	 * @return  boolean
+	 * @return  boolean  True if edit, false otherwise
 	 *
 	 * @since   3.0
 	 */

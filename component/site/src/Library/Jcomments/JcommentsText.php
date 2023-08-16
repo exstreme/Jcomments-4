@@ -38,7 +38,7 @@ class JcommentsText
 	{
 		$text = preg_replace(array('/\r/u', '/^\n+/u', '/\n+$/u'), '', $text);
 
-		return str_replace("\n", '<br />', $text);
+		return str_replace("\n", '<br>', $text);
 	}
 
 	/**
@@ -52,7 +52,7 @@ class JcommentsText
 	 */
 	public static function br2nl($text)
 	{
-		return str_replace('<br />', "\n", $text);
+		return str_replace(array('<br />', '<br>'), "\n", $text);
 	}
 
 	/**
@@ -150,11 +150,11 @@ class JcommentsText
 		}
 
 		$text = str_replace('<br />', ' ', $text);
-		$text = preg_replace('#(\s){2,}#ismu', '\\1', $text);
+		$text = preg_replace('#(\s){2,}#imu', '\\1', $text);
 		$text = preg_replace('#<script[^>]*>.*?</script>#ismu', '', $text);
-		$text = preg_replace('#<a\s+.*?href="([^"]+)"[^>]*>([^<]+)<\/a>#ismu', '\2 (\1)', $text);
+		$text = preg_replace('#<a\s+.*?href="([^"]+)"[^>]*>([^<]+)</a>#ismu', '\2 (\1)', $text);
 		$text = preg_replace('#<!--.+?-->#ismu', '', $text);
-		$text = preg_replace('#&nbsp;|&amp;|&quot;#ismu', ' ', $text);
+		$text = preg_replace('#&nbsp;|&amp;|&quot;#imu', ' ', $text);
 
 		$text = strip_tags($text);
 		$text = htmlspecialchars($text);

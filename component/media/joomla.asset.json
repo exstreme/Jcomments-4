@@ -36,9 +36,15 @@
       "uri": "com_jcomments/jcomments.import.js"
     },
     {
+      "name": "jcomments.core",
+      "type": "script",
+      "uri": "com_jcomments/jcomments.core.min.js",
+      "version": "4.1.0"
+    },
+    {
       "name": "jcomments.frontend",
       "type": "script",
-      "uri": "com_jcomments/jcomments.min.js",
+      "uri": "com_jcomments/jcomments.frontend.min.js",
       "dependencies": [
         "jquery"
       ],

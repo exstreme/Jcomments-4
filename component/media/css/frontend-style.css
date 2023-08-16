@@ -100,6 +100,18 @@ a.toolbar-button-state span.icon-unpublish {
 	white-space: normal !important;
 }
 
+.comment-text p {
+	margin-bottom: 0;
+}
+
+#jform_terms_terms {
+	margin-bottom: .5em;
+}
+
+.vote-result {
+	cursor: default;
+}
+
 /* Sizing */
 .w-1 {
 	width: 1%;

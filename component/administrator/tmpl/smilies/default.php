@@ -71,10 +71,10 @@ if ($saveOrder)
 							<th scope="col" class="d-md-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_SMILIES_HEADING_NAME', 'js.name', $listDirection, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-1 d-md-table-cell">
+							<th scope="col" class="w-1 d-none d-md-table-cell">
 								<?php echo Text::_('A_SMILIES_HEADING_CODE'); ?>
 							</th>
-							<th scope="col" class="w-5 text-center d-md-table-cell">
+							<th scope="col" class="w-5 text-center d-none d-md-table-cell">
 								<?php echo Text::_('A_SMILIES_HEADING_IMAGE'); ?>
 							</th>
 							<th scope="col" class="w-5 d-none d-md-table-cell">
@@ -131,11 +131,15 @@ if ($saveOrder)
 											<span><?php echo $this->escape($item->name); ?></span>
 										<?php endif; ?>
 									</div>
+									<div class="fw-normal d-md-none">
+										<strong><?php echo Text::_('A_SMILIES_HEADING_CODE'); ?>:</strong> <?php echo $item->code; ?><br>
+										<strong><?php echo Text::_('A_SMILIES_HEADING_IMAGE'); ?>:</strong> <?php echo HTMLHelper::image($this->liveSmiliesPath . $item->image, $item->image); ?>
+									</div>
 								</th>
-								<td class="d-md-table-cell">
+								<td class="d-none d-md-table-cell">
 									<?php echo $item->code; ?>
 								</td>
-								<td class="text-center hidden-phone">
+								<td class="text-center d-none d-md-table-cell">
 									<?php echo HTMLHelper::image($this->liveSmiliesPath . $item->image, $item->image); ?>
 								</td>
 								<td class="d-none d-md-table-cell">

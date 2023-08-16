@@ -136,7 +136,7 @@ class CommentsController extends BaseController
 
 		if ($pluginParams->get('show_comments_event') == 'onContentBeforeDisplay')
 		{
-			// TODO Тут можеть быть любой объект
+			// TODO Тут может быть любой объект любого компонента
 			$article = (new \Joomla\Component\Content\Site\Model\ArticleModel)->getItem($items[$rowIndex]->object_id);
 
 			// Find {jcomments} tag in whole article(w/o page breaks) and display only on the page where tag was found.

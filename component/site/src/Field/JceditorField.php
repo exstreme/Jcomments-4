@@ -17,8 +17,10 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Field\TextareaField;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\WebAsset\WebAssetManager;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
+use Joomla\Component\Jcomments\Site\Helper\ToolbarHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /**
@@ -74,24 +76,6 @@ class JceditorField extends TextareaField
 		{
 			$this->height = $this->element['height'] ? (string) $this->element['height'] : '500';
 			$this->width = $this->element['width'] ? (string) $this->element['width'] : '100%';
-
-			$buttons = (string) $this->element['buttons'];
-			$hide = (string) $this->element['hide'];
-
-			if ($buttons === 'true' || $buttons === 'yes' || $buttons === '1')
-			{
-				$this->buttons = true;
-			}
-			elseif ($buttons === 'false' || $buttons === 'no' || $buttons === '0')
-			{
-				$this->buttons = false;
-			}
-			else
-			{
-				$this->buttons = !empty($hide) ? explode(',', $buttons) : [];
-			}
-
-			$this->hide = !empty($hide) ? explode(',', (string) $this->element['hide']) : [];
 		}
 
 		return $result;
@@ -108,84 +92,88 @@ class JceditorField extends TextareaField
 	protected function getInput()
 	{
 		$app    = Factory::getApplication();
+		$user   = $app->getIdentity();
 		$doc    = $app->getDocument();
 		$params = ComponentHelper::getParams('com_jcomments');
 
 		/** @var WebAssetManager $wa */
 		$wa        = $doc->getWebAssetManager();
 		$langTag   = $app->getLanguage()->getTag();
-		$langSpec  = array('en-US', 'pt-BR');
-		$_lang     = in_array($langTag, $langSpec) ? $langTag : strtolower(substr($langTag, -2));
-		$bbcodes   = JcommentsFactory::getBbcode();
+		$_lang     = in_array($langTag, array('en-US', 'pt-BR')) ? $langTag : strtolower(substr($langTag, -2));
 		$emoticons = JcommentsFactory::getSmilies()->getList();
+		$format    = $params->def('editor_format', 'bbcode');
+		$plugins   = array('autoyoutube', 'undo', 'emoji');
+		$buttons   = (string) $this->element['buttons'];
+
+		if (!empty($buttons))
+		{
+			$buttons = (object) array_map(
+				function ($value)
+				{
+					return (object) array('btn' => $value);
+				},
+				explode(',', $buttons)
+			);
+		}
+		else
+		{
+			$buttons = $params->get('editor_buttons');
+		}
 
 		$wa->registerAndUseStyle('jceditor.theme', 'media/com_jcomments/editor/themes/square.css')
 			->registerAndUseStyle('jceditor.theme.custom', 'media/com_jcomments/editor/themes/custom.css')
-			->registerAndUseScript('jceditor.core', 'media/com_jcomments/editor/sceditor.js')
-			->registerAndUseScript('jceditor.bbcode', 'media/com_jcomments/editor/formats/bbcode.js')
-			->registerAndUseScript('jceditor.plg.autoyoutube', 'media/com_jcomments/editor/plugins/autoyoutube.js')
+			->registerAndUseScript('jceditor.core', 'media/com_jcomments/editor/sceditor.js');
+
+		if ($format == 'bbcode')
+		{
+			$wa->registerAndUseScript('jceditor.bbcode', 'media/com_jcomments/editor/formats/bbcode.js')
+				->registerAndUseScript('jceditor.plg.alternative.lists', 'media/com_jcomments/editor/plugins/alternative-lists.js');
+			$plugins[] = 'alternative-lists';
+		}
+		else
+		{
+			$wa->registerAndUseScript('jceditor.bbcode', 'media/com_jcomments/editor/formats/xhtml.js');
+		}
+
+		$wa->registerAndUseScript('jceditor.plg.autoyoutube', 'media/com_jcomments/editor/plugins/autoyoutube.js')
 			->registerAndUseScript('jceditor.plg.undo', 'media/com_jcomments/editor/plugins/undo.js')
+			->registerAndUseScript('jceditor.plg.emoji', 'media/com_jcomments/editor/plugins/emoji.js')
 			->registerAndUseScript('jceditor.icons', 'media/com_jcomments/editor/icons/monocons.js')
 			->registerAndUseScript('jceditor.lang', 'media/com_jcomments/editor/languages/' . $_lang . '.js')
-			->registerAndUseScript('jceditor.init', 'media/com_jcomments/editor/init.js');
-
-		$_bbcodes = array();
-
-		foreach ($bbcodes->get() as $key => $code)
-		{
-			if (!$bbcodes->canUse($code) && strpos($code, 'separator') === false)
-			{
-				continue;
-			}
-
-			// Convert bbcodes to editor toolbar codes
-			switch ($code)
-			{
-				case 'b':
-					$_bbcodes[$key] = 'bold';
-					break;
-				case 'i':
-					$_bbcodes[$key] = 'italic';
-					break;
-				case 'u':
-					$_bbcodes[$key] = 'underline';
-					break;
-				case 's':
-					$_bbcodes[$key] = 'strike';
-					break;
-				case 'sub':
-					$_bbcodes[$key] = 'subscript';
-					break;
-				case 'sup':
-					$_bbcodes[$key] = 'superscript';
-					break;
-				case 'list':
-					$_bbcodes[$key] = 'bulletlist';
-					break;
-				case 'url':
-					$_bbcodes[$key] = 'link';
-					break;
-				case 'img':
-					$_bbcodes[$key] = 'image';
-					break;
-				default:
-					$_bbcodes[$key] = $code;
-			}
-		}
+			->registerAndUseScript('jceditor.lang.plugins', 'media/com_jcomments/editor/languages/plugins/' . $_lang . '.js')
+			->registerAndUseScript('jceditor.init.bbcode', 'media/com_jcomments/editor/init.js')
+			->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js');
 
 		Text::script('COMMENT_TEXT_CODE');
 		Text::script('COMMENT_TEXT_QUOTE');
 		Text::script('FORM_BBCODE_HIDE');
+		Text::script('FORM_BBCODE_SPOILER');
+		Text::script('ERROR_YOUR_COMMENT_IS_TOO_SHORT');
+		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
 		$editorConfig = array(
-			'format'        => 'bbcode',
-			'style'         => 'media/com_jcomments/editor/themes/content/jc-default.css',
+			'format'        => $format,
+			'style'         => Uri::root() . 'media/com_jcomments/editor/themes/content/' . $params->get('custom_css', 'frontend-style') . '.css',
 			'width'         => $this->width,
 			'height'        => $this->height,
 			'icons'         => 'monocons',
 			'locale'        => $langTag,
-			'toolbar'       => $bbcodes->enabled() ? preg_replace('@,separator\d,@ixU', '|', implode(',', $_bbcodes)) : '',
-			'emoticonsRoot' => $params->get('smilies_path')
+			'toolbar'       => ToolbarHelper::prepareToolbar($buttons),
+			'emoticonsRoot' => Uri::root() . $params->get('smilies_path'),
+			'plugins'       => implode(',', $plugins),
+			'autoUpdate'    => true,
+			'minlength'     => $user->get('isRoot') ? 0 : $params->get('comment_minlength'),
+			'maxlength'     => $user->get('isRoot') ? 0 : $params->get('comment_maxlength'),
+			'emoji'         => (object) array(
+				'enable' => true,
+				'excludeEmojis' => '1FAE8,1FA77,1FA75,1FA76,1FAF7,1FAF8,1FACE,1FACF,1FABD,1FABF,1FABC,1FABB,1FADA,1FADB,1FAAD,1FAAE,1FA87,1FA88,1FAAF,1F6DC',
+				//'closeAfterSelect' => false,
+				/*'twemoji' => (object) array(
+					'base' => Uri::base() . 'media/com_jcomments/images/',
+					'folder' => 'svg',
+					'ext' => '.svg'
+				)*/
+			)
 		);
 
 		if (!empty($emoticons))
@@ -200,11 +188,6 @@ class JceditorField extends TextareaField
 
 		$doc->addScriptOptions('jceditor', $editorConfig);
 		$this->dataAttributes['data-config'] = json_encode($editorConfig);
-		$this->maxlength = $params->get('comment_maxlength');
-
-		/*echo '<pre>';
-		print_r(JcommentsFactory::getSmilies()->getList());
-		echo '</pre>';*/
 
 		return parent::getInput();
 	}

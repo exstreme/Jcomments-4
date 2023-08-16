@@ -451,6 +451,10 @@ class CommentsModel extends ListModel
 
 		$query->from($db->quoteName('#__jcomments', 'c'));
 
+		// Join over the users for check out
+		$query->select($db->quoteName('usr_c.name', 'editor'))
+			->leftJoin($db->quoteName('#__users', 'usr_c'), 'usr_c.id = c.checked_out');
+
 		// Join over language for comments list in user profile
 		$commentLang = $this->getState('list.options.comment_lang');
 

@@ -39,13 +39,16 @@
 		/>
 
 		<field
+				addfieldprefix="Joomla\Component\Jcomments\Site\Field"
 				name="comment"
-				type="textarea"
-				rows="15"
-				cols="50"
-				filter="raw"
+				type="Jceditor"
 				label="A_COMMENT_TEXT"
+				rows="10"
+				cols="100"
+				filter="JComponentHelper::filterText"
 				required="true"
+				width="100%"
+				height="350"
 		/>
 
 		<field

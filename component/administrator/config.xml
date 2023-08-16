@@ -242,6 +242,18 @@
 
 	<fieldset name="form" label="A_FORM_PARAMS">
 		<field
+				name="editor_format"
+				type="list"
+				default="bbcode"
+				label="AP_FORM_FORMAT"
+				description="AP_FORM_FORMAT_DESC"
+				filter="string"
+		>
+			<option value="bbcode">BBcode</option>
+			<option value="xhtml">XHTML</option>
+		</field>
+
+		<field
 				name="form_show"
 				type="list"
 				default="1"
@@ -358,6 +370,71 @@
 		>
 			<option value="0">JNO</option>
 			<option value="1">JYES</option>
+		</field>
+
+		<field
+				name="editor_buttons"
+				type="subform"
+				label="AP_FORM_FIELD_EDITOR_BUTTONS"
+				multiple="true"
+				min="1"
+				buttons="add,remove,move"
+				layout="joomla.form.field.subform.repeatable-table"
+				default='{"editor_buttons0":{"btn":"bold"},"editor_buttons1":{"btn":"italic"},"editor_buttons2":{"btn":"underline"},"editor_buttons3":{"btn":"strike"},"editor_buttons4":{"btn":"subscript"},"editor_buttons5":{"btn":"superscript"},"editor_buttons6":{"btn":"|"},"editor_buttons7":{"btn":"left"},"editor_buttons8":{"btn":"center"},"editor_buttons9":{"btn":"right"},"editor_buttons10":{"btn":"justify"},"editor_buttons11":{"btn":"|"},"editor_buttons12":{"btn":"font"},"editor_buttons13":{"btn":"size"},"editor_buttons14":{"btn":"color"},"editor_buttons15":{"btn":"removeformat"},"editor_buttons16":{"btn":"|"},"editor_buttons17":{"btn":"cut"},"editor_buttons18":{"btn":"copy"},"editor_buttons19":{"btn":"paste"},"editor_buttons20":{"btn":"pastetext"},"editor_buttons21":{"btn":"|"},"editor_buttons22":{"btn":"bulletlist"},"editor_buttons23":{"btn":"orderedlist"},"editor_buttons24":{"btn":"indent"},"editor_buttons25":{"btn":"outdent"},"editor_buttons26":{"btn":"|"},"editor_buttons27":{"btn":"table"},"editor_buttons28":{"btn":"code"},"editor_buttons29":{"btn":"quote"},"editor_buttons30":{"btn":"|"},"editor_buttons31":{"btn":"horizontalrule"},"editor_buttons32":{"btn":"image"},"editor_buttons33":{"btn":"email"},"editor_buttons34":{"btn":"url"},"editor_buttons35":{"btn":"unlink"},"editor_buttons36":{"btn":"emoticon"},"editor_buttons37":{"btn":"|"},"editor_buttons38":{"btn":"youtube"},"editor_buttons39":{"btn":"date"},"editor_buttons40":{"btn":"time"},"editor_buttons41":{"btn":"|"},"editor_buttons42":{"btn":"ltr"},"editor_buttons43":{"btn":"rtl"},"editor_buttons45":{"btn":"|"},"editor_buttons44":{"btn":"print"},"editor_buttons46":{"btn":"maximize"},"editor_buttons47":{"btn":"source"},"editor_buttons48":{"btn":"hide"},"editor_buttons49":{"btn":"spoiler"},"editor_buttons50":{"btn":"emoji"}}'
+		>
+			<form>
+				<field
+						name="btn"
+						type="list"
+						label=""
+						description="AP_FORM_FIELD_EDITOR_BUTTONS_DESC"
+						translateLabel="false"
+				>
+					<option value="|">SEPARATOR</option>
+					<option value="bold">BOLD</option>
+					<option value="italic">ITALIC</option>
+					<option value="underline">UNDERLINE</option>
+					<option value="strike">STRIKETHROUGH</option>
+					<option value="subscript">SUBSCRIPT</option>
+					<option value="superscript">SUPERSCRIPT</option>
+					<option value="left">LEFT</option>
+					<option value="center">CENTER</option>
+					<option value="right">RIGHT</option>
+					<option value="justify">JUSTIFY</option>
+					<option value="font">FONT</option>
+					<option value="size">SIZE</option>
+					<option value="color">COLOR</option>
+					<option value="removeformat">REMOVEFORMAT</option>
+					<option value="cut">CUT</option>
+					<option value="copy">COPY</option>
+					<option value="paste">PASTE</option>
+					<option value="pastetext">PASTETEXT</option>
+					<option value="bulletlist">UNORDEREDLIST</option>
+					<option value="orderedlist">ORDEREDLIST</option>
+					<option value="indent">INDENT</option>
+					<option value="outdent">OUTDENT</option>
+					<option value="table">TABLE</option>
+					<option value="code">CODE</option>
+					<option value="quote">QUOTE</option>
+					<option value="horizontalrule">HR</option>
+					<option value="image">IMAGE</option>
+					<option value="email">EMAIL</option>
+					<option value="url">URL</option>
+					<option value="unlink">UNLINK</option>
+					<option value="emoticon">EMOTICONS</option>
+					<option value="youtube">YOUTUBE</option>
+					<option value="date">DATE</option>
+					<option value="time">TIME</option>
+					<option value="ltr">LTR</option>
+					<option value="rtl">RTL</option>
+					<option value="print">PRINT</option>
+					<option value="maximize">MAXIMIZE</option>
+					<option value="source">SOURCE</option>
+					<option value="hide">HIDE</option>
+					<option value="spoiler">SPOILER</option>
+					<option value="emoji">EMOJI</option>
+				</field>
+			</form>
 		</field>
 	</fieldset>
 

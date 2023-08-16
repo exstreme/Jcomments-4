@@ -103,6 +103,18 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 											<?php echo $this->escape($item->name); ?>
 										<?php endif; ?>
 									</div>
+									<div class="fw-normal d-md-none">
+										<strong><?php echo Text::_('A_SUBSCRIPTION_EMAIL'); ?>:</strong> <?php echo $item->email; ?>
+										<div><strong><?php echo Text::_('A_COMMENT_OBJECT_TITLE'); ?>:</strong>
+										<?php if (isset($item->object_link)): ?>
+											<a href="<?php echo $item->object_link; ?>"
+											   title="<?php echo htmlspecialchars($item->object_title); ?>"
+											   target="_blank"><?php echo $item->object_title; ?></a>
+										<?php else: ?>
+											<?php echo $item->object_title; ?>
+										<?php endif; ?>
+										</div>
+									</div>
 								</th>
 								<td class="small d-none d-md-table-cell">
 									<?php echo $item->email; ?>
