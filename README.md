@@ -1,8 +1,8 @@
-# (WIP) JComments 4.0
+# JComments 4.0 (Stable)
 
 ![](https://img.shields.io/github/stars/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/forks/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/tag/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/release/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/issues/exstreme/Jcomments-4.svg)
 
-Adapting the component to work with Joomla 4.
+This branch is stable. Adapting the component to work with Joomla 4 continuing in 4.1 branch.
 
 ## Quick Start
 
