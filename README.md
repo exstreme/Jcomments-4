@@ -8,6 +8,10 @@ Adapting the component to work with Joomla 4.
 
 Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" target="_blank">latest version</a> of package
 
+## Requirements
+
+Joomla 4.2+
+
 ## Migration from Jcomments 3
 - make backup
 - uninstall Jcomments 3 (your comments will be saved in the database)
