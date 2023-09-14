@@ -66,7 +66,7 @@ preg_match('(\d+\.\d+)', $this->component['version'], $matches);
 							<li>English - Alexey Brin, ABTOP</li>
 							<li>Estonian - Rivo Z&#228;ngov</li>
 							<li>Finnish - Sami Haaranen (aka Mortti)</li>
-							<li>French - Saber, Jean-Marie Chauvel, Eric Lamy, Max Schmit</li>
+							<li>French - Saber, Jean-Marie Chauvel, Eric Lamy, Max Schmit, Philippe (phnoel)</li>
 							<li>Galician (Spain) - Manuel - Simboloxico Vol.2</li>
 							<li>German - Denis Panschinski, Max Schmit, Hermann Herz</li>
 							<li>Greek - Lazaros Giannakidis, Chrysovalantis Mochlas</li>

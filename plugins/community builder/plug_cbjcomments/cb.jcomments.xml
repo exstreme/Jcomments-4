@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cbinstall version="1.0" type="plugin" group="user">
+	<name>CB JComments</name>
+	<creationDate>September 2022</creationDate>
+	<author>JComments team</author>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>2.7.4+build.2022.11.08.20.50.36.de9b5fefb</version>
+	<description>Displays last user comments and allows to comment user's profile</description>
+
+	<files>
+		<filename plugin="cb.jcomments">cb.jcomments.php</filename>
+		<filename>css/style.css</filename>
+		<foldername>language</foldername>
+	</files>
+
+	<tabs>
+		<tab name="USER_COMMENTS_TAB" translated-name="Comments" description="" class="JCommentsMyComments" fields="0" sys="1"
+			 position="canvas_main_middle" displaytype="menu">
+			<params>
+				<param name="tab_count" type="yesno" default="1" label="Count"
+					   description="Enable or disable display of comments count in tab title." yes="Enable" no="Disable"/>
+			</params>
+		</tab>
+		<tab name="PROFILE_COMMENTS_TAB" translated-name="Profile Comments" description="" class="JCommentsProfileComments" fields="0" sys="1"
+			 position="canvas_main_middle" displaytype="menu">
+			<params>
+				<param name="tab_count" type="yesno" default="0" label="Count"
+					   description="Enable or disable display of comments count in tab title." yes="Enable" no="Disable"/>
+			</params>
+		</tab>
+	</tabs>
+
+	<params>
+		<tabpane name="comments">
+			<tabpanetab label="Comments">
+				<param name="source" type="text" default="com_content" label="Source"
+					   description="Component or components names (separated by comma like com_content,com_k2,com_sobi2) to display comments from."/>
+				<param name="count" type="text" size="2" default="10" label="Comments Limit"
+					   description="Enter the maximum number of comments you would like listed in the tab"/>
+
+				<param name="orderby_object_title" type="list" default="1" label="Order By Object Title"
+					   description="Order commented objects by title (article title). Within one object (article) comments will be ordered by comment's date (descending).">
+					<option value="0">No</option>
+					<option value="1">Yes</option>
+				</param>
+
+				<param name="limit_comment_text" type="text" size="20" default="20" label="Comment Text Limit"
+					   description="Please enter in a numeric character limit value. The comment text will be trimmed to the number of characters you enter"/>
+
+				<param name="show_comment_title" type="list" default="1" label="Comment Title"
+					   description="Show/hide comment title.">
+					<option value="0">Hide</option>
+					<option value="1">Show</option>
+				</param>
+
+				<param name="show_smiles" type="list" default="0" label="Smiles"
+					   description="Select whether to show smiles as text or as images">
+					<option value="0">Text</option>
+					<option value="1">Images</option>
+					<option value="2">Strip smiles</option>
+				</param>
+
+				<param name="show_readmore" type="list" default="1" label="Link 'Read more...'"
+					   description="If set to Show, the 'Read more...' link will be shown after comment's text.">
+					<option value="0">Hide</option>
+					<option value="1">Show</option>
+				</param>
+
+				<param name="readmore" type="text" default="Read more..." label="Text 'Read more...'"
+					   description="Custom text for 'Read more...' link. Leave empty for default string."/>
+			</tabpanetab>
+			<tabpanetab label="Profile comments">
+				<fields>
+				</fields>
+			</tabpanetab>
+		</tabpane>
+	</params>
+	<database>
+	</database>
+</cbinstall>
