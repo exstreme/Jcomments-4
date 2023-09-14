@@ -10,10 +10,17 @@
 				type="text"
 				label="PLG_USER_COMMENTS_TOTAL_LABEL"
 			/>
+
 			<field
 					name="total_votes"
 					type="text"
 					label="PLG_USER_COMMENTS_VOTES_TOTAL_LABEL"
+			/>
+
+			<field
+					name="subscriptions_link"
+					type="text"
+					label="PLG_USER_COMMENTS_SUBSCRIPTIONS_LABEL"
 			/>
 		</fieldset>
 	</fields>

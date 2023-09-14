@@ -1,0 +1,190 @@
+/**
+ * JComments - Joomla Comment System
+ *
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
+
+.comments-list-header a {
+	font-size: 1.125em;
+	text-decoration: none;
+}
+
+.comment-title {
+	font-weight: 600 !important;
+}
+
+.comment-info {
+	font-size: .8em;
+}
+
+.comment-info .createdby > span {
+	margin-right: calc(var(--gutter-x) * 0.5);
+	margin-left: calc(var(--gutter-x) * 0.5);
+}
+
+.comment-info .createdby > span:first-child {
+	margin-left: 0;
+}
+
+.comment-info .createdby > span:last-child {
+	margin-right: 0;
+}
+
+.comment-info a {
+	text-decoration: none !important;
+}
+
+.comment-avatar {
+	height: 32px;
+	width: 32px;
+	overflow: hidden;
+}
+
+.comment-avatar img {
+	background-image: url('../images/no_avatar.png');
+	background-size: cover;
+	object-fit: scale-down;
+}
+
+a.toolbar-button-edit,
+a.toolbar-button-state,
+a.toolbar-button-delete,
+a.toolbar-button-ip,
+a.toolbar-button-ban {
+	margin-right: 0.5rem;
+	text-decoration: none;
+}
+
+/* Fix icon width to 16px. Default icon size 11x16px*/
+a.toolbar-button-state span.icon-unpublish {
+	padding: 0 .156em;
+}
+
+.user-panel a {
+	margin-right: 0.25rem;
+	margin-left: 0.25rem;
+	text-decoration: none !important;
+}
+
+/* Quote, Code and Hidden block styles */
+.comment-text .quote, .comment-text blockquote, .comment-text .code {
+	margin: .25em 0;
+}
+
+.comment-text blockquote {
+	border-left: 0.25em solid #849B9F;
+	color: #5b6b6e;
+	font-size: 1em;
+	padding: .5em;
+}
+
+.comment-text blockquote span.cite {
+	font-size: .9em;
+	padding-bottom: .5em;
+}
+
+.comment-text .codeblock {
+	margin-bottom: 0;
+}
+
+.comment-text .codeblock pre {
+	margin-bottom: 0;
+}
+
+.comment-text span.hide {
+	white-space: normal !important;
+}
+
+.comment-text p {
+	margin-bottom: 0;
+}
+
+#jform_terms_terms {
+	margin-bottom: .5em;
+}
+
+.vote-result {
+	cursor: default;
+}
+
+/* Sizing */
+.w-1 {
+	width: 1%;
+}
+
+.w-3 {
+	width: 3%;
+}
+
+.w-5 {
+	width: 5%;
+}
+
+.w-6 {
+	width: 6%;
+}
+
+.w-7 {
+	width: 7%;
+}
+
+.w-10 {
+	width: 10%;
+}
+
+.w-12 {
+	width: 12%;
+}
+
+.w-15 {
+	width: 15%;
+}
+
+.w-20 {
+	width: 20%;
+}
+
+.w-30 {
+	width: 30%;
+}
+
+.w-35 {
+	width: 35%;
+}
+
+.w-40 {
+	width: 40%;
+}
+
+.w-60 {
+	width: 60%;
+}
+
+.w-80 {
+	width: 80%;
+}
+
+/* CSS for jQuery More plugin v2.0.0. */
+.more-hidden {
+	display: none;
+}
+
+.more-link {
+	font-size: .8em;
+	padding: 0.125em 0.225em;
+	background-color: #eee;
+	border: 1px solid #ccc;
+	border-radius: 0.25em;
+	-moz-border-radius: 0.25em;
+	-webkit-border-radius: 0.25em;
+	text-decoration: none;
+}
+
+.more-link img {
+	border: none;
+}

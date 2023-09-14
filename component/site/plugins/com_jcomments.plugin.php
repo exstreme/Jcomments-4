@@ -1,53 +1,72 @@
 <?php
 /**
- * JComments plugin for JComments ;)
+ * JComments - Joomla Comment System
  *
- * @version 2.3
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 
-class jc_com_jcomments extends JCommentsPlugin
+use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
+use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
+use Joomla\Registry\Registry;
+
+class jc_com_jcomments extends JcommentsPlugin
 {
-	function getObjectInfo($id, $language)
+	public function getObjectInfo($id, $language = null)
 	{
-		$info = new JCommentsObjectInfo();
+		$info = new JcommentsObjectinfo;
 
-	        $menu = self::getMenuItem($id);
+		$menu = self::getMenuItem($id);
 
-	        if ($menu != '') {
-			$params = new JRegistry($menu->params);
+		if ($menu != '')
+		{
+			$params = new Registry($menu->params);
 
-			$info->title = $params->get('page_title') ? $params->get('page_title') : $menu->title;
+			$info->title  = $params->get('page_title') ? $params->get('page_title') : $menu->title;
 			$info->access = $menu->access;
-			$info->link = JRoute::_('index.php?option=com_jcomments&amp;Itemid='.$menu->id);
+			$info->link   = Route::_('index.php?option=com_jcomments&Itemid=' . $menu->id);
 			$info->userid = 0;
-	        }
+		}
 
 		return $info;
 	}
 
 	protected static function getMenuItem($id)
 	{
-		$db = JFactory::getDBO();
+		/** @var Joomla\Database\DatabaseDriver $db */
+		$db = Factory::getContainer()->get('DatabaseDriver');
 
-		$query = "SELECT m.*"
-			. " FROM `#__menu` AS m"
-			. " JOIN `#__extensions` AS e ON m.component_id = e.extension_id"
-			. " WHERE m.type = 'component'"
-			. " AND e.element = 'com_jcomments'"
-			. " AND m.published = 1"
-			. " AND m.parent_id > 0"
-			. " AND m.client_id = 0"
-			. " AND m.params LIKE '%\"object_id\":\"" . $id . "\"%'"
-			;			
+		$query = $db->getQuery(true)
+			->select('m.*')
+			->from($db->quoteName('#__menu', 'm'))
+			->innerJoin($db->quoteName('#__extensions', 'e'), 'm.component_id = e.extension_id')
+			->where($db->quoteName('m.type') . ' = ' . $db->quote('component'))
+			->where($db->quoteName('e.element') . ' = ' . $db->quote('com_jcomments'))
+			->where($db->quoteName('m.published') . ' = 1')
+			->where($db->quoteName('m.parent_id') . ' > 0')
+			->where($db->quoteName('m.client_id') . ' = 0')
+			->where($db->quoteName('m.params') . " LIKE '%\"object_id\":\"" . $id . "\"%'");
 
-		$db->setQuery($query, 0, 1);
-		$menus = $db->loadObjectList();
+		try
+		{
+			$db->setQuery($query, 0, 1);
+			$menus = $db->loadObjectList();
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+
+			return null;
+		}
 
 		return count($menus) ? $menus[0] : null;
 	}

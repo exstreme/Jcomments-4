@@ -35,16 +35,7 @@
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field
-						name="disable_error_reporting"
-						type="radio"
-						default="0"
-						class="btn-group btn-group-yesno"
-						label="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLEERRORREPORTING_LABEL"
-						description="PLG_SYSTEM_JCOMMENTS_FIELD_DISABLEERRORREPORTING_DESC">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
+
 				<field
 						name="clear_rss"
 						type="radio"

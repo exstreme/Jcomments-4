@@ -15,44 +15,50 @@ namespace Joomla\Module\LatestComments\Site\Helper;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Access;
+use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
+use Joomla\Database\ParameterType;
+use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
-
-// TODO Must be removed later when component frontend will use namespaces.
-require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
-require_once JPATH_ROOT . '/components/com_jcomments/classes/text.php';
-require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
-require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
 
 /**
  * Helper for mod_jcomments_latest
  *
  * @since  1.5
  */
-class LatestCommentsHelper
+class LatestCommentsHelper implements DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
 	/**
-	 * Retrieve list of articles
+	 * Retrieve list of comments
 	 *
-	 * @param   \Joomla\Registry\Registry  $params  Module parameters
+	 * @param   Registry         $params  Module parameters
+	 * @param   SiteApplication  $app     Application
 	 *
 	 * @return  array
 	 *
 	 * @throws  \Exception
 	 * @since   1.5
 	 */
-	public static function getList(&$params)
+	public function getComments(Registry $params, SiteApplication $app)
 	{
-		/** @var \Joomla\Database\DatabaseDriver $db */
-		$db      = Factory::getContainer()->get('DatabaseDriver');
-		$user    = Factory::getApplication()->getIdentity();
+		$db      = $this->getDatabase();
+		$user    = $app->getIdentity();
 		$source  = $params->get('source', 'com_content');
 		$date    = Factory::getDate();
 		$nowDate = $date->toSql();
@@ -61,6 +67,14 @@ class LatestCommentsHelper
 		if (!is_array($source))
 		{
 			$source = explode(',', $source);
+			$filter = InputFilter::getInstance();
+			$source = array_map(
+				function ($source) use ($filter)
+				{
+					return $filter->clean($source, 'cmd');
+				},
+				$source
+			);
 		}
 
 		$query = $db->getQuery(true)
@@ -73,42 +87,55 @@ class LatestCommentsHelper
 				)
 			)
 			->select("'' avatar")
-			->select($db->qn('obj.title', 'object_title'))
-			->select($db->qn('obj.link', 'object_link'))
-			->select($db->qn('obj.access', 'object_access'))
-			->select($db->qn('obj.userid', 'object_owner'))
+			->select(
+				array(
+					$db->qn('obj.title', 'object_title'),
+					$db->qn('obj.link', 'object_link'),
+					$db->qn('obj.access', 'object_access'),
+					$db->qn('obj.userid', 'object_owner')
+				)
+			)
 			->from($db->qn('#__jcomments', 'c'))
 			->innerJoin(
 				$db->qn('#__jcomments_objects', 'obj'),
-				'c.object_id = obj.object_id AND c.object_group = obj.object_group AND c.lang = obj.lang'
+				$db->qn('c.object_id') . ' = ' . $db->qn('obj.object_id')
+					. ' AND ' . $db->qn('c.object_group') . ' = ' . $db->qn('obj.object_group')
+					. ' AND ' . $db->qn('c.lang') . ' = ' . $db->qn('obj.lang')
 			)
 			->where(
 				array(
 					$db->qn('c.published') . ' = 1',
 					$db->qn('c.deleted') . ' = 0',
-					$db->qn('obj.link') . " <> ''",
-					$db->qn('obj.access') . (is_array($access) ? ' IN (' . implode(',', $access) . ')' : ' <= ' . (int) $access)
+					$db->qn('obj.link') . " <> ''"
 				)
-			);
+			)
+			->whereIn($db->qn('obj.access'), $access);
 
-		// TODO Must be changed later when component frontend will use namespaces.
-		if (\JCommentsFactory::getLanguageFilter())
+		if (JcommentsFactory::getLanguageFilter())
 		{
-			$langTag = Factory::getApplication()->getLanguage()->getTag();
-			$query->where($db->qn('c.lang') . ' = ' . $db->quote($langTag));
+			$langTag = $app->getLanguage()->getTag();
+			$query->where($db->qn('c.lang') . ' = :lang')
+				->bind(':lang', $langTag);
 		}
 
 		if (count($source) == 1 && $source[0] == 'com_content')
 		{
-			$query->innerJoin($db->qn('#__content', 'content'), 'content.id = obj.object_id')
-				->leftJoin($db->qn('#__categories', 'cat'), 'cat.id = content.catid')
+			$query->innerJoin(
+				$db->qn('#__content', 'content'),
+				$db->qn('content.id') . ' = ' . $db->qn('obj.object_id')
+			)
+				->leftJoin(
+					$db->qn('#__categories', 'cat'),
+					$db->qn('cat.id') . ' = ' . $db->qn('content.catid')
+				)
 				->where(
 					array(
-						$db->qn('c.object_group') . ' = ' . $db->quote($source[0]),
+						$db->qn('c.object_group') . ' = :source',
 						'(' . $db->qn('content.publish_up') . ' IS NULL OR ' . $db->qn('content.publish_up') . ' <= :publishUp)',
 						'(' . $db->qn('content.publish_down') . ' IS NULL OR ' . $db->qn('content.publish_down') . ' >= :publishDown)'
 					)
 				)
+				->bind(':source', $source[0])
 				->bind(':publishUp', $nowDate)
 				->bind(':publishDown', $nowDate);
 
@@ -119,17 +146,17 @@ class LatestCommentsHelper
 				$categories = explode(',', $categories);
 			}
 
+			$categories = ArrayHelper::toInteger($categories);
 			$categories = array_filter($categories);
-			ArrayHelper::toInteger($categories);
 
 			if (!empty($categories))
 			{
-				$query->where($db->qn('content.catid') . ' IN (' . implode(',', $categories) . ')');
+				$query->whereIn($db->qn('content.catid'), $categories);
 			}
 		}
 		elseif (count($source))
 		{
-			$query->where($db->qn('c.object_group') . ' IN (' . $db->quote(implode("','", $source), false) . ')');
+			$query->whereIn($db->qn('c.object_group'), $source, ParameterType::STRING);
 		}
 
 		switch ($params->get('ordering', ''))
@@ -151,7 +178,7 @@ class LatestCommentsHelper
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'mod_jcomments_latest');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'mod_jcomments_latest');
 
 			return array();
 		}
@@ -167,14 +194,14 @@ class LatestCommentsHelper
 			$showSmiles       = $params->get('show_smiles', 0);
 			$showAvatar       = $params->get('show_avatar', 0);
 			$limitCommentText = (int) $params->get('limit_comment_text', 0);
-			$bbcode           = \JCommentsFactory::getBBCode();
-			$smiles           = \JCommentsFactory::getSmilies();
+			$bbcode           = JcommentsFactory::getBBCode();
+			$smiles           = JcommentsFactory::getSmilies();
 
 			if ($showAvatar)
 			{
 				if (PluginHelper::importPlugin('jcomments', 'avatar') === true)
 				{
-					Factory::getApplication()->triggerEvent('onPrepareAvatars', array(&$list));
+					$app->triggerEvent('onPrepareAvatars', array(&$list));
 				}
 			}
 
@@ -196,25 +223,27 @@ class LatestCommentsHelper
 					$item->displayDate = '';
 				}
 
-				// TODO Must be changed later when component frontend will use namespaces.
-				$item->displayAuthorName   = $showAuthor ? \JCommentsContent::getCommentAuthorName($item) : '';
-
+				$itemid = JcommentsContentHelper::getItemid($app->input->getWord('view'));
+				$item->object_link         = Route::_($item->object_link . '&Itemid=' . $itemid);
+				$item->displayAuthorName   = $showAuthor ? JcommentsContentHelper::getCommentAuthorName($item) : '';
 				$item->displayObjectTitle  = $showObjectTitle ? $item->object_title : '';
 				$item->displayCommentTitle = $showCommentTitle ? $item->title : '';
 				$item->displayCommentLink  = $item->object_link . '#comment-' . $item->id;
 
-				// TODO Must be changed later when component frontend will use namespaces.
-				$text = \JCommentsText::censor($item->comment);
+				$text = JcommentsText::censor($item->comment);
 				$text = preg_replace('#\[quote[^\]]*?\](((?R)|.)*?)\[\/quote\]#ismu', '', $text);
 				$text = $bbcode->filter($text, true);
 
 				if ($user->authorise('comment.autolink', 'com_jcomments'))
 				{
-					// TODO Change when constant and urlProcessor will be moved into ContentHelper class.
-					$text = preg_replace_callback(_JC_REGEXP_LINK, array('JComments', 'urlProcessor'), $text);
+					$text = preg_replace_callback(
+						'#(^|\s|\>|\()((http://|https://|news://|ftp://|www.)\w+[^\s\<\>\"\'\)]+)#iu',
+						'Joomla\Component\Jcomments\Site\Helper\ContentHelper::urlProcessor',
+						$text
+					);
 				}
 
-				$text = \JCommentsText::cleanText($text);
+				$text = JcommentsText::cleanText($text);
 
 				if ($limitCommentText && StringHelper::strlen($text) > $limitCommentText)
 				{

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="captcha" method="upgrade">
+	<name>plg_captcha_kcaptcha</name>
+	<version>2.0.0</version>
+	<creationDate>January 2022</creationDate>
+	<author>Vladimir Globulopolis</author>
+	<authorUrl>xn--80aeqbhthr9b.com</authorUrl>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<description>PLG_CAPTCHA_KCAPTCHA_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\Captcha\Kcaptcha</namespace>
+	<files>
+		<filename plugin="kcaptcha">kcaptcha.php</filename>
+
+		<folder>layouts</folder>
+		<folder>src</folder>
+	</files>
+	<media folder="media" destination="plg_captcha_kcaptcha">
+		<folder>fonts</folder>
+		<folder>js</folder>
+	</media>
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_captcha_kcaptcha.ini</language>
+		<language tag="en-GB">language/en-GB/plg_captcha_kcaptcha.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field
+					name="alphabet"
+					type="text"
+					label="PLG_KCAPTCHA_ALPHABET"
+					filter="string"
+					default="0123456789abcdefghijklmnopqrstuvwxyz"
+				/>
+
+				<field
+					name="allowedSymbols"
+					type="text"
+					label="PLG_KCAPTCHA_SYMBOLS"
+					filter="string"
+					default="23456789abcdeghkmnpqsuvxyz"
+				/>
+
+				<field
+					name="fontsDir"
+					type="text"
+					label="PLG_KCAPTCHA_FONTS"
+					default="media/plg_captcha_kcaptcha/fonts"
+				/>
+
+				<field
+					name="length"
+					type="number"
+					label="PLG_KCAPTCHA_LENGTH"
+					filter="integer"
+					min="4"
+					max="8"
+					step="1"
+					default="5"
+				/>
+
+				<field
+					name="width"
+					type="text"
+					label="PLG_KCAPTCHA_WIDTH"
+					filter="integer"
+					default="160"
+				/>
+
+				<field
+					name="height"
+					type="text"
+					label="PLG_KCAPTCHA_HEIGHT"
+					filter="integer"
+					default="80"
+				/>
+
+				<field
+					name="fluctuationAmplitude"
+					type="text"
+					label="PLG_KCAPTCHA_AMP"
+					filter="integer"
+					default="8"
+				/>
+
+				<field
+					name="noSpaces"
+					type="radio"
+					class="btn-group"
+					label="PLG_KCAPTCHA_SPACES"
+					default="1"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="showCredits"
+					type="radio"
+					class="btn-group"
+					label="PLG_KCAPTCHA_CREDITS"
+					default="0"
+					filter="integer"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
+				</field>
+
+				<field
+					name="credits"
+					type="text"
+					label="PLG_KCAPTCHA_CREDITS_TEXT"
+					filter="string"
+				/>
+
+				<field
+					name="foregroundColor"
+					type="color"
+					format="rgb"
+					label="PLG_KCAPTCHA_FG_COLOR"
+					default="rgb(180, 180, 180)"
+					filter="string"
+				/>
+
+				<field
+					name="backgroundColor"
+					type="color"
+					format="rgb"
+					label="PLG_KCAPTCHA_BG_COLOR"
+					default="rgb(246, 246, 246)"
+					filter="string"
+				/>
+
+				<field
+					name="rand"
+					type="radio"
+					label="PLG_KCAPTCHA_RAND"
+					default="0"
+					filter="integer"
+					class="btn-group"
+				>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+
+				<field
+					name="noise"
+					type="radio"
+					label="PLG_KCAPTCHA_NOISE"
+					default="1"
+					filter="integer"
+					class="btn-group"
+				>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+
+				<field
+					name="whiteNoiseDensity"
+					type="number"
+					label="PLG_KCAPTCHA_NOISE_WHITE"
+					min="4"
+					max="100"
+					default="6"
+					filter="integer"
+				/>
+
+				<field
+					name="blackNoiseDensity"
+					type="number"
+					label="PLG_KCAPTCHA_NOISE_BLACK"
+					min="10"
+					max="100"
+					default="30"
+					filter="integer"
+				/>
+
+				<field
+					name="jpegQuality"
+					type="number"
+					label="PLG_KCAPTCHA_QUALITY"
+					min="50"
+					max="100"
+					default="90"
+					filter="integer"
+				/>
+			</fieldset>
+		</fields>
+	</config>
+</extension>

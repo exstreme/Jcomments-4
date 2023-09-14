@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset addfieldprefix="Joomla\Plugin\System\PrivacyConsent\Field">
+		<field
+				name="comment_id"
+				type="hidden"
+				default="0"
+				readonly="true"
+		/>
+
+		<field
+				name="parent"
+				type="hidden"
+				default="0"
+				required="true"
+		/>
+
+		<field
+				name="userid"
+				type="hidden"
+				default="0"
+				readonly="true"
+		/>
+
+		<field
+				name="name"
+				type="text"
+				label="FORM_NAME"
+				size="30"
+				filter="string"
+		/>
+
+		<field
+				name="email"
+				type="email"
+				label="JGLOBAL_EMAIL"
+				size="30"
+				filter="string"
+				validate="email"
+				validDomains="com_users.domains"
+		/>
+
+		<field
+				name="homepage"
+				type="url"
+				label="FORM_HOMEPAGE"
+				size="30"
+				filter="url"
+				validate="url"
+		/>
+
+		<field
+				name="title"
+				type="text"
+				label="FORM_TITLE"
+				size="30"
+				filter="string"
+		/>
+
+		<field
+				addfieldprefix="Joomla\Component\Jcomments\Site\Field"
+				name="comment"
+				type="Jceditor"
+				label="FORM_HEADER"
+				hiddenLabel="true"
+				hint="COMMENT_ITEM"
+				rows="10"
+				cols="100"
+				filter="JComponentHelper::filterText"
+				required="true"
+				width="100%"
+				height="350"
+		/>
+
+		<field
+				name="subscribe"
+				type="checkbox"
+				default="0"
+				label="LINK_SUBSCRIBE"
+				filter="integer"
+		/>
+
+		<field
+				name="terms_of_use"
+				id="terms_terms"
+				type="radio"
+				default="0"
+				label="FORM_TOS"
+				filter="integer"
+				required="true"
+		>
+			<option value="1">FORM_TOS_ACCEPT</option>
+			<option value="0">FORM_TOS_DECLINE</option>
+		</field>
+
+		<field
+				name="comment_captcha"
+				type="captcha"
+				label="FORM_CAPTCHA"
+				validate="captcha"
+				namespace="comment"
+		/>
+	</fieldset>
+</form>

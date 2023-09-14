@@ -15,35 +15,41 @@ namespace Joomla\Module\MostCommented\Site\Helper;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Access;
+use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Log\Log;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
+use Joomla\Database\ParameterType;
+use Joomla\Registry\Registry;
 use Joomla\Utilities\ArrayHelper;
-
-// @TODO Must be removed later when component frontend will use namespaces.
-require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
 
 /**
  * Helper for mod_jcomments_most_commented
  *
  * @since  1.5
  */
-class MostCommentedHelper
+class MostCommentedHelper implements DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
 	/**
 	 * Retrieve list of articles
 	 *
-	 * @param   \Joomla\Registry\Registry  $params  Module parameters
+	 * @param   Registry         $params  Module parameters
+	 * @param   SiteApplication  $app     Application
 	 *
 	 * @return  array
 	 *
 	 * @throws  \Exception
-	 * @since   1.5
+	 * @since   4.1
 	 */
-	public static function getList(&$params)
+	public function getItems(Registry $params, SiteApplication $app)
 	{
-		/** @var \Joomla\Database\DatabaseDriver $db */
-		$db       = Factory::getContainer()->get('DatabaseDriver');
-		$user     = Factory::getApplication()->getIdentity();
+		$db       = $this->getDatabase();
+		$user     = $app->getIdentity();
 		$source   = $params->get('source', 'com_content');
 		$date     = Factory::getDate();
 		$nowDate  = $date->toSql();
@@ -53,40 +59,60 @@ class MostCommentedHelper
 		if (!is_array($source))
 		{
 			$source = explode(',', $source);
+			$filter = InputFilter::getInstance();
+			$source = array_map(
+				function ($source) use ($filter)
+				{
+					return $filter->clean($source, 'cmd');
+				},
+				$source
+			);
 		}
 
 		$query = $db->getQuery(true)
 			->select($db->qn(array('obj.id', 'obj.title', 'obj.link')))
-			->select('COUNT(c.id) AS commentsCount, MAX(c.date) AS commentdate')
+			->select('COUNT(' . $db->qn('c.id') . ') AS commentsCount, MAX(' . $db->qn('c.date') . ') AS commentdate')
 			->from($db->qn('#__jcomments_objects', 'obj'))
-			->innerJoin($db->qn('#__jcomments', 'c'), 'c.object_id = obj.object_id AND c.object_group = obj.object_group AND c.lang = obj.lang')
+			->innerJoin(
+				$db->qn('#__jcomments', 'c'),
+				$db->qn('c.object_id') . ' = ' . $db->qn('obj.object_id')
+				. ' AND ' . $db->qn('c.object_group') . ' = ' . $db->qn('obj.object_group')
+				. ' AND ' . $db->qn('c.lang') . ' = ' . $db->qn('obj.lang')
+			)
 			->where(
 				array(
 					$db->qn('c.published') . ' = 1',
 					$db->qn('c.deleted') . ' = 0',
-					$db->qn('obj.link') . " <> ''",
-					$db->qn('obj.access') . (is_array($access) ? ' IN (' . implode(',', $access) . ')' : ' <= ' . (int) $access)
+					$db->qn('obj.link') . " <> ''"
 				)
-			);
+			)
+			->whereIn($db->qn('obj.access'), $access);
 
-		// @TODO Must be changed later when component frontend will use namespaces.
-		if (\JCommentsFactory::getLanguageFilter())
+		if (JcommentsFactory::getLanguageFilter())
 		{
-			$langTag = Factory::getApplication()->getLanguage()->getTag();
-			$query->where($db->qn('obj.lang') . ' = ' . $db->quote($langTag));
+			$langTag = $app->getLanguage()->getTag();
+			$query->where($db->qn('obj.lang') . ' = :lang')
+				->bind(':lang', $langTag);
 		}
 
 		if (count($source) == 1 && $source[0] == 'com_content')
 		{
-			$query->innerJoin($db->qn('#__content', 'content'), 'content.id = obj.object_id')
-				->leftJoin($db->qn('#__categories', 'cat'), 'cat.id = content.catid')
+			$query->innerJoin(
+				$db->qn('#__content', 'content'),
+				$db->qn('content.id') . ' = ' . $db->qn('obj.object_id')
+			)
+				->leftJoin(
+					$db->qn('#__categories', 'cat'),
+					$db->qn('cat.id') . ' = ' . $db->qn('content.catid')
+				)
 				->where(
 					array(
-						$db->qn('c.object_group') . ' = ' . $db->quote($source[0]),
+						$db->qn('c.object_group') . ' = :source',
 						'(' . $db->qn('content.publish_up') . ' IS NULL OR ' . $db->qn('content.publish_up') . ' <= :publishUp)',
 						'(' . $db->qn('content.publish_down') . ' IS NULL OR ' . $db->qn('content.publish_down') . ' >= :publishDown)'
 					)
 				)
+				->bind(':source', $source[0])
 				->bind(':publishUp', $nowDate)
 				->bind(':publishDown', $nowDate);
 
@@ -97,17 +123,17 @@ class MostCommentedHelper
 				$categories = explode(',', $categories);
 			}
 
+			$categories = ArrayHelper::toInteger($categories);
 			$categories = array_filter($categories);
-			ArrayHelper::toInteger($categories);
 
 			if (!empty($categories))
 			{
-				$query->where($db->qn('content.catid') . ' IN (' . implode(',', $categories) . ')');
+				$query->whereIn($db->qn('content.catid'), $categories);
 			}
 		}
 		elseif (count($source))
 		{
-			$query->where($db->qn('c.object_group') . ' IN (' . $db->quote(implode("','", $source), false) . ')');
+			$query->whereIn($db->qn('c.object_group'), $source, ParameterType::STRING);
 		}
 
 		if (!empty($interval))
@@ -172,7 +198,7 @@ class MostCommentedHelper
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'mod_jcomments_latest_commented');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'mod_jcomments_latest_commented');
 
 			return array();
 		}

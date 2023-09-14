@@ -3,10 +3,10 @@
 	<name>plg_jcomments_avatar</name>
 	<creationDate>February 2022</creationDate>
 	<author>JComments team</author>
-	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.2.6</version>
+	<version>4.3.0</version>
 	<description>PLG_JCOMMENTS_AVATAR_XML_DESCRIPTION</description>
 
 	<files>
@@ -70,6 +70,8 @@
 					type="textarea"
 					rows="5"
 					cols="25"
+					default="s=32;
+					d=mp;"
 					label="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_LABEL"
 					description="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_DESC"
 					showon="avatar_type:gravatar"

@@ -14,36 +14,39 @@ namespace Joomla\Module\TopPosters\Site\Helper;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Uri\Uri;
-
-// @TODO Must be removed later when component frontend will use namespaces.
-require_once JPATH_ROOT . '/components/com_jcomments/classes/factory.php';
-require_once JPATH_ROOT . '/components/com_jcomments/helpers/content.php';
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
+use Joomla\Registry\Registry;
 
 /**
  * Helper for mod_jcomments_top_posters
  *
  * @since  1.5
  */
-class TopPostersHelper
+class TopPostersHelper implements DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
 	/**
 	 * Retrieve list of articles
 	 *
-	 * @param   \Joomla\Registry\Registry  $params  Module parameters
+	 * @param   Registry         $params  Module parameters
+	 * @param   SiteApplication  $app     Application
 	 *
 	 * @return  array
 	 *
 	 * @throws  \Exception
 	 * @since   1.5
 	 */
-	public static function getList(&$params)
+	public function getItems(Registry $params, SiteApplication $app)
 	{
-		/** @var \Joomla\Database\DatabaseDriver $db */
-		$db       = Factory::getContainer()->get('DatabaseDriver');
+		$db       = $this->getDatabase();
 		$date     = Factory::getDate();
 		$interval = $params->get('interval', '');
 
@@ -131,7 +134,7 @@ class TopPostersHelper
 		}
 		catch (\RuntimeException $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'mod_jcomments_latest_commented');
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'mod_jcomments_latest_commented');
 
 			return array();
 		}
@@ -142,12 +145,12 @@ class TopPostersHelper
 		{
 			PluginHelper::importPlugin('jcomments');
 
-			Factory::getApplication()->triggerEvent('onPrepareAvatars', array(&$list));
+			$app->triggerEvent('onPrepareAvatars', array(&$list));
 		}
 
-		foreach ($list as &$item)
+		foreach ($list as $item)
 		{
-			$item->displayAuthorName = \JCommentsContent::getCommentAuthorName($item);
+			$item->displayAuthorName = JcommentsContentHelper::getCommentAuthorName($item);
 
 			if ($showAvatar && empty($item->avatar))
 			{

@@ -21,41 +21,45 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
+use Joomla\Event\EventInterface;
+use Joomla\Event\SubscriberInterface;
 
 /**
  * Class to add support for avatar(s) in JComments
  *
  * @since  1.5
  */
-class PlgJcommentsAvatar extends CMSPlugin
+class PlgJcommentsAvatar extends CMSPlugin implements SubscriberInterface
 {
 	/**
-	 * Prepare avatar for single comment
+	 * Returns an array of events this subscriber will listen to.
 	 *
-	 * @param   mixed  $comment  Array with comment object
+	 * @return  array
 	 *
-	 * @return  void
-	 *
-	 * @since   1.5
+	 * @since   4.0.0
 	 */
-	public function onPrepareAvatar(&$comment)
+	public static function getSubscribedEvents(): array
 	{
-		$comments    = array();
-		$comments[0] = &$comment;
-		$this->onPrepareAvatars($comments);
+		return array(
+			'onPrepareAvatar'  => 'onPrepareAvatars',
+			'onPrepareAvatars' => 'onPrepareAvatars'
+		);
 	}
 
 	/**
 	 * Prepare avatars for comments list
 	 *
-	 * @param   array  $comments  Comments list
+	 * @param   EventInterface  $event  The event
 	 *
 	 * @return  void
 	 *
 	 * @since   1.5
 	 */
-	public function onPrepareAvatars(array &$comments)
+	public function onPrepareAvatars(EventInterface $event)
 	{
+		/** @var array $comments */
+		$comments = $event->getArgument('0');
+
 		if ($this->params->get('avatar_type') == 'default')
 		{
 			foreach ($comments as $comment)
@@ -84,7 +88,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getComprofilerImage(array $comments)
 	{
@@ -157,7 +161,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  void
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getContactsImage(array $comments)
 	{
@@ -233,13 +237,18 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  string
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getDefaultImage(string $type = 'default'): string
 	{
 		switch ($type)
 		{
 			case 'custom':
+				if (empty(ltrim($this->params->get('avatar_custom_default_avatar'))))
+				{
+					return '';
+				}
+
 				return Uri::base() . ltrim($this->params->get('avatar_custom_default_avatar'), '/');
 			default:
 				return Uri::base() . 'media/com_jcomments/images/no_avatar.png';
@@ -254,7 +263,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getEasysocialImage(array $comments)
 	{
@@ -302,6 +311,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 							// $format = $uri->getVar('format', 'html');
 							$format = 'html';
 							$url .= '.' . $format;
+
 						}
 
 						if ($this->params->get('avatar_link') == 1)
@@ -332,7 +342,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  void
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getGravatarImage(array $comments)
 	{
@@ -342,9 +352,18 @@ class PlgJcommentsAvatar extends CMSPlugin
 		{
 			$options = parse_ini_string($options);
 
-			if (!isset($options['d']))
+			if (!isset($options['d']) && !isset($options['default']))
 			{
-				$options['d'] = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$defaultImg = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$options['d'] = empty($defaultImg) ? 'mp' : $defaultImg;
+			}
+
+			if (isset($options['f']) || isset($options['forcedefault']))
+			{
+				if ($options['f'] == 'y' || $options['forcedefault'] == 'y')
+				{
+					$options['f'] = 'y';
+				}
 			}
 
 			$query = http_build_query($options);
@@ -367,7 +386,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  string
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected static function getItemid(string $link): string
 	{
@@ -398,7 +417,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  void
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getJomsocialImage(array $comments)
 	{
@@ -462,7 +481,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getKunenaImage(array $comments)
 	{
@@ -541,7 +560,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getPhocagalleryImage(array $comments)
 	{
@@ -600,7 +619,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getPhpbb3Image(array $comments)
 	{
@@ -786,7 +805,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getSmfImage(array $comments)
 	{
@@ -978,7 +997,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  array
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getUsers(array $comments, bool $emails = false, bool $login = false): array
 	{

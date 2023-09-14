@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <extension type="package" method="upgrade">
 	<name>JComments package</name>
 	<author>JComments team</author>
-	<creationDate>January 2023</creationDate>
+	<creationDate>October 2022</creationDate>
 	<packagename>jcomments</packagename>
-	<version>4.0.28</version>
+	<version>4.1.0</version>
 	<url>https://github.com/exstreme/Jcomments-4</url>
 	<packager>JComments team</packager>
 	<packagerurl>https://github.com/exstreme/Jcomments-4</packagerurl>
@@ -14,12 +14,13 @@
 	<files folder="packages">
 		<file type="component" id="com_jcomments">com_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="content">plg_content_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="extension">plg_extension_jcomments.zip</file>
 		<file type="plugin" id="jcommentslock" group="editors-xtd">plg_jcommentslock_jcomments.zip</file>
-		<file type="plugin" id="jcommentson" group="editors-xtd">plg_jcommentson_jcomments.zip</file>
 		<file type="plugin" id="jcommentsoff" group="editors-xtd">plg_jcommentsoff_jcomments.zip</file>
+		<file type="plugin" id="jcommentson" group="editors-xtd">plg_jcommentson_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="quickicon">plg_quickicon_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="system">plg_system_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="user">plg_user_jcomments.zip</file>
-		<file type="plugin" id="jcomments" group="quickicon">plg_quickicon_jcomments.zip</file>
 	</files>
 
 	<compatibility>

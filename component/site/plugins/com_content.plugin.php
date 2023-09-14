@@ -1,51 +1,65 @@
 <?php
 /**
- * JComments plugin for standart content objects support
+ * JComments - Joomla Comment System
  *
- * @version       2.3
- * @package       JComments
- * @author        Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- */
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Access;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 
-require_once JPATH_ROOT . '/components/com_jcomments/classes/plugin.php';
-
-class jc_com_content extends JCommentsPlugin
+class jc_com_content extends JcommentsPlugin
 {
-	function getObjectInfo($id, $language = null)
+	/**
+	 * Get object information for com_content
+	 *
+	 * @param   integer  $id        Article ID
+	 * @param   mixed    $language  Language tag
+	 *
+	 * @return  object
+	 *
+	 * @throws  \Exception
+	 * @since   1.5
+	 */
+	public function getObjectInfo($id, $language = null)
 	{
-		$db    = Factory::getContainer()->get('DatabaseDriver');
-		$link  = null;
-		$query = $db->getQuery(true);
+		$app = Factory::getApplication();
+		$link = null;
 
-		// Select the required fields from the table.
-		$query->select('a.id, a.title, a.created_by, a.access, a.alias, a.catid, a.language');
-		$query->from('#__content AS a');
+		/** @var Joomla\Component\Content\Site\Model\ArticleModel $model */
+		$model = $app->bootComponent('com_content')->getMVCFactory()->createModel('Article', 'Site', ['ignore_request' => true]);
+		$model->setState('params', ComponentHelper::getParams('com_content'));
 
-		// Join over the categories.
-		$query->select('c.title AS category_title, c.path AS category_route, c.access AS category_access, c.alias AS category_alias');
-		$query->join('LEFT', '#__categories AS c ON c.id = a.catid');
-		$query->where('a.id = ' . (int) $id);
+		try
+		{
+			$article = $model->getItem($id);
+		}
+		catch (\Exception $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
-		$db->setQuery($query);
-		$article = $db->loadObject();
+			return new JcommentsObjectinfo;
+		}
 
 		if (!empty($article))
 		{
-			$user = Factory::getUser();
-
 			$article->slug    = $article->alias ? ($article->id . ':' . $article->alias) : $article->id;
 			$article->catslug = $article->category_alias ? ($article->catid . ':' . $article->category_alias) : $article->catid;
 
-			$authorised  = Access::getAuthorisedViewLevels($user->get('id'));
+			$authorised  = Access::getAuthorisedViewLevels($app->getIdentity()->get('id'));
 			$checkAccess = in_array($article->access, $authorised);
 
 			if ($checkAccess)
@@ -55,7 +69,7 @@ class jc_com_content extends JCommentsPlugin
 			else
 			{
 				$returnURL = Route::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catslug, $article->language));
-				$menu      = Factory::getApplication()->getMenu();
+				$menu      = $app->getMenu();
 				$active    = $menu->getActive();
 				$itemId    = $active->id;
 				$link      = Route::_('index.php?option=com_users&view=login&Itemid=' . $itemId);
@@ -65,7 +79,7 @@ class jc_com_content extends JCommentsPlugin
 			}
 		}
 
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectinfo;
 
 		if (!empty($article))
 		{

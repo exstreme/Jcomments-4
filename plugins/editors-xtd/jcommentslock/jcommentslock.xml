@@ -2,7 +2,8 @@
 <extension type="plugin" group="editors-xtd" method="upgrade">
 	<name>plg_editors-xtd_jcommentslock</name>
 	<creationDate>March 2022</creationDate>
-	<copyright>2022 by exstreme and Vladimir Globulopolis</copyright>
+	<author>JComments team</author>
+	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
 	<version>4.0.1</version>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="extension" method="upgrade">
+	<name>plg_extension_jcomments</name>
+	<creationDate>December 2022</creationDate>
+	<author>JComments team</author>
+	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.1</version>
+	<description>PLG_EXTENSION_JCOMMENTS_XML_DESCRIPTION</description>
+
+	<files>
+		<filename plugin="jcomments">jcomments.php</filename>
+	</files>
+
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_extension_jcomments.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_extension_jcomments.sys.ini</language>
+	</languages>
+</extension>

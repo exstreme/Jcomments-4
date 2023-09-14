@@ -21,7 +21,7 @@ use Joomla\CMS\Language\Text;
 ?>
 <div class="list-group list-group-flush <?php echo $params->get('moduleclass_sfx'); ?>">
 	<?php foreach ($list as $groupName => $group): ?>
-		<div class="list-group-item list-group-item-action">
+		<div class="list-group-item list-group-item-action p-0">
 			<div class="d-flex justify-content-between">
 				<h<?php echo $itemHeading; ?> class="mb-1 w-75 text-truncate">
 					<?php if ($params->get('link_object_title', 1) && $group[0]->object_link != ''): ?>
@@ -38,17 +38,16 @@ use Joomla\CMS\Language\Text;
 
 						<div class="list-group-item">
 							<?php if ($params->get('show_comment_title') && $item->displayCommentTitle): ?>
-								<div class="d-flex w-100 justify-content-between">
-									<h6 class="mb-1 w-75 text-truncate"><?php echo $item->displayCommentTitle; ?></h6>
-
-									<?php if ($params->get('show_comment_date')): ?>
-										<small>
-											<?php if ($params->get('date_type') == 'absolute'): ?>
-												<span class="icon-calendar icon-fw" aria-hidden="true"></span>
-											<?php endif; ?>
-											<?php echo $item->displayDate; ?>
-										</small>
+								<div class="d-inline-block comment-title text-muted w-100 text-truncate">
+									<strong><?php echo $item->displayCommentTitle; ?></strong>
+								</div>
+							<?php endif; ?>
+							<?php if ($params->get('show_comment_date')): ?>
+								<div class="comment-info text-muted">
+									<?php if ($params->get('date_type') == 'absolute'): ?>
+										<span class="icon-calendar icon-fw" aria-hidden="true"></span>
 									<?php endif; ?>
+									<?php echo $item->displayDate; ?>
 								</div>
 							<?php endif; ?>
 

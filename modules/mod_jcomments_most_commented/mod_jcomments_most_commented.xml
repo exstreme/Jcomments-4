@@ -3,18 +3,18 @@
 	<name>mod_jcomments_most_commented</name>
 	<creationDate>February 2022</creationDate>
 	<author>JComments team</author>
-	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.2</version>
+	<version>4.1.0</version>
 	<description>MOD_JCOMMENTS_MOST_COMMENTED_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Module\MostCommented</namespace>
 
 	<files>
+		<folder module="mod_jcomments_most_commented">services</folder>
 		<folder>src</folder>
 		<folder>tmpl</folder>
 
-		<filename module="mod_jcomments_most_commented">mod_jcomments_most_commented.php</filename>
 		<filename>mod_jcomments_most_commented.xml</filename>
 	</files>
 
@@ -73,7 +73,7 @@
 
 	<config>
 		<fields name="params">
-			<fieldset name="basic" addfieldprefix="Joomla\Module\MostCommented\Site\Field">
+			<fieldset name="basic" addfieldprefix="Joomla\Component\Jcomments\Administrator\Field">
 				<field
 					name="source"
 					type="objectgroup"

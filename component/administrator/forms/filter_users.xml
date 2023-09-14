@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields name="filter">
+		<field
+				name="search"
+				type="text"
+				inputmode="search"
+				label="JSEARCH_FILTER_LABEL"
+				hint="JSEARCH_FILTER"
+		/>
+	</fields>
+
+	<fields name="list">
+		<field
+				name="fullordering"
+				type="list"
+				label="JGLOBAL_SORT_BY"
+				default="ju.id ASC"
+				onchange="this.form.submit();"
+				validate="options"
+		>
+			<option value="">JGLOBAL_SORT_BY</option>
+			<option value="username ASC">A_CUSTOM_BBCODE_SORT_NAME_ASC</option>
+			<option value="username DESC">A_CUSTOM_BBCODE_SORT_NAME_DESC</option>
+			<option value="ju.id ASC">JGRID_HEADING_ID_ASC</option>
+			<option value="ju.id DESC">JGRID_HEADING_ID_DESC</option>
+		</field>
+
+		<field
+				name="limit"
+				type="limitbox"
+				label="JGLOBAL_LIST_LIMIT"
+				default="25"
+				onchange="this.form.submit();"
+		/>
+	</fields>
+</form>

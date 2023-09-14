@@ -1,16 +1,16 @@
-# JComments 4.0 (Stable)
+# (Dev) JComments 4.1
 
-![](https://img.shields.io/github/stars/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/forks/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/tag/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/release/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/issues/exstreme/Jcomments-4.svg)
+Adapting the component to work with Joomla 4.
 
-This branch is stable. Adapting the component to work with Joomla 4 continuing in 4.1 branch.
+## TODO
+
+- [x] Make backend to work with new Joomla 4 MVC.
+- [ ] Make frontend to work with new Joomla 4 MVC.
+
 
 ## Quick Start
 
-Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" target="_blank">latest version</a> of package
-
-## Requirements
-
-Joomla 4.2+
+There are currently no releases to install. Use build.php script to make package.
 
 ## Migration from Jcomments 3
 - make backup

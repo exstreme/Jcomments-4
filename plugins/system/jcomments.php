@@ -18,19 +18,18 @@ use Joomla\CMS\Http\HttpFactory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
-use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Event\DispatcherInterface;
 use Joomla\Http\Exception\InvalidResponseCodeException;
 use Joomla\Registry\Registry;
 
-include_once JPATH_ROOT . '/components/com_jcomments/helpers/system.php';
-
 /**
- * System plugin for attaching JComments CSS & JavaScript to HEAD tag
+ * System plugin for Jcomments
  *
  * @since 1.5
+ * @noinspection PhpUnused
  */
-class PlgSystemJComments extends CMSPlugin
+class PlgSystemJcomments extends CMSPlugin
 {
 	/**
 	 * Application object.
@@ -55,28 +54,15 @@ class PlgSystemJComments extends CMSPlugin
 	{
 		parent::__construct($subject, $config);
 
+		// Use this plugin only in site application.
+		if (!$this->app->isClient('site'))
+		{
+			return;
+		}
+
 		if (!isset($this->params))
 		{
 			$this->params = new Registry('');
-		}
-
-		// Small hack to allow CAPTCHA display even if any notice or warning occurred
-		$app    = Factory::getApplication();
-		$option = $app->input->get('option');
-		$task   = $app->input->get('task');
-
-		if ($option == 'com_jcomments' && $task == 'captcha')
-		{
-			@ob_start();
-		}
-
-		if (isset($_REQUEST['jtxf']))
-		{
-			if ($this->params->get('disable_error_reporting', 0) == 1)
-			{
-				// Turn off all error reporting for AJAX call
-				@error_reporting(E_NONE);
-			}
 		}
 	}
 
@@ -86,6 +72,7 @@ class PlgSystemJComments extends CMSPlugin
 	 * @return  void
 	 *
 	 * @since   2.5
+	 * @noinspection PhpUnused
 	 */
 	public function onAfterRender()
 	{
@@ -97,51 +84,28 @@ class PlgSystemJComments extends CMSPlugin
 
 		$buffer = $this->app->getBody();
 
+		// Cleanup RSS from {jcomments}
 		if ($this->params->get('clear_rss', 0) == 1
 			&& $this->app->input->get('option') == 'com_content'
 			&& $this->app->getDocument()->getType() === 'feed')
 		{
-			$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#is', '', $buffer);
+			$buffer = preg_replace('#{jcomments\s+(off|on|lock)}#i', '', $buffer);
+			$buffer = \Joomla\String\StringHelper::str_ireplace('{jcomments}', '', $buffer);
 			$this->app->setBody($buffer);
-		}
-
-		if ((defined('JCOMMENTS_CSS') || defined('JCOMMENTS_JS')) && !defined('JCOMMENTS_SHOW'))
-		{
-			if ($this->app->getName() == 'site')
-			{
-				$regexpJS  = '#(\<script(\stype=\"text\/javascript\")? src="[^\"]*\/com_jcomments\/[^\>]*\>\<\/script\>[\s\r\n]*?)#ismU';
-				$regexpCSS = '#(\<link rel="stylesheet" href="[^\"]*\/com_jcomments\/[^>]*>[\s\r\n]*?)#ismU';
-
-				$jcommentsTestJS  = '#(JCommentsEditor|new JComments)#ismU';
-				$jcommentsTestCSS = '#(comment-link|jcomments-links)#ismU';
-
-				$jsFound  = preg_match($jcommentsTestJS, $buffer);
-				$cssFound = preg_match($jcommentsTestCSS, $buffer);
-
-				if (!$jsFound)
-				{
-					// Remove JavaScript if JComments isn't loaded
-					$buffer = preg_replace($regexpJS, '', $buffer);
-				}
-
-				if (!$cssFound && !$jsFound)
-				{
-					// Remove CSS if JComments isn't loaded
-					$buffer = preg_replace($regexpCSS, '', $buffer);
-				}
-
-				if ($buffer != '')
-				{
-					$this->app->setBody($buffer);
-				}
-			}
 		}
 	}
 
-	public function onAfterRoute()
+	/**
+	 * This event is triggered immediately before the framework has rendered the application.
+	 *
+	 * @return  void
+	 *
+	 * @since   4.1
+	 * @noinspection PhpUnused
+	 */
+	public function onBeforeRender()
 	{
-		// Do not change to $app->getDocument() because it will cause an error.
-		$document = Factory::getDocument();
+		$document = $this->app->getDocument();
 
 		if ($document->getType() != 'html')
 		{
@@ -152,60 +116,133 @@ class PlgSystemJComments extends CMSPlugin
 
 		if ($this->app->isClient('site') && ($option == 'com_content' || $option == 'com_multicategories'))
 		{
-			// Try to find CSS in ROOT/templates folder
-			$template = ComponentHelper::getParams('com_jcomments')->get('template');
-			$cssName = $this->app->getLanguage()->isRtl() ? 'style_rtl.css' : 'style.css';
-			$cssUrl  = Uri::root(true) . '/templates/' . $this->app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName;
-
-			// Try to find CSS in ROOT/media/component folder
-			if (!is_file(JPATH_SITE . '/templates/' . $this->app->getTemplate() . '/html/com_jcomments/' . $template . '/' . $cssName))
-			{
-				$cssUrl  = Uri::root(true) . '/components/com_jcomments/tpl/' . $template . '/' . $cssName;
-			}
-
-			$document->addStyleSheet($cssUrl);
-
-			if (!defined('JCOMMENTS_CSS'))
-			{
-				define('JCOMMENTS_CSS', 1);
-			}
-
-			// Include JComments JavaScript library
-			$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js');
-
-			if (!defined('JOOMLATUNE_AJAX_JS'))
-			{
-				$document->addScript(Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4');
-				define('JOOMLATUNE_AJAX_JS', 1);
-			}
-
-			if (!defined('JCOMMENTS_JS'))
-			{
-				define('JCOMMENTS_JS', 1);
-			}
+			JcommentsComponentHelper::loadComponentAssets();
 		}
 	}
 
-	public function onJCommentsShow($objectId, $objectGroup, $objectTitle)
+	/**
+	 * @param   integer  $objectId     Object ID
+	 * @param   string   $objectGroup  Object group. E.g. com_content
+	 * @param   string   $objectTitle  Object title. Used in RSS and Atom feed.
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   1.5
+	 */
+	public function onJcommentsShow(int $objectId, string $objectGroup, string $objectTitle)
 	{
-		$coreFile = JPATH_ROOT . '/components/com_jcomments/jcomments.php';
-
-		if (is_file($coreFile))
+		// Only one copy of JComments per page is allowed
+		if (defined('JCOMMENTS_SHOW'))
 		{
-			include_once $coreFile;
-			echo JComments::show($objectId, $objectGroup, $objectTitle);
+			return;
 		}
+
+		JcommentsComponentHelper::loadComponentAssets();
+
+		$basePath = JPATH_ROOT . '/components/com_jcomments';
+		$view = JcommentsComponentHelper::getView(
+			'Comments',
+			'Site',
+			'Html',
+			// View config
+			array('base_path' => $basePath, 'template_path' => $basePath . '/tmpl/comments/'),
+			true,
+			// Model config. NOTE! Do not set up `ignore_request` in this because component params will be empty in view when calling getState()
+			array(
+				'name'      => 'Comments',
+				'prefix'    => 'Site',
+				'base_path' => $basePath,
+				'options'   => array(
+					'object_id'    => $objectId,
+					'object_group' => $objectGroup,
+					'object_title' => $objectTitle
+				)
+			)
+		);
+
+		ob_start();
+
+		$view->display();
+		$output = ob_get_contents();
+
+		ob_end_clean();
+
+		define('JCOMMENTS_SHOW', 1);
+
+		echo $output;
 	}
 
-	public function onJCommentsCount($objectId, $objectGroup)
+	/**
+	 * Get total comments for object
+	 *
+	 * @param   integer      $objectId     Object ID
+	 * @param   string       $objectGroup  Object group. E.g. com_content
+	 * @param   string|null  $lang         Language tag
+	 *
+	 * @return  void
+	 *
+	 * @since   1.5
+	 */
+	public function onJcommentsCount(int $objectId, string $objectGroup, ?string $lang = null)
 	{
-		$coreFile = JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+		/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
+		$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
+			->createModel('Comments', 'Site', array('ignore_request' => true));
 
-		if (is_file($coreFile))
+		$model->setState('object_id', $objectId);
+		$model->setState('object_group', $objectGroup);
+		$model->setState('list.options.lang', $lang);
+
+		echo $model->getTotal();
+	}
+
+	/**
+	 * Do spam checks before comment add. Available only on frontend.
+	 *
+	 * @param   string  $ip  IP from comment
+	 *
+	 * @return  boolean  False if IP in spam database, true otherwise.
+	 *
+	 * @see     https://www.stopforumspam.com/usage
+	 * @since   4.0.23
+	 * @noinspection PhpUnused
+	 */
+	public function onJcommentsCommentBeforeAdd(string $ip)
+	{
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if ($params->get('stopforumspam', 0) == 1)
 		{
-			include_once $coreFile;
-			echo JComments::getCommentsCount($objectId, $objectGroup);
+			try
+			{
+				$httpResponse = HttpFactory::getHttp()->get(
+					'https://api.stopforumspam.org/api?ip=' . $ip . '&json',
+					array(),
+					$params->get('antispam_request_timeout', 3)
+				);
+				$responseBody = (string) $httpResponse->getBody();
+				$responseBody = json_decode($responseBody);
+
+				if ($responseBody->success)
+				{
+					// 1 - spam
+					if ($responseBody->ip->appears == 1)
+					{
+						Factory::getApplication()->enqueueMessage(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'error');
+						Log::add('Spammer(by StopForumSpam) from IP ' . $ip . ' is trying to send comment.', Log::ERROR, 'com_jcomments');
+
+						return false;
+					}
+				}
+			}
+			catch (InvalidResponseCodeException $e)
+			{
+				Log::add('Invalid or undefined HTTP response code while fetching StopForumSpam API.', Log::ERROR, 'com_jcomments');
+			}
 		}
+
+		return true;
 	}
 
 	/**

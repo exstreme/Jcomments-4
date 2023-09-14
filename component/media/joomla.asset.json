@@ -1,0 +1,73 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "com_jcomments",
+  "version": "4.1.0",
+  "description": "JComments",
+  "license": "GPL-2.0-or-later",
+  "assets": [
+    {
+      "name": "jcomments.backend_style",
+      "type": "style",
+      "uri": "com_jcomments/backend-style.css"
+    },
+    {
+      "name": "jcomments.style",
+      "type": "style",
+      "uri": "com_jcomments/frontend-style.css"
+    },
+    {
+      "name": "jcomments.admin.fields",
+      "type": "script",
+      "uri": "com_jcomments/admin-fields-es5.js"
+    },
+    {
+      "name": "jcomments.progressbar",
+      "type": "script",
+      "uri": "com_jcomments/jcomments.progressbar.js"
+    },
+    {
+      "name": "jcomments.objects",
+      "type": "script",
+      "uri": "com_jcomments/jcomments.objects.js"
+    },
+    {
+      "name": "jcomments.import",
+      "type": "script",
+      "uri": "com_jcomments/jcomments.import.js"
+    },
+    {
+      "name": "jcomments.core",
+      "type": "script",
+      "uri": "com_jcomments/jcomments.core.min.js",
+      "version": "4.1.0"
+    },
+    {
+      "name": "jcomments.frontend",
+      "type": "script",
+      "uri": "com_jcomments/jcomments.frontend.min.js",
+      "dependencies": [
+        "jquery"
+      ],
+      "version": "4.1.0"
+    },
+    {
+      "name": "kwood.plugin",
+      "type": "script",
+      "uri": "com_jcomments/jquery.plugin.min.js",
+      "dependencies": [
+        "jquery"
+      ],
+      "version": "1.0.1"
+    },
+    {
+      "name": "kwood.more",
+      "type": "script",
+      "uri": "com_jcomments/jquery.more.min.js",
+      "dependencies": [
+        "jquery",
+        "kwood.plugin"
+      ],
+      "version": "2.0.1"
+    }
+  ]
+}

@@ -57,11 +57,11 @@ $input = Factory::getApplication()->input;
 
 				<?php if ($params->get('link_add_comment') && ($params->get('show_frontpage') || $input->getWord('view') != 'featured')): ?>
 					<?php if ($commentsCount == 0): ?>
-						<a href="<?php echo $link; ?>#addcomments" class="btn btn-secondary">
+						<a href="<?php echo $link; ?>#addcomment" class="btn btn-secondary">
 							<span class="icon-plus" aria-hidden="true"></span> <?php echo Text::_('LINK_ADD_COMMENT'); ?>
 						</a>
 					<?php else: ?>
-						<a href="<?php echo $link; ?>#addcomments" class="btn btn-secondary"
+						<a href="<?php echo $link; ?>#addcomment" class="btn btn-secondary"
 						   title="<?php echo Text::_('LINK_ADD_COMMENT'); ?>">
 							<span class="icon-plus" aria-hidden="true"></span>
 						</a>
