@@ -180,8 +180,8 @@ class PkgBuilder
 		{
 			if (!$file->isDir())
 			{
-				$filePath = $file->getRealPath();
-				$relativePath = substr($filePath, strlen($srcPath) + 1);
+				$filePath = str_replace('\\', '/', $file->getRealPath());
+				$relativePath = str_replace('\\', '/', substr($filePath, strlen($srcPath) + 1));
 
 				if ($zip->addFile($filePath, $relativePath) === false)
 				{
