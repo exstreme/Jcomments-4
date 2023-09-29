@@ -14,7 +14,7 @@ Command line options:
 * - `--mod module_name` or `--mod module_name1,module_name2` - build `module_name` module(s).
 * `--plg all` - build all plugins.
 * - `--plg "plugin_name"` or `--plg "plugin_name1,plugin_name2"` - build `plugin_name` plugin(s).
-* `--u` - update xml file with information about new version. `update-jcomments.xml` or `update-jcomments-modules.xml` or `update-jcomments-plugins.xml`. This option available only with `--comm`, `--mod` or `--plg` options. E.g. `php build.php --plg all --u`
+* `--u` - update xml file with information about new version. `update-jcomments.xml` or `update-jcomments-modules.xml` or `update-jcomments-plugins.xml`. This option available only with `--com`, `--mod` or `--plg` options. E.g. `php build.php --plg all --u`
 
 E.g. `php build.php --mod "mod_jcomments_latest,mod_jcomments_most_commented"`
 
