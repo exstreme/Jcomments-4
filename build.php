@@ -19,6 +19,7 @@ class PkgBuilder
 	private $componentFolders = array(
 		'com_jcomments/packages/com_jcomments.zip'               => 'component',
 		'com_jcomments/packages/plg_content_jcomments.zip'       => 'plugins/content',
+		'com_jcomments/packages/plg_extension_jcomments.zip'     => 'plugins/extension',
 		'com_jcomments/packages/plg_jcommentslock_jcomments.zip' => 'plugins/editors-xtd/jcommentslock',
 		'com_jcomments/packages/plg_jcommentsoff_jcomments.zip'  => 'plugins/editors-xtd/jcommentsoff',
 		'com_jcomments/packages/plg_jcommentson_jcomments.zip'   => 'plugins/editors-xtd/jcommentson',
@@ -180,8 +181,8 @@ class PkgBuilder
 		{
 			if (!$file->isDir())
 			{
-				$filePath = $file->getRealPath();
-				$relativePath = substr($filePath, strlen($srcPath) + 1);
+				$filePath = str_replace('\\', '/', $file->getRealPath());
+				$relativePath = str_replace('\\', '/', substr($filePath, strlen($srcPath) + 1));
 
 				if ($zip->addFile($filePath, $relativePath) === false)
 				{

@@ -29,7 +29,6 @@
 		<folder>forms</folder>
 		<folder>layouts</folder>
 		<folder>plugins</folder>
-		<folder>sef_ext</folder>
 		<folder>src</folder>
 		<folder>tmpl</folder>
 	</files>
@@ -70,7 +69,6 @@
 		<files folder="administrator">
 			<filename>access.xml</filename>
 			<filename>config.xml</filename>
-			<filename>jcomments.xml</filename>
 
 			<folder>classes</folder>
 			<folder>forms</folder>
