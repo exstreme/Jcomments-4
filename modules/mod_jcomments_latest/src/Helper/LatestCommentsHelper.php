@@ -232,7 +232,7 @@ class LatestCommentsHelper implements DatabaseAwareInterface
 
 				$text = JcommentsText::censor($item->comment);
 				$text = preg_replace('#\[quote[^\]]*?\](((?R)|.)*?)\[\/quote\]#ismu', '', $text);
-				$text = $bbcode->filter($text, true);
+				$text = JcommentsText::filterText($text, true);
 
 				if ($user->authorise('comment.autolink', 'com_jcomments'))
 				{

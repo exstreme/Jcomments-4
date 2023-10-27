@@ -347,7 +347,7 @@ class CommentModel extends AdminModel
 		$data['title']   = stripslashes($data['title']);
 		$data['comment'] = stripslashes($data['comment']);
 		$data['comment'] = JcommentsText::nl2br($data['comment']);
-		$data['comment'] = JcommentsFactory::getBbcode()->filter($data['comment']);
+		$data['comment'] = JcommentsText::filterText($data['comment']);
 
 		if ($data['date'] == $this->getDatabase()->getNullDate() || empty($data['date']))
 		{

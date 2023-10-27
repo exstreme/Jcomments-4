@@ -39,7 +39,7 @@ class BlacklistTable extends Table
 	 * Indicates that columns fully support the NULL value in the database
 	 *
 	 * @var    boolean
-	 * @since  4.0.0
+	 * @since  3.10
 	 */
 	protected $_supportNullValue = true;
 
@@ -89,6 +89,11 @@ class BlacklistTable extends Table
 		{
 			$this->created_by = Factory::getApplication()->getIdentity()->id;
 			$this->created = Factory::getDate()->toSql();
+		}
+
+		if (empty($this->expire))
+		{
+			$this->expire = null;
 		}
 
 		return parent::store($updateNulls);

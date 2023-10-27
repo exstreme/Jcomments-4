@@ -30,8 +30,13 @@ class IpRule extends FormRule
 		}
 
 		$value = str_replace('*', '1', $value);
+		$cidrPos = strpos($value, '/');
 
-		return (filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
-			|| filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6));
+		if ($cidrPos !== false)
+		{
+			$value = substr($value, 0, $cidrPos);
+		}
+
+		return filter_var($value, FILTER_VALIDATE_IP);
 	}
 }

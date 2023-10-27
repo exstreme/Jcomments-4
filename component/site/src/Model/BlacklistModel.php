@@ -28,123 +28,121 @@ use Joomla\Utilities\IpHelper;
 class BlacklistModel extends BaseDatabaseModel
 {
 	/**
-	 * Get the reason for the ban.
-	 *
-	 * @param   integer  $uid  User ID
-	 *
-	 * @return  mixed
-	 *
-	 * @since   4.1
-	 */
-	public function getBlacklistReason(int $uid): ?string
-	{
-		$db = $this->getDatabase();
-		$ip = IpHelper::getIp();
-
-		$query = $db->getQuery(true)
-			->select($db->quoteName('reason'))
-			->from($db->quoteName('#__jcomments_blacklist'))
-			->where($db->quoteName('userid') . ' = :uid', 'OR')
-			->bind(':uid', $uid, ParameterType::INTEGER);
-
-		$parts = explode('.', $ip);
-
-		if (count($parts) == 4)
-		{
-			$conditions   = array();
-			$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote($ip);
-			$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.%s.*', $parts[0], $parts[1], $parts[2]));
-			$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.*.*', $parts[0], $parts[1]));
-			$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.*.*.*', $parts[0]));
-
-			$query->where($conditions);
-		}
-		else
-		{
-			$query->where($db->quoteName('ip') . ' = :ip')
-				->bind(':ip', $ip);
-		}
-
-		try
-		{
-			$db->setQuery($query);
-
-			return $db->loadResult();
-		}
-		catch (\RuntimeException $e)
-		{
-			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
-		}
-
-		return false;
-	}
-
-	/**
 	 * Check if userid or IP are not listed in blacklist.
 	 *
 	 * @param   string  $ip    IP address
 	 * @param   mixed   $user  User object for checking current loggen in user or ID of any user.
 	 *
-	 * @return  boolean  True if blacklisted, false otherwise
+	 * @return  array
 	 *
-	 * @since   4.0
+	 * @since   4.1
 	 * @see     JcommentsAcl::isUserBlocked()
 	 */
-	public function isBlacklisted(string $ip, $user = null): bool
+	public function isBlacklisted(string $ip, $user = null): array
 	{
 		$db     = $this->getDatabase();
-		$result = false;
+		$result = array('block' => false, 'reason' => '');
 		$userId = $user;
 
-		// Check only IP
 		if (!is_null($user))
 		{
 			$userId = ($user instanceof User) ? $user->get('id') : (int) $user;
 		}
 
-		$query = $db->getQuery(true)
-			->select('COUNT(id)')
-			->from($db->quoteName('#__jcomments_blacklist'));
-
 		if ($userId > 0)
 		{
-			$query->where($db->quoteName('userid') . ' = :uid')
+			$query = $db->getQuery(true)
+				->select($db->quoteName('reason'))
+				->from($db->quoteName('#__jcomments_blacklist'))
+				->where($db->quoteName('userid') . ' = :uid')
 				->bind(':uid', $userId, ParameterType::INTEGER);
+
+			try
+			{
+				$db->setQuery($query);
+				$reason = $db->loadResult();
+
+				if (!empty($reason))
+				{
+					$result['block'] = true;
+					$result['reason'] = $reason;
+				}
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+			}
 		}
 		else
 		{
-			if (!empty($ip))
+			$query = $db->getQuery(true)
+				->select($db->quoteName(array('ip', 'reason')))
+				->from($db->quoteName('#__jcomments_blacklist'));
+
+			try
 			{
-				$parts = explode('.', $ip);
+				$db->setQuery($query);
+				$rows = $db->loadObjectList();
 
-				if (count($parts) == 4)
+				foreach ($rows as $row)
 				{
-					$conditions   = array();
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote($ip);
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.%s.*', $parts[0], $parts[1], $parts[2]));
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.%s.*.*', $parts[0], $parts[1]));
-					$conditions[] = $db->quoteName('ip') . ' = ' . $db->quote(sprintf('%s.*.*.*', $parts[0]));
+					// IPv4
+					if (strpos($row->ip, '.') !== false)
+					{
+						$row->ip = $this->toCIDR($row->ip);
+					}
 
-					$query->where($conditions, 'OR');
+					if (IpHelper::IPinList($ip, $row->ip))
+					{
+						$result['block'] = true;
+						$result['reason'] = $row->reason;
+						break;
+					}
 				}
-				else
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Convert old IPv4 range to CIDR. For B/C only
+	 *
+	 * @param   string  $ip  User IP
+	 *
+	 * @return  string
+	 *
+	 * @since   4.1
+	 */
+	private function toCIDR(string $ip): string
+	{
+		// Test if IP is a range, e.g. 127.0.0.*
+		if (strpos($ip, '*') !== false)
+		{
+			$parts = explode('.', $ip);
+
+			if (count($parts) == 4)
+			{
+				// Convert range to CIDR
+				if (preg_match('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\*#', $ip))
 				{
-					$query->where($db->quoteName('ip') . ' = :ip')
-						->bind(':ip', $ip);
+					$ip = $parts[0] . '.' . $parts[1] . '.' . $parts[2] . '.0/24';
+				}
+				elseif (preg_match('#\d{1,3}\.\d{1,3}\.\*\.\*#', $ip))
+				{
+					$ip = $parts[0] . '.' . $parts[1] . '.0.0/16';
+				}
+				elseif (preg_match('#\d{1,3}\.\*\.\*\.\*#', $ip))
+				{
+					$ip = $parts[0] . '.0.0.0/8';
 				}
 			}
 		}
 
-		try
-		{
-			$db->setQuery($query);
-			$result = $db->loadResult() > 0;
-		}
-		catch (\RuntimeException $e)
-		{
-			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
-		}
-
-		return $result;
+		return $ip;
 	}
 }

@@ -392,10 +392,6 @@ class ContentHelper
 				$comment->comment = JcommentsFactory::getCustomBBCode()->replace($comment->comment);
 			}
 		}
-		else
-		{
-			// TODO Process html tags
-		}
 
 		if ($user->authorise('comment.email.protect', 'com_jcomments'))
 		{

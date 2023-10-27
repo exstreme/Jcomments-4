@@ -76,6 +76,11 @@ class HtmlView extends BaseHtmlView
 			ToolbarHelper::addNew('blacklist.add');
 		}
 
+		if (($canDo->get('core.edit')))
+		{
+			ToolbarHelper::editList('blacklist.edit');
+		}
+
 		if ($canDo->get('core.edit.state'))
 		{
 			ToolbarHelper::checkin('blacklists.checkin');

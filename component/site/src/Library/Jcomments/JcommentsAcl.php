@@ -147,7 +147,13 @@ class JcommentsAcl
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	protected $userBlocked = false;
+	public $userBlocked = false;
+
+	/**
+	 * @var    string
+	 * @since  4.1
+	 */
+	public $userBlockedReason = '';
 
 	/**
 	 * @throws \Exception
@@ -178,7 +184,6 @@ class JcommentsAcl
 											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
 		$this->canReply              = $user->authorise('comment.comment', 'com_jcomments')
 											&& $user->authorise('comment.reply', 'com_jcomments');
-											//&& $config->get('template_view') == 'tree';
 		$this->userID                = $user->get('id');
 		$this->deleteMode            = (int) $config->get('delete_mode');
 		$this->commentsLocked        = false;
@@ -188,15 +193,17 @@ class JcommentsAcl
 			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
 			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
 				->createModel('Blacklist', 'Site', array('ignore_request' => true));
+			$isBlacklisted = $blacklistModel->isBlacklisted(IpHelper::getIp(), $user);
 
 			// Check of logged in user is not banned.
-			if ($blacklistModel->isBlacklisted(IpHelper::getIp(), $user))
+			if ($isBlacklisted['block'])
 			{
-				$this->userBlocked = true;
-				$this->canQuote    = false;
-				$this->canReply    = false;
-				$this->canVote     = false;
-				$this->canBan      = false;
+				$this->userBlocked       = true;
+				$this->userBlockedReason = $isBlacklisted['reason'];
+				$this->canQuote          = false;
+				$this->canReply          = false;
+				$this->canVote           = false;
+				$this->canBan            = false;
 			}
 		}
 
@@ -295,19 +302,19 @@ class JcommentsAcl
 	 * @param   mixed  $ip   IP address.
 	 * @param   mixed  $uid  User object or user ID.
 	 *
-	 * @return  boolean
+	 * @return  array
 	 *
 	 * @throws  \Exception
 	 * @since   3.0
 	 */
-	public function isUserBlocked($ip = null, $uid = null): bool
+	public function isUserBlocked($ip = null, $uid = null): array
 	{
 		$app    = Factory::getApplication();
 		$config = ComponentHelper::getParams('com_jcomments');
 
 		if (empty($ip) && empty($uid))
 		{
-			return $this->userBlocked;
+			return array('block' => $this->userBlocked, 'reason' => $this->userBlockedReason);
 		}
 
 		if ($config->get('enable_blacklist', 0) == 1)
@@ -316,13 +323,10 @@ class JcommentsAcl
 			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
 				->createModel('Blacklist', 'Site', array('ignore_request' => true));
 
-			if ($blacklistModel->isBlacklisted($ip, $uid))
-			{
-				return true;
-			}
+			return $blacklistModel->isBlacklisted($ip, $uid);
 		}
 
-		return false;
+		return array('block' => false, 'reason' => $this->userBlockedReason);
 	}
 
 	/**

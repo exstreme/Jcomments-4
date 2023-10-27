@@ -172,17 +172,14 @@ class HtmlView extends BaseHtmlView
 			return;
 		}
 
-		if ($acl->isUserBlocked())
+		if ($acl->userBlocked)
 		{
-			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
-			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
-				->createModel('Blacklist', 'Site', array('ignore_request' => true));
 			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_banned', $lang->getTag());
-			$reason  = $blacklistModel->getBlacklistReason($acl->userID);
+			$reason = '';
 
 			if ($message != '')
 			{
-				$reason = !empty($reason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($reason) : '';
+				$reason = !empty($acl->userBlockedReason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($acl->userBlockedReason) : '';
 			}
 
 			echo $this->alert(nl2br($this->escape($message)) . $reason);
@@ -365,7 +362,6 @@ class HtmlView extends BaseHtmlView
 		$app          = Factory::getApplication();
 		$acl          = JcommentsFactory::getACL();
 		$state        = $this->get('State');
-		$this->form   = $this->get('Form');
 		$lang         = $app->getLanguage();
 		$this->params = $state->get('params');
 		$commentId    = $app->input->getInt('comment_id', 0);
@@ -374,22 +370,19 @@ class HtmlView extends BaseHtmlView
 		$this->setDocumentTitle(Text::_('REPORT_TO_ADMINISTRATOR'));
 
 		// Blocked user cannot report to admin
-		if ($acl->isUserBlocked())
+		if ($acl->userBlocked)
 		{
-			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
-			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
-				->createModel('Blacklist', 'Site', array('ignore_request' => true));
 			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_banned', $lang->getTag());
-			$reason  = $blacklistModel->getBlacklistReason($acl->userID);
+			$reason = '';
 
 			if ($message != '')
 			{
-				$reason = !empty($reason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($reason) : '';
+				$reason = !empty($acl->userBlockedReason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($acl->userBlockedReason) : '';
 			}
 
 			echo $this->alert(nl2br($this->escape($message)) . $reason);
 
-			return false;
+			return;
 		}
 
 		// Comment ID must not be empty
@@ -424,6 +417,7 @@ class HtmlView extends BaseHtmlView
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
+		$this->form = $this->get('Form');
 		$captchaSet = $this->params->get('captcha', $app->get('captcha', '0'));
 
 		foreach (PluginHelper::getPlugin('captcha') as $plugin)

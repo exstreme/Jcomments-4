@@ -26,6 +26,38 @@ use Joomla\CMS\Language\Text;
 class JcommentsText
 {
 	/**
+	 * Filter text from BBCode or HTML tags
+	 *
+	 * @param   string   $text              The input string.
+	 * @param   boolean  $forceStrip        Force to delete the tag.
+	 * @param   boolean  $forceStripCustom  Force to delete the custom tag.
+	 *
+	 * @return  string
+	 *
+	 * @since   4.1
+	 */
+	public static function filterText($text, bool $forceStrip = false, bool $forceStripCustom = false)
+	{
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if ($params->get('editor_format') == 'bbcode')
+		{
+			$text = JcommentsFactory::getBbcode()->filter($text, $forceStrip);
+
+			if ((int) $params->get('enable_custom_bbcode'))
+			{
+				$text = JCommentsFactory::getCustomBBCode()->filter($text, $forceStripCustom);
+			}
+		}
+		else
+		{
+			$text = ComponentHelper::filterText($text);
+		}
+
+		return $text;
+	}
+
+	/**
 	 * Replaces newlines with HTML line breaks
 	 *
 	 * @param   string  $text  The input string.

@@ -477,7 +477,7 @@ class CommentController extends FormController
 		$acl    = JcommentsFactory::getAcl();
 		$return = Route::_(JcommentsFactory::getReturnPage(), false);
 
-		if ($acl->isUserBlocked())
+		if ($acl->userBlocked)
 		{
 			$this->setResponse(null, $return, Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'error');
 
@@ -567,21 +567,17 @@ class CommentController extends FormController
 
 		$acl = JcommentsFactory::getAcl();
 
-		if ($acl->isUserBlocked())
+		if ($acl->userBlocked)
 		{
-			$app = Factory::getApplication();
-
-			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
-			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
-				->createModel('Blacklist', 'Site', array('ignore_request' => true));
-			$params         = ComponentHelper::getParams('com_jcomments');
-			$lang           = $app->getLanguage();
-			$message        = JcommentsText::getMessagesBasedOnLanguage($params->get('messages_fields'), 'message_banned', $lang->getTag());
-			$reason         = $blacklistModel->getBlacklistReason($acl->userID);
+			$app     = Factory::getApplication();
+			$params  = ComponentHelper::getParams('com_jcomments');
+			$lang    = $app->getLanguage();
+			$message = JcommentsText::getMessagesBasedOnLanguage($params->get('messages_fields'), 'message_banned', $lang->getTag());
+			$reason  = '';
 
 			if ($message != '')
 			{
-				$reason = !empty($reason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $reason : '';
+				$reason = !empty($acl->userBlockedReason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $acl->userBlockedReason : '';
 			}
 
 			$this->setResponse(null, '', nl2br($message) . $reason, 'error');
@@ -611,20 +607,7 @@ class CommentController extends FormController
 		$data->bottomPanel  = 1;
 		$data->comment      = $filter->clean($data->comment);
 		$data->comment      = JcommentsText::nl2br($data->comment);
-
-		if ($params->get('editor_format') == 'bbcode')
-		{
-			$data->comment = JcommentsFactory::getBbcode()->filter($data->comment);
-
-			if ((int) $params->get('enable_custom_bbcode'))
-			{
-				$data->comment = JCommentsFactory::getCustomBBCode()->filter($data->comment);
-			}
-		}
-		else
-		{
-			// TODO Filter HTML
-		}
+		$data->comment      = JcommentsText::filterText($data->comment);
 
 		JcommentsContentHelper::prepareComment($data, true);
 
