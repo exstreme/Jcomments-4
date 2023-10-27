@@ -1,6 +1,6 @@
 <?php
 /**
- * JComments Latest - Shows latest comments in Joomla's backend
+ * JComments Latest - Shows latest comments in Joomla's dashboard
  *
  * @package           JComments
  * @author            JComments team
@@ -10,16 +10,17 @@
  *
  **/
 
-namespace Joomla\Module\LatestComments\Administrator\Helper;
+namespace Joomla\Module\LatestBackendComments\Administrator\Helper;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
+use Joomla\CMS\Application\AdministratorApplication;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Log\Log;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
 
@@ -28,23 +29,25 @@ use Joomla\String\StringHelper;
  *
  * @since  1.5
  */
-class LatestCommentsHelper
+class LatestBackendCommentsHelper implements DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
 	/**
 	 * Retrieve list of articles
 	 *
-	 * @param   Registry  $params  Module parameters
+	 * @param   Registry                  $params  Module parameters
+	 * @param   AdministratorApplication  $app     Application
 	 *
 	 * @return  array
 	 *
 	 * @throws  \Exception
 	 * @since   1.5
 	 */
-	public static function getList(Registry &$params)
+	public function getComments(Registry $params, AdministratorApplication $app): array
 	{
-		/** @var \Joomla\Database\DatabaseDriver $db */
-		$db   = Factory::getContainer()->get('DatabaseDriver');
-		$user = Factory::getApplication()->getIdentity();
+		$db   = $this->getDatabase();
+		$user = $app->getIdentity();
 
 		$query = $db->getQuery(true)
 			->select('jc.*')
@@ -70,10 +73,9 @@ class LatestCommentsHelper
 
 		if (count($list))
 		{
-			$bbcode           = JcommentsFactory::getBBCode();
 			$limitCommentText = (int) $params->get('limit_comment_text', 0);
 
-			foreach ($list as &$item)
+			foreach ($list as $item)
 			{
 				$item->link = '';
 
@@ -84,7 +86,7 @@ class LatestCommentsHelper
 
 				$item->author = JcommentsContentHelper::getCommentAuthorName($item);
 				$text = JcommentsText::censor($item->comment);
-				$text = $bbcode->filter($text, true);
+				$text = JcommentsText::filterText($text, true);
 				$text = JcommentsText::cleanText($text);
 
 				if ($limitCommentText && StringHelper::strlen($text) > $limitCommentText)

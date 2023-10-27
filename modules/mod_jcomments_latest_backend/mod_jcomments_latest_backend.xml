@@ -6,15 +6,15 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.3</version>
+	<version>4.1.0</version>
 	<description>MOD_JCOMMENTS_LATEST_BACKEND_XML_DESCRIPTION</description>
-	<namespace path="src">Joomla\Module\LatestComments</namespace>
+	<namespace path="src">Joomla\Module\LatestBackendComments</namespace>
 
 	<files>
+		<folder module="mod_jcomments_latest_backend">services</folder>
 		<folder>src</folder>
 		<folder>tmpl</folder>
 
-		<filename module="mod_jcomments_latest_backend">mod_jcomments_latest_backend.php</filename>
 		<filename>mod_jcomments_latest_backend.xml</filename>
 	</files>
 

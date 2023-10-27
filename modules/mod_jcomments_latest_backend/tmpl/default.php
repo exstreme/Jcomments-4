@@ -1,8 +1,7 @@
 <?php
 /**
- * JComments Latest - Shows latest comments in Joomla's backend
+ * JComments Latest - Shows latest comments in Joomla's dashboard
  *
- * @version           4.0.0
  * @package           JComments
  * @author            JComments team
  * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
