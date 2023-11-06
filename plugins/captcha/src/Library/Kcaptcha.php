@@ -15,15 +15,16 @@
  *                    KCAPTCHA copyright notices to own.
  */
 
-namespace Joomla\Plugin\Captcha\Kcaptcha;
+namespace Joomla\Plugin\Captcha\Kcaptcha\Library;
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\Path;
+use Joomla\Filesystem\Path;
 
 /**
  * @package  Kcaptcha
+ * @alias    JKcaptcha
  *
  * @since    2.0
  */

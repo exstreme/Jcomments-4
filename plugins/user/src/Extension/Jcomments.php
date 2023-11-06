@@ -10,6 +10,8 @@
  *
  **/
 
+namespace Joomla\Plugin\User\Jcomments\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
@@ -20,16 +22,19 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
+use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
 
 /**
  * User plugin for updating user info in comments.
  *
- * @since 1.5
+ * @since 4.1
  */
-class PlgUserJComments extends CMSPlugin
+final class Jcomments extends CMSPlugin
 {
+	use DatabaseAwareTrait;
+
 	/**
 	 * Load the language file on instantiation.
 	 *
@@ -45,14 +50,6 @@ class PlgUserJComments extends CMSPlugin
 	 * @since  4.0.0
 	 */
 	protected $app;
-
-	/**
-	 * Database object.
-	 *
-	 * @var    \Joomla\Database\DatabaseInterface
-	 * @since  4.0.0
-	 */
-	protected $db;
 
 	/**
 	 * Component ID.
@@ -114,8 +111,7 @@ class PlgUserJComments extends CMSPlugin
 		 */
 		if ($this->app->input->get('layout') !== 'edit')
 		{
-			$db = $this->db;
-			$langTag = $this->app->getLanguage()->getTag();
+			$db = $this->getDatabase();
 
 			if ($this->params->get('show_comments_link', 0))
 			{
@@ -238,7 +234,7 @@ class PlgUserJComments extends CMSPlugin
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.comments&Itemid=' . $itemid
+				? \Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.comments&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -268,7 +264,7 @@ class PlgUserJComments extends CMSPlugin
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.votes&Itemid=' . $itemid
+				? \Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.votes&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -298,7 +294,7 @@ class PlgUserJComments extends CMSPlugin
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.subscriptions&Itemid=' . $itemid
+				? \Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.subscriptions&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -327,7 +323,7 @@ class PlgUserJComments extends CMSPlugin
 
 		// Add the registration fields to the form.
 		FormHelper::addFieldPrefix('Joomla\\Plugin\\User\\Comments\\Field');
-		FormHelper::addFormPath(__DIR__ . '/forms');
+		FormHelper::addFormPath(dirname(__DIR__, 2) . '/forms');
 		$form->loadFile('comments');
 
 		if ($this->app->input->get('layout') == 'edit')
@@ -375,7 +371,7 @@ class PlgUserJComments extends CMSPlugin
 
 			if ($userId > 0 && trim($data['username']) != '' && trim($data['email']) != '')
 			{
-				$db = $this->db;
+				$db = $this->getDatabase();
 
 				try
 				{
@@ -437,8 +433,7 @@ class PlgUserJComments extends CMSPlugin
 
 			if ($userId > 0)
 			{
-				$db = $this->db;
-
+				$db = $this->getDatabase();
 				$query = $db->getQuery(true)
 					->update($db->quoteName('#__jcomments'))
 					->set($db->quoteName('userid') . ' = 0')
@@ -488,7 +483,7 @@ class PlgUserJComments extends CMSPlugin
 	 *
 	 * @return  integer
 	 *
-	 * @throws  Exception
+	 * @throws  \Exception
 	 * @since   4.1
 	 */
 	private static function getItemid(): int
@@ -516,7 +511,7 @@ class PlgUserJComments extends CMSPlugin
 			$db->setQuery($query);
 			$itemid = $db->loadResult();
 		}
-		catch (RuntimeException $e)
+		catch (\RuntimeException $e)
 		{
 			Log::add($e->getMessage(), 'plg_user_jcomments');
 			$itemid = Factory::getApplication()->input->get('Itemid', 0);

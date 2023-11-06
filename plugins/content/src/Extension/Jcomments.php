@@ -10,8 +10,11 @@
  *
  **/
 
+namespace Joomla\Plugin\Content\Jcomments\Extension;
+
 defined('_JEXEC') or die;
 
+use ContentHelperRoute;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Layout\FileLayout;
@@ -32,7 +35,7 @@ use Joomla\String\StringHelper;
  * @since  1.5
  * @noinspection PhpUnused
  */
-class PlgContentJcomments extends CMSPlugin
+final class Jcomments extends CMSPlugin
 {
 	/**
 	 * @var    \Joomla\CMS\Application\SiteApplication
@@ -422,11 +425,11 @@ class PlgContentJcomments extends CMSPlugin
 			$model = new JcommentsModelSubscriptions;
 			$model->unsubscribe($article->id, 'com_content');*/
 
-			/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel $comments */
+			/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $comments */
 			$comments = $factory->createModel('Comments', 'Site', array('ignore_request' => true));
 			$comments->delete($article->id);
 
-			/** @var Joomla\Component\Jcomments\Site\Model\SubscriptionModel $subscription */
+			/** @var \Joomla\Component\Jcomments\Site\Model\SubscriptionModel $subscription */
 			$subscription = $factory->createModel('Subscription', 'Site', array('ignore_request' => true));
 			$subscription->unsubscribe($article->id, 'com_content');
 		}
@@ -507,7 +510,7 @@ class PlgContentJcomments extends CMSPlugin
 
 		return [
 			JPATH_ROOT . '/templates/' . $template . '/html/layouts/plugins/' . $this->_type . '/' . $this->_name,
-			__DIR__ . '/layouts',
+			dirname(__DIR__, 2) . '/layouts',
 		];
 	}
 

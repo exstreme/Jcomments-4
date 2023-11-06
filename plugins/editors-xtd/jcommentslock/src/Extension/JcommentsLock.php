@@ -10,6 +10,8 @@
  *
  **/
 
+namespace Joomla\Plugin\EditorsXtd\JcommentsLock\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
@@ -22,7 +24,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
  *
  * @since  1.5
  */
-class PlgButtonJCommentsLock extends CMSPlugin
+final class JcommentsLock extends CMSPlugin
 {
 	/**
 	 * Load the language file on instantiation.

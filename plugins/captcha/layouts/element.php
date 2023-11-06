@@ -38,7 +38,7 @@ $params = $displayData->params;
 			<span aria-hidden="true" class="icon-help icon-fw"></span>
 		</a>
 	</div>
-	<input class="form-control form-control captcha" id="<?php echo $displayData->id; ?>" type="text" name="<?php echo $displayData->name; ?>"
+	<input class="form-control required captcha" id="<?php echo $displayData->id; ?>" type="text" name="<?php echo $displayData->name; ?>"
 		   value="" size="5" autocomplete="off" required style="width: <?php echo $params->get('width'); ?>px;">
 </div>
 <?php

@@ -8,10 +8,12 @@
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
 	<version>4.1.0</version>
 	<description>PLG_CONTENT_JCOMMENTS_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\Content\Jcomments</namespace>
 
 	<files>
-		<filename plugin="jcomments">jcomments.php</filename>
+		<folder plugin="jcomments">services</folder>
 		<folder>layouts</folder>
+		<folder>src</folder>
 	</files>
 
 	<languages folder="admin">

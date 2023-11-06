@@ -10,6 +10,8 @@
  *
  **/
 
+namespace Joomla\Plugin\System\Jcomments\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
@@ -27,9 +29,8 @@ use Joomla\Registry\Registry;
  * System plugin for Jcomments
  *
  * @since 1.5
- * @noinspection PhpUnused
  */
-class PlgSystemJcomments extends CMSPlugin
+final class Jcomments extends CMSPlugin
 {
 	/**
 	 * Application object.

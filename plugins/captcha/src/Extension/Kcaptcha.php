@@ -10,18 +10,20 @@
  * @url         https://xn--80aeqbhthr9b.com
  */
 
+namespace Joomla\Plugin\Captcha\Kcaptcha\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Plugin\CMSPlugin;
-use Joomla\Plugin\Captcha\Kcaptcha\Kcaptcha;
+use Joomla\Plugin\Captcha\Kcaptcha\Library\Kcaptcha as JKcaptcha;
 
 /**
  * Kcaptcha Plugin
  *
  * @since  4.0
  */
-class PlgCaptchaKcaptcha extends CMSPlugin
+final class Kcaptcha extends CMSPlugin
 {
 	/**
 	 * Load the language file on instantiation.
@@ -68,7 +70,7 @@ class PlgCaptchaKcaptcha extends CMSPlugin
 	public function onAjaxKcaptcha()
 	{
 		$session = $this->app->getSession();
-		$captcha = new Kcaptcha($this->params->toArray());
+		$captcha = new JKcaptcha($this->params->toArray());
 
 		$captcha->render();
 
@@ -99,7 +101,7 @@ class PlgCaptchaKcaptcha extends CMSPlugin
 		$layout = LayoutHelper::render(
 			'element',
 			(object) array('params' => $this->params, 'id' => $id, 'name' => $name),
-			__DIR__ . '/layouts'
+			dirname(__DIR__, 2) . '/layouts'
 		);
 
 		// Fix ISO-8859-1 in loadHTML() and convert to UTF-8

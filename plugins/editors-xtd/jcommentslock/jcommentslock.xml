@@ -6,11 +6,13 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.1</version>
+	<version>4.1.0</version>
 	<description>PLG_EDITORS-XTD_JCOMMENTSLOCK_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\EditorsXtd\JcommentsLock</namespace>
 
 	<files>
-		<filename plugin="jcommentslock">jcommentslock.php</filename>
+		<folder plugin="jcommentslock">services</folder>
+		<folder>src</folder>
 	</files>
 
 	<languages>

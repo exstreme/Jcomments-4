@@ -9,6 +9,8 @@
  *
  **/
 
+namespace Joomla\Plugin\Extension\Jcomments\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -19,7 +21,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
  * @since  4.1
  * @noinspection PhpUnused
  */
-class PlgExtensionJcomments extends CMSPlugin
+final class Jcomments extends CMSPlugin
 {
 	/**
 	 * @var    \Joomla\CMS\Application\SiteApplication

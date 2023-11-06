@@ -10,27 +10,32 @@
  *
  **/
 
+namespace Joomla\Plugin\Jcomments\Avatar\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Event\EventInterface;
 use Joomla\Event\SubscriberInterface;
+use Joomla\Filesystem\Path;
 
 /**
  * Class to add support for avatar(s) in JComments
  *
  * @since  1.5
  */
-class PlgJcommentsAvatar extends CMSPlugin implements SubscriberInterface
+final class Avatar extends CMSPlugin implements SubscriberInterface
 {
+	use DatabaseAwareTrait;
+
 	/**
 	 * Returns an array of events this subscriber will listen to.
 	 *
@@ -96,9 +101,7 @@ class PlgJcommentsAvatar extends CMSPlugin implements SubscriberInterface
 
 		if (count($users))
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db = Factory::getContainer()->get('DatabaseDriver');
-
+			$db = $this->getDatabase();
 			$query = $db->getQuery(true)
 				->select($db->qn(array('user_id', 'avatar')))
 				->from($db->qn('#__comprofiler'))
@@ -425,9 +428,7 @@ class PlgJcommentsAvatar extends CMSPlugin implements SubscriberInterface
 
 		if (count($users))
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db = Factory::getContainer()->get('DatabaseDriver');
-
+			$db = $this->getDatabase();
 			$query = $db->getQuery(true)
 				->select(array($db->qn('userid'), $db->qn('thumb', 'avatar')))
 				->from($db->qn('#__community_users'))
@@ -489,9 +490,7 @@ class PlgJcommentsAvatar extends CMSPlugin implements SubscriberInterface
 
 		if (count($users))
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db = Factory::getContainer()->get('DatabaseDriver');
-
+			$db = $this->getDatabase();
 			$query = $db->getQuery(true)
 				->select($db->qn(array('userid', 'avatar')))
 				->from($db->qn('#__kunena_users'))
@@ -568,9 +567,7 @@ class PlgJcommentsAvatar extends CMSPlugin implements SubscriberInterface
 
 		if (count($users))
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db = Factory::getContainer()->get('DatabaseDriver');
-
+			$db = $this->getDatabase();
 			$query = $db->getQuery(true)
 				->select($db->qn(array('userid', 'avatar')))
 				->from($db->qn('#__phocagallery_user'))

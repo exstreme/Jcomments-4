@@ -10,6 +10,8 @@
  *
  **/
 
+namespace Joomla\Plugin\EditorsXtd\JcommentsOff\Extension;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
@@ -18,11 +20,11 @@ use Joomla\CMS\Object\CMSObject;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 /**
- * Provides button to insert {jcomments on} into content edit box
+ * Provides button to insert {jcomments off} into content edit box
  *
  * @since  1.5
  */
-class PlgButtonJCommentsOn extends CMSPlugin
+final class JcommentsOff extends CMSPlugin
 {
 	/**
 	 * Load the language file on instantiation.
@@ -33,7 +35,7 @@ class PlgButtonJCommentsOn extends CMSPlugin
 	protected $autoloadLanguage = true;
 
 	/**
-	 * JComments On button
+	 * JComments Off button
 	 *
 	 * @param   string  $name  Editor field name
 	 *
@@ -45,11 +47,11 @@ class PlgButtonJCommentsOn extends CMSPlugin
 	public function onDisplay(string $name)
 	{
 		$js = "
-		function insertJCommentsOn(editor) {
+		function insertJCommentsOff(editor) {
 			var content = Joomla.editors.instances['$name'].getValue();
 
-			if (!content.match(/{jcomments on}/)) {
-				Joomla.editors.instances['$name'].replaceSelection('{jcomments on}');
+			if (!content.match(/{jcomments off}/)) {
+				Joomla.editors.instances['$name'].replaceSelection('{jcomments off}');
 			}
 		}";
 
@@ -59,11 +61,11 @@ class PlgButtonJCommentsOn extends CMSPlugin
 		$button          = new CMSObject;
 		$button->class   = 'btn';
 		$button->modal   = false;
-		$button->onclick = 'insertJCommentsOn(\'' . $name . '\');return false;';
-		$button->text    = Text::_('PLG_EDITORS-XTD_JCOMMENTSON_BUTTON_JCOMMENTSON');
+		$button->onclick = 'insertJCommentsOff(\'' . $name . '\');return false;';
+		$button->text    = Text::_('PLG_EDITORS-XTD_JCOMMENTSOFF_BUTTON_JCOMMENTSOFF');
 		$button->name    = 'blank';
 		$button->link    = '#';
-		$button->icon    = 'comment-add';
+		$button->icon    = 'comment';
 
 		return $button;
 	}
