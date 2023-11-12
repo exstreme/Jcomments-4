@@ -1,16 +1,19 @@
-/*! SCEditor | (C) 2011-2016, Sam Clarke | sceditor.com/license */
+/*! SCEditor | (C) 2017, Sam Clarke | sceditor.com/license */
 /**
  * Default SCEditor
  * http://www.sceditor.com/
  *
- * Copyright (C) 2011-16, Sam Clarke
+ * Copyright (C) 2017, Sam Clarke
  *
  * SCEditor is licensed under the MIT license:
  *	http://www.opensource.org/licenses/mit-license.php
  */
+/**
+ * Modified version! Do not use from sceditor repository.
+ */
 div.sceditor-grip,
 .sceditor-button div {
-  background-image: url("famfamfam.png");
+  /*background-image: url("../../images/famfamfam.png");*/
   background-repeat: no-repeat;
   width: 16px;
   height: 16px;
@@ -527,4 +530,22 @@ div.sceditor-group {
 .rtl div.sceditor-grip {
   right: auto;
   left: 0;
+}
+div.sceditor-toolbar {
+  background: #5d5d5d;
+}
+div.sceditor-group {
+  background: #303030;
+  border-bottom: 1px solid #000;
+}
+.sceditor-button:hover,
+.sceditor-button:active,
+.sceditor-button.active {
+  background: #6b6b6b;
+}
+.sceditor-button svg {
+  fill: #fff;
+}
+.sceditor-button.disabled svg {
+  fill: #777;
 }

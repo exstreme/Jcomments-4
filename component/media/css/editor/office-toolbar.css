@@ -1,16 +1,28 @@
-/*! SCEditor | (C) 2017, Sam Clarke | sceditor.com/license */
+/**
+ * Copyright (C) 2012, Sam Clarke (samclarke.com)
+ *
+ * SCEditor is licensed under the MIT license:
+ *	http://www.opensource.org/licenses/mit-license.php
+ *
+ * Icons by Mark James (http://www.famfamfam.com/lab/icons/silk/)
+ * Licensed under the Creative Commons CC-BY license (http://creativecommons.org/licenses/by/3.0/)
+ */
+/*! SCEditor | (C) 2011-2016, Sam Clarke | sceditor.com/license */
 /**
  * Default SCEditor
  * http://www.sceditor.com/
  *
- * Copyright (C) 2017, Sam Clarke
+ * Copyright (C) 2011-16, Sam Clarke
  *
  * SCEditor is licensed under the MIT license:
  *	http://www.opensource.org/licenses/mit-license.php
  */
+/**
+ * Modified version! Do not use from sceditor repository.
+ */
 div.sceditor-grip,
 .sceditor-button div {
-  background-image: url("famfamfam.png");
+  /*background-image: url("../../images/famfamfam.png");*/
   background-repeat: no-repeat;
   width: 16px;
   height: 16px;
@@ -528,21 +540,60 @@ div.sceditor-group {
   right: auto;
   left: 0;
 }
+.sceditor-container {
+  border: 1px solid #8db2e3;
+}
+.sceditor-container textarea {
+  font-family: Consolas, "Bitstream Vera Sans Mono", "Andale Mono", Monaco, "DejaVu Sans Mono", "Lucida Console", monospace;
+}
 div.sceditor-toolbar {
-  background: #5d5d5d;
+  border-bottom: 1px solid #95a9c3;
+  background: #dee8f5;
+  background: linear-gradient(to bottom, #dee8f5 0%, #c7d8ed 29%, #ccdcee 61%, #c0d8ef 100%);
 }
 div.sceditor-group {
-  background: #303030;
-  border-bottom: 1px solid #000;
+  border: 1px solid #7596bf;
+  background: transparent;
+  padding: 0;
+  background: #cadcf0;
+  background: linear-gradient(to bottom, #cadcf0 24%, #bcd0e9 38%, #d0e1f7 99%);
 }
-.sceditor-button:hover,
-.sceditor-button:active,
-.sceditor-button.active {
-  background: #6b6b6b;
+.sceditor-button {
+  height: 16px;
+  padding: 3px 4px;
+  border-radius: 0;
+  background-clip: padding-box;
+  box-shadow: inset 0 1px #d5e3f1, inset 0 -1px #e3edfb, inset 1px 0 #cddcef, inset -1px 0 #b8ceea;
 }
+.sceditor-button:first-child {
+  border-radius: 4px 0 0 4px;
+  background-clip: padding-box;
+}
+.sceditor-button:last-child {
+  border-radius: 0 4px 4px 0;
+  background-clip: padding-box;
+}
+.sceditor-button div,
 .sceditor-button svg {
-  fill: #fff;
+  margin: 0;
 }
-.sceditor-button.disabled svg {
-  fill: #777;
+.sceditor-button.active {
+  background: #fbdbb5;
+  background: linear-gradient(to bottom, #fbdbb5 11%, #feb456 29%, #fdeb9f 99%);
+  box-shadow: inset 0 1px #ebd1b4, inset 0 -1px #ffe47f, inset -1px 0 #b8ceea;
+}
+.sceditor-button:hover {
+  background: #fef7d5;
+  background: linear-gradient(to bottom, #fef7d5 0%, #fae5a9 42%, #ffd048 42%, #ffe59f 100%);
+  box-shadow: inset 0 1px #fffbe8, inset -1px 0 #ffefc4, inset 0 -1px #fff9cc;
+}
+.sceditor-button:active {
+  background: #e7a66d;
+  background: linear-gradient(to bottom, #e7a66d 0%, #fcb16d 1%, #ff8d05 42%, #ffc450 100%);
+  box-shadow: inset 0 1px 1px #7b6645, inset 0 -1px #d19c33;
+}
+.sceditor-button.active:hover {
+  background: #dba368;
+  background: linear-gradient(to bottom, #dba368 0%, #ffbd79 4%, #fea335 34%, #ffc64c 66%, #fee069 100%);
+  box-shadow: inset 0 1px 1px #9e8255, inset 0 -1px #fcce6b;
 }

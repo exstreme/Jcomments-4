@@ -437,8 +437,9 @@ class CommentModel extends BaseDatabaseModel
 	 * @return  boolean  True on success, false otherwise
 	 *
 	 * @since   4.0
+	 * @todo    Check for flood
 	 */
-	public function vote(int $id, $value): bool
+	public function vote(int $id, int $value): bool
 	{
 		$app  = Factory::getApplication();
 		$user = $app->getIdentity();

@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Site\Helper;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /**
  * JComments editor toolbar class
@@ -59,18 +60,18 @@ class ToolbarHelper
 	 *
 	 * @param   object|null  $buttons   An object with buttons
 	 *
-	 * @return  string
+	 * @return  array
 	 *
 	 * @since   4.1
 	 */
-	public static function prepareToolbar(?object $buttons): string
+	public static function prepareToolbar(?object $buttons): array
 	{
 		$user = Factory::getApplication()->getIdentity();
 		$_buttons = array();
 
 		if (empty($buttons))
 		{
-			return '';
+			return $_buttons;
 		}
 
 		foreach ($buttons as $button)
@@ -83,10 +84,56 @@ class ToolbarHelper
 			$_buttons[] = $button->btn;
 		}
 
-		$_buttons = implode(',', $_buttons);
-		$_buttons = str_replace(array(',|', '|,'), '|', $_buttons);
-		$_buttons = preg_replace('~\|+~', '|', $_buttons);
+		return $_buttons;
+	}
 
-		return trim($_buttons, '|');
+	/**
+	 * Prepare custom buttons for editor toolbar
+	 *
+	 * @return  array
+	 *
+	 * @since   4.1
+	 */
+	public static function prepareCustomToolbar(): array
+	{
+		$customButtons = JcommentsFactory::getCustomBBCode()->getList();
+		$buttons = array();
+
+		foreach ($customButtons as $button)
+		{
+			if ($button->button_enabled)
+			{
+				$buttons[] = strtolower(str_replace(array('[', ']'), '', $button->button_open_tag));
+			}
+		}
+
+		return array_filter(array_unique($buttons));
+	}
+
+	/**
+	 * Make final toolbar
+	 *
+	 * @param   object|null  $buttons  Builtin editor buttons
+	 *
+	 * @return  string
+	 *
+	 * @since   4.1
+	 */
+	public static function buildToolbar(?object $buttons): string
+	{
+		$buttons = self::prepareToolbar($buttons);
+		$customButtons = self::prepareCustomToolbar();
+
+		if (count($customButtons))
+		{
+			array_unshift($customButtons, '|');
+		}
+
+		$buttons = array_merge($buttons, $customButtons);
+		$buttons = implode(',', $buttons);
+		$buttons = str_replace(array(',|', '|,'), '|', $buttons);
+		$buttons = preg_replace('~\|+~', '|', $buttons);
+
+		return trim($buttons, '|');
 	}
 }

@@ -15,9 +15,9 @@ namespace Joomla\Component\Jcomments\Administrator\Field;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\Filesystem\Folder;
 
 /**
  * Form Field class for display available object groups.
@@ -57,7 +57,7 @@ class ObjectgroupField extends ListField
 		$db->setQuery($query);
 		$components = $db->loadColumn();
 
-		$plugins = Folder::files(JPATH_SITE . '/components/com_jcomments/plugins/', '\.plugin\.php', true, false);
+		$plugins = Folder::files(JPATH_SITE . '/components/com_jcomments/plugins/', '\.plugin\.php', true);
 
 		if (is_array($plugins))
 		{

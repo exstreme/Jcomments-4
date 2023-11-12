@@ -2,6 +2,9 @@
 (function () {
 	'use strict';
 
+	sceditor.locale['ru']['Add indent'] = 'Добавить отступ';
+	sceditor.locale['ru']['Remove one indent'] = 'Удалить один отступ';
+
 	sceditor.locale['ru']['Insert emoji'] = 'Эмодзи';
 	sceditor.locale['ru']['smileys'] = 'Смайлы';
 	sceditor.locale['ru']['people'] = 'Люди';

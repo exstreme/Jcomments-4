@@ -15,15 +15,30 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
 
 /**
  * JComments Custom BBCode class
+ *
+ * @since  3.0
  */
 class JcommentsCustombbcode
 {
+	/**
+	 * Array of bbcodes
+	 *
+	 * @var    array
+	 * @since  3.0
+	 */
 	protected $codes = array();
 
+	/**
+	 * Array of bbcode patterns
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
 	protected $patterns = array();
 
 	protected $filter_patterns = array();
@@ -32,6 +47,11 @@ class JcommentsCustombbcode
 
 	protected $text_replacements = array();
 
+	/**
+	 * Initialize all custom bbcodes
+	 *
+	 * @since  3.0
+	 */
 	public function __construct()
 	{
 		$db  = Factory::getContainer()->get('DatabaseDriver');
@@ -39,23 +59,31 @@ class JcommentsCustombbcode
 
 		ob_start();
 
-		$query = $db->getQuery(true);
-
-		$query->select(
-			$db->quoteName(
-				array(
-					'id', 'name', 'simple_pattern', 'simple_replacement_html', 'simple_replacement_text', 'pattern',
-					'replacement_html', 'replacement_text', 'button_acl', 'button_open_tag', 'button_close_tag',
-					'button_title', 'button_prompt', 'button_image', 'button_css', 'button_enabled'
+		$query = $db->getQuery(true)
+			->select(
+				$db->quoteName(
+					array(
+						'id', 'name', 'simple_pattern', 'simple_replacement_html', 'simple_replacement_text', 'pattern',
+						'replacement_html', 'replacement_text', 'button_acl', 'button_open_tag', 'button_close_tag',
+						'button_title', 'button_prompt', 'button_image', 'button_css', 'button_enabled'
+					)
 				)
 			)
-		)
 			->from($db->quoteName('#__jcomments_custom_bbcodes'))
 			->where($db->quoteName('published') . ' = 1')
 			->order($db->escape('ordering') . ' ASC');
 
-		$db->setQuery($query);
-		$codes = $db->loadObjectList();
+		try
+		{
+			$db->setQuery($query);
+			$codes = $db->loadObjectList();
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+
+			return;
+		}
 
 		if (count($codes))
 		{
@@ -93,7 +121,18 @@ class JcommentsCustombbcode
 		return $this->codes;
 	}
 
-	public function filter($str, $forceStrip = false)
+	/**
+	 * Filter BBCode
+	 *
+	 * @param   string   $str         Comment text
+	 * @param   boolean  $forceStrip  Force to delete the code.
+	 *
+	 * @return  string|null
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
+	public function filter(string $str, bool $forceStrip = false): ?string
 	{
 		if (count($this->filter_patterns))
 		{
@@ -113,7 +152,18 @@ class JcommentsCustombbcode
 		return $str;
 	}
 
-	public function replace($str, $textReplacement = false)
+	/**
+	 * BBCode replacement with html
+	 *
+	 * @param   string   $str              Comment text
+	 * @param   boolean  $textReplacement  Replace with HTML or text
+	 *
+	 * @return  string|null
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
+	public function replace(string $str, bool $textReplacement = false): ?string
 	{
 		if (count($this->patterns))
 		{

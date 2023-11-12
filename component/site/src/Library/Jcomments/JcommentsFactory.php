@@ -51,6 +51,8 @@ class JcommentsFactory
 	 * Returns a reference to the global {@link JcommentsBbcode} object, only creating it if it does not already exist.
 	 *
 	 * @return JcommentsBbcode
+	 *
+	 * @since  3.0
 	 */
 	public static function getBbcode()
 	{
@@ -68,6 +70,8 @@ class JcommentsFactory
 	 * Returns a reference to the global {@link JcommentsCustombbcode} object, only creating it if it does not already exist.
 	 *
 	 * @return JcommentsCustombbcode
+	 *
+	 * @since  3.0
 	 */
 	public static function getCustomBBCode()
 	{

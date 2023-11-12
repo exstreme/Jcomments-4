@@ -22,9 +22,12 @@
  * SCEditor is licensed under the MIT license:
  *	http://www.opensource.org/licenses/mit-license.php
  */
+/**
+ * Modified version! Do not use from sceditor repository.
+ */
 div.sceditor-grip,
 .sceditor-button div {
-  background-image: url("famfamfam.png");
+  /*background-image: url("../../images/famfamfam.png");*/
   background-repeat: no-repeat;
   width: 16px;
   height: 16px;

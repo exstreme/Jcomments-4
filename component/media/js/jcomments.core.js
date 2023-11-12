@@ -289,7 +289,7 @@ Jcomments = window.Jcomments || {};
 			const parentDoc = parent.document,
 				parentIframe = parentDoc.querySelector('.commentEditFormFrame');
 
-			// Resize an iframe before scrolling to an element inside iframe.
+			// Resize an iframe before scrolling to element inside iframe.
 			parentIframe.style.height = Jcomments.iframeHeight(parentIframe) + 'px';
 
 			Jcomments.scrollTop(

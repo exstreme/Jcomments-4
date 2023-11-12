@@ -12,8 +12,9 @@ div.sceditor-toolbar:empty {
 }
 
 @font-face {
-	font-family: "Twemoji Mozilla";
-	src: url("../../fonts/Twemoji.Mozilla.ttf");
+	font-family: "Noto Color Emoji";
+	/*src: url("../../fonts/Twemoji.Mozilla.ttf");*/
+	src: url("../../fonts/Noto-COLRv1.ttf");
 }
 
 div.sceditor-emoji {
@@ -48,7 +49,7 @@ div.emoji-chars .emojis {
 div.emoji-chars i {
 	display: inline-block;
 	font-family: "Noto Color Emoji", "Apple Color Emoji", "Twemoji Mozilla", "Segoe UI Emoji", Times, Symbola, Aegyptus, Code2000, Code2001, Code2002, Musica, serif, LastResort;
-	font-size: 1.4em;
+	font-size: 1.5em;
 	font-style: normal;
 	font-variant-emoji: emoji;
 	margin: 1px;

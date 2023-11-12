@@ -31,6 +31,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
+use Joomla\Filesystem\File;
 use Joomla\Input\Input;
 use Joomla\Utilities\ArrayHelper;
 use Joomla\Utilities\IpHelper;
@@ -612,7 +613,7 @@ class CommentController extends FormController
 		JcommentsContentHelper::prepareComment($data, true);
 
 		$html = '<div class="comment-preview">
-			<style>@import url("' . Uri::base() . 'media/com_jcomments/css/' . $params->get('custom_css') . '.css");</style>
+			<style>@import url("' . Uri::base() . 'media/com_jcomments/css/' . File::makeSafe($params->get('custom_css') . '.css') . '");</style>
 			<div class="comments-list-container">
 				<div class="comment-container" id="comment-item-">'
 				. LayoutHelper::render('comment', array('comment' => $data, 'params' => $params))

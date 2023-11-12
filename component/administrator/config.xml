@@ -242,18 +242,6 @@
 
 	<fieldset name="form" label="A_FORM_PARAMS">
 		<field
-				name="editor_format"
-				type="list"
-				default="bbcode"
-				label="AP_FORM_FORMAT"
-				description="AP_FORM_FORMAT_DESC"
-				filter="string"
-		>
-			<option value="bbcode">BBcode</option>
-			<option value="xhtml">XHTML</option>
-		</field>
-
-		<field
 				name="form_show"
 				type="list"
 				default="1"
@@ -356,7 +344,7 @@
 		<field
 				name="smilies_path"
 				type="text"
-				default="media/com_jcomments/images/tmpl/default/smilies/"
+				default="media/com_jcomments/images/tmpl/smilies/default/"
 				label="AP_FORM_FIELD_SMILIES_PATH"
 				filter="path"
 		/>
@@ -370,6 +358,50 @@
 		>
 			<option value="0">JNO</option>
 			<option value="1">JYES</option>
+		</field>
+	</fieldset>
+
+	<fieldset name="editor" label="AP_FORM_EDITOR_PARAMS">
+		<field
+				name="editor_format"
+				type="list"
+				default="bbcode"
+				label="AP_FORM_FORMAT"
+				description="AP_FORM_FORMAT_DESC"
+				filter="string"
+		>
+			<option value="bbcode">BBcode</option>
+			<option value="xhtml">XHTML</option>
+		</field>
+
+		<field
+				name="editor_theme"
+				type="filelist"
+				default="square"
+				label="AP_FORM_EDITOR_THEME"
+				description="AP_FORM_EDITOR_THEME_DESC"
+				directory="media/com_jcomments/css/editor/"
+				stripext="1"
+				fileFilter="\.css$"
+				exclude="\-custom.css$"
+				hide_none="1"
+				hide_default="true"
+		/>
+
+		<field
+				name="editor_theme_icons"
+				type="filelist"
+				default=""
+				label="AP_FORM_EDITOR_ICONS"
+				description="AP_FORM_EDITOR_ICONS_DESC"
+				directory="media/com_jcomments/js/editor/icons/"
+				stripext="1"
+				fileFilter="\.js$"
+				hide_none="1"
+				hide_default="true"
+				filter="options"
+		>
+			<option value="">JNONE</option>
 		</field>
 
 		<field

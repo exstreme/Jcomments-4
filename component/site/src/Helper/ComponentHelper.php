@@ -17,6 +17,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\Filesystem\File;
 use Joomla\Registry\Registry;
 
 /**
@@ -56,9 +57,11 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 
 		if ($pluginParams->get('disable_template_css') == 0)
 		{
-			if ($params->get('custom_css') != 'frontend-style')
+			$style = File::makeSafe($params->get('custom_css'));
+
+			if ($style != 'frontend-style')
 			{
-				$cssPath = 'media/com_jcomments/css/' . $params->get('custom_css') . '.css';
+				$cssPath = 'media/com_jcomments/css/' . $style . '.css';
 
 				if (is_file($cssPath))
 				{

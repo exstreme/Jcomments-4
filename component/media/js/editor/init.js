@@ -3,10 +3,15 @@ document.addEventListener('DOMContentLoaded', function () {
 	const jce = document.getElementById('jform_comment');
 	const jce_config = JSON.parse(jce.dataset.config);
 	let jce_limitreached = false;
+	const icon_spoiler = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g stroke-width="1.0595"><path d="m1.9738 1.0168v4.9944h28.022v-4.9944z"/><path d="m1.9738 25.977v4.9944h28.022v-4.9944z"/></g><g><rect x="6.559" y="9.4897" width="3.74" height="7.296" stroke-width=".70362"/><path transform="matrix(.94771 .99029 -1.6415 .57174 44.965 2.7122)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g><g transform="rotate(180 15.463 20.048)"><rect x="5.515" y="17.55" width="3.74" height="7.0931" stroke-width=".69377"/><path transform="matrix(.94771 .99029 -1.6415 .57174 43.921 10.783)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g></svg>';
 
-	sceditor.icons.monocons.icons.hide = '<svg id="a" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><text x="15.976123" y="21" fill="#000000" font-size="13px" text-align="center" text-anchor="middle" style="line-height:0" xml:space="preserve"><tspan x="15.976123" y="21">HIDE</tspan></text></svg>';
-
-	sceditor.icons.monocons.icons.spoiler = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g stroke-width="1.0595"><path d="m1.9738 1.0168v4.9944h28.022v-4.9944z"/><path d="m1.9738 25.977v4.9944h28.022v-4.9944z"/></g><g><rect x="6.559" y="9.4897" width="3.74" height="7.296" stroke-width=".70362"/><path transform="matrix(.94771 .99029 -1.6415 .57174 44.965 2.7122)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g><g transform="rotate(180 15.463 20.048)"><rect x="5.515" y="17.55" width="3.74" height="7.0931" stroke-width=".69377"/><path transform="matrix(.94771 .99029 -1.6415 .57174 43.921 10.783)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g></svg>';
+	if (sceditor.icons.material) {
+		sceditor.icons.material.icons.hide = '<text fill="#000000" text-align="center" text-anchor="middle" style="line-height:0" xml:space="preserve" y="16" font-size=".8em" x="12">HIDE</text>';
+		sceditor.icons.material.icons.spoiler = icon_spoiler;
+	} else if (sceditor.icons.monocons) {
+		sceditor.icons.monocons.icons.hide = '<text fill="#000000" text-align="center" text-anchor="middle" style="line-height:0" xml:space="preserve" y="12" font-size=".6em" x="8">HIDE</text>';
+		sceditor.icons.monocons.icons.spoiler = icon_spoiler;
+	}
 
 	if (sceditor.formats.bbcode) {
 		sceditor.formats.bbcode.set('quote', {

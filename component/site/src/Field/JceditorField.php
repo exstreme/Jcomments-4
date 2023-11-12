@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Site\Field;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\Filesystem\File;
 use Joomla\CMS\Form\Field\TextareaField;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
@@ -22,6 +23,7 @@ use Joomla\CMS\WebAsset\WebAssetManager;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ToolbarHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\String\StringHelper;
 
 /**
  * Jcomments Editor Field class.
@@ -97,13 +99,15 @@ class JceditorField extends TextareaField
 		$params = ComponentHelper::getParams('com_jcomments');
 
 		/** @var WebAssetManager $wa */
-		$wa        = $doc->getWebAssetManager();
-		$langTag   = $app->getLanguage()->getTag();
-		$_lang     = in_array($langTag, array('en-US', 'pt-BR')) ? $langTag : strtolower(substr($langTag, -2));
-		$emoticons = JcommentsFactory::getSmilies()->getList();
-		$format    = $params->def('editor_format', 'bbcode');
-		$plugins   = array('autoyoutube', 'undo', 'emoji');
-		$buttons   = (string) $this->element['buttons'];
+		$wa          = $doc->getWebAssetManager();
+		$langTag     = $app->getLanguage()->getTag();
+		$_lang       = in_array($langTag, array('en-US', 'pt-BR')) ? $langTag : strtolower(substr($langTag, -2));
+		$emoticons   = JcommentsFactory::getSmilies()->getList();
+		$format      = $params->def('editor_format', 'bbcode');
+		$plugins     = array('autoyoutube', 'undo', 'emoji');
+		$buttons     = (string) $this->element['buttons'];
+		$editorTheme = File::makeSafe($params->get('editor_theme'));
+		$editorIcons = File::makeSafe($params->get('editor_theme_icons'));
 
 		if (!empty($buttons))
 		{
@@ -120,29 +124,65 @@ class JceditorField extends TextareaField
 			$buttons = $params->get('editor_buttons');
 		}
 
-		$wa->registerAndUseStyle('jceditor.theme', 'media/com_jcomments/editor/themes/square.css')
-			->registerAndUseStyle('jceditor.theme.custom', 'media/com_jcomments/editor/themes/custom.css')
-			->registerAndUseScript('jceditor.core', 'media/com_jcomments/editor/sceditor.js');
+		$wa->registerAndUseStyle(
+			'jceditor.theme.square',
+			'media/com_jcomments/css/editor/' . $editorTheme . '.css',
+			array('version' => '4.1.0')
+		)->addInlineStyle(
+			'.sceditor-button div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/famfamfam.png"); }
+			.sceditor-button-hide div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/hide.png"); }
+			.sceditor-button-spoiler div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/spoiler.png"); }
+			.sceditor-button-emoji div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/emoji.png"); }'
+		)->registerAndUseStyle(
+			'jceditor.theme.square.custom',
+			'media/com_jcomments/css/editor/' . $editorTheme . '-custom.css',
+			array('version' => '4.1.0')
+		)->useScript('jceditor.core');
 
 		if ($format == 'bbcode')
 		{
-			$wa->registerAndUseScript('jceditor.bbcode', 'media/com_jcomments/editor/formats/bbcode.js')
-				->registerAndUseScript('jceditor.plg.alternative.lists', 'media/com_jcomments/editor/plugins/alternative-lists.js');
+			$wa->useScript('jceditor.format.bbcode')
+				->useScript('jceditor.plg.alternativelist');
 			$plugins[] = 'alternative-lists';
 		}
 		else
 		{
-			$wa->registerAndUseScript('jceditor.bbcode', 'media/com_jcomments/editor/formats/xhtml.js');
+			$wa->useScript('jceditor.format.html');
 		}
 
-		$wa->registerAndUseScript('jceditor.plg.autoyoutube', 'media/com_jcomments/editor/plugins/autoyoutube.js')
-			->registerAndUseScript('jceditor.plg.undo', 'media/com_jcomments/editor/plugins/undo.js')
-			->registerAndUseScript('jceditor.plg.emoji', 'media/com_jcomments/editor/plugins/emoji.js')
-			->registerAndUseScript('jceditor.icons', 'media/com_jcomments/editor/icons/monocons.js')
-			->registerAndUseScript('jceditor.lang', 'media/com_jcomments/editor/languages/' . $_lang . '.js')
-			->registerAndUseScript('jceditor.lang.plugins', 'media/com_jcomments/editor/languages/plugins/' . $_lang . '.js')
-			->registerAndUseScript('jceditor.init.bbcode', 'media/com_jcomments/editor/init.js')
-			->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js');
+		$wa->useScript('jceditor.plg.autoyoutube')
+			->useScript('jceditor.plg.undo')
+			->useScript('jceditor.plg.emoji');
+
+		if ($editorIcons !== '')
+		{
+			$wa->useScript('jceditor.icons.' . $editorIcons);
+		}
+
+		$wa->registerAndUseScript('jceditor.lang', 'media/com_jcomments/js/editor/languages/' . $_lang . '.js')
+			->registerAndUseScript('jceditor.lang.plugins', 'media/com_jcomments/js/editor/languages/plugins/' . $_lang . '.js');
+
+		if ($format == 'bbcode')
+		{
+			$js = $this->generateCustomButtonsJs(JcommentsFactory::getCustomBBCode()->getList(), $editorIcons);
+
+			if ($js > '')
+			{
+				$wa->addInlineScript(
+					"document.addEventListener('DOMContentLoaded', function () {" . $js . "});",
+					['name' => 'jceditor.format.bbcode.custom', 'position' => 'before'],
+					[],
+					['jceditor.init.bbcode']
+				);
+			}
+		}
+		else
+		{
+			// TODO Do something with html?
+		}
+
+		$wa->useScript('jceditor.init.bbcode')
+			->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2']);
 
 		Text::script('COMMENT_TEXT_CODE');
 		Text::script('COMMENT_TEXT_QUOTE');
@@ -153,12 +193,12 @@ class JceditorField extends TextareaField
 
 		$editorConfig = array(
 			'format'        => $format,
-			'style'         => Uri::root() . 'media/com_jcomments/editor/themes/content/' . $params->get('custom_css', 'frontend-style') . '.css',
+			'style'         => Uri::root() . 'media/com_jcomments/css/editor/content/' . File::makeSafe($params->get('custom_css', 'frontend-style') . '.css'),
 			'width'         => $this->width,
 			'height'        => $this->height,
-			'icons'         => 'monocons',
+			'icons'         => $editorIcons === '' ? null : $editorIcons,
 			'locale'        => $langTag,
-			'toolbar'       => ToolbarHelper::prepareToolbar($buttons),
+			'toolbar'       => ToolbarHelper::buildToolbar($buttons),
 			'emoticonsRoot' => Uri::root() . $params->get('smilies_path'),
 			'plugins'       => implode(',', $plugins),
 			'autoUpdate'    => true,
@@ -166,7 +206,7 @@ class JceditorField extends TextareaField
 			'maxlength'     => $user->get('isRoot') ? 0 : $params->get('comment_maxlength'),
 			'emoji'         => (object) array(
 				'enable' => true,
-				'excludeEmojis' => '1FAE8,1FA77,1FA75,1FA76,1FAF7,1FAF8,1FACE,1FACF,1FABD,1FABF,1FABC,1FABB,1FADA,1FADB,1FAAD,1FAAE,1FA87,1FA88,1FAAF,1F6DC',
+				//'excludeEmojis' => '1FAE8,1FA77,1FA75,1FA76,1FAF7,1FAF8,1FACE,1FACF,1FABD,1FABF,1FABC,1FABB,1FADA,1FADB,1FAAD,1FAAE,1FA87,1FA88,1FAAF,1F6DC',
 				//'closeAfterSelect' => false,
 				/*'twemoji' => (object) array(
 					'base' => Uri::base() . 'media/com_jcomments/images/',
@@ -190,5 +230,62 @@ class JceditorField extends TextareaField
 		$this->dataAttributes['data-config'] = json_encode($editorConfig);
 
 		return parent::getInput();
+	}
+
+	/**
+	 * Generate javascript for cutom bbcode buttons
+	 *
+	 * @param   array   $data      Array with buttons
+	 * @param   string  $iconFile  Filename with icon file
+	 *
+	 * @return  string
+	 *
+	 * @since   4.1
+	 */
+	private function generateCustomButtonsJs(array $data, string $iconFile): string
+	{
+		ob_start();
+
+		$js = '';
+
+		foreach ($data as $button)
+		{
+			if (!$button->button_enabled)
+			{
+				continue;
+			}
+
+			$openTag = str_replace(array('[', ']'), '', $button->button_open_tag);
+
+			if ($button->button_image > '')
+			{
+				$js .= "";
+			}
+			else
+			{
+				if ($iconFile == 'material')
+				{
+					$js .= "sceditor.icons.material.icons." . $openTag . " = '<text x=\"12\" y=\"16\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
+				}
+				elseif ($iconFile == 'monocons')
+				{
+					$js .= "sceditor.icons.monocons.icons." . $openTag . " = '<text x=\"8\" y=\"12\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
+				}
+			}
+
+			$js .= "\n\t\t\tsceditor.command.set('" . $openTag . "', {
+				exec: function () {
+					this.insertText('" . $button->button_open_tag . "', '" . $button->button_close_tag . "');
+				},
+				txtExec: function () {
+					this.insertText('" . $button->button_open_tag . "', '" . $button->button_close_tag . "');
+				},
+				tooltip: '" . addslashes($button->button_title) . "'
+			});\n";
+		}
+
+		ob_end_clean();
+
+		return $js;
 	}
 }

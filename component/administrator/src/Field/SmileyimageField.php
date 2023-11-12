@@ -15,12 +15,12 @@ namespace Joomla\Component\Jcomments\Administrator\Field;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Administrator\Helper\JcommentsHelper;
+use Joomla\Filesystem\Folder;
 
 /**
  * Form Field class for display smilies dropdown with image preview.

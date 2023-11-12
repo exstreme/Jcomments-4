@@ -68,6 +68,90 @@
         "kwood.plugin"
       ],
       "version": "2.0.1"
+    },
+    {
+      "name": "jceditor.core",
+      "type": "script",
+      "uri": "com_jcomments/editor/sceditor.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.alternativelist",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/alternative-lists.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.autosave",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/autosave.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.autoyoutube",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/autoyoutube.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.dragdrop",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/dragdrop.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.emoji",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/emoji.js",
+      "version": "0.0.1"
+    },
+    {
+      "name": "jceditor.plg.format",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/format.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.plaintext",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/plaintext.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.plg.undo",
+      "type": "script",
+      "uri": "com_jcomments/editor/plugins/undo.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.format.bbcode",
+      "type": "script",
+      "uri": "com_jcomments/editor/formats/bbcode.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.format.html",
+      "type": "script",
+      "uri": "com_jcomments/editor/formats/xhtml.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.icons.material",
+      "type": "script",
+      "uri": "com_jcomments/editor/icons/material.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.icons.monocons",
+      "type": "script",
+      "uri": "com_jcomments/editor/icons/monocons.js",
+      "version": "3.2.0"
+    },
+    {
+      "name": "jceditor.init.bbcode",
+      "type": "script",
+      "uri": "com_jcomments/editor/init.js",
+      "version": "4.1.0"
     }
   ]
 }
