@@ -59,6 +59,7 @@
 		<action name="comment.bbcode.url" title="AP_ENABLE_BBCODE_URL"/>
 		<action name="comment.bbcode.unlink" title="AP_ENABLE_BBCODE_UNLINK"/>
 		<action name="comment.bbcode.emoticon" title="AP_ENABLE_BBCODE_SMILIES"/>
+		<action name="comment.bbcode.youtube" title="AP_ENABLE_BBCODE_YOUTUBE"/>
 		<action name="comment.bbcode.date" title="AP_ENABLE_BBCODE_DATE"/>
 		<action name="comment.bbcode.time" title="AP_ENABLE_BBCODE_TIME"/>
 		<action name="comment.bbcode.ltr" title="AP_ENABLE_BBCODE_LTR"/>

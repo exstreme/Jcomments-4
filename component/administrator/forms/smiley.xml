@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
-	<fieldset addfieldprefix="Joomla\Component\Jcomments\Administrator\Field">
+	<fieldset name="edit" addfieldprefix="Joomla\Component\Jcomments\Administrator\Field">
 		<field
 				name="code"
 				type="text"
@@ -54,7 +54,7 @@
 				readonly="true"
 				class="readonly"
 				label="JGLOBAL_FIELD_ID_LABEL"
-				description="JGLOBAL_FIELD_ID_DESC"/>
+		/>
 
 		<!-- Used in view to internal access checking -->
 		<field

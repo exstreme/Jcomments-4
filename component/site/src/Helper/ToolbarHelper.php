@@ -14,7 +14,6 @@ namespace Joomla\Component\Jcomments\Site\Helper;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /**
@@ -25,69 +24,6 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 class ToolbarHelper
 {
 	/**
-	 * Get all buttons for editor toolbar in format: array('button_name' => 'acl value', ...)
-	 *
-	 * @return  array
-	 *
-	 * @since   4.1
-	 */
-	public static function getButtons(): array
-	{
-		$user     = Factory::getApplication()->getIdentity();
-		$buttons  = ComponentHelper::getParams('com_jcomments')->get('editor_buttons');
-		$_buttons = array();
-
-		if (empty($buttons))
-		{
-			return array();
-		}
-
-		foreach ($buttons as $button)
-		{
-			if ($button->btn == '|')
-			{
-				continue;
-			}
-
-			$_buttons[$button->btn] = $user->authorise('comment.bbcode.' . $button->btn, 'com_jcomments');
-		}
-
-		return $_buttons;
-	}
-
-	/**
-	 * Prepare buttons for editor toolbar
-	 *
-	 * @param   object|null  $buttons   An object with buttons
-	 *
-	 * @return  array
-	 *
-	 * @since   4.1
-	 */
-	public static function prepareToolbar(?object $buttons): array
-	{
-		$user = Factory::getApplication()->getIdentity();
-		$_buttons = array();
-
-		if (empty($buttons))
-		{
-			return $_buttons;
-		}
-
-		foreach ($buttons as $button)
-		{
-			if (!$user->authorise('comment.bbcode.' . $button->btn, 'com_jcomments') && $button->btn != '|')
-			{
-				continue;
-			}
-
-			$_buttons[] = $button->btn;
-		}
-
-		return $_buttons;
-	}
-
-	/**
 	 * Prepare custom buttons for editor toolbar
 	 *
 	 * @return  array
@@ -96,14 +32,14 @@ class ToolbarHelper
 	 */
 	public static function prepareCustomToolbar(): array
 	{
-		$customButtons = JcommentsFactory::getCustomBBCode()->getList();
+		$customButtons = JcommentsFactory::getBbcode()->getCustomBbcodesList()['raw'];
 		$buttons = array();
 
 		foreach ($customButtons as $button)
 		{
-			if ($button->button_enabled)
+			if ($button->button_enabled && $button->canUse)
 			{
-				$buttons[] = strtolower(str_replace(array('[', ']'), '', $button->button_open_tag));
+				$buttons[] = $button->tagName;
 			}
 		}
 
@@ -111,9 +47,9 @@ class ToolbarHelper
 	}
 
 	/**
-	 * Make final toolbar
+	 * Make final editor toolbar
 	 *
-	 * @param   object|null  $buttons  Builtin editor buttons
+	 * @param   object|null  $buttons  Editor buttons
 	 *
 	 * @return  string
 	 *
@@ -121,8 +57,17 @@ class ToolbarHelper
 	 */
 	public static function buildToolbar(?object $buttons): string
 	{
-		$buttons = self::prepareToolbar($buttons);
+		$buttons = JcommentsFactory::getBbcode()->getStandardCodes($buttons)['buttons'];
 		$customButtons = self::prepareCustomToolbar();
+
+		// Remove duplicate buttons from editor builtin buttons list, so we can override editor buttons with custom buttons.
+		foreach ($buttons as $i => $button)
+		{
+			if (in_array($button, $customButtons) && $button !== '|')
+			{
+				unset($buttons[$i]);
+			}
+		}
 
 		if (count($customButtons))
 		{

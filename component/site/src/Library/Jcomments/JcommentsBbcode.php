@@ -16,10 +16,11 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\String\PunycodeHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
-use Joomla\Component\Jcomments\Site\Helper\ToolbarHelper;
 use Joomla\Filter\InputFilter;
 use Joomla\String\StringHelper;
 
@@ -31,6 +32,16 @@ use Joomla\String\StringHelper;
 class JcommentsBbcode
 {
 	/**
+	 * Array of allowed bbcode attributes for some tags
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected $allowedAttrs = array(
+		'img' => array('width', 'height', 'class')
+	);
+
+	/**
 	 * Array of bbcodes
 	 *
 	 * @var    array
@@ -39,12 +50,52 @@ class JcommentsBbcode
 	protected $codes = array();
 
 	/**
+	 * Array of custom bbcodes
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected $customCodes = array();
+
+	/**
+	 * Array of custom filter patterns
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected $customFilterPatterns = array();
+
+	/**
+	 * Array of custom html replacements
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected $customHtmlReplacements = array();
+
+	/**
+	 * Array of custom bbcode patterns
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected $customPatterns = array();
+
+	/**
+	 * Array of custom text replacements
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected $customTextReplacements = array();
+
+	/**
 	 * Array of bbcode patterns
 	 *
 	 * @var    array
 	 * @since  4.1
 	 */
-	private $patterns = array(
+	protected $patterns = array(
 		'b'       => '~\[b](.*?)\[/b]~iu',
 		'i'       => '~\[i](.*?)\[/i]~iu',
 		'u'       => '~\[u](.*?)\[/u]~iu',
@@ -77,7 +128,8 @@ class JcommentsBbcode
 		),
 		'table'   => '~\[table(\s+.*?)?](.*?)\[/table](<br\s?/?>)*?~isu',
 		'spoiler' => '~\[spoiler((=)(.*?))?](<br\s?/?>)*?(.*?)(<br\s?/?>)*\[/spoiler](<br\s?/?>)*?~ismu',
-		'quote'   => '~\[quote\s?(name=\"?(.*?)\"?)?](<br\s?/?>)*?(.*?)(<br\s?/?>)*?\[/quote](<br\s?/?>)*?~ismu'
+		'quote'   => '~\[quote\s?(name=\"?(.*?)\"?)?](<br\s?/?>)*?(.*?)(<br\s?/?>)*?\[/quote](<br\s?/?>)*?~ismu',
+		'youtube' => '~\[youtube\]https\:\/\/www\.youtube\.com\/watch\?v\=([A-Za-z0-9-_]+)([A-Za-z0-9\%\&\=\#]*?)\[\/youtube\]~ismu'
 	);
 
 	/**
@@ -87,17 +139,7 @@ class JcommentsBbcode
 	 * @since  4.1
 	 * @see    https://stackoverflow.com/a/41132408
 	 */
-	private $urlPattern = "/^([a-z][a-z0-9+.-]*):(?:\\/\\/((?:(?=((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*))(\\3)@)?(?=(\\[[0-9A-F:.]{2,}\\]|(?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*))\\5(?::(?=(\\d*))\\6)?)(\\/(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/]|%[0-9A-F]{2})*))\\8)?|(\\/?(?!\\/)(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/]|%[0-9A-F]{2})*))\\10)?)(?:\\?(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/?]|%[0-9A-F]{2})*))\\11)?(?:#(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/?]|%[0-9A-F]{2})*))\\12)?$/iu";
-
-	/**
-	 * Array of allowed bbcode attributes for some tags
-	 *
-	 * @var    array
-	 * @since  4.1
-	 */
-	private $allowedAttrs = array(
-		'img' => array('width', 'height', 'class')
-	);
+	protected $urlPattern = "/^([a-z][a-z0-9+.-]*):(?:\\/\\/((?:(?=((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*))(\\3)@)?(?=(\\[[0-9A-F:.]{2,}\\]|(?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*))\\5(?::(?=(\\d*))\\6)?)(\\/(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/]|%[0-9A-F]{2})*))\\8)?|(\\/?(?!\\/)(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/]|%[0-9A-F]{2})*))\\10)?)(?:\\?(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/?]|%[0-9A-F]{2})*))\\11)?(?:#(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/?]|%[0-9A-F]{2})*))\\12)?$/iu";
 
 	/**
 	 * Initialize all bbcodes
@@ -106,18 +148,54 @@ class JcommentsBbcode
 	 */
 	public function __construct()
 	{
-		$this->codes = ToolbarHelper::getButtons();
+		$this->codes = self::getStandardCodes()['codes'];
+		$this->getCustomBbcodes();
 
 		// Adjust some code names for B/C
-		$this->codes['b']    = $this->codes['bold'];
-		$this->codes['i']    = $this->codes['italic'];
-		$this->codes['u']    = $this->codes['underline'];
-		$this->codes['s']    = $this->codes['strike'];
-		$this->codes['sub']  = $this->codes['subscript'];
-		$this->codes['sup']  = $this->codes['superscript'];
-		$this->codes['hr']   = $this->codes['horizontalrule'];
-		$this->codes['img']  = $this->codes['image'];
-		$this->codes['list'] = $this->codes['bulletlist'];
+		if (array_key_exists('bold', $this->codes))
+		{
+			$this->codes['b'] = $this->codes['bold'];
+		}
+
+		if (array_key_exists('italic', $this->codes))
+		{
+			$this->codes['i'] = $this->codes['italic'];
+		}
+
+		if (array_key_exists('underline', $this->codes))
+		{
+			$this->codes['u'] = $this->codes['underline'];
+		}
+
+		if (array_key_exists('strike', $this->codes))
+		{
+			$this->codes['s'] = $this->codes['strike'];
+		}
+
+		if (array_key_exists('subscript', $this->codes))
+		{
+			$this->codes['sub'] = $this->codes['subscript'];
+		}
+
+		if (array_key_exists('superscript', $this->codes))
+		{
+			$this->codes['sup'] = $this->codes['superscript'];
+		}
+
+		if (array_key_exists('horizontalrule', $this->codes))
+		{
+			$this->codes['hr'] = $this->codes['horizontalrule'];
+		}
+
+		if (array_key_exists('image', $this->codes))
+		{
+			$this->codes['img'] = $this->codes['image'];
+		}
+
+		if (array_key_exists('bulletlist', $this->codes))
+		{
+			$this->codes['list'] = $this->codes['bulletlist'];
+		}
 	}
 
 	/**
@@ -229,6 +307,13 @@ class JcommentsBbcode
 		{
 			$patterns[]     = $this->patterns['size'];
 			$replacements[] = '\\2';
+		}
+
+		// YOUTUBE - [youtube][/youtube]
+		if ((!$this->codes['youtube']) || ($forceStrip))
+		{
+			$patterns[]     = $this->patterns['youtube'];
+			$replacements[] = 'https://www.youtube.com/watch?v=\\1';
 		}
 
 		/**
@@ -418,6 +503,132 @@ class JcommentsBbcode
 	}
 
 	/**
+	 * Filter custom BBCode
+	 *
+	 * @param   string   $str         Comment text
+	 * @param   boolean  $forceStrip  Force to delete the code.
+	 *
+	 * @return  string|null
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
+	public function filterCustom(string $str, bool $forceStrip = false): ?string
+	{
+		if (count($this->customFilterPatterns))
+		{
+			ob_start();
+			$str = preg_replace($this->customFilterPatterns, $this->customTextReplacements, $str);
+			ob_end_clean();
+		}
+
+		if ($forceStrip === true)
+		{
+			ob_start();
+			$str = preg_replace($this->customPatterns, $this->customTextReplacements, $str);
+			ob_end_clean();
+		}
+
+		return $str;
+	}
+
+	/**
+	 * Getter for custom bbcodes.
+	 *
+	 * @return  array
+	 *
+	 * @since   4.1
+	 */
+	public function getCustomBbcodesList(): array
+	{
+		$codes = array();
+
+		foreach ($this->customCodes as $code)
+		{
+			$codes[] = $code->tagName;
+		}
+
+		return array('codes' => array_filter(array_unique($codes)), 'raw' => $this->customCodes);
+	}
+
+	/**
+	 * Get all builtin bbcodes with or without separator.
+	 *
+	 * @param   object|null  $buttons  Editor buttons
+	 *
+	 * @return  array  array('codes' => array('code_name' => 'acl value', ...), 'buttons' => array('button_name', ...))
+	 *
+	 * @since   4.1
+	 */
+	public function getStandardCodes($buttons = array()): array
+	{
+		$user     = Factory::getApplication()->getIdentity();
+		$codes    = array();
+		$_buttons = array();
+
+		if (empty($buttons))
+		{
+			$buttons = ComponentHelper::getParams('com_jcomments')->get('editor_buttons');
+		}
+
+		if (!empty($buttons))
+		{
+			foreach ($buttons as $button)
+			{
+				if ($button->btn != '|')
+				{
+					$canUse = $user->authorise('comment.bbcode.' . $button->btn, 'com_jcomments');
+
+					if ($canUse)
+					{
+						$_buttons[] = $button->btn;
+					}
+
+					$codes[$button->btn] = $canUse;
+				}
+				else
+				{
+					$_buttons[] = '|';
+				}
+			}
+		}
+
+		return array('codes' => array_filter($codes), 'buttons' => $_buttons);
+	}
+
+	/**
+	 * Remove hidden text
+	 *
+	 * @param   string  $text  Text to clean
+	 *
+	 * @return  string
+	 *
+	 * @since   2.5
+	 */
+	public function removeHidden(string $text): string
+	{
+		$text = preg_replace($this->patterns['hide'], '', $text);
+
+		return preg_replace('#<br\s?/?>+#i', '', $text);
+	}
+
+	/**
+	 * Remove nested quotes from input text
+	 *
+	 * @param   string  $text  Text to clean
+	 *
+	 * @return  string
+	 *
+	 * @since   2.5
+	 */
+	public function removeQuotes(string $text): string
+	{
+		$text = preg_replace(array('#\n?\[quote.*?].+?\[/quote]\n?#isu', '#\[/quote]#iu'), '', $text);
+
+		return preg_replace('#<br\s?/?>+#i', '', $text);
+	}
+
+	/**
 	 * BBCode replacement with html
 	 *
 	 * @param   string  $str  Comment text
@@ -461,19 +672,19 @@ class JcommentsBbcode
 		$replacements[] = '<sub>\\1</sub>';
 
 		// LEFT - [left][/left]
-		$patterns[]     = '~\[left](.*?)\[/left]~iu';
+		$patterns[]     = $this->patterns['left'];
 		$replacements[] = '<p class="text-start">\\1</p>';
 
 		// CENTER - [center][/center]
-		$patterns[]     = '~\[center](.*?)\[/center]~iu';
+		$patterns[]     = $this->patterns['center'];
 		$replacements[] = '<p class="text-center">\\1</p>';
 
 		// RIGHT - [right][/right]
-		$patterns[]     = '~\[right](.*?)\[/right]~iu';
+		$patterns[]     = $this->patterns['right'];
 		$replacements[] = '<p class="text-end">\\1</p>';
 
 		// JUSTIFY - [justify][/justify]
-		$patterns[]     = '~\[justify](.*?)\[/justify]~iu';
+		$patterns[]     = $this->patterns['justify'];
 		$replacements[] = '<p style="text-align:justify;">\\1</p>';
 
 		// FONT - [font=font name][/font]
@@ -483,6 +694,10 @@ class JcommentsBbcode
 		// SIZE - [size=value][/size]
 		$patterns[]     = $this->patterns['size'];
 		$replacements[] = '<span class="fs-\\1">\\2</span>';
+
+		// YOUTUBE - [youtube][/youtube]
+		$patterns[]     = $this->patterns['youtube'];
+		$replacements[] = '<iframe width="425" height="350" src="//www.youtube.com/embed/\\1?rel=0" frameborder="0" allowfullscreen></iframe>';
 
 		/**
 		 * COLOR - [color=value][/color] - where value can be,
@@ -771,42 +986,116 @@ class JcommentsBbcode
 			);
 		}
 
-		// Remove starting and/or ending bbcode tags
-		$str = preg_replace('~\[/?(' . implode('|', array_keys($this->codes)) . '|tr|td)]~iu', '', $str);
+		// Remove the codes from the list of standard codes that are present in the list of additional codes.
+		$deleteCodes = array_udiff(array_keys($this->codes), self::getCustomBbcodesList()['codes'], 'strcasecmp');
+
+		// Remove starting and/or ending bbcode tags.
+		$str = preg_replace('#\[/?(' . implode('|', array_values($deleteCodes)) . '|tr|td)]#iu', '', $str);
+
 		ob_end_clean();
 
 		return $str;
 	}
 
 	/**
-	 * Remove nested quotes from input text
+	 * BBCode replacement with html for custom bbcodes
 	 *
-	 * @param   string  $text  Text to clean
+	 * @param   string   $str              Comment text
+	 * @param   boolean  $textReplacement  Replace with HTML or text
 	 *
-	 * @return  string
+	 * @return  string|null
 	 *
-	 * @since   2.5
+	 * @throws  \Exception
+	 * @since   3.0
 	 */
-	public function removeQuotes(string $text): string
+	public function replaceCustom(string $str, bool $textReplacement = false): ?string
 	{
-		$text = preg_replace(array('#\n?\[quote.*?].+?\[/quote]\n?#isu', '#\[/quote]#iu'), '', $text);
+		if (count($this->customPatterns))
+		{
+			ob_start();
+			$str = preg_replace(
+				$this->customPatterns,
+				($textReplacement ? $this->customTextReplacements : $this->customHtmlReplacements),
+				$str
+			);
+			ob_end_clean();
+		}
 
-		return preg_replace('#<br\s?/?>+#i', '', $text);
+		return $str;
 	}
 
 	/**
-	 * Remove hidden text
+	 * Get all custom bbcodes filtered by ACL rules
 	 *
-	 * @param   string  $text  Text to clean
+	 * @return  void
 	 *
-	 * @return  string
-	 *
-	 * @since   2.5
+	 * @since   4.1
 	 */
-	public function removeHidden(string $text): string
+	private function getCustomBbcodes()
 	{
-		$text = preg_replace($this->patterns['hide'], '', $text);
+		/** @var \Joomla\Database\DatabaseDriver $db */
+		$db     = Factory::getContainer()->get('DatabaseDriver');
+		$acl    = JcommentsFactory::getACL();
+		$params = ComponentHelper::getParams('com_jcomments');
 
-		return preg_replace('#<br\s?/?>+#i', '', $text);
+		if ((int) !$params->get('enable_custom_bbcode'))
+		{
+			return;
+		}
+
+		$query = $db->getQuery(true)
+			->select(
+				$db->quoteName(
+					array(
+						'id', 'name', 'simple_pattern', 'simple_replacement_html', 'simple_replacement_text', 'pattern',
+						'replacement_html', 'replacement_text', 'button_acl', 'button_open_tag', 'button_close_tag',
+						'button_title', 'button_image', 'button_enabled'
+					)
+				)
+			)
+			->from($db->quoteName('#__jcomments_custom_bbcodes'))
+			->where($db->quoteName('published') . ' = 1')
+			->order($db->quoteName('ordering') . ' ASC');
+
+		try
+		{
+			$db->setQuery($query);
+			$codes = $db->loadObjectList();
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+
+			return;
+		}
+
+		foreach ($codes as $code)
+		{
+			$canUse        = $acl->enableCustomBBCode($code->button_acl);
+			$code->canUse  = $canUse;
+			$code->tagName = strtolower(str_replace(array('[', ']'), '', $code->button_open_tag));
+
+			// Check code permission
+			if ($canUse)
+			{
+				if ($code->button_image != '')
+				{
+					if (strpos($code->button_image, Uri::base()) === false)
+					{
+						$code->button_image = Uri::base() . trim($code->button_image, '/');
+					}
+				}
+
+				$this->customCodes[] = $code;
+			}
+			else
+			{
+				$this->customFilterPatterns[] = '#' . $code->pattern . '#ismu';
+			}
+
+			$this->customPatterns[]         = '#' . $code->pattern . '#ismu';
+			$this->customHtmlReplacements[] = $code->replacement_html;
+			$this->customTextReplacements[] = $code->replacement_text;
+		}
 	}
 }

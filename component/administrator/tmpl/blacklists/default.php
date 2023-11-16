@@ -20,7 +20,7 @@ use Joomla\CMS\Router\Route;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Blacklists\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useStyle('jcomments.backend_style')
 	->useScript('jquery')
 	->useScript('kwood.plugin')

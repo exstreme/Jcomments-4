@@ -16,9 +16,12 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
@@ -76,6 +79,7 @@ class HtmlView extends BaseHtmlView
 		$userId     = $app->getIdentity()->get('id');
 		$canDo      = ContentHelper::getActions('com_jcomments', 'component');
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
+		$toolbar    = Toolbar::getInstance();
 
 		$app->input->set('hidemainmenu', 1);
 		ToolbarHelper::title(Text::_('A_COMMENT_EDIT'), 'comment');
@@ -85,6 +89,19 @@ class HtmlView extends BaseHtmlView
 			ToolbarHelper::apply('comment.apply');
 			ToolbarHelper::save('comment.save');
 		}
+
+		if (!empty($this->item->language) && $this->item->language !== '*' && Multilanguage::isEnabled())
+		{
+			$linkLang = '&lang=' . $this->item->language;
+		}
+		else
+		{
+			$linkLang = '';
+		}
+
+		$toolbar->preview(Route::link('site', 'index.php?option=com_jcomments&task=comment.show' . $linkLang . '&id=' . $this->item->id))
+			->bodyHeight(80)
+			->modalWidth(90);
 
 		ToolbarHelper::cancel('comment.cancel', 'JTOOLBAR_CLOSE');
 	}

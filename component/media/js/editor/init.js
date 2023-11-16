@@ -225,19 +225,23 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	/** @method JcommentsFormSubmit() */
-	document.getElementById('comments-form').addEventListener('submit', function (e) {
-		e.preventDefault();
+	const comment_form = document.querySelector('#comments-form');
 
-		const length = editorInstance.val().length,
-			min = parseInt(jce_config.minlength, 10),
-			max = parseInt(jce_config.maxlength, 10);
+	if (comment_form !== null) {
+		document.getElementById('comments-form').addEventListener('submit', function (e) {
+			e.preventDefault();
+
+			const length = editorInstance.val().length,
+				min = parseInt(jce_config.minlength, 10),
+				max = parseInt(jce_config.maxlength, 10);
 console.log(length);
-		if (min !== 0 && length <= min) {
-			Jcomments.showError('', '#system-message-container'); // TODO Не работает
-		}
+			if (min !== 0 && length <= min) {
+				Jcomments.showError('', '#system-message-container'); // TODO Не работает
+			}
 
-		if (max !== 0 && length >= max) {
-			Jcomments.showError('', '#system-message-container');
-		}
-	});
+			if (max !== 0 && length >= max) {
+				Jcomments.showError('', '#system-message-container');
+			}
+		});
+	}
 });

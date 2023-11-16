@@ -31,9 +31,7 @@ use Joomla\Database\DatabaseDriver;
  * @property string  $button_open_tag
  * @property string  $button_close_tag
  * @property string  $button_title
- * @property string  $button_prompt
  * @property string  $button_image
- * @property string  $button_css
  * @property integer $button_enabled
  * @property integer $ordering
  * @property integer $published

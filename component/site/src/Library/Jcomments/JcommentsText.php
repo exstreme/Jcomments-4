@@ -42,11 +42,12 @@ class JcommentsText
 
 		if ($params->get('editor_format') == 'bbcode')
 		{
-			$text = JcommentsFactory::getBbcode()->filter($text, $forceStrip);
+			$bbcode = JcommentsFactory::getBbcode();
+			$text = $bbcode->filter($text, $forceStrip);
 
 			if ((int) $params->get('enable_custom_bbcode'))
 			{
-				$text = JCommentsFactory::getCustomBBCode()->filter($text, $forceStripCustom);
+				$text = $bbcode->filterCustom($text, $forceStripCustom);
 			}
 		}
 		else
@@ -174,11 +175,12 @@ class JcommentsText
 	 */
 	public static function cleanText(string $text): string
 	{
-		$text = JCommentsFactory::getBBCode()->filter($text, true);
+		$bbcode = JCommentsFactory::getBBCode();
+		$text = $bbcode->filter($text, true);
 
 		if ((int) ComponentHelper::getParams('com_jcomments')->get('enable_custom_bbcode'))
 		{
-			$text = JCommentsFactory::getCustomBBCode()->filter($text, true);
+			$text = $bbcode->filterCustom($text, true);
 		}
 
 		$text = str_replace('<br />', ' ', $text);

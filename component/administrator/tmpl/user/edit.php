@@ -19,7 +19,7 @@ use Joomla\CMS\Session\Session;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\User\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate')
 	->useScript('jquery');

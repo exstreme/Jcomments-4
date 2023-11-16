@@ -319,8 +319,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 
 			if ($params->get('enable_custom_bbcode'))
 			{
-				$customBBCode = JcommentsFactory::getCustomBBCode();
-				$result->comment = $customBBCode->filter($result->comment, true);
+				$result->comment = $bbcode->filterCustom($result->comment, true);
 			}
 
 			if ($user->get('id') == 0)

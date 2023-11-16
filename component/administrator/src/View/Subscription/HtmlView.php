@@ -22,9 +22,27 @@ use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
+/**
+ * View to edit subscription.
+ *
+ * @since  3.0
+ */
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The active item
+	 *
+	 * @var     object
+	 * @since   4.1
+	 */
 	protected $item;
+
+	/**
+	 * The Form object
+	 *
+	 * @var     \Joomla\CMS\Form\Form
+	 * @since   4.1
+	 */
 	protected $form;
 
 	/**

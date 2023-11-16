@@ -384,12 +384,14 @@ class ContentHelper
 
 		if ($params->get('editor_format') == 'bbcode')
 		{
+			$bbcode = JcommentsFactory::getBBCode();
+
 			// Replace BBCode tags
-			$comment->comment = JcommentsFactory::getBBCode()->replace($comment->comment);
+			$comment->comment = $bbcode->replace($comment->comment);
 
 			if ((int) $params->get('enable_custom_bbcode'))
 			{
-				$comment->comment = JcommentsFactory::getCustomBBCode()->replace($comment->comment);
+				$comment->comment = $bbcode->replaceCustom($comment->comment);
 			}
 		}
 

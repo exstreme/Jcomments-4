@@ -16,6 +16,12 @@
       "uri": "com_jcomments/frontend-style.css"
     },
     {
+      "name": "locutus.empty",
+      "type": "script",
+      "uri": "com_jcomments/locutus.empty.js",
+      "version": "1.3.2"
+    },
+    {
       "name": "jcomments.admin.fields",
       "type": "script",
       "uri": "com_jcomments/admin-fields-es5.js"
@@ -39,6 +45,9 @@
       "name": "jcomments.core",
       "type": "script",
       "uri": "com_jcomments/jcomments.core.min.js",
+      "dependencies": [
+        "locutus.empty"
+      ],
       "version": "4.1.0"
     },
     {
@@ -151,6 +160,9 @@
       "name": "jceditor.init.bbcode",
       "type": "script",
       "uri": "com_jcomments/editor/init.js",
+      "dependencies": [
+        "locutus.empty"
+      ],
       "version": "4.1.0"
     }
   ]

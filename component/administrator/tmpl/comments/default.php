@@ -22,7 +22,7 @@ use Joomla\String\StringHelper;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Comments\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useStyle('jcomments.backend_style')
 	->useScript('kwood.more')
 	->useScript('table.columns')

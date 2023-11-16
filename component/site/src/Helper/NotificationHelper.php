@@ -346,6 +346,7 @@ class NotificationHelper
 
 		$object = $model->getItem($data->object_id, $data->object_group, $data->lang);
 		$config = ComponentHelper::getParams('com_jcomments');
+		$bbcode = JcommentsFactory::getBBCode();
 
 		$data->notification_type = $type;
 		$data->object_title      = $object->title;
@@ -353,11 +354,11 @@ class NotificationHelper
 		$data->author            = ContentHelper::getCommentAuthorName($data);
 		$data->title             = JcommentsText::censor($data->title);
 		$data->comment           = JcommentsText::censor($data->comment);
-		$data->comment           = JcommentsFactory::getBBCode()->replace($data->comment);
+		$data->comment           = $bbcode->replace($data->comment);
 
 		if ($config->get('enable_custom_bbcode'))
 		{
-			$data->comment = JcommentsFactory::getCustomBBCode()->replace($data->comment, true);
+			$data->comment = $bbcode->replaceCustom($data->comment, true);
 		}
 
 		$data->comment = trim(preg_replace('/(\s){2,}/iu', '\\1', $data->comment));

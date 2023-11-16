@@ -23,50 +23,54 @@
 					directory="media/com_jcomments/css/"
 					default="frontend-style"
 					hide_none="true"
+					hide_default="true"
 					fileFilter="\.css$"
 					exclude="backend-style|frontend-style"
 					stripext="true"
 					label="AP_STYLE"
 					description="AP_STYLE_DESC"
-			/>
+					validate="options"
+			>
+				<option value="frontend-style">JDEFAULT</option>
+			</field>
 
 			<field
 					name="enable_smilies"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_ENABLE_SMILES"
 					description="AP_ENABLE_SMILES_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
 					name="enable_custom_bbcode"
 					type="radio"
-					class="btn-group"
 					default="0"
 					label="AP_ENABLE_CUSTOM_BBCODE"
 					description="AP_ENABLE_CUSTOM_BBCODE_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
 					name="enable_voting"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_ENABLE_VOTING"
 					description="AP_ENABLE_VOTING_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -83,13 +87,13 @@
 			<field
 					name="display_title"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_DISPLAY_TITLE"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 		</fieldset>
 
@@ -97,14 +101,14 @@
 			<field
 					name="enable_rss"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_ENABLE_RSS"
 					description="AP_ENABLE_RSS_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -131,14 +135,14 @@
 			<field
 					name="enable_plugins"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_USE_PLUGINS"
 					description="AP_USE_PLUGINS_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -148,10 +152,11 @@
 					default="1"
 					label="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE"
 					description="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -331,14 +336,14 @@
 		<field
 				name="show_commentlength"
 				type="radio"
-				class="btn-group"
 				default="1"
-				filter="integer"
 				label="AP_SHOW_COMMENTLENGTH"
 				description="AP_SHOW_COMMENTLENGTH_DESC"
+				layout="joomla.form.field.radio.switcher"
+				filter="boolean"
 		>
-			<option value="1">JYES</option>
 			<option value="0">JNO</option>
+			<option value="1">JYES</option>
 		</field>
 
 		<field
@@ -352,9 +357,10 @@
 		<field
 				name="custom_fields_enable"
 				type="radio"
-				layout="joomla.form.field.radio.switcher"
 				label="JGLOBAL_CUSTOM_FIELDS_ENABLE_LABEL"
 				default="1"
+				layout="joomla.form.field.radio.switcher"
+				filter="boolean"
 		>
 			<option value="0">JNO</option>
 			<option value="1">JYES</option>
@@ -386,6 +392,7 @@
 				exclude="\-custom.css$"
 				hide_none="1"
 				hide_default="true"
+				validate="options"
 		/>
 
 		<field
@@ -399,7 +406,7 @@
 				fileFilter="\.js$"
 				hide_none="1"
 				hide_default="true"
-				filter="options"
+				validate="options"
 		>
 			<option value="">JNONE</option>
 		</field>
@@ -475,14 +482,14 @@
 			<field
 					name="enable_notification"
 					type="radio"
-					class="btn-group radio"
 					default="0"
 					label="AP_ENABLE_NOTIFICATION"
 					description="AP_ENABLE_NOTIFICATION_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -523,15 +530,15 @@
 			<field
 					name="enable_quick_moderation"
 					type="radio"
-					class="btn-group"
 					default="0"
 					label="AP_ENABLE_QUICK_MODERATION"
 					description="AP_ENABLE_QUICK_MODERATION_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 					showon="enable_notification:1"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 		</fieldset>
 
@@ -539,14 +546,14 @@
 			<field
 					name="enable_reports"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_ENABLE_REPORTS"
 					description="AP_ENABLE_REPORTS_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -572,15 +579,15 @@
 			<field
 					name="report_reason_required"
 					type="radio"
-					class="btn-group"
 					default="1"
 					label="AP_REPORT_REASON_REQUIRED"
 					description="AP_REPORT_REASON_REQUIRED_DESC"
-					filter="integer"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 					showon="enable_reports:1"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 		</fieldset>
 	</fieldset>
@@ -590,27 +597,27 @@
 			<field
 					name="enable_username_check"
 					type="radio"
-					class="btn-group"
 					default="1"
-					filter="integer"
 					label="AP_ENABLE_USERNAME_CHECK"
 					description="AP_ENABLE_USERNAME_CHECK_DESC"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
 					name="enable_blacklist"
 					type="radio"
-					class="btn-group"
 					default="0"
-					filter="integer"
 					label="AP_ENABLE_BLACKLIST"
 					description="AP_ENABLE_BLACKLIST_DESC"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -640,13 +647,13 @@
 			<field
 					name="stopforumspam"
 					type="radio"
-					class="btn-group"
 					default="0"
-					filter="integer"
 					label="AP_ANTISPAM_STOPFORUMSPAM"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -709,14 +716,14 @@
 			<field
 					name="enable_nested_quotes"
 					type="radio"
-					class="btn-group"
 					default="1"
-					filter="integer"
 					label="AP_ENABLE_NESTED_QUOTES"
 					description="AP_ENABLE_NESTED_QUOTES_DESC"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
 			>
-				<option value="1">JYES</option>
 				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field

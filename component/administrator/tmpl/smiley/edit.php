@@ -17,45 +17,24 @@ use Joomla\CMS\Router\Route;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Smiley\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate');
 ?>
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=smiley&layout=edit&id=' . (int) $this->item->id); ?>"
 	  method="post" name="adminForm" id="item-form" class="form-validate">
-	<div class="main-card">
-		<div class="row bg-white">
-			<div class="col-12">
-				<fieldset id="fieldset-edit" class="my-4">
-					<?php echo $this->form->renderField('code'); ?>
-
-					<?php echo $this->form->renderField('name'); ?>
-
-					<?php echo $this->form->renderField('image'); ?>
-
-					<div class="control-group">
-						<div class="control-label">
-							<?php echo $this->form->getLabel('published'); ?>
-						</div>
-						<div class="controls">
-							<?php echo $this->form->getInput('published'); ?>
-						</div>
+	<fieldset class="adminform">
+		<div class="card">
+			<div class="card-body">
+				<div class="row">
+					<div class="form-grid">
+						<?php echo $this->form->renderFieldset('edit'); ?>
 					</div>
-
-					<?php echo $this->form->renderField('ordering'); ?>
-
-					<div class="control-group">
-						<div class="control-label">
-							<?php echo $this->form->getLabel('id'); ?>
-						</div>
-						<div class="controls">
-							<?php echo $this->form->getInput('id'); ?>
-						</div>
-					</div>
-				</fieldset>
+				</div>
 			</div>
+
+			<input type="hidden" name="task" value=""/>
+			<?php echo HTMLHelper::_('form.token'); ?>
 		</div>
-		<input type="hidden" name="task" value="" />
-		<?php echo HTMLHelper::_('form.token'); ?>
-	</div>
+	</fieldset>
 </form>

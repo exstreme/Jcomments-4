@@ -57,6 +57,14 @@ class JceditorField extends TextareaField
 	protected $width;
 
 	/**
+	 * CSS for custom bbcode buttons.
+	 *
+	 * @var    string
+	 * @since  4.1
+	 */
+	protected $customButtonsCSS = '';
+
+	/**
 	 * Method to attach a Form object to the field.
 	 *
 	 * @param   \SimpleXMLElement  $element  The SimpleXMLElement object representing the `<field>` tag for the form field object.
@@ -108,7 +116,9 @@ class JceditorField extends TextareaField
 		$buttons     = (string) $this->element['buttons'];
 		$editorTheme = File::makeSafe($params->get('editor_theme'));
 		$editorIcons = File::makeSafe($params->get('editor_theme_icons'));
+		$themeUrl    = Uri::root() . 'media/com_jcomments/images/tmpl/editor/' . $editorTheme;
 
+		// Override standart buttons list with buttons from xml attribute.
 		if (!empty($buttons))
 		{
 			$buttons = (object) array_map(
@@ -129,15 +139,12 @@ class JceditorField extends TextareaField
 			'media/com_jcomments/css/editor/' . $editorTheme . '.css',
 			array('version' => '4.1.0')
 		)->addInlineStyle(
-			'.sceditor-button div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/famfamfam.png"); }
-			.sceditor-button-hide div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/hide.png"); }
-			.sceditor-button-spoiler div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/spoiler.png"); }
-			.sceditor-button-emoji div { background-image: url("media/com_jcomments/images/tmpl/editor/' . $editorTheme . '/emoji.png"); }'
-		)->registerAndUseStyle(
-			'jceditor.theme.square.custom',
-			'media/com_jcomments/css/editor/' . $editorTheme . '-custom.css',
-			array('version' => '4.1.0')
-		)->useScript('jceditor.core');
+			'.sceditor-button div { background-image: url("' . $themeUrl . '/famfamfam.png"); }
+			.sceditor-button-hide div { background-image: url("' . $themeUrl . '/hide.png"); }
+			.sceditor-button-spoiler div { background-image: url("' . $themeUrl . '/spoiler.png"); }
+			.sceditor-button-emoji div { background-image: url("' . $themeUrl . '/emoji.png"); }'
+		)->registerAndUseStyle('jceditor.theme.square.custom', 'media/com_jcomments/css/editor/' . $editorTheme . '-custom.css')
+			->useScript('jceditor.core');
 
 		if ($format == 'bbcode')
 		{
@@ -164,7 +171,7 @@ class JceditorField extends TextareaField
 
 		if ($format == 'bbcode')
 		{
-			$js = $this->generateCustomButtonsJs(JcommentsFactory::getCustomBBCode()->getList(), $editorIcons);
+			$js = $this->generateCustomButtonsJs(JcommentsFactory::getBbcode()->getCustomBbcodesList()['raw'], $editorIcons);
 
 			if ($js > '')
 			{
@@ -174,6 +181,11 @@ class JceditorField extends TextareaField
 					[],
 					['jceditor.init.bbcode']
 				);
+			}
+
+			if ($this->customButtonsCSS > '')
+			{
+				$wa->addInlineStyle($this->customButtonsCSS);
 			}
 		}
 		else
@@ -235,45 +247,53 @@ class JceditorField extends TextareaField
 	/**
 	 * Generate javascript for cutom bbcode buttons
 	 *
-	 * @param   array   $data      Array with buttons
+	 * @param   array   $buttons   Array with buttons
 	 * @param   string  $iconFile  Filename with icon file
 	 *
 	 * @return  string
 	 *
 	 * @since   4.1
 	 */
-	private function generateCustomButtonsJs(array $data, string $iconFile): string
+	private function generateCustomButtonsJs(array $buttons, string $iconFile): string
 	{
 		ob_start();
 
+		$params = ComponentHelper::getParams('com_jcomments');
 		$js = '';
 
-		foreach ($data as $button)
+		foreach ($buttons as $button)
 		{
 			if (!$button->button_enabled)
 			{
 				continue;
 			}
 
-			$openTag = str_replace(array('[', ']'), '', $button->button_open_tag);
-
 			if ($button->button_image > '')
 			{
 				$js .= "";
+
+				if (strpos($button->button_image, '{editor_theme}') !== false)
+				{
+					$button->button_image = StringHelper::str_ireplace('{editor_theme}', $params->get('editor_theme'), $button->button_image);
+				}
+
+				$this->customButtonsCSS .= '.sceditor-button-' . $button->tagName . ' div { background: url("' . $button->button_image . '") no-repeat center center !important; }';
 			}
 			else
 			{
 				if ($iconFile == 'material')
 				{
-					$js .= "sceditor.icons.material.icons." . $openTag . " = '<text x=\"12\" y=\"16\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
+					$js .= "sceditor.icons.material.icons." . $button->tagName . " = '<text x=\"12\" y=\"16\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
 				}
 				elseif ($iconFile == 'monocons')
 				{
-					$js .= "sceditor.icons.monocons.icons." . $openTag . " = '<text x=\"8\" y=\"12\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
+					$js .= "sceditor.icons.monocons.icons." . $button->tagName . " = '<text x=\"8\" y=\"12\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
 				}
 			}
 
-			$js .= "\n\t\t\tsceditor.command.set('" . $openTag . "', {
+			// TODO exec: тут должно вставлять HTML
+			$js .= "\n\t\t\t
+			sceditor.command.set('" . $button->tagName . "', {
 				exec: function () {
 					this.insertText('" . $button->button_open_tag . "', '" . $button->button_close_tag . "');
 				},

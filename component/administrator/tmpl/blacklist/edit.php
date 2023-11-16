@@ -18,24 +18,24 @@ use Joomla\CMS\Router\Route;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Blacklist\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate');
 ?>
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id=' . (int) $this->item->id); ?>"
 	  method="post" name="adminForm" id="item-form" class="form-validate">
-	<div class="main-card">
-		<div class="row bg-white">
-			<div class="col-12">
-				<fieldset id="fieldset-edit" class="options-form">
-					<legend><?php echo Text::_('A_BLACKLIST_EDIT'); ?></legend>
-
-					<?php echo $this->form->renderFieldset('edit'); ?>
-				</fieldset>
+	<fieldset class="adminform">
+		<div class="card">
+			<div class="card-body">
+				<div class="row">
+					<div class="form-grid">
+						<?php echo $this->form->renderFieldset('edit'); ?>
+					</div>
+				</div>
 			</div>
-		</div>
 
-		<input type="hidden" name="task" value=""/>
-		<?php echo HTMLHelper::_('form.token'); ?>
-	</div>
+			<input type="hidden" name="task" value=""/>
+			<?php echo HTMLHelper::_('form.token'); ?>
+		</div>
+	</fieldset>
 </form>

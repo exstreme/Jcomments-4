@@ -18,7 +18,7 @@ use Joomla\CMS\Router\Route;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Custombbcode\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('keepalive')
 	->useScript('form.validate');
 ?>
@@ -89,7 +89,7 @@ $wa->useScript('keepalive')
 		<?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'permissions', Text::_('A_CUSTOM_BBCODE_PERMISSIONS')); ?>
 		<div class="row">
 			<div class="col-lg-12">
-				<?php echo HTMLHelper::_('access.usergroups', 'jform[button_acl]', $this->groups, true); ?>
+				<?php echo $this->form->renderFieldset('acl'); ?>
 			</div>
 		</div>
 

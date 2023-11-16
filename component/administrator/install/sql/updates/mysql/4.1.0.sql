@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS `#__jcomments_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE `#__jcomments_blacklist` ADD KEY `idx_userid` (`userid`);
+ALTER TABLE `#__jcomments_custom_bbcodes` DROP COLUMN `button_prompt`;
+ALTER TABLE `#__jcomments_custom_bbcodes` DROP COLUMN `button_css`;

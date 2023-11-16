@@ -21,7 +21,7 @@ use Joomla\CMS\Session\Session;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Custombbcodes\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('table.columns')
 	->useScript('multiselect');
 
@@ -101,9 +101,6 @@ $wa->useStyle('jcomments.backend_style');
 							<th scope="col" class="w-1 text-center">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_CUSTOM_BBCODE_BUTTON', 'jcb.button_enabled', $listDirection, $listOrder); ?>
 							</th>
-							<th scope="col" class="w-1 text-center d-none d-md-table-cell">
-								<?php echo Text::_('A_CUSTOM_BBCODE_BUTTON_ICON'); ?>
-							</th>
 							<th scope="col" class="w-5 d-none d-md-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'jcb.id', $listDirection, $listOrder); ?>
 							</th>
@@ -112,19 +109,9 @@ $wa->useStyle('jcomments.backend_style');
 						<tbody<?php if ($saveOrder): ?> class="js-draggable" data-url="<?php echo $saveOrderingUrl; ?>" data-direction="<?php echo strtolower($listDirection); ?>" data-nested="false"<?php endif; ?>>
 						<?php foreach ($this->items as $i => $item):
 							$canEdit = $user->authorise('core.edit', 'com_jcomments');
-							$canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $userId || $item->checked_out == 0;
+							$canCheckin = $user->authorise('core.manage', 'com_checkin')
+								|| $item->checked_out == $userId || $item->checked_out == 0;
 							$canChange = $user->authorise('core.edit.state', 'com_jcomments') && $canCheckin;
-
-							$icon = '';
-
-							if ($item->button_image != '')
-							{
-								$icon = '<img src="' . JPATH_SITE . '/' . $item->button_image . '" alt="' . $item->name . '" />';
-							}
-							elseif ($item->button_css != '')
-							{
-								$icon = '<span class="bbcode" style="width: 23px;"><a href="#" onclick="return false;" class="' . $item->button_css . '"></a></span>';
-							}
 							?>
 							<tr class="row<?php echo $i % 2; ?>" data-item-id="<?php echo $item->id ?>"
 							    data-draggable-group="0" data-parents="" data-level="0">
@@ -176,9 +163,6 @@ $wa->useStyle('jcomments.backend_style');
 									<?php echo HTMLHelper::_(
 										'jgrid.state', $buttonStates, $item->button_enabled, $i, 'custombbcodes.', true, true, 'cb'
 									); ?>
-								</td>
-								<td class="text-center d-none d-md-table-cell">
-									<?php echo $icon; ?>
 								</td>
 								<td class="d-none d-md-table-cell">
 									<?php echo (int) $item->id; ?>

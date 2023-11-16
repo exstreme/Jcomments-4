@@ -22,9 +22,27 @@ use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
+/**
+ * View to edit ban.
+ *
+ * @since  3.0
+ */
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The active item
+	 *
+	 * @var     object
+	 * @since   4.1
+	 */
 	protected $item;
+
+	/**
+	 * The Form object
+	 *
+	 * @var     \Joomla\CMS\Form\Form
+	 * @since   4.1
+	 */
 	protected $form;
 
 	/**
@@ -71,7 +89,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar    = Toolbar::getInstance();
 
 		$app->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(Text::_('A_BLACKLIST'), 'ban-circle');
+		ToolbarHelper::title(Text::_('A_BLACKLIST_' . ($isNew ? 'NEW' : 'EDIT')), 'ban-circle');
 
 		if ($isNew && $canDo->get('core.create'))
 		{

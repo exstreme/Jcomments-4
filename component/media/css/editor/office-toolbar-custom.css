@@ -11,6 +11,12 @@ div.sceditor-toolbar:empty {
 	display: none;
 }
 
+.sceditor-button-youtube div { background: url("../../images/tmpl/editor/office-toolbar/youtube.png") no-repeat center center !important; }
+.sceditor-button-fv div { background: url("../../images/tmpl/editor/office-toolbar/fv.png") no-repeat center center !important; }
+.sceditor-button-instagram div { background: url("../../images/tmpl/editor/office-toolbar/instagram.png") no-repeat center center !important; }
+.sceditor-button-vimeo div { background: url("../../images/tmpl/editor/office-toolbar/vimeo.png") no-repeat center center !important; }
+.sceditor-button-wiki div { background: url("../../images/tmpl/editor/office-toolbar/wiki.png") no-repeat center center !important; }
+
 @font-face {
 	font-family: "Twemoji Mozilla";
 	src: url("../../fonts/Twemoji.Mozilla.ttf");

@@ -18,7 +18,7 @@ use Joomla\CMS\Router\Route;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Comments\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('jquery')
 	->useScript('jcomments.objects')
 	->useScript('keepalive');

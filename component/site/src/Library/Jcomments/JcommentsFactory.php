@@ -67,25 +67,6 @@ class JcommentsFactory
 	}
 
 	/**
-	 * Returns a reference to the global {@link JcommentsCustombbcode} object, only creating it if it does not already exist.
-	 *
-	 * @return JcommentsCustombbcode
-	 *
-	 * @since  3.0
-	 */
-	public static function getCustomBBCode()
-	{
-		static $instance = null;
-
-		if (!is_object($instance))
-		{
-			$instance = new JcommentsCustombbcode;
-		}
-
-		return $instance;
-	}
-
-	/**
 	 * Returns a reference to the global {@link JCommentsAcl} object, only creating it if it doesn't already exist.
 	 *
 	 * @return  JCommentsAcl

@@ -22,6 +22,11 @@ use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
+/**
+ * View to edit a bbcode.
+ *
+ * @since  3.0
+ */
 class HtmlView extends BaseHtmlView
 {
 	/**
@@ -101,7 +106,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar    = Toolbar::getInstance();
 
 		$app->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(Text::_('A_CUSTOM_BBCODE'), 'code');
+		ToolbarHelper::title(Text::_('A_CUSTOM_BBCODE_' . ($isNew ? 'NEW' : 'EDIT')), 'code');
 
 		if ($isNew && $canDo->get('core.create'))
 		{
@@ -153,7 +158,7 @@ class HtmlView extends BaseHtmlView
 				}
 			);
 
-			$toolbar->cancel('custombbcode.cancel', 'JTOOLBAR_CLOSE');
+			$toolbar->cancel('custombbcode.cancel');
 		}
 	}
 }

@@ -21,7 +21,7 @@ use Joomla\CMS\Session\Session;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Smilies\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
+$wa = $this->getDocument()->getWebAssetManager();
 $wa->useScript('table.columns')
 	->useScript('multiselect');
 

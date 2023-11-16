@@ -1,37 +1,4 @@
 // phpcs:disable
-/**
- * A JavaScript equivalent of PHP's empty. See https://github.com/locutusjs/locutus/blob/master/src/php/var/empty.js
- *
- * @param   {*}  mixedVar  Value to test.
- *
- * @return  {boolean}
- */
-function empty(mixedVar) {
-	let undef,
-		key,
-		i,
-		len;
-	const emptyValues = [undef, null, false, 0, '', '0'];
-
-	for (i = 0, len = emptyValues.length; i < len; i++) {
-		if (mixedVar === emptyValues[i]) {
-			return true
-		}
-	}
-
-	if (typeof mixedVar === 'object') {
-		for (key in mixedVar) {
-			if (mixedVar.hasOwnProperty(key)) {
-				return false
-			}
-		}
-
-		return true
-	}
-
-	return false
-}
-
 Jcomments = window.Jcomments || {};
 
 (function (Jcomments, document) {
@@ -62,11 +29,15 @@ Jcomments = window.Jcomments || {};
 	 * @param   {boolean}  margins  Add top and bottom margins from element.
 	 *
 	 * @method  Jcomments.iframeHeight
-	 * @return  {int}  Current calculated height in pixels
+	 * @return  {int}  Current calculated height in pixels or default value(250) on error.
 	 */
 	Jcomments.iframeHeight = function (iframe, el, margins) {
 		const doc = Jcomments.getIframeContent(iframe);
 		let height;
+
+		if (empty(doc)) {
+			return 250;
+		}
 
 		if (!empty(el)) {
 			const _el = doc.querySelector(el);

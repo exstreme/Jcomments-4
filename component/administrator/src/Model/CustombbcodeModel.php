@@ -184,9 +184,7 @@ class CustombbcodeModel extends AdminModel
 			$table->button_open_tag  = trim(strip_tags($table->button_open_tag));
 			$table->button_close_tag = trim(strip_tags($table->button_close_tag));
 			$table->button_title     = trim(strip_tags($table->button_title));
-			$table->button_prompt    = trim(strip_tags($table->button_prompt));
 			$table->button_image     = trim(strip_tags($table->button_image));
-			$table->button_css       = trim(strip_tags($table->button_css));
 
 			if ($table->simple_replacement_text == '')
 			{
