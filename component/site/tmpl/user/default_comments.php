@@ -74,7 +74,7 @@ $wa->useScript('bootstrap.collapse')
 												</span>
 											<?php else: ?>
 												<a href="<?php echo Route::_($item->object_link); ?>" target="_blank"
-												   class="read-more"><?php echo $item->object_title; ?></a>
+												   class="read-more"><?php echo $this->escape($item->object_title); ?></a>
 											<?php endif; ?>
 										</div>
 										<div class="col-3">

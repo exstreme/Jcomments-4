@@ -419,7 +419,7 @@
 				min="1"
 				buttons="add,remove,move"
 				layout="joomla.form.field.subform.repeatable-table"
-				default='{"editor_buttons0":{"btn":"bold"},"editor_buttons1":{"btn":"italic"},"editor_buttons2":{"btn":"underline"},"editor_buttons3":{"btn":"strike"},"editor_buttons4":{"btn":"subscript"},"editor_buttons5":{"btn":"superscript"},"editor_buttons6":{"btn":"|"},"editor_buttons7":{"btn":"left"},"editor_buttons8":{"btn":"center"},"editor_buttons9":{"btn":"right"},"editor_buttons10":{"btn":"justify"},"editor_buttons11":{"btn":"|"},"editor_buttons12":{"btn":"font"},"editor_buttons13":{"btn":"size"},"editor_buttons14":{"btn":"color"},"editor_buttons15":{"btn":"removeformat"},"editor_buttons16":{"btn":"|"},"editor_buttons17":{"btn":"cut"},"editor_buttons18":{"btn":"copy"},"editor_buttons19":{"btn":"paste"},"editor_buttons20":{"btn":"pastetext"},"editor_buttons21":{"btn":"|"},"editor_buttons22":{"btn":"bulletlist"},"editor_buttons23":{"btn":"orderedlist"},"editor_buttons24":{"btn":"indent"},"editor_buttons25":{"btn":"outdent"},"editor_buttons26":{"btn":"|"},"editor_buttons27":{"btn":"table"},"editor_buttons28":{"btn":"code"},"editor_buttons29":{"btn":"quote"},"editor_buttons30":{"btn":"|"},"editor_buttons31":{"btn":"horizontalrule"},"editor_buttons32":{"btn":"image"},"editor_buttons33":{"btn":"email"},"editor_buttons34":{"btn":"url"},"editor_buttons35":{"btn":"unlink"},"editor_buttons36":{"btn":"emoticon"},"editor_buttons37":{"btn":"|"},"editor_buttons38":{"btn":"youtube"},"editor_buttons39":{"btn":"date"},"editor_buttons40":{"btn":"time"},"editor_buttons41":{"btn":"|"},"editor_buttons42":{"btn":"ltr"},"editor_buttons43":{"btn":"rtl"},"editor_buttons45":{"btn":"|"},"editor_buttons44":{"btn":"print"},"editor_buttons46":{"btn":"maximize"},"editor_buttons47":{"btn":"source"},"editor_buttons48":{"btn":"hide"},"editor_buttons49":{"btn":"spoiler"},"editor_buttons50":{"btn":"emoji"}}'
+				default='{"editor_buttons0":{"btn":"bold"},"editor_buttons1":{"btn":"italic"},"editor_buttons2":{"btn":"underline"},"editor_buttons3":{"btn":"strike"},"editor_buttons4":{"btn":"subscript"},"editor_buttons5":{"btn":"superscript"},"editor_buttons6":{"btn":"|"},"editor_buttons7":{"btn":"left"},"editor_buttons8":{"btn":"center"},"editor_buttons9":{"btn":"right"},"editor_buttons10":{"btn":"justify"},"editor_buttons11":{"btn":"|"},"editor_buttons12":{"btn":"font"},"editor_buttons13":{"btn":"size"},"editor_buttons14":{"btn":"color"},"editor_buttons15":{"btn":"removeformat"},"editor_buttons16":{"btn":"|"},"editor_buttons17":{"btn":"cut"},"editor_buttons18":{"btn":"copy"},"editor_buttons19":{"btn":"paste"},"editor_buttons20":{"btn":"pastetext"},"editor_buttons21":{"btn":"|"},"editor_buttons22":{"btn":"bulletlist"},"editor_buttons23":{"btn":"orderedlist"},"editor_buttons24":{"btn":"indent"},"editor_buttons25":{"btn":"outdent"},"editor_buttons26":{"btn":"|"},"editor_buttons27":{"btn":"table"},"editor_buttons28":{"btn":"code"},"editor_buttons29":{"btn":"quote"},"editor_buttons30":{"btn":"|"},"editor_buttons31":{"btn":"horizontalrule"},"editor_buttons32":{"btn":"image"},"editor_buttons33":{"btn":"email"},"editor_buttons34":{"btn":"link"},"editor_buttons35":{"btn":"unlink"},"editor_buttons36":{"btn":"emoticon"},"editor_buttons37":{"btn":"|"},"editor_buttons38":{"btn":"youtube"},"editor_buttons39":{"btn":"date"},"editor_buttons40":{"btn":"time"},"editor_buttons41":{"btn":"|"},"editor_buttons42":{"btn":"ltr"},"editor_buttons43":{"btn":"rtl"},"editor_buttons45":{"btn":"|"},"editor_buttons44":{"btn":"print"},"editor_buttons46":{"btn":"maximize"},"editor_buttons47":{"btn":"source"},"editor_buttons48":{"btn":"hide"},"editor_buttons49":{"btn":"spoiler"},"editor_buttons50":{"btn":"emoji"}}'
 		>
 			<form>
 				<field
@@ -458,7 +458,7 @@
 					<option value="horizontalrule">HR</option>
 					<option value="image">IMAGE</option>
 					<option value="email">EMAIL</option>
-					<option value="url">URL</option>
+					<option value="link">LINK</option>
 					<option value="unlink">UNLINK</option>
 					<option value="emoticon">EMOTICONS</option>
 					<option value="youtube">YOUTUBE</option>
@@ -711,6 +711,15 @@
 					filter="integer"
 					label="AP_FLOOD_TIME"
 					description="AP_FLOOD_TIME_DESC"
+			/>
+
+			<field
+					name="vote_flood_time"
+					type="text"
+					default="10"
+					filter="integer"
+					label="AP_VOTE_FLOOD_TIME"
+					description="AP_VOTE_FLOOD_TIME_DESC"
 			/>
 
 			<field

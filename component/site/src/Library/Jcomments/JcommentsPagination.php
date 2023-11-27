@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Pagination\PaginationObject;
@@ -38,6 +39,7 @@ class JcommentsPagination extends Pagination
 	protected function _item_active(PaginationObject $item)
 	{
 		$config = ComponentHelper::getParams('com_jcomments');
+		$controller = Factory::getApplication()->input->getString('controller');
 
 		// Skip doing custom page links
 		if ($config->get('template_view') == 'list' && $config->get('load_cached_comments'))
@@ -45,6 +47,14 @@ class JcommentsPagination extends Pagination
 			return parent::_item_active($item);
 		}
 
-		return LayoutHelper::render('pagination_link', ['data' => $item, 'active' => true]);
+		// Do not override pagination layout in user profile
+		if ($controller == 'user')
+		{
+			return LayoutHelper::render('joomla.pagination.link', ['data' => $item, 'active' => true]);
+		}
+		else
+		{
+			return LayoutHelper::render('pagination_link', ['data' => $item, 'active' => true]);
+		}
 	}
 }

@@ -22,8 +22,6 @@ use Joomla\CMS\Router\Route;
 
 $wa = $this->getDocument()->getWebAssetManager();
 $wa->useStyle('jcomments.backend_style')
-	->useScript('jquery')
-	->useScript('kwood.plugin')
 	->useScript('kwood.more')
 	->useScript('table.columns')
 	->useScript('multiselect');

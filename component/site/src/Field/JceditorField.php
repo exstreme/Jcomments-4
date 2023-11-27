@@ -169,31 +169,24 @@ class JceditorField extends TextareaField
 		$wa->registerAndUseScript('jceditor.lang', 'media/com_jcomments/js/editor/languages/' . $_lang . '.js')
 			->registerAndUseScript('jceditor.lang.plugins', 'media/com_jcomments/js/editor/languages/plugins/' . $_lang . '.js');
 
-		if ($format == 'bbcode')
-		{
-			$js = $this->generateCustomButtonsJs(JcommentsFactory::getBbcode()->getCustomBbcodesList()['raw'], $editorIcons);
+		$js = $this->generateCustomButtonsJs(JcommentsFactory::getBbcode()->getCustomBbcodesList()['raw'], $editorIcons);
 
-			if ($js > '')
-			{
-				$wa->addInlineScript(
-					"document.addEventListener('DOMContentLoaded', function () {" . $js . "});",
-					['name' => 'jceditor.format.bbcode.custom', 'position' => 'before'],
-					[],
-					['jceditor.init.bbcode']
-				);
-			}
-
-			if ($this->customButtonsCSS > '')
-			{
-				$wa->addInlineStyle($this->customButtonsCSS);
-			}
-		}
-		else
+		if ($js > '')
 		{
-			// TODO Do something with html?
+			$wa->addInlineScript(
+				"document.addEventListener('DOMContentLoaded', function () {" . $js . "});",
+				['name' => 'jceditor.format.custom', 'position' => 'before'],
+				[],
+				['jceditor.init']
+			);
 		}
 
-		$wa->useScript('jceditor.init.bbcode')
+		if ($this->customButtonsCSS > '')
+		{
+			$wa->addInlineStyle($this->customButtonsCSS);
+		}
+
+		$wa->useScript('jceditor.init')
 			->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2']);
 
 		Text::script('COMMENT_TEXT_CODE');
@@ -239,7 +232,6 @@ class JceditorField extends TextareaField
 		}
 
 		$doc->addScriptOptions('jceditor', $editorConfig);
-		$this->dataAttributes['data-config'] = json_encode($editorConfig);
 
 		return parent::getInput();
 	}
@@ -268,6 +260,11 @@ class JceditorField extends TextareaField
 				continue;
 			}
 
+			$button->tagName        = strip_tags($button->tagName);
+			$button->buttonTitle    = addslashes($button->button_title);
+			$button->buttonOpenTag  = strip_tags($button->button_open_tag);
+			$button->buttonCloseTag = strip_tags($button->button_close_tag);
+
 			if ($button->button_image > '')
 			{
 				$js .= "";
@@ -281,27 +278,30 @@ class JceditorField extends TextareaField
 			}
 			else
 			{
+				// Fix icon position for different icons theme.
 				if ($iconFile == 'material')
 				{
-					$js .= "sceditor.icons.material.icons." . $button->tagName . " = '<text x=\"12\" y=\"16\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
+					$js .= "sceditor.icons.material.icons." . $button->tagName . " = '<text x=\"12\" y=\"16\" fill=\"#000000\" font-size=\"1em\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->buttonTitle, 0, 2) . "</text>';";
 				}
 				elseif ($iconFile == 'monocons')
 				{
-					$js .= "sceditor.icons.monocons.icons." . $button->tagName . " = '<text x=\"8\" y=\"12\" fill=\"#000000\" font-size=\"1em\" text-align=\"center\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->button_title, 0, 2) . "</text>';";
+					$js .= "sceditor.icons.monocons.icons." . $button->tagName . " = '<text x=\"8\" y=\"12\" fill=\"#000000\" font-size=\"1em\" text-anchor=\"middle\" style=\"line-height:0\" xml:space=\"preserve\">" . StringHelper::substr($button->buttonTitle, 0, 2) . "</text>';";
 				}
 			}
 
-			// TODO exec: тут должно вставлять HTML
-			$js .= "\n\t\t\t
-			sceditor.command.set('" . $button->tagName . "', {
-				exec: function () {
-					this.insertText('" . $button->button_open_tag . "', '" . $button->button_close_tag . "');
-				},
-				txtExec: function () {
-					this.insertText('" . $button->button_open_tag . "', '" . $button->button_close_tag . "');
-				},
-				tooltip: '" . addslashes($button->button_title) . "'
-			});\n";
+			// TODO exec: должно вставлять HTML? Или тегом?
+			if ($params->get('editor_format') == 'bbcode')
+			{
+				$js .= "\n\t\t\tsceditor.command.set('" . $button->tagName . "', {
+					exec: function () {
+						this.insertText('" . $button->buttonOpenTag . "', '" . $button->buttonCloseTag . "');
+					},
+					txtExec: function () {
+						this.insertText('" . $button->buttonOpenTag . "', '" . $button->buttonCloseTag . "');
+					},
+					tooltip: '" . $button->buttonTitle . "'
+				});\n";
+			}
 		}
 
 		ob_end_clean();

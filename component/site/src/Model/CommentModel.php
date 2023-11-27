@@ -47,28 +47,30 @@ class CommentModel extends BaseDatabaseModel
 	/**
 	 * Gets a comment object
 	 *
-	 * @param   integer  $id  ID for the comment
+	 * @param   integer  $id        ID for the comment
+	 * @param   boolean  $useCache  Store item in cache or not. Cache used only for guests.
 	 *
 	 * @return  mixed    Object or null
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
 	 */
-	public function &getItem(int $id)
+	public function &getItem(int $id, bool $useCache = false)
 	{
 		if (!isset($this->_item))
 		{
-			$cacheGroup = strtolower($this->cacheGroup);
-
 			/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
 			$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-				->createCacheController('callback', array('defaultgroup' => $cacheGroup));
+				->createCacheController('callback', array('defaultgroup' => strtolower('com_jcomments_comments')));
 
+			$app    = Factory::getApplication();
+			$input  = $app->input;
 			$db     = $this->getDatabase();
 			$params = ComponentHelper::getParams('com_jcomments');
-			$user   = Factory::getApplication()->getIdentity();
+			$user   = $app->getIdentity();
+			$acl    = JcommentsFactory::getAcl();
 
-			$loader = function ($id) use ($db, $params, $user)
+			$loader = function ($id) use ($acl, $db, $params, $user, $input)
 			{
 				$query = $db->getQuery(true)
 					->select('c.*')
@@ -140,6 +142,24 @@ class CommentModel extends BaseDatabaseModel
 					$query->select('1 AS voted');
 				}
 
+				// Check for user state and object access
+				if (!$user->get('isRoot'))
+				{
+					// Guest cannot access unpublished item
+					$state = array(1);
+
+					if (!$user->get('guest'))
+					{
+						$state[] = $acl->canPublish() || $acl->canPublishForObject($input->getInt('object_id'), $input->getString('object_group'))
+							? 0 : 1;
+					}
+
+					$groups = $user->getAuthorisedViewLevels();
+
+					$query->whereIn($db->quoteName('c.published'), $state)
+						->whereIn($db->quoteName('o.access'), $groups);
+				}
+
 				$db->setQuery($query);
 
 				return $db->loadObject();
@@ -147,7 +167,14 @@ class CommentModel extends BaseDatabaseModel
 
 			try
 			{
-				$this->_item = $cache->get($loader, array($id), md5(__METHOD__ . $id));
+				if ($useCache)
+				{
+					$this->_item = $cache->get($loader, array($id), md5(__METHOD__ . $id));
+				}
+				else
+				{
+					$this->_item = $loader($id);
+				}
 			}
 			catch (CacheExceptionInterface $e)
 			{
@@ -159,45 +186,81 @@ class CommentModel extends BaseDatabaseModel
 	}
 
 	/**
-	 * Checking if user can leave the comment after certain amount of time.
+	 * Checking if user can leave the comment/vote after certain amount of time.
 	 *
-	 * @param   string  $ip  User IP
+	 * @param   string  $ip    User IP
+	 * @param   string  $type  Content type for checking
 	 *
 	 * @return  boolean
 	 *
 	 * @throws  \Exception
 	 * @since   3.0
 	 */
-	public function checkFlood(string $ip): bool
+	public function checkFlood(string $ip, string $type = 'comment'): bool
 	{
-		$app      = Factory::getApplication();
-		$db       = $this->getDbo();
-		$interval = (int) ComponentHelper::getParams('com_jcomments')->get('flood_time');
-		$now      = Factory::getDate()->toSql();
+		$app    = Factory::getApplication();
+		$db     = $this->getDatabase();
+		$params = ComponentHelper::getParams('com_jcomments');
+		$now    = Factory::getDate()->toSql();
+		$ip     = $db->escape($ip);
 
-		if ($interval > 0)
+		if ($type == 'comment')
 		{
-			$query = $db->getQuery(true)
-				->select('COUNT(id)')
-				->from($db->quoteName('#__jcomments'))
-				->where($db->quoteName('ip') . ' = ' . $db->quote($ip))
-				->where($db->quote($now) . ' < DATE_ADD(date, INTERVAL ' . $interval . ' SECOND)');
+			$interval = (int) $params->get('flood_time');
 
-			if (Multilanguage::isEnabled())
+			if ($interval > 0)
 			{
-				$query->where($db->quoteName('lang') . ' = ' . $db->quote($app->getLanguage()->getTag()));
+				$query = $db->getQuery(true)
+					->select('COUNT(id)')
+					->from($db->quoteName('#__jcomments'))
+					->where($db->quoteName('ip') . ' = :ip')
+					->where($db->quote($now) . ' < DATE_ADD(' . $db->quoteName('date') . ', INTERVAL :interval SECOND)')
+					->bind(':ip', $ip)
+					->bind(':interval', $interval, ParameterType::INTEGER);
+
+				if (Multilanguage::isEnabled())
+				{
+					$query->where($db->quoteName('lang') . ' = ' . $db->quote($app->getLanguage()->getTag()));
+				}
+
+				try
+				{
+					$db->setQuery($query);
+					$result = $db->loadResult();
+
+					return !($result === 0);
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+				}
 			}
+		}
+		elseif ($type == 'vote')
+		{
+			$interval = (int) $params->get('vote_flood_time');
 
-			try
+			if ($interval > 0)
 			{
-				$db->setQuery($query);
-				$result = $db->loadResult();
+				$query = $db->getQuery(true)
+					->select('COUNT(id)')
+					->from($db->quoteName('#__jcomments_votes'))
+					->where($db->quoteName('ip') . ' = :ip')
+					->where($db->quote($now) . ' < DATE_ADD(' . $db->quoteName('date') . ', INTERVAL :interval SECOND)')
+					->bind(':ip', $ip)
+					->bind(':interval', $interval, ParameterType::INTEGER);
 
-				return !($result === 0);
-			}
-			catch (\RuntimeException $e)
-			{
-				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+				try
+				{
+					$db->setQuery($query);
+					$result = $db->loadResult();
+
+					return !($result === 0);
+				}
+				catch (\RuntimeException $e)
+				{
+					Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+				}
 			}
 		}
 
@@ -437,14 +500,14 @@ class CommentModel extends BaseDatabaseModel
 	 * @return  boolean  True on success, false otherwise
 	 *
 	 * @since   4.0
-	 * @todo    Check for flood
 	 */
-	public function vote(int $id, int $value): bool
+	public function storeVote(int $id, int $value): bool
 	{
 		$app  = Factory::getApplication();
 		$user = $app->getIdentity();
 		$db   = $this->getDatabase();
 		$acl  = JcommentsFactory::getAcl();
+		$ip   = IpHelper::getIp();
 
 		if ($this->isVoted($id) === false)
 		{
@@ -461,6 +524,13 @@ class CommentModel extends BaseDatabaseModel
 
 			if ($acl->canVote($table))
 			{
+				if ($this->checkFlood($ip, 'vote'))
+				{
+					$this->setError(Text::_('ERROR_FLOOD_CANT_VOTE'));
+
+					return false;
+				}
+
 				$dispatcher = $this->getDispatcher();
 				$eventResult = $dispatcher->dispatch(
 					'onJCommentsCommentBeforeVote',
@@ -484,13 +554,13 @@ class CommentModel extends BaseDatabaseModel
 					if (!$table->store())
 					{
 						Log::add($table->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
-						$this->setError(Text::_('ERROR_CANT_VOTE'));
+						$this->setError(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
 
 						return false;
 					}
 
 					$now    = Factory::getDate()->toSql();
-					$values = array($table->id, $user->get('id'), IpHelper::getIp(), $now, $value);
+					$values = array($table->id, $user->get('id'), $ip, $now, $value);
 					$query  = $db->getQuery(true)
 						->insert($db->quoteName('#__jcomments_votes'))
 						->columns(
@@ -522,8 +592,8 @@ class CommentModel extends BaseDatabaseModel
 					}
 					catch (\RuntimeException $e)
 					{
-						Log::add($e->getError() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
-						$this->setError(Text::_('ERROR_CANT_VOTE'));
+						Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+						$this->setError(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
 
 						return false;
 					}
@@ -539,7 +609,7 @@ class CommentModel extends BaseDatabaseModel
 			}
 			else
 			{
-				$this->setError(Text::_('ERROR_CANT_VOTE'));
+				$this->setError(Text::_('ERROR_PERMISSIONS_CANT_VOTE'));
 
 				return false;
 			}
@@ -597,7 +667,6 @@ class CommentModel extends BaseDatabaseModel
 		catch (\RuntimeException $e)
 		{
 			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
-			$this->setError(Text::_('ERROR_CANT_VOTE'));
 		}
 
 		return true;

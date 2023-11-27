@@ -69,7 +69,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 
 		<?php if ($this->form->getInput('name') != ''): ?>
 			<div class="row align-items-center">
-				<div class="col-6">
+				<div class="col-7">
 					<?php echo $this->form->getInput('name'); ?>
 				</div>
 				<div class="col-auto">
@@ -80,7 +80,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 
 		<?php if ($this->form->getInput('email') != ''): ?>
 			<div class="row align-items-center">
-				<div class="col-6">
+				<div class="col-7">
 					<?php echo $this->form->getInput('email'); ?>
 				</div>
 				<div class="col-auto">
@@ -91,7 +91,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 
 		<?php if ($this->form->getInput('homepage') != ''): ?>
 			<div class="row align-items-center">
-				<div class="col-6">
+				<div class="col-7">
 					<?php echo $this->form->getInput('homepage'); ?>
 				</div>
 				<div class="col-auto">
@@ -102,7 +102,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 
 		<?php if ($this->form->getInput('title') != ''): ?>
 			<div class="row align-items-center">
-				<div class="col-6">
+				<div class="col-7">
 					<?php echo $this->form->getInput('title'); ?>
 				</div>
 				<div class="col-auto">
@@ -188,7 +188,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 
 		<div class="start-0 btn-container">
 			<input class="btn btn-success" id="comments-form-send" type="submit" value="<?php echo Text::_('JSUBMIT'); ?>"
-					title="<?php echo Text::_('FORM_SEND_HINT'); ?>">
+				   title="<?php echo Text::_('FORM_SEND_HINT'); ?>">
 			<button class="btn btn-primary" id="comments-form-preview" type="button"
 					onclick="Jcomments.saveComment(this, true);return false;"
 					title="<?php echo Text::_('FORM_PREVIEW'); ?>"><?php echo Text::_('FORM_PREVIEW'); ?></button>
@@ -199,7 +199,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 				{
 					$btnCancelEvent = 'Jcomments.hideEditForm(this);return false;';
 				}
-			?>
+				?>
 				<button class="btn btn-secondary" id="comments-form-cancel" type="button"
 						onclick="<?php echo $btnCancelEvent; ?>"
 						title="<?php echo Text::_('JCANCEL'); ?>"><?php echo Text::_('JCANCEL'); ?></button>

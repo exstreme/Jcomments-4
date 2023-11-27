@@ -66,7 +66,7 @@ $canSubscribe = JcommentsFactory::getAcl()->canSubscribe();
 											<?php echo Text::_('OBJECT_NOT_FOUND'); ?>
 										</span>
 									<?php else: ?>
-										<a href="<?php echo Route::_($item->object_link); ?>" target="_blank"><?php echo $item->object_title; ?></a>
+										<a href="<?php echo Route::_($item->object_link); ?>" target="_blank"><?php echo $this->escape($item->object_title); ?></a>
 										<span class="small text-muted">(<?php echo LayoutHelper::render('joomla.content.language', $item); ?>)</span>
 									<?php endif; ?>
 								</td>

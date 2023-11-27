@@ -382,6 +382,7 @@ class ContentHelper
 			$comment->ispoor   = 0;
 		}
 
+		// NOTE! Do not filter comment text in other formats as it will be allready filtered when comment save.
 		if ($params->get('editor_format') == 'bbcode')
 		{
 			$bbcode = JcommentsFactory::getBBCode();
@@ -582,7 +583,8 @@ class ContentHelper
 		if ($input->getCmd('controller') . '.' . $input->getCmd('task') == 'comment.show')
 		{
 			$permaLink = Route::_(
-				'index.php?option=com_jcomments&task=comment.show&id=' . $comment->id . '&lang=' . $comment->language,
+				'index.php?option=com_jcomments&task=comment.show&object_id=' . $comment->object_id
+				. '&object_group=' . $comment->object_group . '&id=' . $comment->id . '&lang=' . $comment->language,
 				true, 0, true
 			);
 		}
@@ -615,7 +617,11 @@ class ContentHelper
 		// Single comment have custom links.
 		if ($input->getCmd('controller') . '.' . $input->getCmd('task') == 'comment.show')
 		{
-			$parentLink = Route::_('index.php?option=com_jcomments&task=comment.show&id=' . $comment->parent, true, 0, true);
+			$parentLink = Route::_(
+				'index.php?option=com_jcomments&task=comment.show&object_id=' . $comment->object_id
+				. '&object_group=' . $comment->object_group . '&id=' . $comment->parent,
+				true, 0, true
+			);
 		}
 		else
 		{

@@ -96,6 +96,8 @@ jQuery(document).ready(function ($) {
 			comment = $this.closest('div.comment'),
 			$msg = '#comment-item-' + comment.data('id');
 
+		$this.addClass('pe-none');
+
 		Joomla.request({
 			method: 'POST',
 			url: $this.data('url') + '&format=json',
@@ -112,17 +114,20 @@ jQuery(document).ready(function ($) {
 
 					if (_response.data.current_state === 0) {
 						$this.find('span').removeClass('icon-unpublish link-secondary').addClass('icon-publish link-success');
-						comment.addClass('bg-secondary bg-opacity-10 text-muted');
+						comment.addClass('bg-light text-muted');
 						comment.find('.user-panel a').addClass('pe-none').prop('aria-disabled', 'true');
 					} else {
 						$this.find('span').removeClass('icon-publish link-success').addClass('icon-unpublish link-secondary');
-						comment.removeClass('bg-secondary bg-opacity-10 text-muted');
+						comment.removeClass('bg-light text-muted');
 						comment.find('.user-panel a').removeClass('pe-none').removeProp('aria-disabled');
 					}
 				}
+
+				$this.removeClass('pe-none');
 			},
 			onError: function (xhr) {
 				Jcomments.showError(xhr.response, '.comments-list-header');
+				$this.removeClass('pe-none');
 			}
 		});
 	});

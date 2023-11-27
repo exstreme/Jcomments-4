@@ -187,7 +187,7 @@ final class Jcomments extends CMSPlugin
 	 */
 	public function onJcommentsCount(int $objectId, string $objectGroup, ?string $lang = null)
 	{
-		/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
+		/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
 		$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
 			->createModel('Comments', 'Site', array('ignore_request' => true));
 
@@ -195,7 +195,7 @@ final class Jcomments extends CMSPlugin
 		$model->setState('object_group', $objectGroup);
 		$model->setState('list.options.lang', $lang);
 
-		echo $model->getTotal();
+		echo (int) $model->getTotal();
 	}
 
 	/**
@@ -209,7 +209,7 @@ final class Jcomments extends CMSPlugin
 	 * @since   4.0.23
 	 * @noinspection PhpUnused
 	 */
-	public function onJcommentsCommentBeforeAdd(string $ip)
+	public function onJcommentsCommentBeforeAdd(string $ip): bool
 	{
 		$params = ComponentHelper::getParams('com_jcomments');
 

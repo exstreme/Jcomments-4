@@ -18,7 +18,6 @@ use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Log\Log;
@@ -72,27 +71,25 @@ class CommentController extends FormController
 	 *
 	 * @return  void
 	 *
-	 * @throws  \Exception
+	 * @throws  \RuntimeException
 	 * @since   4.0
 	 */
 	public function show()
 	{
 		$document = $this->app->getDocument();
-		$id       = empty($id) ? $this->input->getInt('id') : $id;
-		$comment  = $this->preprocessComment(null, $id);
+		$id       = $this->input->getInt('id');
+		$comment  = $this->preprocessComment(null, $id, $this->app->getIdentity()->get('guest'));
 
-		if (!isset($comment))
+		if (!is_object($comment))
 		{
-			$this->setResponse(null, '', Text::_('ERROR_NOT_FOUND'), 'error');
-
-			return;
+			throw new \RuntimeException(Text::_('ERROR_NOT_FOUND'), 500);
 		}
 
 		if ($document->getType() == 'html')
 		{
+			$document->setTitle($comment->object_title);
 			$document->getWebAssetManager()
 				->useStyle('jcomments.style')
-				->useScript('jquery')
 				->useScript('bootstrap.modal')
 				->useScript('bootstrap.collapse')
 				->useScript('jcomments.core')
@@ -595,7 +592,6 @@ class CommentController extends FormController
 			return;
 		}
 
-		$filter             = new InputFilter;
 		$params             = ComponentHelper::getParams('com_jcomments');
 		$data               = ArrayHelper::toObject($data);
 		$data->deleted      = 0;
@@ -606,7 +602,6 @@ class CommentController extends FormController
 		$data->id           = $this->input->getInt('comment_id');
 		$data->user_blocked = 0;
 		$data->bottomPanel  = 1;
-		$data->comment      = $filter->clean($data->comment);
 		$data->comment      = JcommentsText::nl2br($data->comment);
 		$data->comment      = JcommentsText::filterText($data->comment);
 
@@ -670,7 +665,7 @@ class CommentController extends FormController
 
 		/** @var \Joomla\Component\Jcomments\Site\Model\CommentModel $model */
 		$model = $this->getModel();
-		$result = $model->vote($id, $value);
+		$result = $model->storeVote($id, $value);
 
 		if (!$result)
 		{
@@ -759,14 +754,15 @@ class CommentController extends FormController
 	/**
 	 * Preprocess comment.
 	 *
-	 * @param   mixed  $comment  Comment data.
-	 * @param   mixed  $id       Comment ID.
+	 * @param   mixed    $comment  Comment data.
+	 * @param   mixed    $id       Comment ID.
+	 * @param   boolean  $cache    Load item from cache
 	 *
-	 * @return  object
+	 * @return  object|boolean|null
 	 *
 	 * @since   4.1
 	 */
-	private function preprocessComment($comment = null, $id = null)
+	private function preprocessComment($comment = null, $id = null, bool $cache = false)
 	{
 		$user = $this->app->getIdentity();
 		$id   = empty($id) ? $this->input->getInt('id') : $id;
@@ -775,7 +771,12 @@ class CommentController extends FormController
 		{
 			/** @var \Joomla\Component\Jcomments\Site\Model\CommentModel $model */
 			$model = $this->getModel();
-			$comment = $model->getItem($id);
+			$comment = $model->getItem($id, $cache);
+		}
+
+		if (!$comment)
+		{
+			return null;
 		}
 
 		PluginHelper::importPlugin('jcomments');

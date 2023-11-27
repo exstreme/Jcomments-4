@@ -22,6 +22,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
@@ -234,7 +235,7 @@ final class Jcomments extends CMSPlugin
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? \Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.comments&Itemid=' . $itemid
+				? Uri::base() . 'index.php?option=com_jcomments&task=user.comments&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -264,7 +265,7 @@ final class Jcomments extends CMSPlugin
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? \Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.votes&Itemid=' . $itemid
+				? Uri::base() . 'index.php?option=com_jcomments&task=user.votes&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -294,7 +295,7 @@ final class Jcomments extends CMSPlugin
 
 			// If component not found Route will return a Null value. Check it and set url w/o route.
 			$url = empty($url)
-				? \Joomla\CMS\Uri\Uri::base() . 'index.php?option=com_jcomments&task=user.subscriptions&Itemid=' . $itemid
+				? Uri::base() . 'index.php?option=com_jcomments&task=user.subscriptions&Itemid=' . $itemid
 				: $url;
 
 			return '<a href="' . $url . '">' . $value . '</a>';
@@ -328,9 +329,7 @@ final class Jcomments extends CMSPlugin
 
 		if ($this->app->input->get('layout') == 'edit')
 		{
-			$form->removeField('total_comments', 'comments');
-			$form->removeField('total_votes', 'comments');
-			$form->removeField('subscriptions_manage_link', 'comments');
+			$form->removeGroup('comments');
 		}
 
 		if (!$this->params->get('show_comments_link'))
@@ -345,7 +344,7 @@ final class Jcomments extends CMSPlugin
 
 		if (!$this->params->get('show_subscriptions_link'))
 		{
-			$form->removeField('subscriptions_manage_link', 'comments');
+			$form->removeField('subscriptions_link', 'comments');
 		}
 
 		return true;
@@ -468,12 +467,18 @@ final class Jcomments extends CMSPlugin
 				$db->execute();
 
 				$query = $db->getQuery(true)
-					->delete($db->quoteName('#__jcomments_votes'))
+					->select($db->quoteName('id'))
+					->from($db->quoteName('#__jcomments_votes'))
 					->where($db->quoteName('userid') . ' = :uid')
 					->bind(':uid', $userId, ParameterType::INTEGER);
 
 				$db->setQuery($query);
-				$db->execute();
+				$pks = $db->loadColumn();
+
+				/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
+				$model = Factory::getApplication()->bootComponent('com_jcomments')->getMVCFactory()
+					->createModel('Comments', 'Site', array('ignore_request' => true));
+				$model->deleteVotes($pks);
 			}
 		}
 	}

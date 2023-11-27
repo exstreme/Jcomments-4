@@ -20,6 +20,7 @@ use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelp
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /** @var Joomla\Component\Jcomments\Site\View\User\HtmlView $this */
+/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel::getVotesQuery $this->item */
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('multiselect')
@@ -75,7 +76,7 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 							<tr>
 								<td class="text-center align-top">
 								<?php if ($canVote): ?>
-									<?php echo HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->object_title); ?>
+									<?php echo HTMLHelper::_('grid.id', $i, $item->vote_id, false, 'cid', 'cb', $item->object_title); ?>
 								<?php endif; ?>
 								</td>
 								<td>
@@ -88,7 +89,7 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 												</span>
 											<?php else: ?>
 												<a href="<?php echo Route::_($item->object_link); ?>" target="_blank"
-												   class="read-more"><?php echo $item->object_title; ?></a>
+												   class="read-more"><?php echo $this->escape($item->object_title); ?></a>
 											<?php endif; ?>
 										</div>
 										<div class="col-3">

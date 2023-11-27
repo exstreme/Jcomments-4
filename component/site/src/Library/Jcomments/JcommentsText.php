@@ -88,20 +88,6 @@ class JcommentsText
 		return str_replace(array('<br />', '<br>'), "\n", $text);
 	}
 
-	/**
-	 * Escapes input string with slashes to use it in JavaScript
-	 *
-	 * @param   string  $text  The input string.
-	 *
-	 * @return  string  Returns the altered string.
-	 *
-	 * @since   3.0
-	 */
-	public static function jsEscape($text)
-	{
-		return addcslashes($text, "\\\\&\"\n\r<>'");
-	}
-
 	public static function url($s)
 	{
 		if (isset($s)
@@ -175,16 +161,21 @@ class JcommentsText
 	 */
 	public static function cleanText(string $text): string
 	{
-		$bbcode = JCommentsFactory::getBBCode();
-		$text = $bbcode->filter($text, true);
+		$params = ComponentHelper::getParams('com_jcomments');
 
-		if ((int) ComponentHelper::getParams('com_jcomments')->get('enable_custom_bbcode'))
+		if ($params->get('editor_format') == 'bbcode')
 		{
-			$text = $bbcode->filterCustom($text, true);
+			$bbcode = JCommentsFactory::getBBCode();
+			$text = $bbcode->filter($text, true);
+
+			if ($params->get('enable_custom_bbcode'))
+			{
+				$text = $bbcode->filterCustom($text, true);
+			}
 		}
 
 		$text = str_replace('<br />', ' ', $text);
-		$text = preg_replace('#(\s){2,}#imu', '\\1', $text);
+		$text = preg_replace('#(\s){4,}#imu', '\\1', $text);
 		$text = preg_replace('#<script[^>]*>.*?</script>#ismu', '', $text);
 		$text = preg_replace('#<a\s+.*?href="([^"]+)"[^>]*>([^<]+)</a>#ismu', '\2 (\1)', $text);
 		$text = preg_replace('#<!--.+?-->#ismu', '', $text);

@@ -17,11 +17,6 @@ div.sceditor-toolbar:empty {
 .sceditor-button-vimeo div { background: url("../../images/tmpl/editor/modern/vimeo.png") no-repeat center center !important; }
 .sceditor-button-wiki div { background: url("../../images/tmpl/editor/modern/wiki.png") no-repeat center center !important; }
 
-@font-face {
-	font-family: "Twemoji Mozilla";
-	src: url("../../fonts/Twemoji.Mozilla.ttf");
-}
-
 div.sceditor-emoji {
 	min-width: 25%;
 	width: 50%;

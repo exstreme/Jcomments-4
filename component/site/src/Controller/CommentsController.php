@@ -50,10 +50,10 @@ class CommentsController extends BaseController
 			$this->setRedirect(Route::_($return, false));
 		}
 
-		$cid = (array) $this->input->get('cid', [], 'int');
-		$cid = array_filter($cid);
+		$pks = (array) $this->input->get('cid', [], 'int');
+		$pks = array_filter($pks);
 
-		if (empty($cid))
+		if (empty($pks))
 		{
 			$this->app->getLogger()->warning(Text::_('COM_JCOMMENTS_NO_ITEM_SELECTED'), ['category' => 'jerror']);
 		}
@@ -63,9 +63,9 @@ class CommentsController extends BaseController
 			$model = $this->getModel();
 
 			// Remove the items.
-			if ($model->deleteVotes($cid))
+			if ($model->deleteVotes($pks))
 			{
-				$this->setMessage(Text::plural('COM_JCOMMENTS_N_ITEMS_DELETED', count($cid)));
+				$this->setMessage(Text::plural('COM_JCOMMENTS_N_ITEMS_DELETED', count($pks)));
 			}
 			else
 			{

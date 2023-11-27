@@ -174,7 +174,7 @@ final class Jcomments extends CMSPlugin
 				{
 					$acl = JcommentsFactory::getACL();
 
-					/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
+					/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
 					$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
 						->createModel('Comments', 'Site', array('ignore_request' => true));
 
@@ -459,7 +459,7 @@ final class Jcomments extends CMSPlugin
 
 				//JcommentsObject::storeObjectInfo($article->id);
 
-				/** @var Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
+				/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
 				/*$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
 					->createModel('Object', 'Site', array('ignore_request' => true));
 

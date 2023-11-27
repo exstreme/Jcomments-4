@@ -148,54 +148,8 @@ class JcommentsBbcode
 	 */
 	public function __construct()
 	{
-		$this->codes = self::getStandardCodes()['codes'];
+		$this->codes = self::getStandardCodes();
 		$this->getCustomBbcodes();
-
-		// Adjust some code names for B/C
-		if (array_key_exists('bold', $this->codes))
-		{
-			$this->codes['b'] = $this->codes['bold'];
-		}
-
-		if (array_key_exists('italic', $this->codes))
-		{
-			$this->codes['i'] = $this->codes['italic'];
-		}
-
-		if (array_key_exists('underline', $this->codes))
-		{
-			$this->codes['u'] = $this->codes['underline'];
-		}
-
-		if (array_key_exists('strike', $this->codes))
-		{
-			$this->codes['s'] = $this->codes['strike'];
-		}
-
-		if (array_key_exists('subscript', $this->codes))
-		{
-			$this->codes['sub'] = $this->codes['subscript'];
-		}
-
-		if (array_key_exists('superscript', $this->codes))
-		{
-			$this->codes['sup'] = $this->codes['superscript'];
-		}
-
-		if (array_key_exists('horizontalrule', $this->codes))
-		{
-			$this->codes['hr'] = $this->codes['horizontalrule'];
-		}
-
-		if (array_key_exists('image', $this->codes))
-		{
-			$this->codes['img'] = $this->codes['image'];
-		}
-
-		if (array_key_exists('bulletlist', $this->codes))
-		{
-			$this->codes['list'] = $this->codes['bulletlist'];
-		}
 	}
 
 	/**
@@ -495,7 +449,7 @@ class JcommentsBbcode
 			);
 		}
 
-		$str = trim(preg_replace('#( ){2,}#iu', '\\1', $str));
+		$str = trim(preg_replace('#( ){4,}#iu', '\\1', $str));
 
 		ob_end_clean();
 
@@ -554,46 +508,27 @@ class JcommentsBbcode
 	/**
 	 * Get all builtin bbcodes with or without separator.
 	 *
-	 * @param   object|null  $buttons  Editor buttons
-	 *
-	 * @return  array  array('codes' => array('code_name' => 'acl value', ...), 'buttons' => array('button_name', ...))
+	 * @return  array  array('code_name' => 'acl value', ...)
 	 *
 	 * @since   4.1
 	 */
-	public function getStandardCodes($buttons = array()): array
+	public function getStandardCodes(): array
 	{
-		$user     = Factory::getApplication()->getIdentity();
-		$codes    = array();
-		$_buttons = array();
+		$user   = Factory::getApplication()->getIdentity();
+		$_codes = array_keys($this->patterns);
+		$codes  = array();
 
-		if (empty($buttons))
+		foreach ($_codes as $code)
 		{
-			$buttons = ComponentHelper::getParams('com_jcomments')->get('editor_buttons');
-		}
+			$canUse = $user->authorise('comment.bbcode.' . $code, 'com_jcomments');
 
-		if (!empty($buttons))
-		{
-			foreach ($buttons as $button)
+			if ($canUse)
 			{
-				if ($button->btn != '|')
-				{
-					$canUse = $user->authorise('comment.bbcode.' . $button->btn, 'com_jcomments');
-
-					if ($canUse)
-					{
-						$_buttons[] = $button->btn;
-					}
-
-					$codes[$button->btn] = $canUse;
-				}
-				else
-				{
-					$_buttons[] = '|';
-				}
+				$codes[$code] = $canUse;
 			}
 		}
 
-		return array('codes' => array_filter($codes), 'buttons' => $_buttons);
+		return $codes;
 	}
 
 	/**
@@ -1038,7 +973,7 @@ class JcommentsBbcode
 		$acl    = JcommentsFactory::getACL();
 		$params = ComponentHelper::getParams('com_jcomments');
 
-		if ((int) !$params->get('enable_custom_bbcode'))
+		if (!$params->get('enable_custom_bbcode'))
 		{
 			return;
 		}

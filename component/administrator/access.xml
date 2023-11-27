@@ -28,12 +28,12 @@
 		<action name="comment.view.site" title="AP_CAN_VIEW_AUTHOR_HOMEPAGE" description="AP_CAN_VIEW_AUTHOR_HOMEPAGE_DESC"/>
 		<action name="comment.view.ip" title="AP_CAN_VIEW_AUTHOR_IP" description="AP_CAN_VIEW_AUTHOR_IP_DESC"/>
 
-		<action name="comment.bbcode.bold" title="AP_ENABLE_BBCODE_B"/>
-		<action name="comment.bbcode.italic" title="AP_ENABLE_BBCODE_I"/>
-		<action name="comment.bbcode.underline" title="AP_ENABLE_BBCODE_U"/>
-		<action name="comment.bbcode.strike" title="AP_ENABLE_BBCODE_S"/>
-		<action name="comment.bbcode.subscript" title="AP_ENABLE_BBCODE_SUB"/>
-		<action name="comment.bbcode.superscript" title="AP_ENABLE_BBCODE_SUP"/>
+		<action name="comment.bbcode.b" title="AP_ENABLE_BBCODE_B"/>
+		<action name="comment.bbcode.i" title="AP_ENABLE_BBCODE_I"/>
+		<action name="comment.bbcode.u" title="AP_ENABLE_BBCODE_U"/>
+		<action name="comment.bbcode.s" title="AP_ENABLE_BBCODE_S"/>
+		<action name="comment.bbcode.sub" title="AP_ENABLE_BBCODE_SUB"/>
+		<action name="comment.bbcode.sup" title="AP_ENABLE_BBCODE_SUP"/>
 		<action name="comment.bbcode.left" title="AP_ENABLE_BBCODE_LEFT"/>
 		<action name="comment.bbcode.center" title="AP_ENABLE_BBCODE_CENTER"/>
 		<action name="comment.bbcode.right" title="AP_ENABLE_BBCODE_RIGHT"/>
@@ -46,15 +46,15 @@
 		<action name="comment.bbcode.copy" title="AP_ENABLE_BBCODE_COPY"/>
 		<action name="comment.bbcode.paste" title="AP_ENABLE_BBCODE_PASTE"/>
 		<action name="comment.bbcode.pastetext" title="AP_ENABLE_BBCODE_PASTETEXT"/>
-		<action name="comment.bbcode.bulletlist" title="AP_ENABLE_BBCODE_LIST"/>
-		<action name="comment.bbcode.orderedlist" title="AP_ENABLE_BBCODE_ORDERLIST"/>
+		<action name="comment.bbcode.list" title="AP_ENABLE_BBCODE_LIST"/>
+		<action name="comment.bbcode.orderedlist" title="AP_ENABLE_BBCODE_ORDEREDLIST"/>
 		<action name="comment.bbcode.indent" title="AP_ENABLE_BBCODE_INDENT"/>
 		<action name="comment.bbcode.outdent" title="AP_ENABLE_BBCODE_OUTDENT"/>
 		<action name="comment.bbcode.table" title="AP_ENABLE_BBCODE_TABLE"/>
 		<action name="comment.bbcode.code" title="AP_ENABLE_BBCODE_CODE"/>
 		<action name="comment.bbcode.quote" title="AP_ENABLE_BBCODE_QUOTE" description="AP_ENABLE_BBCODE_QUOTE_DESC"/>
-		<action name="comment.bbcode.horizontalrule" title="AP_ENABLE_BBCODE_HR"/>
-		<action name="comment.bbcode.image" title="AP_ENABLE_BBCODE_IMG"/>
+		<action name="comment.bbcode.hr" title="AP_ENABLE_BBCODE_HR"/>
+		<action name="comment.bbcode.img" title="AP_ENABLE_BBCODE_IMG"/>
 		<action name="comment.bbcode.email" title="AP_ENABLE_BBCODE_EMAIL"/>
 		<action name="comment.bbcode.url" title="AP_ENABLE_BBCODE_URL"/>
 		<action name="comment.bbcode.unlink" title="AP_ENABLE_BBCODE_UNLINK"/>

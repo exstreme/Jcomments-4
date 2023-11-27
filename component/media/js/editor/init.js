@@ -1,19 +1,31 @@
 // phpcs:disable
 document.addEventListener('DOMContentLoaded', function () {
 	const jce = document.getElementById('jform_comment');
-	const jce_config = JSON.parse(jce.dataset.config);
+	const jce_config = Joomla.getOptions('jceditor');
 	let jce_limitreached = false;
+	const span_hidden = {
+		'html': ['<span class="badge text-bg-light hide">', '</span>'],
+		'class': 'badge text-bg-light hide',
+		'tip': Joomla.Text._('FORM_BBCODE_HIDE'),
+		'state': function (parent) {
+			return sceditor.dom.closest(parent, 'span.hide') ? 1 : 0;
+		}
+	};
+	const codeblock = {
+		'html': ['<figure class="codeblock"><figcaption class="code">{caption}</figcaption><pre class="card card-body p-2"><code class="lang-{lang}">', '</code></pre></figure>'],
+		'tip': Joomla.Text._('COMMENT_TEXT_CODE')
+	};
 	const icon_spoiler = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g stroke-width="1.0595"><path d="m1.9738 1.0168v4.9944h28.022v-4.9944z"/><path d="m1.9738 25.977v4.9944h28.022v-4.9944z"/></g><g><rect x="6.559" y="9.4897" width="3.74" height="7.296" stroke-width=".70362"/><path transform="matrix(.94771 .99029 -1.6415 .57174 44.965 2.7122)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g><g transform="rotate(180 15.463 20.048)"><rect x="5.515" y="17.55" width="3.74" height="7.0931" stroke-width=".69377"/><path transform="matrix(.94771 .99029 -1.6415 .57174 43.921 10.783)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g></svg>';
 
 	if (sceditor.icons.material) {
-		sceditor.icons.material.icons.hide = '<text fill="#000000" text-align="center" text-anchor="middle" style="line-height:0" xml:space="preserve" y="16" font-size=".8em" x="12">HIDE</text>';
+		sceditor.icons.material.icons.hide = '<text fill="#000000" text-anchor="middle" style="line-height:0" xml:space="preserve" y="16" font-size=".8em" x="12">HIDE</text>';
 		sceditor.icons.material.icons.spoiler = icon_spoiler;
 	} else if (sceditor.icons.monocons) {
-		sceditor.icons.monocons.icons.hide = '<text fill="#000000" text-align="center" text-anchor="middle" style="line-height:0" xml:space="preserve" y="12" font-size=".6em" x="8">HIDE</text>';
+		sceditor.icons.monocons.icons.hide = '<text fill="#000000" text-anchor="middle" style="line-height:0" xml:space="preserve" y="12" font-size=".6em" x="8">HIDE</text>';
 		sceditor.icons.monocons.icons.spoiler = icon_spoiler;
 	}
 
-	if (sceditor.formats.bbcode) {
+	if (jce_config.format === 'bbcode' && sceditor.formats.bbcode) {
 		sceditor.formats.bbcode.set('quote', {
 			tags: {
 				'blockquote': null
@@ -65,39 +77,29 @@ document.addEventListener('DOMContentLoaded', function () {
 				return '<blockquote class="blockquote"' + id + '>' + name + content + '</blockquote>';
 			}
 		});
-		sceditor.command.set('quote', {
-			exec: function () {
-				this.wysiwygEditorInsertHtml('<blockquote class="blockquote">', '<br /></blockquote>');
-			},
-			state: function (parent) {
-				return sceditor.dom.closest(parent, 'blockquote') ? 1 : 0;
-			}
-		});
 
 		sceditor.formats.bbcode.set('hide', {
 			tags: {
 				'span': {
-					'class': ['badge text-bg-light hide']
+					'class': [span_hidden.class]
 				}
 			},
 			format: function (element, content) {
 				return '[hide]' + content + '[/hide]';
 			},
 			html: function (token, attrs, content) {
-				return '<span class="badge text-bg-light hide">' + content + '</span>';
+				return span_hidden.html[0] + content + span_hidden.html[1];
 			}
 		});
 		sceditor.command.set('hide', {
 			exec: function () {
-				this.wysiwygEditorInsertHtml('<span class="badge text-bg-light hide">', '</span>');
+				this.wysiwygEditorInsertHtml(span_hidden.html[0], span_hidden.html[1]);
 			},
 			txtExec: function () {
 				this.insertText('[hide]', '[/hide]');
 			},
-			state: function (parent) {
-				return sceditor.dom.closest(parent, 'span.hide') ? 1 : 0;
-			},
-			tooltip: Joomla.Text._('FORM_BBCODE_HIDE')
+			state: span_hidden.state,
+			tooltip: span_hidden.tip
 		});
 
 		sceditor.formats.bbcode.set('code', {
@@ -126,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					});
 
 					// Replace figcaption's Node.textContent by empty value
-					content = content.replace(Joomla.Text._('COMMENT_TEXT_CODE') + "\n", '');
+					content = content.replace(codeblock.tip + "\n", '');
 				}
 
 				return '[code' + bbcodeAttr + ']' + content + '[/code]';
@@ -138,46 +140,62 @@ document.addEventListener('DOMContentLoaded', function () {
 					langName = attrs.defaultattr.replace(' ', '');
 				}
 
-				return '<figure class="codeblock">' +
-					'<figcaption class="code">' + Joomla.Text._('COMMENT_TEXT_CODE') + '</figcaption>' +
-					'<pre class="card card-body p-2"><code class="lang-' + langName + '">' + content + '</code></pre>' +
-				'</figure>';
+				return str_replace(['{caption}', '{lang}'], [codeblock.tip, langName], codeblock.html[0], false) + content + codeblock.html[1];
 			}
 		});
-		sceditor.command.set('code', {
+	} else if (jce_config.format === 'xhtml') {
+		sceditor.command.set('hide', {
 			exec: function () {
-				this.wysiwygEditorInsertHtml(
-					'<figure class="codeblock"><figcaption class="code">' + Joomla.Text._('COMMENT_TEXT_CODE') + '</figcaption>' +
-						'<pre class="card card-body p-2"><code class="lang-">',
-					'</code></pre></figure>'
-				);
+				this.wysiwygEditorInsertHtml(span_hidden.html[0], span_hidden.html[1]);
 			},
-			state: function (parent) {
-				return sceditor.dom.closest(parent, 'figure.codeblock') ? 1 : 0;
-			}
-		});
-
-		sceditor.command.set('font', {
-			state: function (parent) {
-				return sceditor.dom.closest(parent, 'font[face]') ? 1 : 0;
-			}
-		});
-
-		sceditor.command.set('size', {
-			state: function (parent) {
-				return sceditor.dom.closest(parent, 'font[size]') ? 1 : 0;
-			}
-		});
-		sceditor.command.set('spoiler', {
-			exec: function () {
-				this.insertText('[spoiler]', '[/spoiler]');
-			},
-			txtExec: function () {
-				this.insertText('[spoiler]', '[/spoiler]');
-			},
-			tooltip: Joomla.Text._('FORM_BBCODE_SPOILER')
+			txtExec: span_hidden.html,
+			state: span_hidden.state,
+			tooltip: span_hidden.tip
 		});
 	}
+
+	sceditor.command.set('quote', {
+		exec: function () {
+			this.wysiwygEditorInsertHtml('<blockquote class="blockquote">', '<br /></blockquote>');
+		},
+		state: function (parent) {
+			return sceditor.dom.closest(parent, 'blockquote') ? 1 : 0;
+		}
+	});
+
+	sceditor.command.set('code', {
+		exec: function () {
+			this.wysiwygEditorInsertHtml(
+				str_replace(['{caption}', '{lang}'], [codeblock.tip, ''], codeblock.html[0], false),
+				codeblock.html[1]
+			);
+		},
+		state: function (parent) {
+			return sceditor.dom.closest(parent, 'figure.codeblock') ? 1 : 0;
+		}
+	});
+
+	sceditor.command.set('font', {
+		state: function (parent) {
+			return sceditor.dom.closest(parent, 'font[face]') ? 1 : 0;
+		}
+	});
+
+	sceditor.command.set('size', {
+		state: function (parent) {
+			return sceditor.dom.closest(parent, 'font[size]') ? 1 : 0;
+		}
+	});
+
+	sceditor.command.set('spoiler', {
+		exec: function () {
+			this.insertText('[spoiler]', '[/spoiler]');
+		},
+		txtExec: function () {
+			this.insertText('[spoiler]', '[/spoiler]');
+		},
+		tooltip: Joomla.Text._('FORM_BBCODE_SPOILER')
+	});
 
 	sceditor.create(jce, jce_config);
 

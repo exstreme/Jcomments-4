@@ -26,6 +26,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Event\EventInterface;
 use Joomla\Event\SubscriberInterface;
 use Joomla\Filesystem\Path;
+use Joomla\String\StringHelper;
 
 /**
  * Class to add support for avatar(s) in JComments
@@ -81,6 +82,106 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			if (method_exists($this, $method))
 			{
 				$this->$method($comments);
+			}
+		}
+	}
+
+	/**
+	 * Get image URL from user field
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.3
+	 */
+	protected function getFieldsImage(array $comments)
+	{
+		$user     = Factory::getApplication()->getIdentity();
+		$users    = $this->getUsers($comments);
+		$fieldsId = $this->params->get('fields_id');
+
+		if (count($users))
+		{
+			$db = $this->getDatabase();
+			$query = $db->getQuery(true)
+				->select($db->qn(array('fv.item_id', 'fv.value')))
+				->select($db->qn(array('f.type', 'f.fieldparams')))
+				->from($db->qn('#__fields_values', 'fv'))
+				->leftJoin($db->qn('#__fields', 'f'), $db->qn('f.id') . ' = ' . $db->qn('fv.field_id'))
+				->where($db->qn('fv.field_id') . ' = :field_id')
+				->where($db->qn('f.state') . ' = 1')
+				->whereIn($db->qn('f.access'), $user->getAuthorisedViewLevels())
+				->bind(':field_id', $fieldsId, ParameterType::INTEGER);
+
+			try
+			{
+				$db->setQuery($query);
+				$avatars = $db->loadObjectList('item_id');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+		}
+
+		$itemId = self::getItemid('index.php?option=com_users&view=profile');
+
+		foreach ($comments as $comment)
+		{
+			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
+
+			if ($this->params->get('avatar_link') == 1)
+			{
+				$comment->profileLink = $uid ? Route::_('index.php?option=com_users&view=profile' . $itemId) : '';
+			}
+
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+
+			if (isset($avatars[$uid]) && !empty($avatars[$uid]->value))
+			{
+				if ($avatars[$uid]->type == 'media')
+				{
+					$fieldValue = json_decode($avatars[$uid]->value);
+
+					$comment->avatar = Uri::base() . $fieldValue->imagefile;
+				}
+				elseif ($avatars[$uid]->type == 'imagelist')
+				{
+					$fieldParams = json_decode($avatars[$uid]->fieldparams);
+
+					if (property_exists($fieldParams, 'directory') || !empty($fieldParams->directory))
+					{
+						if ($fieldParams->directory == '/')
+						{
+							$comment->avatar = Uri::base() . 'images/' . $avatars[$uid]->value;
+						}
+						else
+						{
+							$comment->avatar = Uri::base() . 'images/' . StringHelper::str_ireplace('\\', '/', $fieldParams->directory) . '/' . $avatars[$uid]->value;
+						}
+					}
+					else
+					{
+						$comment->avatar = Uri::base() . 'images/' . $avatars[$uid]->value;
+					}
+				}
+				elseif ($avatars[$uid]->type == 'url')
+				{
+					$comment->avatar = $avatars[$uid]->value;
+				}
+				else
+				{
+					$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				}
+			}
+			else
+			{
+				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 			}
 		}
 	}
@@ -172,8 +273,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 
 		if (count($users))
 		{
-			/** @var \Joomla\Database\DatabaseDriver $db */
-			$db      = Factory::getContainer()->get('DatabaseDriver');
+			$db = $this->getDatabase();
 			$nowDate = Factory::getDate()->toSql();
 
 			$query = $db->getQuery(true)
@@ -267,6 +367,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	 *
 	 * @throws  \Exception
 	 * @since   4.2
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	protected function getEasysocialImage(array $comments)
 	{
@@ -393,10 +494,10 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	 */
 	protected static function getItemid(string $link): string
 	{
+		/** @var \Joomla\CMS\Menu\AbstractMenu $menu */
 		$menu = Factory::getApplication()->getMenu();
 		$item = $menu->getItems('link', $link, true);
-
-		$id = null;
+		$id   = null;
 
 		if (is_array($item))
 		{
@@ -447,8 +548,8 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			}
 		}
 
-		$avatarA = JPATH_SITE . DS;
-		$avatarL = JURI::base() . '/';
+		$avatarA = Path::clean(JPATH_SITE . '/');
+		$avatarL = Uri::base() . '/';
 
 		foreach ($comments as &$comment)
 		{
@@ -483,6 +584,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	 *
 	 * @throws  \Exception
 	 * @since   4.2
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	protected function getKunenaImage(array $comments)
 	{
@@ -628,7 +730,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
 			->createCacheController('output', array('defaultgroup' => $cacheId));
 
-		// Init default values.
+		// Init default values. Do not rename variables!
 		$dbms         = '';
 		$dbhost       = '';
 		$dbport       = '';
@@ -646,7 +748,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 
 		include $forumConfig;
 
-		/** @var Joomla\CMS\Cache\Cache $cache */
+		/** @var \Joomla\CMS\Cache\Cache $cache */
 		// Force cache only if caching is disabled in global configuration.
 		if (Factory::getApplication()->get('caching') == 0)
 		{
@@ -767,7 +869,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 				elseif ($phpBB3Profile->user_avatar_type == 'avatar.driver.upload' || $phpBB3Profile->user_avatar_type == 'avatar.driver.local')
 				{
 					// .htaccess file in avatars folder will deny access, so we must to use data:image
-					$avatarExt = \Joomla\CMS\Filesystem\File::getExt($phpBB3Profile->user_avatar);
+					$avatarExt = \Joomla\Filesystem\File::getExt($phpBB3Profile->user_avatar);
 
 					if ($phpBB3Profile->user_avatar_type == 'avatar.driver.upload')
 					{
@@ -814,7 +916,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
 			->createCacheController('output', array('defaultgroup' => $cacheId));
 
-		// Init default values.
+		// Init default values. do not rename variables!
 		$db_type   = '';
 		$db_server = '';
 		$db_port   = '';
@@ -832,7 +934,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 
 		include $forumConfig;
 
-		/** @var Joomla\CMS\Cache\Cache $cache */
+		/** @var \Joomla\CMS\Cache\Cache $cache */
 		// Force cache only if caching is disabled in global configuration.
 		if (Factory::getApplication()->get('caching') == 0)
 		{

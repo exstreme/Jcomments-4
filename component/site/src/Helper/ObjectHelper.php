@@ -27,17 +27,17 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 class ObjectHelper
 {
 	/**
-	 * @param   mixed    $objectInfo   Object info
-	 * @param   string   $field        Object field
-	 * @param   integer  $objectID     Object ID
-	 * @param   string   $objectGroup  Option, e.g. com_content
-	 * @param   mixed    $language     Content(item) language tag
+	 * @param   mixed        $objectInfo   Object info
+	 * @param   string       $field        Object field
+	 * @param   int|null     $objectID     Object ID
+	 * @param   string|null  $objectGroup  Option, e.g. com_content
+	 * @param   mixed        $language     Content(item) language tag
 	 *
 	 * @return  mixed
 	 *
 	 * @since   4.0
 	 */
-	public static function getObjectField($objectInfo, string $field, int $objectID, string $objectGroup = 'com_content', $language = null)
+	public static function getObjectField($objectInfo, string $field, ?int $objectID, ?string $objectGroup = 'com_content', $language = null)
 	{
 		if (!is_object($objectInfo))
 		{
@@ -144,16 +144,16 @@ class ObjectHelper
 	/**
 	 * Returns object information
 	 *
-	 * @param   integer  $objectID     Object ID
-	 * @param   string   $objectGroup  Option, e.g. com_content
-	 * @param   mixed    $language     Content(item) language tag
-	 * @param   boolean  $useCache     Use cache
+	 * @param   int|null     $objectID     Object ID
+	 * @param   string|null  $objectGroup  Option, e.g. com_content
+	 * @param   mixed        $language     Content(item) language tag
 	 *
 	 * @return  JcommentsObjectinfo
 	 *
+	 * @throws \Exception
 	 * @since   3.0
 	 */
-	public static function getObjectInfo(int $objectID, string $objectGroup = 'com_content', $language = null)
+	public static function getObjectInfo(?int $objectID, ?string $objectGroup = 'com_content', $language = null)
 	{
 		$app = Factory::getApplication();
 

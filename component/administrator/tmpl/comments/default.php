@@ -123,7 +123,7 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 								}
 								else
 								{
-									$title = JcommentsText::cleanText(strip_tags($item->comment));
+									$title = JcommentsText::cleanText($item->comment);
 									$title = StringHelper::substr($title, 0, 200);
 								}
 							}

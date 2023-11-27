@@ -177,8 +177,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$app         = Factory::getApplication();
 		$db          = $this->getDatabase();
 		$user        = $app->getIdentity();
-		$params      = ComponentHelper::getParams('com_jcomments');
-		$bbcode      = JcommentsFactory::getBbcode();
 		$objectGroup = $this->getState('object_group');
 		$objectId    = $this->getState('object_id');
 		$userId      = $user->get('id');
@@ -298,7 +296,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$app           = Factory::getApplication();
 		$params        = ComponentHelper::getParams('com_jcomments');
 		$user          = $app->getIdentity();
-		$bbcode        = JcommentsFactory::getBbcode();
 		$commentId     = $app->input->getInt('parent');
 		$result        = (object) array();
 		$parentComment = $this->getItem($commentId);
@@ -312,6 +309,8 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 
 		if ($params->get('editor_format') == 'bbcode')
 		{
+			$bbcode = JcommentsFactory::getBbcode();
+
 			if (!$params->get('enable_nested_quotes'))
 			{
 				$result->comment = $bbcode->removeQuotes($result->comment);
@@ -641,7 +640,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$user   = $app->getIdentity();
 		$params = ComponentHelper::getParams('com_jcomments');
 		$acl    = JcommentsFactory::getACL();
-		$bbcode = JcommentsFactory::getBbcode();
 
 		if ($user->authorise('comment.captcha', 'com_jcomments'))
 		{

@@ -183,7 +183,6 @@ class CommentsModel extends ListModel
 	 *
 	 * @return  boolean
 	 *
-	 * @throws  \RuntimeException
 	 * @since   3.0
 	 */
 	private function deleteCommentsByIds(array $ids): bool
@@ -194,72 +193,81 @@ class CommentsModel extends ListModel
 		{
 			$db = $this->getDatabase();
 
-			$query = $db->getQuery(true)
-				->select('DISTINCT ' . $db->quoteName('object_group') . ', ' . $db->quoteName('object_id'))
-				->from($db->quoteName('#__jcomments'))
-				->whereIn($db->quoteName('parent'), $ids);
-
-			$db->setQuery($query);
-			$objects = $db->loadObjectList();
-
-			if (count($objects))
+			try
 			{
-				$descendants = array();
+				$query = $db->getQuery(true)
+					->select('DISTINCT ' . $db->quoteName('object_group') . ', ' . $db->quoteName('object_id'))
+					->from($db->quoteName('#__jcomments'))
+					->whereIn($db->quoteName('parent'), $ids);
 
-				foreach ($objects as $object)
+				$db->setQuery($query);
+				$objects = $db->loadObjectList();
+
+				if (count($objects))
 				{
-					$query = $db->getQuery(true)
-						->select($db->quoteName(array('id', 'parent')))
-						->from($db->quoteName('#__jcomments'))
-						->where($db->quoteName('object_group') . ' = :ogroup')
-						->where($db->quoteName('object_id') . ' = :oid')
-						->bind(':ogroup', $object->object_group)
-						->bind(':oid', $object->object_id, ParameterType::INTEGER);
+					$descendants = array();
 
-					$db->setQuery($query);
-					$comments = $db->loadObjectList();
-
-					$tree = new JcommentsTree($comments);
-
-					foreach ($ids as $id)
+					foreach ($objects as $object)
 					{
-						$descendants = array_merge($descendants, $tree->descendants((int) $id));
+						$query = $db->getQuery(true)
+							->select($db->quoteName(array('id', 'parent')))
+							->from($db->quoteName('#__jcomments'))
+							->where($db->quoteName('object_group') . ' = :ogroup')
+							->where($db->quoteName('object_id') . ' = :oid')
+							->bind(':ogroup', $object->object_group)
+							->bind(':oid', $object->object_id, ParameterType::INTEGER);
+
+						$db->setQuery($query);
+						$comments = $db->loadObjectList();
+
+						$tree = new JcommentsTree($comments);
+
+						foreach ($ids as $id)
+						{
+							$descendants = array_merge($descendants, $tree->descendants((int) $id));
+						}
+
+						unset($tree);
+						$descendants = array_unique($descendants);
 					}
 
-					unset($tree);
-					$descendants = array_unique($descendants);
+					$ids = array_merge($ids, $descendants);
 				}
 
-				$ids = array_merge($ids, $descendants);
+				unset($descendants);
+
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments'))
+					->whereIn($db->quoteName('id'), $ids);
+
+				$db->setQuery($query);
+				$db->execute();
+
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_votes'))
+					->whereIn($db->quoteName('commentid'), $ids);
+
+				$db->setQuery($query);
+				$db->execute();
+
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_reports'))
+					->whereIn($db->quoteName('commentid'), $ids);
+
+				$db->setQuery($query);
+				$db->execute();
 			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
-			unset($descendants);
-
-			$query = $db->getQuery(true)
-				->delete($db->quoteName('#__jcomments'))
-				->whereIn($db->quoteName('id'), $ids);
-
-			$db->setQuery($query);
-			$db->execute();
-
-			$query = $db->getQuery(true)
-				->delete($db->quoteName('#__jcomments_votes'))
-				->whereIn($db->quoteName('commentid'), $ids);
-
-			$db->setQuery($query);
-			$db->execute();
-
-			$query = $db->getQuery(true)
-				->delete($db->quoteName('#__jcomments_reports'))
-				->whereIn($db->quoteName('commentid'), $ids);
-
-			$db->setQuery($query);
-			$db->execute();
+				return false;
+			}
 
 			return true;
 		}
 
-		throw new \RuntimeException(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+		return false;
 	}
 
 	/**
@@ -272,10 +280,10 @@ class CommentsModel extends ListModel
 	 *
 	 * @since   3.0
 	 */
-	public function delete($objectID, $objectGroup = 'com_content'): bool
+	public function delete($objectID, string $objectGroup = 'com_content'): bool
 	{
 		$db          = $this->getDatabase();
-		$objectGroup = trim($objectGroup);
+		$objectGroup = $db->escape(trim($objectGroup));
 		$objectIDs   = is_array($objectID) ? implode(',', $objectID) : array($objectID);
 		$objectIDs   = ArrayHelper::toInteger($objectIDs);
 
@@ -291,20 +299,62 @@ class CommentsModel extends ListModel
 			$db->setQuery($query);
 			$cids = $db->loadColumn();
 
+			// Try to delete comments, votes, reports
 			if (!$this->deleteCommentsByIds($cids))
 			{
 				return false;
 			}
 
-			$query = $db->getQuery(true)
-				->delete($db->quoteName('#__jcomments_objects'))
-				->where($db->quoteName('object_group') . ' = :ogroup')
-				->whereIn($db->quoteName('object_id'), $objectIDs)
-				->bind(':ogroup', $objectGroup);
+			$queryResult = true;
+			$db->lockTable('#__jcomments_objects');
+			$db->transactionStart();
 
-			$db->setQuery($query);
+			// Delete each object record only if no comments found for this object and id
+			foreach ($objectIDs as $_objectID)
+			{
+				$query = $db->getQuery(true)
+					->select('COUNT(id)')
+					->from($db->quoteName('#__jcomments'))
+					->where($db->quoteName('object_id') . ' = :oid')
+					->where($db->quoteName('object_group') . ' = :ogroup')
+					->bind(':oid', $_objectID, ParameterType::INTEGER)
+					->bind(':ogroup', $objectGroup);
 
-			return $db->execute();
+				$db->setQuery($query);
+				$totalComments = $db->loadResult();
+
+				if ($totalComments === 0)
+				{
+					$query = $db->getQuery(true)
+						->delete($db->quoteName('#__jcomments_objects'))
+						->where($db->quoteName('object_id') . ' = :oid')
+						->where($db->quoteName('object_group') . ' = :ogroup')
+						->bind(':oid', $_objectID, ParameterType::INTEGER)
+						->bind(':ogroup', $objectGroup);
+
+					$db->setQuery($query . ';');
+
+					if ($db->execute() === false)
+					{
+						$queryResult = false;
+						break;
+					}
+				}
+			}
+
+			if ($queryResult === false)
+			{
+				$db->transactionRollback();
+				$db->unlockTables();
+
+				return false;
+			}
+			else
+			{
+				$db->transactionCommit();
+			}
+
+			$db->unlockTables();
 		}
 		catch (\RuntimeException $e)
 		{
@@ -312,6 +362,8 @@ class CommentsModel extends ListModel
 
 			return false;
 		}
+
+		return true;
 	}
 
 	/**
@@ -329,16 +381,81 @@ class CommentsModel extends ListModel
 		$db  = $this->getDatabase();
 		$uid = Factory::getApplication()->getIdentity()->get('id');
 
-		$query = $db->getQuery(true)
-			->delete($db->quoteName('#__jcomments_votes'))
-			->whereIn($db->quoteName('id'), $pks)
-			->where($db->quoteName('userid') . ' = :uid')
-			->bind(':uid', $uid, ParameterType::INTEGER);
-
 		try
 		{
+			// Select vote results for selected votes
+			$query = $db->getQuery(true)
+				->select($db->quoteName(array('v.id', 'v.commentid', 'v.value', 'c.isgood', 'c.ispoor')))
+				->from($db->quoteName('#__jcomments_votes', 'v'))
+				->leftJoin($db->quoteName('#__jcomments', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('v.commentid'))
+				->whereIn($db->quoteName('v.id'), $pks);
+
 			$db->setQuery($query);
-			$db->execute();
+			$votes = $db->loadAssocList();
+
+			if (count($votes) < 1)
+			{
+				return false;
+			}
+
+			$queryResult = true;
+			$db->lockTable('#__jcomments');
+			$db->transactionStart();
+
+			// Generate UPDATE query and run in transaction.
+			foreach ($votes as $vote)
+			{
+				$query = $db->getQuery(true)
+					->update($db->quoteName('#__jcomments'));
+
+				if ((int) $vote['value'] == -1)
+				{
+					if ($vote['ispoor'] > 0)
+					{
+						$query->set($db->quoteName('ispoor') . ' = ' . (int) ($vote['ispoor'] - 1));
+					}
+				}
+				elseif ((int) $vote['value'] == 1)
+				{
+					if ($vote['isgood'] > 0)
+					{
+						$query->set($db->quoteName('isgood') . ' = ' . (int) ($vote['isgood'] - 1));
+					}
+				}
+
+				$query->where($db->quoteName('id') . ' = ' . (int) $vote['commentid']);
+
+				$db->setQuery($query . ';');
+
+				if ($db->execute() === false)
+				{
+					$queryResult = false;
+					break;
+				}
+			}
+
+			if ($queryResult === false)
+			{
+				$db->transactionRollback();
+				$db->unlockTables();
+
+				return false;
+			}
+			else
+			{
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_votes'))
+					->whereIn($db->quoteName('id'), $pks)
+					->where($db->quoteName('userid') . ' = :uid')
+					->bind(':uid', $uid, ParameterType::INTEGER);
+
+				$db->setQuery($query);
+				$db->execute();
+
+				$db->transactionCommit();
+			}
+
+			$db->unlockTables();
 		}
 		catch (\RuntimeException $e)
 		{
@@ -681,7 +798,7 @@ class CommentsModel extends ListModel
 				$this->getState(
 					'list.select',
 					array(
-						$db->quoteName('v.id'),
+						$db->quoteName('v.id', 'vote_id'),
 						$db->quoteName('v.commentid'),
 						$db->quoteName('v.userid'),
 						$db->quoteName('v.date'),

@@ -38,7 +38,7 @@ $groupClass     = '';
 $usernameClass  = '';
 $boxClass       = '';
 $userGroup      = '';
-$publishedClass = !$comment->published ? ' bg-secondary bg-opacity-10 text-muted' : '';
+$publishedClass = !$comment->published ? ' bg-light text-muted' : '';
 $comment->date  = $comment->date ?? 'now';
 
 // True by default

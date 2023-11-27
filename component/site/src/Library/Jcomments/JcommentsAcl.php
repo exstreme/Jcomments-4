@@ -432,15 +432,15 @@ class JcommentsAcl
 	/**
 	 * Check if user can publish for certain object.
 	 *
-	 * @param   integer  $objectID     Object ID
-	 * @param   string   $objectGroup  Object group
-	 * @param   mixed    $object       Object information
+	 * @param   int|null     $objectID     Object ID
+	 * @param   string|null  $objectGroup  Object group
+	 * @param   mixed        $object       Object information
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public function canPublishForObject(int $objectID, string $objectGroup, $object = null): bool
+	public function canPublishForObject(?int $objectID, ?string $objectGroup, $object = null): bool
 	{
 		return $this->userID
 			&& $this->canPublishForMyObject

@@ -6,7 +6,7 @@
 	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.3.1</version>
+	<version>4.3.2</version>
 	<description>PLG_JCOMMENTS_AVATAR_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Plugin\Jcomments\Avatar</namespace>
 
@@ -36,8 +36,9 @@
 					description="PLG_JCOMMENTS_AVATAR_FIELD_AVATAR_SOURCE_DESC"
 				>
 					<option value="default">JOPTION_DO_NOT_USE</option>
+					<option value="fields">Fields (com_fields)</option>
 					<option value="comprofiler">CommunityBuilder</option>
-					<option value="contacts">Contacts</option>
+					<option value="contacts">Contacts (com_contact)</option>
 					<option value="gravatar">Gravatar</option>
 					<option value="kunena">Kunena</option>
 					<option value="phocagallery">PhocaGallery</option>
@@ -77,6 +78,15 @@
 					label="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_LABEL"
 					description="PLG_JCOMMENTS_AVATAR_FIELD_GRAVATAR_OPTIONS_DESC"
 					showon="avatar_type:gravatar"
+				/>
+
+				<field
+						name="fields_id"
+						type="text"
+						default=""
+						label="PLG_JCOMMENTS_AVATAR_FIELD_FIELDS_OPTIONS_LABEL"
+						description="PLG_JCOMMENTS_AVATAR_FIELD_FIELDS_OPTIONS_DESC"
+						showon="avatar_type:fields"
 				/>
 
 				<field
