@@ -121,46 +121,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	}
 
 	/**
-	 * Method to get total rows.
-	 *
-	 * @param   mixed   $objectID     Item ID.
-	 * @param   string  $objectGroup  Option.
-	 *
-	 * @return  integer
-	 *
-	 * @since   4.0
-	 */
-	public function getTotalCommentsForObject($objectID = null, string $objectGroup = 'com_content'): int
-	{
-		$db          = $this->getDatabase();
-		$total       = 0;
-		$objectID    = is_null($objectID) ? $this->getState('object_id') : $objectID;
-		$objectGroup = empty($objectGroup) ? $objectGroup : $this->getState('object_group');
-
-		$query = $db->getQuery(true)
-			->select('COUNT(id)')
-			->from($db->quoteName('#__jcomments'))
-			->where($db->quoteName('object_id') . ' = :oid')
-			->where($db->quoteName('object_group') . ' = :ogroup')
-			->where($db->quoteName('published') . ' = 1')
-			->where($db->quoteName('deleted') . ' = 0')
-			->bind(':oid', $objectID, ParameterType::INTEGER)
-			->bind(':ogroup', $objectGroup);
-
-		try
-		{
-			$db->setQuery($query);
-			$total = $db->loadResult();
-		}
-		catch (\RuntimeException $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
-		}
-
-		return $total;
-	}
-
-	/**
 	 * Method to get form data.
 	 *
 	 * @param   integer  $pk  The id of the primary key.

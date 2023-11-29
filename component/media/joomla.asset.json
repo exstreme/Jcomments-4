@@ -16,6 +16,12 @@
       "uri": "com_jcomments/frontend-style.css"
     },
     {
+      "name": "jceditor.plg.emoji.styles",
+      "type": "style",
+      "uri": "com_jcomments/editor/plugins/emoji/emoji.css",
+      "version": "0.0.1"
+    },
+    {
       "name": "locutus",
       "type": "script",
       "uri": "com_jcomments/locutus.js",

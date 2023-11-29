@@ -312,18 +312,7 @@ class CommentsModel extends ListModel
 			// Delete each object record only if no comments found for this object and id
 			foreach ($objectIDs as $_objectID)
 			{
-				$query = $db->getQuery(true)
-					->select('COUNT(id)')
-					->from($db->quoteName('#__jcomments'))
-					->where($db->quoteName('object_id') . ' = :oid')
-					->where($db->quoteName('object_group') . ' = :ogroup')
-					->bind(':oid', $_objectID, ParameterType::INTEGER)
-					->bind(':ogroup', $objectGroup);
-
-				$db->setQuery($query);
-				$totalComments = $db->loadResult();
-
-				if ($totalComments === 0)
+				if (\Joomla\Component\Jcomments\Site\Helper\ObjectHelper::getTotalCommentsForObject($_objectID, $objectGroup) === 0)
 				{
 					$query = $db->getQuery(true)
 						->delete($db->quoteName('#__jcomments_objects'))

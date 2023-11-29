@@ -476,8 +476,6 @@ class ContentHelper
 		$comment->adminPanel  = self::initialCommentData('adminPanel');
 		$comment->userPanel   = self::initialCommentData('userPanel');
 		$comment->commentData = self::initialCommentData('commentData');
-		$comment->object_link = '';
-		$comment->labels      = null;
 
 		if ($text === false)
 		{
@@ -504,6 +502,11 @@ class ContentHelper
 
 			$comment->object_link = $comment->object_link . '&Itemid=' . self::getItemid($app->input->getWord('view'));
 			$comment->labels      = isset($comment->labels) ? json_decode($comment->labels) : null;
+		}
+		else
+		{
+			$comment->object_link = '';
+			$comment->labels = null;
 		}
 
 		$dispatcher->dispatch(

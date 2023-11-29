@@ -40,6 +40,57 @@ class ObjectsModel extends BaseDatabaseModel
 	protected $_item;
 
 	/**
+	 * Get total rows for certain object.
+	 *
+	 * @param   integer       $objectID     Object ID.
+	 * @param   string        $objectGroup  Object group.
+	 * @param   integer|null  $state        Comment state.
+	 * @param   integer|null  $deleted      Comment is deleted?
+	 *
+	 * @return  integer
+	 *
+	 * @since   4.1
+	 */
+	public function getTotalCommentsForObject(int $objectID, string $objectGroup, ?int $state = null, ?int $deleted = null): int
+	{
+		$db          = $this->getDatabase();
+		$total       = 0;
+		$objectGroup = $db->escape($objectGroup);
+
+		$query = $db->getQuery(true)
+			->select('COUNT(id)')
+			->from($db->quoteName('#__jcomments'))
+			->where($db->quoteName('object_id') . ' = :oid')
+			->where($db->quoteName('object_group') . ' = :ogroup')
+			->bind(':oid', $objectID, ParameterType::INTEGER)
+			->bind(':ogroup', $objectGroup);
+
+		if (!is_null($state))
+		{
+			$query->where($db->quoteName('published') . ' = :state')
+				->bind(':state', $state, ParameterType::INTEGER);
+		}
+
+		if (!is_null($deleted))
+		{
+			$query->where($db->quoteName('deleted') . ' = :deleted')
+				->bind(':deleted', $deleted, ParameterType::INTEGER);
+		}
+
+		try
+		{
+			$db->setQuery($query);
+			$total = $db->loadResult();
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+		}
+
+		return $total;
+	}
+
+	/**
 	 * Clean objects cache.
 	 *
 	 * @return  boolean

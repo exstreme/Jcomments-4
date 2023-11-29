@@ -53,6 +53,27 @@ class ObjectHelper
 	}
 
 	/**
+	 * Proxy for Joomla\Component\Jcomments\Site\Model::getTotalCommentsForObject()
+	 *
+	 * @param   integer       $objectID     Object ID.
+	 * @param   string        $objectGroup  Object group.
+	 * @param   integer|null  $state        Comment state.
+	 * @param   integer|null  $deleted      Comment is deleted?
+	 *
+	 * @return  integer
+	 *
+	 * @since   4.1
+	 */
+	public static function getTotalCommentsForObject(int $objectID, string $objectGroup, ?int $state = null, ?int $deleted = null): int
+	{
+		/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
+		$model  = Factory::getApplication()->bootComponent('com_jcomments')->getMVCFactory()
+			->createModel('Objects', 'Site', ['ignore_request' => true]);
+
+		return $model->getTotalCommentsForObject($objectID, $objectGroup, $state, $deleted);
+	}
+
+	/**
 	 * Checking if object have title and link
 	 *
 	 * @param   object  $object  Object with information.

@@ -145,37 +145,6 @@
 	sceditor.plugins.emoji = function () {
 		const editorContainer = document.querySelector('.sceditor-container');
 
-		/*
-		 * Tabs.js v.1.0.0
-		 * Copyright John SardaÃ±as
-		 * Released under the MIT license
-		 * Date: 04-11-2020
-		 */
-		function tabs(selector){
-			const tabTriggers = selector.children[0], tabContents = selector.children[1];
-
-			tabTriggers.children[0].firstElementChild.classList.add('active');
-			tabContents.children[0].classList.add('active');
-
-			for (let i = 0; i < tabTriggers.children.length; i++) {
-				tabTriggers.children[i].firstElementChild.dataset.tab = i.toString();
-				tabContents.children[i].dataset.tab = i.toString();
-
-				tabTriggers.children[i].addEventListener('click', e => {
-					e.preventDefault();
-
-					for (let j = 0; j < tabContents.children.length; j++) {
-						tabContents.children[j].dataset.tab === tabTriggers.children[i].firstElementChild.dataset.tab
-							? tabContents.children[j].classList.add('active')
-							: tabContents.children[j].classList.remove('active');
-						tabTriggers.children[j].firstElementChild.dataset.tab === tabTriggers.children[i].firstElementChild.dataset.tab
-							? tabTriggers.children[j].firstElementChild.classList.add('active')
-							: tabTriggers.children[j].firstElementChild.classList.remove('active');
-					}
-				});
-			}
-		}
-
 		function addEventListener(el, eventName, selector, eventHandler) {
 			if (selector && selector !== '') {
 				const wrappedHandler = (e) => {
@@ -255,23 +224,12 @@
 							dropdownContainer = document.createElement('div');
 							content = document.createElement('div');
 							let html = '';
+							let groupTitle = '';
+							let groupClassName = '';
 
 							dropdownContainer.classList.add('sceditor-dropdown', 'sceditor-emoji');
 							content.classList.add('emojis-dd-container');
-							html += '<div class="emojis-tabs">' +
-								'<ul class="nav nav-pills">';
-
-								// Tabs list
-								for (const [key] of Object.entries(list)) {
-									if (excludeGroups.indexOf(key) !== -1) {
-										continue;
-									}
-
-									html += '<li class="nav-item"><a href="#" class="nav-link">' + editor._(key) + '</a></li>';
-								}
-
-								html += '</ul>' +
-							'<div class="emojis-list">';
+							html += '<div class="emojis-list">';
 
 							for (const [key, value] of Object.entries(list)) {
 								if (excludeGroups.indexOf(key) !== -1) {
@@ -279,9 +237,11 @@
 								}
 
 								html += '<div class="emoji-chars">';
+								groupTitle = key.toLowerCase().replace('-', '_');
+								groupClassName = groupTitle.substring(0, 4);
 
 								if (opts.emoji.groupTitle !== false) {
-									html += '<span class="group-title" id="' + key.toLowerCase().replace('-', '_') + '">' + editor._(key) + '</span>';
+									html += '<span class="group-title" id="' + groupTitle + '">' + editor._(key) + '</span>';
 								}
 
 								for (const [index, values] of Object.entries(value)) {
@@ -292,7 +252,7 @@
 									html += '<div class="emojis">';
 
 									if (opts.emoji.subgroupTitle !== false) {
-										html += '<span class="subgroup-title" id="' + index.toLowerCase().replace('-', '_') + '">' + editor._(index) + '</span>';
+										html += '<span class="subgroup-title" id="' + index.toLowerCase().replaceAll('-', '_') + '">' + editor._(index) + '</span>';
 									}
 
 									const emojis = values.split(','),
@@ -312,9 +272,9 @@
 										if (emojis[i].indexOf('-')) {
 											const _emojis = emojis[i].split('-').map((value) => '0x' + value);
 
-											html += '<i>' + String.fromCodePoint.apply(String, _emojis) + '</i>';
+											html += '<i class="' + groupClassName + ' u' + (emojis[i].toLowerCase()).replaceAll('-', '_') + '" data-emoji="' + String.fromCodePoint.apply(String, _emojis) + '"></i>';
 										} else {
-											html += '<i>' + String.fromCodePoint('0x' + emojis[i]) + '</i>';
+											html += '<i class="' + groupClassName + ' u' + emojis[i].toLowerCase() + '" data-emoji="' + String.fromCodePoint('0x' + emojis[i]) + '"></i>';
 										}
 									}
 
@@ -324,31 +284,21 @@
 								html += '</div>';
 							}
 
-								html += '</div>' +
-							'</div>';
+							html += '</div>';
 
 							content.innerHTML = html;
 							content.replaceWith(dropdownContainer);
 							dropdownContainer.appendChild( content);
 							editorContainer.appendChild(dropdownContainer);
 
-							if (opts.emoji.twemoji && twemoji) {
-								addEventListener(editorContainer, 'click', 'i img', function () {
-									callback(this.alt);
-								});
-								twemoji.parse(dropdownContainer, opts.emoji.twemoji);
-							} else {
-								addEventListener(editorContainer, 'click', 'i', function () {
-									callback(this.innerText);
+							addEventListener(editorContainer, 'click', 'i', function () {
+								callback(this.dataset.emoji);
 
-									if (!!opts.emoji.closeAfterSelect) {
-										dropdownContainer.style.display = 'none';
-										updatePosition(caller, dropdownContainer);
-									}
-								});
-							}
-
-							tabs(document.querySelector('.emojis-tabs'));
+								if (!!opts.emoji.closeAfterSelect) {
+									dropdownContainer.style.display = 'none';
+									updatePosition(caller, dropdownContainer);
+								}
+							});
 						} else {
 							// Check if dropdown is visible
 							if (!!(dropdownContainer.offsetWidth || dropdownContainer.offsetHeight || dropdownContainer.getClientRects().length)) {
@@ -381,12 +331,7 @@
 						const editor = this;
 
 						commands.emoji._dropDown(editor, caller, function (code) {
-							if (editor.opts.emoji.twemoji && twemoji) {
-								//editor.wysiwygEditorInsertHtml('<img class="emoji" src="' + buildImageSrc(editor.opts.emoji.twemoji, code) + '" alt="' + code + '">');
-								editor.wysiwygEditorInsertHtml('<span class="emoji-char-bg" style="background-image: url(' + buildImageSrc(editor.opts.emoji.twemoji, code) + ');">&nbsp;</span>');
-							} else {
-								editor.wysiwygEditorInsertHtml('<span class="emoji-char">' + code + '</span>', null, true);
-							}
+							editor.wysiwygEditorInsertHtml('<span class="emoji-char">' + code + '</span>', null, true);
 
 							/*const rangeHelper = editor.getRangeHelper(),
 								range = rangeHelper.cloneSelected();
@@ -404,10 +349,12 @@
 						const editor = this;
 
 						commands.emoji._dropDown(editor, caller, function (code) {
+							let _code = toCodePoint(code);
+
 							if (editor.opts.format === 'bbcode') {
-								editor.insertText('[emoji=' + toCodePoint(code) + ']');
+								editor.insertText('[emoji=' + _code + ']');
 							} else {
-								editor.insertText('<span class="emoji-char">' + code + '</span>');
+								//editor.insertText('<span class="emoji-char">' + code + '</span>');
 							}
 						});
 					},

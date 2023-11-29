@@ -246,9 +246,7 @@ class HtmlView extends BaseHtmlView
 
 		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
-		/** @see \Joomla\Component\Jcomments\Site\Model\FormModel::getTotalCommentsForObject() */
-		$commentsCount = $this->get('TotalCommentsForObject');
-
+		$commentsCount = \Joomla\Component\Jcomments\Site\Helper\ObjectHelper::getTotalCommentsForObject($this->objectID, $this->objectGroup, 1, 0);
 		$this->displayForm = ((int) $this->params->get('form_show') == 1)
 			|| ((int) $this->params->get('form_show') == 2 && $commentsCount == 0)
 			|| $app->input->getInt('comment_id') > 0;

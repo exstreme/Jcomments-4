@@ -19,7 +19,6 @@ use Joomla\Filesystem\File;
 use Joomla\CMS\Form\Field\TextareaField;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
-use Joomla\CMS\WebAsset\WebAssetManager;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ToolbarHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
@@ -29,6 +28,7 @@ use Joomla\String\StringHelper;
  * Jcomments Editor Field class.
  *
  * @since  4.1
+ * @noinspection PhpUnused
  */
 class JceditorField extends TextareaField
 {
@@ -106,13 +106,13 @@ class JceditorField extends TextareaField
 		$doc    = $app->getDocument();
 		$params = ComponentHelper::getParams('com_jcomments');
 
-		/** @var WebAssetManager $wa */
+		/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
 		$wa          = $doc->getWebAssetManager();
 		$langTag     = $app->getLanguage()->getTag();
 		$_lang       = in_array($langTag, array('en-US', 'pt-BR')) ? $langTag : strtolower(substr($langTag, -2));
 		$emoticons   = JcommentsFactory::getSmilies()->getList();
 		$format      = $params->def('editor_format', 'bbcode');
-		$plugins     = array('autoyoutube', 'undo', 'emoji');
+		$plugins     = array('autoyoutube', 'undo');
 		$buttons     = (string) $this->element['buttons'];
 		$editorTheme = File::makeSafe($params->get('editor_theme'));
 		$editorIcons = File::makeSafe($params->get('editor_theme_icons'));
@@ -134,6 +134,8 @@ class JceditorField extends TextareaField
 			$buttons = $params->get('editor_buttons');
 		}
 
+		$emojiEnabled = in_array('emoji', ToolbarHelper::getStandardButtons($buttons));
+
 		$wa->registerAndUseStyle(
 			'jceditor.theme.square',
 			'media/com_jcomments/css/editor/' . $editorTheme . '.css',
@@ -142,7 +144,7 @@ class JceditorField extends TextareaField
 			'.sceditor-button div { background-image: url("' . $themeUrl . '/famfamfam.png"); }
 			.sceditor-button-hide div { background-image: url("' . $themeUrl . '/hide.png"); }
 			.sceditor-button-spoiler div { background-image: url("' . $themeUrl . '/spoiler.png"); }
-			.sceditor-button-emoji div { background-image: url("' . $themeUrl . '/emoji.png"); }'
+			' . ($emojiEnabled ? '.sceditor-button-emoji div { background-image: url("' . $themeUrl . '/emoji.png"); }' : '')
 		)->registerAndUseStyle('jceditor.theme.square.custom', 'media/com_jcomments/css/editor/' . $editorTheme . '-custom.css')
 			->useScript('jceditor.core');
 
@@ -158,8 +160,15 @@ class JceditorField extends TextareaField
 		}
 
 		$wa->useScript('jceditor.plg.autoyoutube')
-			->useScript('jceditor.plg.undo')
-			->useScript('jceditor.plg.emoji');
+			->useScript('jceditor.plg.undo');
+
+		if ($emojiEnabled)
+		{
+			$plugins[] = 'emoji';
+
+			$wa->useScript('jceditor.plg.emoji')
+				->useStyle('jceditor.plg.emoji.styles');
+		}
 
 		if ($editorIcons !== '')
 		{
@@ -208,9 +217,14 @@ class JceditorField extends TextareaField
 			'plugins'       => implode(',', $plugins),
 			'autoUpdate'    => true,
 			'minlength'     => $user->get('isRoot') ? 0 : $params->get('comment_minlength'),
-			'maxlength'     => $user->get('isRoot') ? 0 : $params->get('comment_maxlength'),
-			'emoji'         => (object) array(
+			'maxlength'     => $user->get('isRoot') ? 0 : $params->get('comment_maxlength')
+		);
+
+		if ($emojiEnabled)
+		{
+			$editorConfig['emoji'] = (object) array(
 				'enable' => true,
+				//'subgroupTitle' => false
 				//'excludeEmojis' => '1FAE8,1FA77,1FA75,1FA76,1FAF7,1FAF8,1FACE,1FACF,1FABD,1FABF,1FABC,1FABB,1FADA,1FADB,1FAAD,1FAAE,1FA87,1FA88,1FAAF,1F6DC',
 				//'closeAfterSelect' => false,
 				/*'twemoji' => (object) array(
@@ -218,8 +232,8 @@ class JceditorField extends TextareaField
 					'folder' => 'svg',
 					'ext' => '.svg'
 				)*/
-			)
-		);
+			);
+		}
 
 		if (!empty($emoticons))
 		{
@@ -289,7 +303,6 @@ class JceditorField extends TextareaField
 				}
 			}
 
-			// TODO exec: должно вставлять HTML? Или тегом?
 			if ($params->get('editor_format') == 'bbcode')
 			{
 				$js .= "\n\t\t\tsceditor.command.set('" . $button->tagName . "', {
@@ -301,6 +314,10 @@ class JceditorField extends TextareaField
 					},
 					tooltip: '" . $button->buttonTitle . "'
 				});\n";
+			}
+			elseif ($params->get('editor_format') == 'xhtml')
+			{
+				// TODO exec: должно вставлять HTML? Или тегом?
 			}
 		}
 

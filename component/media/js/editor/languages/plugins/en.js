@@ -2,6 +2,7 @@
 (function () {
 	'use strict';
 
+	sceditor.locale['en']['Insert emoji'] = 'Insert emoji';
 	sceditor.locale['en']['people'] = 'People';
 	sceditor.locale['en']['component'] = 'Component';
 	sceditor.locale['en']['nature'] = 'Nature';
