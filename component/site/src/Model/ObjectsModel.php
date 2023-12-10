@@ -14,13 +14,11 @@ namespace Joomla\Component\Jcomments\Site\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Cache\Exception\CacheExceptionInterface;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Language\LanguageHelper;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
 use Joomla\Database\ParameterType;
 
@@ -97,6 +95,7 @@ class ObjectsModel extends BaseDatabaseModel
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
+	 * @todo Outdated
 	 */
 	public function cleanObjectsCache(): bool
 	{
@@ -138,6 +137,7 @@ class ObjectsModel extends BaseDatabaseModel
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
+	 * @todo Outdated
 	 */
 	public function cleanObjectsTable(): bool
 	{
@@ -166,23 +166,30 @@ class ObjectsModel extends BaseDatabaseModel
 	 * @param   mixed    $language     Object language tag or null
 	 * @param   boolean  $useCache     Load infromation from cache. If set to false when information will be loaded from DB.
 	 *
-	 * @return  object
+	 * @return  mixed
 	 *
 	 * @since   3.0
 	 */
-	public function &getItem(int $objectID, string $objectGroup, $language, bool $useCache = true)
+	public function getItem(int $objectID, string $objectGroup, $language, bool $useCache = true)
 	{
 		if (!isset($this->_item))
 		{
-			$app      = Factory::getApplication();
-			$db       = $this->getDatabase();
-			$user     = $app->getIdentity();
-			$language = empty($language) ? $app->getLanguage()->getTag() : $language;
+			$app         = Factory::getApplication();
+			$db          = $this->getDatabase();
+			$language    = empty($language) ? $app->getLanguage()->getTag() : $db->escape($language);
+			$filter      = InputFilter::getInstance();
+			$objectGroup = strtolower($filter->clean($objectGroup));
+			$cacheGroup  = 'com_jcomments_objects_' . $objectGroup;
+			$cacheId     = md5(__METHOD__ . $objectID);
 
-			/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
-			$cache = Factory::getCache('com_jcomments_objects_' . strtolower($objectGroup), 'callback');
+			// WARNING! Do not use createCacheController()->get() as it will lead to create empty cached object
+			$cache = Factory::getCache($cacheGroup, '');
 
-			$loader = function ($objectID, $objectGroup, $language, $user) use ($db)
+			if ($cache->contains($cacheId))
+			{
+				$this->_item = $cache->get($cacheId);
+			}
+			else
 			{
 				$query = $db->getQuery(true);
 
@@ -204,22 +211,11 @@ class ObjectsModel extends BaseDatabaseModel
 
 				$db->setQuery($query);
 
-				return $db->loadObject();
-			};
+				$this->_item = $db->loadObject();
 
-			if ($useCache === false)
-			{
-				$this->_item = $loader($objectID, $objectGroup, $language, $user);
-			}
-			else
-			{
-				try
+				if (!empty($this->_item))
 				{
-					$this->_item = $cache->get($loader, array($objectID, $objectGroup, $language, $user), md5(__METHOD__ . $objectID));
-				}
-				catch (CacheExceptionInterface $e)
-				{
-					$this->_item = $loader($objectID, $objectGroup, $language, $user);
+					$cache->store($this->_item, $cacheId);
 				}
 			}
 		}
@@ -234,6 +230,7 @@ class ObjectsModel extends BaseDatabaseModel
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
+	 * @todo Outdated
 	 */
 	public function refreshObjectsData(/*$step, $lang = ''*/)
 	{
@@ -298,6 +295,7 @@ class ObjectsModel extends BaseDatabaseModel
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
+	 * @todo Outdated
 	 */
 	public function countObjectsWithoutInfo(): int
 	{
@@ -435,16 +433,16 @@ class ObjectsModel extends BaseDatabaseModel
 	/**
 	 * Save object information into database.
 	 *
-	 * @param   integer  $objectID  Object ID.
-	 * @param   object   $info      Object with information.
+	 * @param   integer|null  $objectID  Object ID.
+	 * @param   object        $info      Object with information.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   4.0
 	 */
-	public function save($objectID, $info): bool
+	public function save(?int $objectID, object $info): bool
 	{
-		$db       = $this->getDbo();
+		$db       = $this->getDatabase();
 		$query    = $db->getQuery(true);
 		$modified = Factory::getDate()->toSql();
 
@@ -454,7 +452,7 @@ class ObjectsModel extends BaseDatabaseModel
 				->set($db->quoteName('access') . ' = :access')
 				->set($db->quoteName('userid') . ' = :uid')
 				->set($db->quoteName('expired') . ' = "0"')
-				->set($db->quoteName('modified') . ' = ' . $db->quote(Factory::getDate()->toSql()))
+				->set($db->quoteName('modified') . ' = :modified')
 				->bind(':access', $info->access, ParameterType::INTEGER)
 				->bind(':uid', $info->userid, ParameterType::INTEGER)
 				->bind(':modified', $modified);
@@ -482,24 +480,66 @@ class ObjectsModel extends BaseDatabaseModel
 		}
 		else
 		{
+			$id          = null;
+			$objectGroup = $db->escape($info->object_group);
+			$lang        = $db->escape($info->lang);
+			$title       = $db->escape($info->title);
+			$link        = $db->escape($info->link);
+			$expired     = 0;
+			$modified    = $db->escape($modified);
 			$query->insert($db->quoteName('#__jcomments_objects'))
-				->set($db->quoteName('object_id') . ' = ' . (int) $info->object_id)
-				->set($db->quoteName('object_group') . ' = ' . $db->quote($info->object_group))
-				->set($db->quoteName('category_id') . ' = ' . (int) $info->category_id)
-				->set($db->quoteName('lang') . ' = ' . $db->quote($info->lang))
-				->set($db->quoteName('title') . ' = ' . $db->quote($info->title))
-				->set($db->quoteName('link') . ' = ' . $db->quote($info->link))
-				->set($db->quoteName('access') . ' = ' . (int) $info->access)
+				->columns(
+					$db->quoteName(
+						array(
+							'id', 'object_id', 'object_group', 'category_id', 'lang', 'title', 'link', 'access',
+							'userid', 'expired', 'modified'
+						)
+					)
+				)
+				->values(':id, :oid, :ogroup, :cat, :lang, :title, :link, :access, :uid, :expired, :modified')
+				->bind(':id', $id)
+				->bind(':oid', $info->object_id, ParameterType::INTEGER)
+				->bind(':ogroup', $objectGroup)
+				->bind(':cat', $info->category_id, ParameterType::INTEGER)
+				->bind(':lang', $lang)
+				->bind(':title', $title)
+				->bind(':link', $link)
+				->bind(':access', $info->access, ParameterType::INTEGER)
 				// Userid should be placed in quotes because for guest it will be -1 and throws an 'out of range' error.
-				->set($db->quoteName('userid') . ' = ' . $db->quote($info->userid))
-				->set($db->quoteName('expired') . ' = 0')
-				->set($db->quoteName('modified') . ' = ' . $db->quote($modified));
+				->bind(':uid', $info->userid)
+				->bind(':expired', $expired)
+				->bind(':modified', $modified);
 		}
 
 		try
 		{
 			$db->setQuery($query);
 			$db->execute();
+
+			if (empty($objectID))
+			{
+				$filter      = InputFilter::getInstance();
+				$objectGroup = strtolower($filter->clean($info->object_group));
+				$cacheGroup  = 'com_jcomments_objects_' . $objectGroup;
+				$cacheId     = md5('Joomla\Component\Jcomments\Site\Model\ObjectsModel::getItem' . (int) $info->object_id);
+				$data        = (object) array(
+					'id'           => $db->insertid(),
+					'object_id'    => (int) $info->object_id,
+					'object_group' => $objectGroup,
+					'category_id'  => $info->category_id,
+					'lang'         => $info->lang,
+					'title'        => $info->title,
+					'link'         => $info->link,
+					'access'       => $info->access,
+					'userid'       => $info->userid,
+					'expired'      => 0,
+					'modified'     => $modified
+				);
+
+				// WARNING! Do not use createCacheController()->store() as it will lead to create wrong cached object
+				$cache = Factory::getCache($cacheGroup, '');
+				$cache->store($data, $cacheId);
+			}
 		}
 		catch (\RuntimeException $e)
 		{
@@ -524,6 +564,7 @@ class ObjectsModel extends BaseDatabaseModel
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
+	 * @todo Outdated
 	 */
 	public function storeObjectInfo($objectID, $objectGroup = 'com_content', $language = null, $cleanCache = false, $allowEmpty = false)
 	{

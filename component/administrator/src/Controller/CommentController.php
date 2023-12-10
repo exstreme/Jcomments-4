@@ -19,6 +19,12 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Response\JsonResponse;
 
+/**
+ * Blacklist item controller class.
+ * This class is for tasks comment.{method}.
+ *
+ * @since  1.6
+ */
 class CommentController extends FormController
 {
 	/**

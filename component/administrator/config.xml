@@ -381,6 +381,19 @@
 		</field>
 
 		<field
+				name="editor_type"
+				type="list"
+				default="component"
+				label="AP_FORM_TYPE"
+				description="AP_FORM_TYPE_DESC"
+				filter="string"
+				showon="editor_format:xhtml"
+		>
+			<option value="component">Component</option>
+			<option value="joomla">Joomla</option>
+		</field>
+
+		<field
 				name="editor_theme"
 				type="filelist"
 				default="square"
@@ -393,6 +406,7 @@
 				hide_none="1"
 				hide_default="true"
 				validate="options"
+				showon="editor_format:bbcode[OR]editor_type:component"
 		/>
 
 		<field
@@ -407,6 +421,7 @@
 				hide_none="1"
 				hide_default="true"
 				validate="options"
+				showon="editor_format:bbcode[OR]editor_type:component"
 		>
 			<option value="">JNONE</option>
 		</field>
@@ -419,6 +434,7 @@
 				min="1"
 				buttons="add,remove,move"
 				layout="joomla.form.field.subform.repeatable-table"
+				showon="editor_format:bbcode[OR]editor_type:component"
 				default='{"editor_buttons0":{"btn":"bold"},"editor_buttons1":{"btn":"italic"},"editor_buttons2":{"btn":"underline"},"editor_buttons3":{"btn":"strike"},"editor_buttons4":{"btn":"subscript"},"editor_buttons5":{"btn":"superscript"},"editor_buttons6":{"btn":"|"},"editor_buttons7":{"btn":"left"},"editor_buttons8":{"btn":"center"},"editor_buttons9":{"btn":"right"},"editor_buttons10":{"btn":"justify"},"editor_buttons11":{"btn":"|"},"editor_buttons12":{"btn":"font"},"editor_buttons13":{"btn":"size"},"editor_buttons14":{"btn":"color"},"editor_buttons15":{"btn":"removeformat"},"editor_buttons16":{"btn":"|"},"editor_buttons17":{"btn":"cut"},"editor_buttons18":{"btn":"copy"},"editor_buttons19":{"btn":"paste"},"editor_buttons20":{"btn":"pastetext"},"editor_buttons21":{"btn":"|"},"editor_buttons22":{"btn":"bulletlist"},"editor_buttons23":{"btn":"orderedlist"},"editor_buttons24":{"btn":"indent"},"editor_buttons25":{"btn":"outdent"},"editor_buttons26":{"btn":"|"},"editor_buttons27":{"btn":"table"},"editor_buttons28":{"btn":"code"},"editor_buttons29":{"btn":"quote"},"editor_buttons30":{"btn":"|"},"editor_buttons31":{"btn":"horizontalrule"},"editor_buttons32":{"btn":"image"},"editor_buttons33":{"btn":"email"},"editor_buttons34":{"btn":"link"},"editor_buttons35":{"btn":"unlink"},"editor_buttons36":{"btn":"emoticon"},"editor_buttons37":{"btn":"|"},"editor_buttons38":{"btn":"youtube"},"editor_buttons39":{"btn":"date"},"editor_buttons40":{"btn":"time"},"editor_buttons41":{"btn":"|"},"editor_buttons42":{"btn":"ltr"},"editor_buttons43":{"btn":"rtl"},"editor_buttons45":{"btn":"|"},"editor_buttons44":{"btn":"print"},"editor_buttons46":{"btn":"maximize"},"editor_buttons47":{"btn":"source"},"editor_buttons48":{"btn":"hide"},"editor_buttons49":{"btn":"spoiler"},"editor_buttons50":{"btn":"emoji"}}'
 		>
 			<form>

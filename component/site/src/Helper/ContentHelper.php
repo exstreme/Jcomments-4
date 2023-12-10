@@ -500,7 +500,8 @@ class ContentHelper
 			$comment->commentData->set('showTitle', $params->get('display_title'));
 			$comment->commentData->set('showAvatar', $user->authorise('comment.avatar', 'com_jcomments') && !$comment->deleted);
 
-			$comment->object_link = $comment->object_link . '&Itemid=' . self::getItemid($app->input->getWord('view'));
+			// Check for empty link to avoid wrong link value in object helper
+			$comment->object_link = empty($comment->object_link) ? '' : $comment->object_link;
 			$comment->labels      = isset($comment->labels) ? json_decode($comment->labels) : null;
 		}
 		else

@@ -14,18 +14,16 @@ namespace Joomla\Component\Jcomments\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Cache\CacheControllerFactoryInterface;
-use Joomla\CMS\Cache\Exception\CacheExceptionInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Database\ParameterType;
-use Joomla\Event\Event;
 use Joomla\Utilities\ArrayHelper;
 
 /**
@@ -147,8 +145,10 @@ class CommentModel extends AdminModel
 
 		if (empty($data))
 		{
-			$data          = $this->getItem();
-			$data->comment = strip_tags(str_replace('<br />', "\n", $data->comment));
+			$data = $this->getItem();
+
+			// In wysiwyg editor <br> must be replaced by new line.
+			$data->comment = JcommentsText::br2nl($data->comment);
 		}
 
 		return $data;
@@ -199,9 +199,9 @@ class CommentModel extends AdminModel
 					}
 
 					// Clean stored items in cache
-					$this->removeCachedItem(
+					CacheHelper::removeCachedItem(
 						md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $pk),
-						strtolower('com_jcomments_comments')
+						'com_jcomments_comments'
 					);
 				}
 				else
@@ -293,9 +293,9 @@ class CommentModel extends AdminModel
 					}
 
 					// Clean stored items in cache
-					$this->removeCachedItem(
+					CacheHelper::removeCachedItem(
 						md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $pk),
-						strtolower('com_jcomments_comments')
+						'com_jcomments_comments'
 					);
 
 					// Send notifications only on publish state. Unpublish state will process only on frontend.
@@ -371,9 +371,9 @@ class CommentModel extends AdminModel
 		if (parent::save($data))
 		{
 			// Clean stored items in cache
-			$this->removeCachedItem(
+			CacheHelper::removeCachedItem(
 				md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $pk),
-				strtolower('com_jcomments_comments')
+				'com_jcomments_comments'
 			);
 
 			if ($params->get('enable_notification'))
@@ -415,40 +415,5 @@ class CommentModel extends AdminModel
 		}
 
 		return false;
-	}
-
-	/**
-	 * Remove item from cache group
-	 *
-	 * @param   string  $id     The cache id
-	 * @param   string  $group  The cache group
-	 *
-	 * @return  void
-	 *
-	 * @since   4.1
-	 */
-	protected function removeCachedItem(string $id, $group = null)
-	{
-		$app = Factory::getApplication();
-
-		$options = [
-			'defaultgroup' => $group ?: ($this->option ?? $app->getInput()->get('option')),
-			'cachebase'    => $app->get('cache_path', JPATH_CACHE),
-			'result'       => true,
-		];
-
-		try
-		{
-			/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
-			$cache = $this->getCacheControllerFactory()->createCacheController('callback', $options);
-			$cache->remove($id, $group);
-		}
-		catch (CacheExceptionInterface $exception)
-		{
-			$options['result'] = false;
-		}
-
-		// Trigger the onContentCleanCache event.
-		$this->getDispatcher()->dispatch(new Event($this->event_clean_cache, $options));
 	}
 }

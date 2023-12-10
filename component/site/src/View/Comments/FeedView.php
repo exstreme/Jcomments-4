@@ -39,6 +39,14 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 class FeedView extends AbstractView
 {
 	/**
+	 * The active document object
+	 *
+	 * @var    \Joomla\CMS\Document\FeedDocument
+	 * @since  4.1
+	 */
+	public $document;
+
+	/**
 	 * Execute and display a template script.
 	 *
 	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
@@ -196,8 +204,9 @@ class FeedView extends AbstractView
 
 		foreach ($rows as $row)
 		{
+			JcommentsContentHelper::prepareComment($row);
 			$author  = JcommentsContentHelper::getCommentAuthorName($row);
-			$comment = JcommentsText::cleanText($row->comment);
+			$comment = preg_replace('#<script[^>]*>.*?</script>#ismu', '', $row->comment);
 
 			if ($comment != '')
 			{
@@ -237,5 +246,7 @@ class FeedView extends AbstractView
 				$this->document->addItem($item);
 			}
 		}
+
+		$this->document->addStyleSheet(Uri::base() . 'media/vendor/bootstrap/css/bootstrap.min.css');
 	}
 }

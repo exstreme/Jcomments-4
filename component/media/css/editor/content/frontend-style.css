@@ -1,5 +1,6 @@
 /*! SCEditor | (C) 2011-2013, Sam Clarke | sceditor.com/license */
 @import url("../../../../vendor/bootstrap/css/bootstrap.min.css");
+@import url("../plugins/emoji/emoji.css");
 
 html, body, p, code:before, table {
 	margin: 0;
@@ -83,26 +84,4 @@ h1, h2, h3, h4, h5, h6 {
 /* Prevent empty paragraphs from collapsing */
 div, p {
 	min-height: 1.25em;
-}
-
-span.emoji-char {
-	display: inline-block;
-	font-family: "Noto Color Emoji", "Apple Color Emoji", "Twemoji Mozilla", "Segoe UI Emoji", Times, Symbola, Aegyptus, Code2000, Code2001, Code2002, Musica, serif, LastResort;
-	/*width: 21px;
-	height: 21px;*/
-	font-size: 1.4em;
-}
-
-span.emoji-char-bg {
-	background-color: transparent;
-	background-position: top left;
-	background-repeat: no-repeat;
-	display: inline-block;
-	width: 21px;
-	height: 21px;
-}
-
-/* Set default image width if Twemoji is used */
-img.emoji {
-	width: 21px;
 }

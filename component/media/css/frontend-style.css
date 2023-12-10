@@ -108,6 +108,20 @@ a.toolbar-button-state span.icon-unpublish {
 	margin-bottom: .5em;
 }
 
+.btn-container .btn {
+	margin: 5px 0;
+	padding: 0 1rem;
+	font-size: 1rem;
+	line-height: 2.45rem;
+	transition: none;
+}
+
+.btn-container .btn > span {
+	text-align: center;
+	width: 1.25em;
+	margin-inline-end: .5rem;
+}
+
 .vote-result {
 	cursor: default;
 }

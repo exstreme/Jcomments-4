@@ -78,7 +78,8 @@ Jcomments = window.Jcomments || {};
 		const comments_container = document.querySelector('.comments-list-container'),
 			id = empty(object_id) ? comments_container.dataset.objectId : object_id,
 			group = empty(object_group) ? comments_container.dataset.objectGroup : object_group,
-			_page = empty(page) ? '' : '&' + comments_container.dataset.navPrefix + 'limitstart=' + page;
+			limitstart_varname = comments_container.dataset.navPrefix + 'limitstart',
+			_page = empty(page) ? '' : '&' + limitstart_varname + '=' + page;
 
 		Jcomments.createLoader(0);
 
@@ -97,8 +98,12 @@ Jcomments = window.Jcomments || {};
 						if ('URLSearchParams' in window) {
 							const searchParams = new URLSearchParams(comments_container.dataset.objectUrl);
 
+							// Change limitstart value in URL
 							if (page > 0) {
-								searchParams.set(comments_container.dataset.navPrefix + 'limitstart', page);
+								searchParams.set(limitstart_varname, page);
+							} else if (page === 0 || page === '') {
+								// Remove empty limitstart from query string
+								searchParams.delete(limitstart_varname);
 							}
 
 							const params = searchParams.toString();
@@ -147,9 +152,8 @@ Jcomments = window.Jcomments || {};
 			form_data.set('task', 'comment.preview');
 		}
 
-		const textarea = document.getElementById('jform_comment'),
-			jce_config = JSON.parse(textarea.dataset.config),
-			editor = sceditor.instance(textarea),
+		const jce_config = Joomla.getOptions('jceditor'),
+			editor = sceditor.instance(document.getElementById(jce_config.field)),
 			length = parseInt(editor.val().length, 10),
 			doc = Jcomments.isIframe() ? parent.document : document,
 			comment_id = document.getElementById('jform_comment_id') ? parseInt(document.getElementById('jform_comment_id').value, 10) : 0,

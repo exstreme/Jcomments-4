@@ -175,17 +175,6 @@
 			}
 		}
 
-		// Build surrogated pairs like 1F3F4-E0067-E0062-E0077-E006C-E0073-E007F
-		function toCodePoint(code) {
-			let _code = [];
-
-			for (const codePoint of code) {
-				_code.push(codePoint.codePointAt(0).toString(16));
-			}
-
-			return _code.join('-').toLowerCase();
-		}
-
 		function buildImageSrc(opts, code) {
 			return opts.base + opts.folder + '/' + toCodePoint(code) + opts.ext;
 		}
@@ -210,10 +199,20 @@
 
 			if (opts && opts.emoji.enable) {
 				commands.emoji = utils.extend(commands.emoji || {}, {
+					/**
+					 * Generate html for dropdown, bind events and other dirty work.
+					 *
+					 * @param   {object}    editor    Editor instance
+					 * @param   {object}    caller    The toolbar button that was clicked on
+					 * @param   {function}  callback  Function called after click
+					 *
+					 * @return  void
+					 */
 					_dropDown: function (editor, caller, callback) {
 						const excludeGroups = opts.emoji.excludeGroups ? opts.emoji.excludeGroups.split(',') : [],
 							excludeSubgroups = opts.emoji.excludeSubgroups ? opts.emoji.excludeSubgroups.split(',') : [],
-							excludeEmojis = opts.emoji.excludeEmojis ? opts.emoji.excludeEmojis.split(',') : [];
+							excludeEmojis = opts.emoji.excludeEmojis ? opts.emoji.excludeEmojis.replaceAll(' ', '-').split(',') : [];
+
 						// Get an element on each command button click
 						let dropdownContainer = document.querySelector('.sceditor-emoji');
 						let content = document.querySelector('.emojis-dd-container');
@@ -270,11 +269,12 @@
 
 										// Emoji code can be like this: 1F3F4-E0067-E0062-E0077-E006C-E0073-E007F
 										if (emojis[i].indexOf('-')) {
+											const className = (emojis[i].toLowerCase().replaceAll('-fe0f', '')).replaceAll('-', '_');
 											const _emojis = emojis[i].split('-').map((value) => '0x' + value);
 
-											html += '<i class="' + groupClassName + ' u' + (emojis[i].toLowerCase()).replaceAll('-', '_') + '" data-emoji="' + String.fromCodePoint.apply(String, _emojis) + '"></i>';
+											html += '<div class="' + groupClassName + ' u' + className + '" data-emoji="' + String.fromCodePoint.apply(String, _emojis) + '"></div>';
 										} else {
-											html += '<i class="' + groupClassName + ' u' + emojis[i].toLowerCase() + '" data-emoji="' + String.fromCodePoint('0x' + emojis[i]) + '"></i>';
+											html += '<div class="' + groupClassName + ' u' + emojis[i].toLowerCase() + '" data-emoji="' + String.fromCodePoint('0x' + emojis[i]) + '"></div>';
 										}
 									}
 
@@ -292,7 +292,7 @@
 							editorContainer.appendChild(dropdownContainer);
 
 							addEventListener(editorContainer, 'click', 'i', function () {
-								callback(this.dataset.emoji);
+								callback(this);
 
 								if (!!opts.emoji.closeAfterSelect) {
 									dropdownContainer.style.display = 'none';
@@ -330,8 +330,8 @@
 					exec: function (caller) {
 						const editor = this;
 
-						commands.emoji._dropDown(editor, caller, function (code) {
-							editor.wysiwygEditorInsertHtml('<span class="emoji-char">' + code + '</span>', null, true);
+						commands.emoji._dropDown(editor, caller, function (element) {
+							editor.wysiwygEditorInsertHtml('<div class="' + element.className + '" data-emoji="' + element.dataset.emoji + '"></div>', null);
 
 							/*const rangeHelper = editor.getRangeHelper(),
 								range = rangeHelper.cloneSelected();
@@ -348,11 +348,10 @@
 					txtExec: function (caller) {
 						const editor = this;
 
-						commands.emoji._dropDown(editor, caller, function (code) {
-							let _code = toCodePoint(code);
-
+						commands.emoji._dropDown(editor, caller, function (element) {
 							if (editor.opts.format === 'bbcode') {
-								editor.insertText('[emoji=' + _code + ']');
+								console.log(editor.inSourceMode());
+								editor.insert('[emoji=' + element.className + ']');
 							} else {
 								//editor.insertText('<span class="emoji-char">' + code + '</span>');
 							}
@@ -364,6 +363,17 @@
 		};
 	};
 }(sceditor));
+
+// Build surrogated pairs like 1F3F4-E0067-E0062-E0077-E006C-E0073-E007F
+function toCodePoint(code) {
+	let _code = [];
+
+	for (const codePoint of code) {
+		_code.push(codePoint.codePointAt(0).toString(16));
+	}
+
+	return _code.join('-').toLowerCase();
+}
 
 document.addEventListener('DOMContentLoaded', function () {
 	const icon = '<circle fill="#FFCC4D" cx="18" cy="18" r="18"/><path fill="#664500" d="M18 21c-3.623 0-6.027-.422-9-1-.679-.131-2 0-2 2 0 4 4.595 9 11 9 6.404 0 11-5 11-9 0-2-1.321-2.132-2-2-2.973.578-5.377 1-9 1z"/><path fill="#FFF" d="M9 22s3 1 9 1 9-1 9-1-2 4-9 4-9-4-9-4z"/><ellipse fill="#664500" cx="12" cy="13.5" rx="2.5" ry="3.5"/><ellipse fill="#664500" cx="24" cy="13.5" rx="2.5" ry="3.5"/>';
@@ -377,18 +387,18 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (sceditor.formats.bbcode) {
 		sceditor.formats.bbcode.set('emoji', {
 			tags: {
-				'span': {
-					'class': ['emoji-char']
+				'div': {
+					'data-emoji': null
 				}
 			},
-			quoteType: sceditor.BBCodeParser.QuoteType.never,
+			allowsEmpty: true,
+			quoteType: sceditor.BBCodeParser.QuoteType.auto,
 			format: function (element, content) {
-				//let code = element.querySelector('span.emoji-char');
-
-				return '[emoji]';
+				return '[emoji=' + element.className + ']';
 			},
 			html: function (token, attrs, content) {
-				return '<span class="emoji-char">' + content + '</span>';
+				console.log(token);
+				return '<div class="smil u1f600" data-emoji="😀">123</div>';
 			}
 		});
 	}

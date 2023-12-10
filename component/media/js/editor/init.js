@@ -1,7 +1,7 @@
 // phpcs:disable
 document.addEventListener('DOMContentLoaded', function () {
-	const jce = document.getElementById('jform_comment');
 	const jce_config = Joomla.getOptions('jceditor');
+	const jce = document.getElementById(jce_config.field);
 	let jce_limitreached = false;
 	const span_hidden = {
 		'html': ['<span class="badge text-bg-light hide">', '</span>'],

@@ -155,7 +155,7 @@ $this->useCoreUI = true;
 						<div class="controls">
 							<?php echo $this->form->getInput('comment'); ?>
 
-							<?php if ($this->params->get('show_commentlength')): ?>
+							<?php if ($this->params->get('show_commentlength') && $this->params->get('editor_type') == 'component'): ?>
 								<div class="col-12 text-secondary small jce-counter">
 
 									<?php if ($this->form->getFieldAttribute('comment', 'maxlength', '') > 0): ?>

@@ -47,30 +47,31 @@ class CommentModel extends BaseDatabaseModel
 	/**
 	 * Gets a comment object
 	 *
-	 * @param   integer  $id        ID for the comment
-	 * @param   boolean  $useCache  Store item in cache or not. Cache used only for guests.
+	 * @param   integer|null  $pk        ID for the comment
+	 * @param   boolean       $useCache  Store item in cache or not. Cache used only for guests.
 	 *
 	 * @return  mixed    Object or null
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
 	 */
-	public function &getItem(int $id, bool $useCache = false)
+	public function getItem(?int $pk = null, bool $useCache = false)
 	{
+		$pk = (int) ($pk ?: $this->getState('comment.id'));
+
 		if (!isset($this->_item))
 		{
 			/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
 			$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
-				->createCacheController('callback', array('defaultgroup' => strtolower('com_jcomments_comments')));
+				->createCacheController('callback', array('defaultgroup' => 'com_jcomments_comments'));
 
 			$app    = Factory::getApplication();
-			$input  = $app->input;
 			$db     = $this->getDatabase();
 			$params = ComponentHelper::getParams('com_jcomments');
 			$user   = $app->getIdentity();
 			$acl    = JcommentsFactory::getAcl();
 
-			$loader = function ($id) use ($acl, $db, $params, $user, $input)
+			$loader = function ($pk) use ($acl, $db, $params, $user)
 			{
 				$query = $db->getQuery(true)
 					->select('c.*')
@@ -115,9 +116,7 @@ class CommentModel extends BaseDatabaseModel
 					->leftJoin(
 						$db->quoteName('#__languages', 'l'),
 						$db->quoteName('l.lang_code') . ' = ' . $db->quoteName('c.lang')
-					)
-					->where($db->quoteName('c.id') . ' = :id')
-					->bind(':id', $id, ParameterType::INTEGER);
+					);
 
 				// Join over labels
 				$query->select(array($db->quoteName('u.labels'), $db->quoteName('u.terms_of_use')))
@@ -143,21 +142,48 @@ class CommentModel extends BaseDatabaseModel
 				}
 
 				// Check for user state and object access
+				// Guest cannot access unpublished item
+				$state = array(1);
+				$pubState = $this->getState('published');
+
+				if (!is_null($pubState))
+				{
+					$state[] = $pubState;
+				}
+
 				if (!$user->get('isRoot'))
 				{
-					// Guest cannot access unpublished item
-					$state = array(1);
-
 					if (!$user->get('guest'))
 					{
-						$state[] = $acl->canPublish() || $acl->canPublishForObject($input->getInt('object_id'), $input->getString('object_group'))
+						$state[] = $acl->canPublish() || $acl->canPublishForObject($this->getState('object_id'), $this->getState('object_group'))
 							? 0 : 1;
 					}
 
 					$groups = $user->getAuthorisedViewLevels();
 
-					$query->whereIn($db->quoteName('c.published'), $state)
+					$query->whereIn($db->quoteName('c.published'), array_unique($state))
 						->whereIn($db->quoteName('o.access'), $groups);
+				}
+
+				if ($this->getState('last_comment') == 1)
+				{
+					$objectId    = $this->getState('object_id');
+					$objectGroup = $this->getState('object_group');
+					$parent      = $this->getState('parent');
+
+					$query->where($db->quoteName('c.object_id') . ' = :oid')
+						->where($db->quoteName('c.object_group') . ' = :ogroup')
+						->where($db->quoteName('c.parent') . ' = :parent')
+						->bind(':oid', $objectId, ParameterType::INTEGER)
+						->bind(':ogroup', $objectGroup)
+						->bind(':parent', $parent, ParameterType::INTEGER)
+						->order($db->quoteName('c.date') . ' DESC')
+						->setLimit(1, 0);
+				}
+				else
+				{
+					$query->where($db->quoteName('c.id') . ' = :id')
+						->bind(':id', $pk, ParameterType::INTEGER);
 				}
 
 				$db->setQuery($query);
@@ -169,20 +195,30 @@ class CommentModel extends BaseDatabaseModel
 			{
 				if ($useCache)
 				{
-					$this->_item = $cache->get($loader, array($id), md5(__METHOD__ . $id));
+					$this->_item = $cache->get($loader, array($pk), md5(__METHOD__ . $pk));
 				}
 				else
 				{
-					$this->_item = $loader($id);
+					$this->_item = $loader($pk);
 				}
 			}
 			catch (CacheExceptionInterface $e)
 			{
-				$this->_item = $loader($id);
+				$this->_item = $loader($pk);
 			}
 		}
 
 		return $this->_item;
+	}
+
+	public function getLastComment(int $objectID, string $objectGroup = 'com_content', int $parent = 0)
+	{
+		$this->setState('object_id', $objectID);
+		$this->setState('object_group', trim($objectGroup));
+		$this->setState('parent', $parent);
+		$this->setState('published', 1);
+
+		return $this->getItem();
 	}
 
 	/**
@@ -435,6 +471,8 @@ class CommentModel extends BaseDatabaseModel
 			NotificationHelper::push($table, 'moderate-unpublished');
 		}
 
+		$this->cleanCache('com_jcomments_comments');
+
 		return true;
 	}
 
@@ -670,5 +708,23 @@ class CommentModel extends BaseDatabaseModel
 		}
 
 		return true;
+	}
+
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @since   1.6
+	 *
+	 * @return void
+	 */
+	protected function populateState()
+	{
+		$app = Factory::getApplication();
+
+		// Load state from the request.
+		$pk = $app->getInput()->getInt('id');
+		$this->setState('comment.id', $pk);
 	}
 }

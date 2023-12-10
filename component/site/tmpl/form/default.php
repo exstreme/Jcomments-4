@@ -38,7 +38,6 @@ else
 	$displayForm = 'd-none';
 }
 
-
 if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this->form->getValue('parent'))): ?>
 <div class="d-grid my-2 showform-btn-container">
 	<a href="#addcomment" class="btn btn-primary cmd-showform <?php echo $displayBtnForm; ?>" onclick="Jcomments.showAddForm();return false;">
@@ -47,7 +46,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 </div>
 <?php endif; ?>
 
-<div class="form-layout <?php echo ($this->form->getValue('comment_id') > 0) ? 'mt-1 mb-4' : 'my-4'; ?> p-1 <?php echo $displayForm; ?>"
+<div class="form-layout my-2 p-1 <?php echo $displayForm; ?>"
 	 id="editForm">
 	<div class="h6"><?php echo empty($this->form->getValue('comment_id')) ? Text::_('FORM_HEADER') : Text::_('FORM_HEADER_EDIT'); ?></div>
 
@@ -113,7 +112,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 
 		<div class="row align-items-center">
 			<div class="col-12"><?php echo $this->form->getInput('comment'); ?></div>
-			<?php if ($this->params->get('show_commentlength')): ?>
+			<?php if ($this->params->get('show_commentlength') && $this->params->get('editor_type') == 'component'): ?>
 				<div class="col-12 text-secondary small jce-counter">
 
 				<?php if ($this->form->getFieldAttribute('comment', 'maxlength', '') > 0): ?>
@@ -187,11 +186,14 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 		<?php echo HTMLHelper::_('form.token'); ?>
 
 		<div class="start-0 btn-container">
-			<input class="btn btn-success" id="comments-form-send" type="submit" value="<?php echo Text::_('JSUBMIT'); ?>"
-				   title="<?php echo Text::_('FORM_SEND_HINT'); ?>">
-			<button class="btn btn-primary" id="comments-form-preview" type="button"
-					onclick="Jcomments.saveComment(this, true);return false;"
-					title="<?php echo Text::_('FORM_PREVIEW'); ?>"><?php echo Text::_('FORM_PREVIEW'); ?></button>
+			<button class="button-apply btn btn-outline-success" id="comments-form-send" type="submit"
+					onclick="Jcomments.saveComment(this, false);return false;">
+				<span class="icon-apply" aria-hidden="true"></span> <?php echo Text::_('JSUBMIT'); ?>
+			</button>
+			<button class="button-preview btn btn-outline-primary" id="comments-form-preview" type="button"
+					onclick="Jcomments.saveComment(this, true);return false;">
+				<span class="icon-eye" aria-hidden="true"></span> <?php echo Text::_('FORM_PREVIEW'); ?>
+			</button>
 			<?php if ($this->form->getValue('comment_id') > 0 || $this->params->get('form_show') != 1):
 				$btnCancelEvent = 'Jcomments.hideAddForm();return false;';
 
@@ -200,9 +202,10 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 					$btnCancelEvent = 'Jcomments.hideEditForm(this);return false;';
 				}
 				?>
-				<button class="btn btn-secondary" id="comments-form-cancel" type="button"
-						onclick="<?php echo $btnCancelEvent; ?>"
-						title="<?php echo Text::_('JCANCEL'); ?>"><?php echo Text::_('JCANCEL'); ?></button>
+				<button class="button-cancel btn btn-outline-danger" id="comments-form-cancel" type="button"
+						onclick="<?php echo $btnCancelEvent; ?>">
+					<span class="icon-cancel" aria-hidden="true"></span> <?php echo Text::_('JCANCEL'); ?>
+				</button>
 			<?php endif; ?>
 		</div>
 	</form>

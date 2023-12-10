@@ -28,6 +28,7 @@ use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Filesystem\File;
@@ -87,6 +88,11 @@ class CommentController extends FormController
 
 		if ($document->getType() == 'html')
 		{
+			if (ObjectHelper::isEmpty((object) array('title' =>$comment->object_title, 'link' => $comment->object_link)))
+			{
+				$comment->object_title = ObjectHelper::getObjectField(null, 'title', $this->input->getInt('object_id'), $this->input->getCmd('object_group'));
+			}
+
 			$document->setTitle($comment->object_title);
 			$document->getWebAssetManager()
 				->useStyle('jcomments.style')
@@ -94,6 +100,8 @@ class CommentController extends FormController
 				->useScript('bootstrap.collapse')
 				->useScript('jcomments.core')
 				->useScript('jcomments.frontend');
+
+			Text::script('BUTTON_DELETE_CONFIRM');
 		}
 
 		echo '<div class="comments-list-container">
@@ -698,7 +706,7 @@ class CommentController extends FormController
 	 *
 	 * @since   1.5
 	 */
-	public function getModel($name = 'Comment', $prefix = 'Site', $config = array('ignore_request' => true))
+	public function getModel($name = 'Comment', $prefix = 'Site', $config = array('ignore_request' => false))
 	{
 		return parent::getModel($name, $prefix, $config);
 	}

@@ -25,9 +25,21 @@ use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 
+/**
+ * View to edit comment.
+ *
+ * @since  3.0
+ */
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The active item
+	 *
+	 * @var     object
+	 * @since   4.1
+	 */
 	protected $item;
+
 	protected $reports;
 	protected $params;
 
@@ -99,7 +111,7 @@ class HtmlView extends BaseHtmlView
 			$linkLang = '';
 		}
 
-		$toolbar->preview(Route::link('site', 'index.php?option=com_jcomments&task=comment.show' . $linkLang . '&id=' . $this->item->id))
+		$toolbar->preview(Route::link('site', 'index.php?option=com_jcomments&task=comment.show' . $linkLang . '&id=' . $this->item->id . '&preview=1'))
 			->bodyHeight(80)
 			->modalWidth(90);
 

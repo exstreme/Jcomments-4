@@ -15,13 +15,13 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\String\PunycodeHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
-use Joomla\Filter\InputFilter;
 use Joomla\String\StringHelper;
 
 /**
@@ -168,7 +168,7 @@ class JcommentsBbcode
 	{
 		ob_start();
 
-		$filter       = new InputFilter;
+		$filter       = InputFilter::getInstance();
 		$patterns     = array();
 		$replacements = array();
 
@@ -578,7 +578,7 @@ class JcommentsBbcode
 		ob_start();
 
 		$input        = Factory::getApplication()->input;
-		$filter       = new InputFilter;
+		$filter       = InputFilter::getInstance();
 		$patterns     = array();
 		$replacements = array();
 

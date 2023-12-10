@@ -66,7 +66,8 @@ if (is_object($comment->labels) && $comment->labels->enable == 1 && $comment->de
 	$boxClass      = ' ' . $comment->labels->box_css;
 }
 
-Text::script('BUTTON_DELETE_CONIRM');
+// Disable some pointer events on links if in preview mode.
+$inPreviewMode = $app->input->getInt('preview') == 1 ? ' pe-none' : '';
 ?>
 <div class="comment border rounded mb-2 p-1<?php echo $boxClass; ?><?php echo $publishedClass; ?>"
 	 id="comment-<?php echo $comment->id; ?>" data-id="<?php echo $comment->id; ?>">
@@ -170,14 +171,14 @@ Text::script('BUTTON_DELETE_CONIRM');
 						<?php if ($comment->userPanel->get('button.vote')): ?>
 
 							<div class="col vote-up">
-								<a href="#" class="toolbar-button-vote link-success"
+								<a href="#" class="toolbar-button-vote link-success<?php echo $inPreviewMode; ?>"
 								   title="<?php echo Text::_('BUTTON_VOTE_GOOD'); ?>"
 								   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.voteUp', true, 0, true); ?>">
 									<span class="icon-thumbs-up" aria-hidden="true"></span>
 								</a>
 							</div>
 							<div class="col vote-down">
-								<a href="#" class="toolbar-button-vote link-danger"
+								<a href="#" class="toolbar-button-vote link-danger<?php echo $inPreviewMode; ?>"
 								   title="<?php echo Text::_('BUTTON_VOTE_BAD'); ?>"
 								   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.voteDown', true, 0, true); ?>">
 									<span class="icon-thumbs-down" aria-hidden="true"></span>
@@ -206,7 +207,7 @@ Text::script('BUTTON_DELETE_CONIRM');
 			<div class="col-auto ps-0 admin-panel">
 
 				<?php if ($comment->adminPanel->get('button.edit')): ?>
-					<a class="toolbar-button-edit" href="#" title="<?php echo Text::_('JACTION_EDIT'); ?>"
+					<a class="toolbar-button-edit<?php echo $inPreviewMode; ?>" href="#" title="<?php echo Text::_('JACTION_EDIT'); ?>"
 					   data-edit-url="<?php echo Route::_($editUrl . '&comment_id=' . $comment->id, true, 0, true); ?>"
 					   onclick="Jcomments.showEditForm(this);return false;">
 						<span class="icon-edit" aria-hidden="true"></span>
@@ -224,14 +225,14 @@ Text::script('BUTTON_DELETE_CONIRM');
 						$stateTask = 'publish';
 						$stateClass = 'icon-' . $stateTask . ' link-success';
 					} ?>
-					<a class="toolbar-button-state" href="#" title="<?php echo Text::_(strtoupper($stateTask)); ?>"
+					<a class="toolbar-button-state<?php echo $inPreviewMode; ?>" href="#" title="<?php echo Text::_(strtoupper($stateTask)); ?>"
 					   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.' . $stateTask, true, 0, true); ?>">
 						<span class="<?php echo $stateClass; ?>" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
 
 				<?php if ($comment->adminPanel->get('button.delete')): ?>
-					<a class="toolbar-button-delete link-danger" href="#"
+					<a class="toolbar-button-delete link-danger<?php echo $inPreviewMode; ?>" href="#"
 					   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.delete', true, 0, true); ?>"
 					   title="<?php echo Text::_('JACTION_DELETE'); ?>">
 						<span class="icon-trash" aria-hidden="true"></span>
@@ -243,14 +244,14 @@ Text::script('BUTTON_DELETE_CONIRM');
 					$errorText = Text::sprintf('ERROR_NEWWINDOW_BLOCKED', $ripeUrl); ?>
 					<a class="toolbar-button-ip<?php echo $comment->banned == 1 ? ' link-secondary text-decoration-line-through' : ''; ?>"
 					   href="<?php echo $ripeUrl; ?>" target="_blank" title="<?php echo Text::_('BUTTON_IP') . ' ' . $comment->ip; ?>"
-					   onclick="Jcomments.openWindow('<?php echo $ripeUrl; ?>', '<?php echo $errorText; ?>');return false;">
+					   onclick="Jcomments.openWindow('<?php echo $ripeUrl; ?>', '<?php echo $this->escape($errorText); ?>');return false;">
 						<?php echo $comment->ip; ?>
 					</a>
 				<?php endif; ?>
 
 				<?php if ($comment->adminPanel->get('button.ban') && !$comment->banned): ?>
 					<a href="#" data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.banIP', true, 0, true); ?>"
-					   class="toolbar-button-ban" title="<?php echo Text::_('BUTTON_BANIP'); ?>">
+					   class="toolbar-button-ban<?php echo $inPreviewMode; ?>" title="<?php echo Text::_('BUTTON_BANIP'); ?>">
 						<span class="fa fa-ban" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -266,14 +267,16 @@ Text::script('BUTTON_DELETE_CONIRM');
 			$userPanelLinkAriaAttr = !$comment->published ? ' tabindex="-1" aria-disabled="true"' : '' ?>
 			<div class="col pe-0 text-end user-panel">
 				<?php if ($comment->userPanel->get('button.reply') && $app->input->getCmd('task') != 'show'): ?>
-					<a href="#" class="toolbar-button-reply<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>
+					<a href="#" <?php echo $userPanelLinkAriaAttr; ?>
+					   class="toolbar-button-reply<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
 					   onclick="Jcomments.showAddForm(true);return false;">
 						<?php echo Text::_('BUTTON_REPLY'); ?>
 					</a><?php if ($comment->userPanel->get('button.quote') || ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id'))): ?> &vert;<?php endif; ?>
 				<?php endif; ?>
 
 				<?php if ($comment->userPanel->get('button.quote')): ?>
-					<a href="#" class="toolbar-button-reply-quote<?php echo $userPanelLinkClass; ?>"<?php echo $userPanelLinkAriaAttr; ?>
+					<a href="#" <?php echo $userPanelLinkAriaAttr; ?>
+					   class="toolbar-button-reply-quote<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
 					   data-edit-url="<?php echo Route::_($editUrl . '&parent=' . $comment->id . '&quote=1', true, 0, true); ?>"
 					   onclick="Jcomments.showEditForm(this);return false;">
 						<?php echo Text::_('BUTTON_REPLY_WITH_QUOTE'); ?>
@@ -283,16 +286,17 @@ Text::script('BUTTON_DELETE_CONIRM');
 				<?php if ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id')): ?>
 					<?php if ($comment->userPanel->get('button.quote') && $comment->userPanel->get('button.reply')): ?> &vert;<?php endif; ?>
 					<a href="#" data-url="<?php echo Route::_($reportUrl . '&return=' . base64_encode($reportUrl), true, 0, true); ?>"
-					   class="toolbar-button-report link-warning" title="<?php echo Text::_('BUTTON_REPORT'); ?>">
+					   class="toolbar-button-report link-warning<?php echo $inPreviewMode; ?>"
+					   title="<?php echo Text::_('BUTTON_REPORT'); ?>">
 						<span class="fa icon-exclamation-triangle" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
 
 				<?php if (isset($comment->children) && $comment->children != 0): ?>
 					<?php if ($params->get('template_view') == 'tree'): ?> &vert;<?php endif; ?>
-					<a href="#" title="<?php echo Text::_('BUTTON_HIDE'); ?>" class="toolbar-button-child-toggle link-secondary"
-					   data-title-hide="<?php echo Text::_('BUTTON_HIDE'); ?>"
-					   data-title-show="<?php echo Text::_('BUTTON_SHOW'); ?>">
+					<a href="#" title="<?php echo Text::_('BUTTON_HIDE', true); ?>" class="toolbar-button-child-toggle link-secondary"
+					   data-title-hide="<?php echo Text::_('BUTTON_HIDE', true); ?>"
+					   data-title-show="<?php echo Text::_('BUTTON_SHOW', true); ?>">
 						<span class="icon-chevron-up" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -300,9 +304,9 @@ Text::script('BUTTON_DELETE_CONIRM');
 		<?php else: ?>
 			<?php if ($params->get('template_view') == 'tree'): ?>
 				<div class="col pe-0 text-end user-panel">
-					<a href="#" title="<?php echo Text::_('BUTTON_HIDE'); ?>" class="toolbar-button-child-toggle link-secondary"
-					   data-title-hide="<?php echo Text::_('BUTTON_HIDE'); ?>"
-					   data-title-show="<?php echo Text::_('BUTTON_SHOW'); ?>">
+					<a href="#" title="<?php echo Text::_('BUTTON_HIDE', true); ?>" class="toolbar-button-child-toggle link-secondary"
+					   data-title-hide="<?php echo Text::_('BUTTON_HIDE', true); ?>"
+					   data-title-show="<?php echo Text::_('BUTTON_SHOW', true); ?>">
 						<span class="icon-chevron-up" aria-hidden="true"></span>
 					</a>
 				</div>

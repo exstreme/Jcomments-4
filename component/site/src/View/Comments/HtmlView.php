@@ -16,6 +16,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Plugin\PluginHelper;
@@ -31,6 +32,14 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsTree;
  */
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The active document object
+	 *
+	 * @var    \Joomla\CMS\Document\Document
+	 * @since  3.0
+	 */
+	public $document;
+
 	/**
 	 * @var  \stdClass[]  The comments array
 	 * @since  4.1
@@ -244,6 +253,8 @@ class HtmlView extends BaseHtmlView
 			$attribs = ['type' => 'application/atom+xml', 'title' => $title . 'Atom 1.0'];
 			$this->document->addHeadLink(Route::_($link . '&type=atom'), 'alternate', 'rel', $attribs);
 		}
+
+		Text::script('BUTTON_DELETE_CONFIRM');
 
 		parent::display($tpl);
 	}

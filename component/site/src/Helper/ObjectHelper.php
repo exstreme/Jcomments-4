@@ -76,7 +76,7 @@ class ObjectHelper
 	/**
 	 * Checking if object have title and link
 	 *
-	 * @param   object  $object  Object with information.
+	 * @param   object  $object  Object(comment object) with information.
 	 *
 	 * @return  boolean
 	 *
@@ -189,12 +189,12 @@ class ObjectHelper
 		$object = $model->getItem($objectID, $objectGroup, $language);
 
 		if ($object)
-		{//echo 1;
-			// Use object information stored in database
+		{
+			// Use object information stored in database or cache
 			$info = new JcommentsObjectinfo($object);
 		}
 		else
-		{echo 2;
+		{
 			// Get object information via plugins
 			$info = self::getObjectInfoFromPlugin($objectID, $objectGroup, $language);
 
@@ -202,17 +202,11 @@ class ObjectHelper
 			{
 				if (!$app->isClient('administrator'))
 				{
-					// Insert object information
-					// TODO Несуществующий метод
-					//$model->save(null, $info);
-					//JCommentsModelObject::setObjectInfo(0, $info);
+					$model->save(null, $info);
 				}
 			}
 		}
-//echo '<pre>';
-//var_dump($info);
-//echo '</pre>';
-//exit;
+
 		return $info;
 	}
 }

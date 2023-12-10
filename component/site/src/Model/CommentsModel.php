@@ -17,10 +17,10 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\InputFilter;
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\CMS\Pagination\Pagination;
+use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPagination;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsTree;
@@ -256,6 +256,8 @@ class CommentsModel extends ListModel
 
 				$db->setQuery($query);
 				$db->execute();
+
+				$this->cleanCache('com_jcomments_comments');
 			}
 			catch (\RuntimeException $e)
 			{
@@ -273,7 +275,7 @@ class CommentsModel extends ListModel
 	/**
 	 * Delete one comment or list of comments
 	 *
-	 * @param   mixed   $objectID     Object ID
+	 * @param   mixed   $objectID     Object ID (e.g. article ID)
 	 * @param   string  $objectGroup  Object group
 	 *
 	 * @return  boolean
@@ -341,6 +343,7 @@ class CommentsModel extends ListModel
 			else
 			{
 				$db->transactionCommit();
+				CacheHelper::removeCachedItem('', 'com_jcomments_objects');
 			}
 
 			$db->unlockTables();
@@ -420,6 +423,13 @@ class CommentsModel extends ListModel
 				{
 					$queryResult = false;
 					break;
+				}
+				else
+				{
+					CacheHelper::removeCachedItem(
+						md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . (int) $vote['commentid']),
+						'com_jcomments_comments'
+					);
 				}
 			}
 

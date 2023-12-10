@@ -14,6 +14,7 @@ namespace Joomla\Component\Jcomments\Site\Field;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Editor\Editor;
 use Joomla\CMS\Factory;
 use Joomla\Filesystem\File;
 use Joomla\CMS\Form\Field\TextareaField;
@@ -57,6 +58,62 @@ class JceditorField extends TextareaField
 	protected $width;
 
 	/**
+	 * The Editor object.
+	 *
+	 * @var    Editor
+	 * @since  3.2
+	 */
+	protected $editor;
+
+	/**
+	 * The editorType of the editor.
+	 *
+	 * @var    string[]
+	 * @since  3.2
+	 */
+	protected $editorType;
+
+	/**
+	 * The assetField of the editor.
+	 *
+	 * @var    string
+	 * @since  3.2
+	 */
+	protected $assetField;
+
+	/**
+	 * The authorField of the editor.
+	 *
+	 * @var    string
+	 * @since  3.2
+	 */
+	protected $authorField;
+
+	/**
+	 * The asset of the editor.
+	 *
+	 * @var    string
+	 * @since  3.2
+	 */
+	protected $asset;
+
+	/**
+	 * The buttons of the editor.
+	 *
+	 * @var    mixed
+	 * @since  3.2
+	 */
+	protected $buttons;
+
+	/**
+	 * The hide of the editor.
+	 *
+	 * @var    string[]
+	 * @since  3.2
+	 */
+	protected $hide;
+
+	/**
 	 * CSS for custom bbcode buttons.
 	 *
 	 * @var    string
@@ -84,8 +141,31 @@ class JceditorField extends TextareaField
 
 		if ($result === true)
 		{
-			$this->height = $this->element['height'] ? (string) $this->element['height'] : '500';
-			$this->width = $this->element['width'] ? (string) $this->element['width'] : '100%';
+			$this->height      = $this->element['height'] ? (string) $this->element['height'] : '500';
+			$this->width       = $this->element['width'] ? (string) $this->element['width'] : '100%';
+			$this->assetField  = $this->element['asset_field'] ? (string) $this->element['asset_field'] : 'asset_id';
+			$this->authorField = $this->element['created_by_field'] ? (string) $this->element['created_by_field'] : 'username';
+			$this->asset       = $this->form->getValue($this->assetField) ?: (string) $this->element['asset_id'];
+
+			$buttons    = (string) $this->element['buttons'];
+			$hide       = (string) $this->element['hide'];
+			$editorType = (string) $this->element['editor'];
+
+			if ($buttons === 'true' || $buttons === 'yes' || $buttons === '1')
+			{
+				$this->buttons = true;
+			}
+			elseif ($buttons === 'false' || $buttons === 'no' || $buttons === '0')
+			{
+				$this->buttons = false;
+			}
+			else
+			{
+				$this->buttons = !empty($hide) ? explode(',', $buttons) : [];
+			}
+
+			$this->hide        = !empty($hide) ? explode(',', (string) $this->element['hide']) : [];
+			$this->editorType  = !empty($editorType) ? explode('|', trim($editorType)) : [];
 		}
 
 		return $result;
@@ -105,13 +185,37 @@ class JceditorField extends TextareaField
 		$user   = $app->getIdentity();
 		$doc    = $app->getDocument();
 		$params = ComponentHelper::getParams('com_jcomments');
+		$format = $params->def('editor_format', 'bbcode');
+
+		if ($format == 'xhtml' && $params->get('editor_type') == 'joomla')
+		{
+			$editor = $this->getJoomlaEditor();
+			$params = array(
+				'autofocus' => $this->autofocus,
+				'readonly'  => $this->readonly || $this->disabled,
+				'syntax'    => (string) $this->element['syntax']
+			);
+
+			return $editor->display(
+				$this->name,
+				htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8'),
+				$this->width,
+				$this->height,
+				$this->columns,
+				$this->rows,
+				$this->buttons ? (\is_array($this->buttons) ? array_merge($this->buttons, $this->hide) : $this->hide) : false,
+				$this->id,
+				$this->asset,
+				$this->form->getValue($this->authorField),
+				$params
+			);
+		}
 
 		/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
 		$wa          = $doc->getWebAssetManager();
 		$langTag     = $app->getLanguage()->getTag();
 		$_lang       = in_array($langTag, array('en-US', 'pt-BR')) ? $langTag : strtolower(substr($langTag, -2));
 		$emoticons   = JcommentsFactory::getSmilies()->getList();
-		$format      = $params->def('editor_format', 'bbcode');
 		$plugins     = array('autoyoutube', 'undo');
 		$buttons     = (string) $this->element['buttons'];
 		$editorTheme = File::makeSafe($params->get('editor_theme'));
@@ -196,7 +300,7 @@ class JceditorField extends TextareaField
 		}
 
 		$wa->useScript('jceditor.init')
-			->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2']);
+			/*->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2'])*/;
 
 		Text::script('COMMENT_TEXT_CODE');
 		Text::script('COMMENT_TEXT_QUOTE');
@@ -206,6 +310,7 @@ class JceditorField extends TextareaField
 		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
 		$editorConfig = array(
+			'field'         => $this->id,
 			'format'        => $format,
 			'style'         => Uri::root() . 'media/com_jcomments/css/editor/content/' . File::makeSafe($params->get('custom_css', 'frontend-style') . '.css'),
 			'width'         => $this->width,
@@ -225,7 +330,7 @@ class JceditorField extends TextareaField
 			$editorConfig['emoji'] = (object) array(
 				'enable' => true,
 				//'subgroupTitle' => false
-				//'excludeEmojis' => '1FAE8,1FA77,1FA75,1FA76,1FAF7,1FAF8,1FACE,1FACF,1FABD,1FABF,1FABC,1FABB,1FADA,1FADB,1FAAD,1FAAE,1FA87,1FA88,1FAAF,1F6DC',
+				//'excludeEmojis' => '1F3C1,1F6A9,1F38C,1F3F4,1F3F3,1F3F3-FE0F-200D-1F308,1F3F3-FE0F-200D-26A7-FE0F,1F3F4 200D 2620 FE0F',
 				//'closeAfterSelect' => false,
 				/*'twemoji' => (object) array(
 					'base' => Uri::base() . 'media/com_jcomments/images/',
@@ -324,5 +429,72 @@ class JceditorField extends TextareaField
 		ob_end_clean();
 
 		return $js;
+	}
+
+	/**
+	 * Method to get an Editor object based on the form field.
+	 *
+	 * @return  Editor  The Editor object.
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	private function getJoomlaEditor()
+	{
+		// Only create the editor if it is not already created.
+		if (empty($this->editor))
+		{
+			$editor = null;
+
+			if ($this->editorType)
+			{
+				// Get the list of editor types.
+				$types = $this->editorType;
+
+				// Get the database object.
+				$db = $this->getDatabase();
+
+				// Build the query.
+				$query = $db->getQuery(true)
+					->select($db->quoteName('element'))
+					->from($db->quoteName('#__extensions'))
+					->where(
+						[
+							$db->quoteName('element') . ' = :editor',
+							$db->quoteName('folder') . ' = ' . $db->quote('editors'),
+							$db->quoteName('enabled') . ' = 1',
+						]
+					);
+
+				// Declare variable before binding.
+				$element = '';
+				$query->bind(':editor', $element);
+				$query->setLimit(1);
+
+				// Iterate over the types looking for an existing editor.
+				foreach ($types as $element)
+				{
+					// Check if the editor exists.
+					$db->setQuery($query);
+					$editor = $db->loadResult();
+
+					// If an editor was found stop looking.
+					if ($editor)
+					{
+						break;
+					}
+				}
+			}
+
+			// Create the JEditor instance based on the given editor.
+			if ($editor === null)
+			{
+				$editor = Factory::getApplication()->get('editor');
+			}
+
+			$this->editor = Editor::getInstance($editor);
+		}
+
+		return $this->editor;
 	}
 }

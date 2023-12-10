@@ -52,14 +52,14 @@ endif;
 >------------------------------------------
 <?php echo Text::_('BUTTON_PERMALINK'); ?>
 
-<?php echo $comment->object_link ?>#comment-<?php echo $comment->id . "\n";
+<?php echo Route::_($comment->object_link) ?>#comment-<?php echo $comment->id . "\n";
 endif;
 ?>
 <?php if ($displayData['isAdmin']): ?>
 >------------------------------------------
 <?php if ($displayData['config']->get('enable_quick_moderation')):
 $aTag   = array();
-$return = '&return=' . base64_encode($comment->object_link);
+$return = '&return=' . base64_encode(Route::_($comment->object_link));
 
 // Publish/unpublish link
 $action = ($comment->published == 0) ? 'publish' : 'unpublish';

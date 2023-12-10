@@ -77,7 +77,7 @@ $logo    = @file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-
 							<td>
 								<h6 style="text-align: right;">
 									<?php echo Text::_('EMAIL_HEADER'); ?>&nbsp;
-									<a href="<?php echo $comment->object_link; ?>" target="_blank"
+									<a href="<?php echo Route::_($comment->object_link); ?>" target="_blank"
 									   title="<?php echo Text::_('NOTIFICATION_COMMENT_LINK'); ?>"
 									   style="font-weight: 600;">
 										<?php echo $comment->object_title; ?>
@@ -135,7 +135,7 @@ $logo    = @file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-
 									<?php endif; ?>
 
 									<?php echo HTMLHelper::_('date', $comment->date, 'DATE_FORMAT_LC5'); ?>,
-									<a href="<?php echo $comment->object_link ?>#comment-<?php echo $comment->id; ?>"
+									<a href="<?php echo Route::_($comment->object_link) ?>#comment-<?php echo $comment->id; ?>"
 									   target="_blank" title="<?php echo Text::_('BUTTON_PERMALINK'); ?>">#</a>
 								</p>
 								<p><?php echo $comment->comment; ?></p>
@@ -161,7 +161,7 @@ $logo    = @file_get_contents(JPATH_ROOT . '/media/com_jcomments/images/icon-48-
 					<p class="content">
 						<?php if ($displayData['config']->get('enable_quick_moderation')):
 							$aTag   = array();
-							$return = '&return=' . base64_encode($comment->object_link);
+							$return = '&return=' . base64_encode(Route::_($comment->object_link));
 
 							// Publish/unpublish link
 							$action = ($comment->published == 0) ? 'publish' : 'unpublish';

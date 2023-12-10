@@ -33,7 +33,7 @@ $j            = 0;
 		?>
 
 	</div>
-	<div class="ms-3 comments-list-child" id="comments-list-<?php echo $comment->parent; ?>">
+	<div class="ms-4 comments-list-child" id="comments-list-<?php echo $comment->parent; ?>">
 
 		<?php
 	}

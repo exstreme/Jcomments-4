@@ -161,7 +161,7 @@ class SubscriptionModel extends BaseDatabaseModel
 	 *
 	 * @since   4.0
 	 */
-	public function unsubscribe(int $objectID, string $objectGroup, int $userID = null, string $lang = null): bool
+	public function unsubscribe(int $objectID, string $objectGroup, ?int $userID = null, ?string $lang = null): bool
 	{
 		$db = $this->getDatabase();
 

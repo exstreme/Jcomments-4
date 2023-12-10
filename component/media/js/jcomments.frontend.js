@@ -136,7 +136,7 @@ jQuery(document).ready(function ($) {
 	comments_container.on('click', '.toolbar-button-delete', function (e) {
 		e.preventDefault();
 
-		if (!confirm(Joomla.Text._('BUTTON_DELETE_CONIRM'))) {
+		if (!confirm(Joomla.Text._('BUTTON_DELETE_CONFIRM'))) {
 			return false;
 		}
 

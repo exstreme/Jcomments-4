@@ -22,6 +22,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
@@ -409,21 +410,12 @@ final class Jcomments extends CMSPlugin
 	 * @return  void
 	 *
 	 * @since   1.6
-	 * @todo Need tests
 	 */
 	public function onContentAfterDelete(string $context, $article): void
 	{
 		if ($context == 'com_content.article')
 		{
 			$factory = $this->app->bootComponent('com_jcomments')->getMVCFactory();
-
-			/*require_once JPATH_ROOT . '/components/com_jcomments/_models/jcomments.php';
-			require_once JPATH_ROOT . '/components/com_jcomments/_models/subscriptions.php';
-
-			JCommentsModel::deleteComments($article->id);
-
-			$model = new JcommentsModelSubscriptions;
-			$model->unsubscribe($article->id, 'com_content');*/
 
 			/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $comments */
 			$comments = $factory->createModel('Comments', 'Site', array('ignore_request' => true));
@@ -464,6 +456,9 @@ final class Jcomments extends CMSPlugin
 					->createModel('Object', 'Site', array('ignore_request' => true));
 
 				$model->save($article->id);*/
+
+				CacheHelper::removeCachedItem('', 'com_jcomments_comments');
+				CacheHelper::removeCachedItem('', 'com_jcomments_objects');
 			}
 		}
 	}

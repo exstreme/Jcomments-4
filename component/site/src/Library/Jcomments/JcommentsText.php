@@ -75,7 +75,7 @@ class JcommentsText
 	}
 
 	/**
-	 * Replaces HTML line breaks with newlines
+	 * Replaces HTML line breaks with unix newlines (LF).
 	 *
 	 * @param   string  $text  The input string.
 	 *
@@ -85,7 +85,7 @@ class JcommentsText
 	 */
 	public static function br2nl($text)
 	{
-		return str_replace(array('<br />', '<br>'), "\n", $text);
+		return str_replace(array('<br />', '<br>', '<br/>'), "\n", $text);
 	}
 
 	public static function url($s)
@@ -180,7 +180,6 @@ class JcommentsText
 		$text = preg_replace('#<a\s+.*?href="([^"]+)"[^>]*>([^<]+)</a>#ismu', '\2 (\1)', $text);
 		$text = preg_replace('#<!--.+?-->#ismu', '', $text);
 		$text = preg_replace('#&nbsp;|&amp;|&quot;#imu', ' ', $text);
-
 		$text = strip_tags($text);
 		$text = htmlspecialchars($text);
 

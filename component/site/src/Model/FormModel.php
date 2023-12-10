@@ -21,7 +21,6 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
-use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Table\Table;
@@ -160,41 +159,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			$query->where($db->quoteName('c.object_group') . ' = :ogroup')
 				->bind(':ogroup', $objectGroup);
 		}
-			//->where($db->quoteName('c.object_id') . ' = :oid')
-			//->where($db->quoteName('c.object_group') . ' = :ogroup')
-			//->bind(':cid', $commentId, ParameterType::INTEGER)
-			//->bind(':oid', $objectId, ParameterType::INTEGER)
-			//->bind(':ogroup', $objectGroup);
-
-		// Deny edit any comment
-		if (!$user->authorise('comment.edit', 'com_jcomments')
-			&& !$user->authorise('comment.edit.own', 'com_jcomments')
-			&& !$user->authorise('comment.edit.own.articles', 'com_jcomments'))
-		{
-			//return false; // Ошибка в форме Сообщить модератору
-		}
-		else
-		{
-			// TODO Сделано не полностью
-			/*if ((!$user->authorise('comment.edit.own', 'com_jcomments')
-				&& !$user->authorise('comment.edit.own.articles', 'com_jcomments'))
-				|| ($user->authorise('comment.edit.own', 'com_jcomments')
-				&& !$user->authorise('comment.edit.own.articles', 'com_jcomments')))
-			{
-				$query->where($db->qn('userid') . ' = ' . $user->get('id'));
-				$query->where($db->qn('published') . ' = 1');
-			}
-			elseif (!$user->authorise('comment.edit.own', 'com_jcomments')
-				&& $user->authorise('comment.edit.own.articles', 'com_jcomments'))
-			{
-				$query->where($db->qn('object_id') . ' = ' . $app->input->getInt('id'));
-				$query->where($db->qn('published') . ' = 1');
-			}
-			else
-			{
-				//return false;
-			}*/
-		}
 
 		try
 		{
@@ -245,7 +209,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	/**
 	 * Method to get form data for quoted comment.
 	 *
-	 * @return  false|object  Data object on success, false on failure.
+	 * @return  object  Data object
 	 *
 	 * @throws  \Exception
 	 *

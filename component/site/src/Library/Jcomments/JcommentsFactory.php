@@ -14,8 +14,6 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Cache\Cache;
-use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
@@ -161,8 +159,10 @@ class JcommentsFactory
 	 * @param   string  $link  The relative url.
 	 *
 	 * @return  string
+	 *
+	 * @since   3.0
 	 */
-	public static function getAbsLink($link)
+	public static function getAbsLink($link): string
 	{
 		$url = Uri::getInstance()->toString(array('scheme', 'user', 'pass', 'host', 'port'));
 
@@ -237,25 +237,5 @@ class JcommentsFactory
 		{
 			return base64_decode($return);
 		}
-	}
-
-	/**
-	 * Get cache handler
-	 *
-	 * @param   string  $handler  Cache handler
-	 * @param   array   $options  Additional options
-	 *
-	 * @return  Cache
-	 *
-	 * @since   4.0
-	 */
-	public static function getCache($handler, $options)
-	{
-		$handler = ($handler === 'function') ? 'callback' : $handler;
-		$options['defaultgroup'] = array_key_exists('defaultgroup', $options) ? $options['defaultgroup'] : null;
-		$options['storage'] = array_key_exists('storage', $options) ? $options['storage'] : null;
-
-		/** @var Cache $cache */
-		return Factory::getContainer()->get(CacheControllerFactoryInterface::class)->createCacheController($handler, $options);
 	}
 }

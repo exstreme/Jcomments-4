@@ -22,6 +22,11 @@ use Joomla\CMS\Router\Route;
 use Joomla\Input\Input;
 use Joomla\Utilities\ArrayHelper;
 
+/**
+ * Custom bbcodes list controller class.
+ *
+ * @since  4.1
+ */
 class CustombbcodesController extends AdminController
 {
 	/**
@@ -45,6 +50,14 @@ class CustombbcodesController extends AdminController
 		$this->registerTask('button_disable', 'changeButtonState');
 	}
 
+	/**
+	 * Duplicate custom bbcode(s)
+	 *
+	 * @return  boolean
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
 	public function duplicate()
 	{
 		$this->checkToken();
@@ -65,6 +78,14 @@ class CustombbcodesController extends AdminController
 		return true;
 	}
 
+	/**
+	 * Change button state
+	 *
+	 * @return  boolean
+	 *
+	 * @throws  \Exception
+	 * @since   3.0
+	 */
 	public function changeButtonState()
 	{
 		$this->checkToken();

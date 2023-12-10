@@ -22,9 +22,9 @@ use Joomla\CMS\Router\Route;
 
 /**
  * User item controller class.
- * This class is just placeholder for tasks user.{method}.
+ * This class is for tasks user.{method}.
  *
- * @since  1.6
+ * @since  4.1
  */
 class UserController extends FormController
 {
