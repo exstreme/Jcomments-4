@@ -35,8 +35,9 @@ class PkgBuilder
 	 * @since 0.1
 	 */
 	private $pluginsFolders = array(
-		'build/plugins/plg_jcomments_avatar.zip' => 'plugins/jcomments/avatar/avatar.xml',
-		'build/plugins/plug_cbjcomments.zip'     => 'plugins/community builder/plug_cbjcomments/cb.jcomments.xml'
+		'build/plugins/plg_jcomments_avatar.zip'        => 'plugins/jcomments/avatar/avatar.xml',
+		'build/plugins/plg_jcomments_autosubscribe.zip' => 'plugins/jcomments/autosubscribe/autosubscribe.xml',
+		'build/plugins/plug_cbjcomments.zip'            => 'plugins/community builder/plug_cbjcomments/cb.jcomments.xml'
 	);
 
 	/**
@@ -69,7 +70,8 @@ class PkgBuilder
 			'mod_jcomments_most_commented'   => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_most_commented_{version}.zip',
 			'mod_jcomments_top_posters'      => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_top_posters_{version}.zip'),
 		'plugins' => array(
-			'plg_jcomments_avatar' => 'https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_{version}.zip'
+			'plg_jcomments_avatar'        => 'https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_{version}.zip',
+			'plg_jcomments_autosubscribe' => 'https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_autosubscribe_{version}.zip'
 		)
 	);
 
