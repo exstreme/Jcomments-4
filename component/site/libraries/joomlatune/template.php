@@ -23,16 +23,12 @@ class JoomlaTuneTemplate
 	/**
 	 * @var array
 	 */
-	private $_vars = [];
-
+	public $_vars = [];
 	/**
-	 * Class constructor
-	 *
+	 * @var array
+	 * @since version
 	 */
-	function __construct()
-	{
-		//$this->_vars = array();
-	}
+	private $_globals;
 
 	/**
 	 * Render template into string
