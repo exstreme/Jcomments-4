@@ -1403,7 +1403,6 @@ class JComments
 		$cmd       = strtolower($app->input->get('cmd', ''));
 		$hash      = $app->input->get('hash', '');
 		$id        = $app->input->getInt('id', 0);
-		$message   = '';
 		$link      = str_replace('/administrator', '', Uri::root()) . 'index.php';
 		$checkHash = JCommentsFactory::getCmdHash($cmd, $id);
 
@@ -1509,7 +1508,7 @@ class JComments
 			$app->enqueueMessage(Text::_('ERROR_QUICK_MODERATION_INCORRECT_HASH'), 'alert');
 		}
 
-		$app->redirect($link);
+		$app->redirect($link, 303);
 	}
 
 	/**
