@@ -1,3 +1,17 @@
+###### 4.0.31
+- \# fixed bug #161
+
+###### 4.0.30
+- \# fixed bug #156 again
+- \# fixed bug #157
+
+###### 4.0.29
+- \# fixed bug #155
+- \# fixed bug #156
+
+###### 4.0.28
+- \# fixed bug #140
+
 ###### 4.0.27
 - \# fixed bug #123
 - \# fixed bug #119
