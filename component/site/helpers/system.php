@@ -24,7 +24,7 @@ class JCommentsSystem
 {
 	public static function getCoreJS()
 	{
-		return Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js';
+		return Uri::root(true) . '/media/com_jcomments/js/jcomments-v4.0.js';
 	}
 
 	public static function getAjaxJS()

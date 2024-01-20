@@ -171,7 +171,7 @@ class PlgSystemJComments extends CMSPlugin
 			}
 
 			// Include JComments JavaScript library
-			$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v2.3.js');
+			$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v4.0.js');
 
 			if (!defined('JOOMLATUNE_AJAX_JS'))
 			{
