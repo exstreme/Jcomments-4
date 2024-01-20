@@ -1477,16 +1477,16 @@ class JComments
 										$blacklist     = Table::getInstance('Blacklist', 'JCommentsTable');
 										$blacklist->ip = $comment->ip;
 										$blacklist->store();
-										$message = Text::_('SUCCESSFULLY_BANNED');
+										$app->enqueueMessage(Text::_('SUCCESSFULLY_BANNED'), 'success');
 									}
 									else
 									{
-										$message = Text::_('ERROR_IP_ALREADY_BANNED');
+										$app->enqueueMessage(Text::_('ERROR_IP_ALREADY_BANNED'), 'alert');
 									}
 								}
 								else
 								{
-									$message = Text::_('ERROR_YOU_CAN_NOT_BAN_YOUR_IP');
+									$app->enqueueMessage(Text::_('ERROR_YOU_CAN_NOT_BAN_YOUR_IP'), 'alert');
 								}
 							}
 							break;
@@ -1496,20 +1496,20 @@ class JComments
 				}
 				else
 				{
-					$message = Text::_('ERROR_NOT_FOUND');
+					$app->enqueueMessage(Text::_('ERROR_NOT_FOUND'), 'alert');
 				}
 			}
 			else
 			{
-				$message = Text::_('ERROR_QUICK_MODERATION_DISABLED');
+				$app->enqueueMessage(Text::_('ERROR_QUICK_MODERATION_DISABLED'), 'alert');
 			}
 		}
 		else
 		{
-			$message = Text::_('ERROR_QUICK_MODERATION_INCORRECT_HASH');
+			$app->enqueueMessage(Text::_('ERROR_QUICK_MODERATION_INCORRECT_HASH'), 'alert');
 		}
 
-		$app->redirect($link, $message);
+		$app->redirect($link);
 	}
 
 	/**

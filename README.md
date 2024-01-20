@@ -1,12 +1,16 @@
-# (WIP) JComments 4.0
+# JComments 4.0 (Stable)
 
 ![](https://img.shields.io/github/stars/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/forks/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/tag/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/release/exstreme/Jcomments-4.svg) ![](https://img.shields.io/github/issues/exstreme/Jcomments-4.svg)
 
-Adapting the component to work with Joomla 4.
+This branch is stable. Adapting the component to work with Joomla 4 continuing in 4.1 branch.
 
 ## Quick Start
 
 Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" target="_blank">latest version</a> of package
+
+## Requirements
+
+Joomla 4.2+
 
 ## Migration from Jcomments 3
 - make backup
@@ -26,8 +30,8 @@ Available plugins can be downloaded <a href="https://github.com/exstreme/Jcommen
 ## FAQ
 
 * Does this component support hCaptcha plugin?
-* Yes! Download plugin from `https://extensions.joomla.org/extension/hcaptcha/`, install it, configure, activate, and select in component settings.
+* Yes! Download plugin from https://extensions.joomla.org/extension/hcaptcha/, install it, configure, activate, and select in component settings.
 
 
 * How do I get RSS for...
-* See `https://github.com/exstreme/Jcomments-4/issues/130#issuecomment-1409095204`
+* See https://github.com/exstreme/Jcomments-4/issues/130#issuecomment-1409095204

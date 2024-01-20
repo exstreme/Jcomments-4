@@ -21,6 +21,7 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\ParameterType;
+use Joomla\String\StringHelper;
 
 /**
  * Class to add support for avatar(s) in JComments
@@ -77,6 +78,108 @@ class PlgJcommentsAvatar extends CMSPlugin
 	}
 
 	/**
+	 * Get image URL from user field
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.2
+	 */
+	protected function getFieldsImage(array $comments)
+	{
+		$user     = Factory::getApplication()->getIdentity();
+		$users    = $this->getUsers($comments);
+		$fieldsId = $this->params->get('fields_id');
+
+		if (count($users))
+		{
+			/** @var \Joomla\Database\DatabaseDriver $db */
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
+			$query = $db->getQuery(true)
+				->select($db->qn(array('fv.item_id', 'fv.value')))
+				->select($db->qn(array('f.type', 'f.fieldparams')))
+				->from($db->qn('#__fields_values', 'fv'))
+				->leftJoin($db->qn('#__fields', 'f'), $db->qn('f.id') . ' = ' . $db->qn('fv.field_id'))
+				->where($db->qn('fv.field_id') . ' = :field_id')
+				->where($db->qn('f.state') . ' = 1')
+				->whereIn($db->qn('f.access'), $user->getAuthorisedViewLevels())
+				->bind(':field_id', $fieldsId, ParameterType::INTEGER);
+
+			try
+			{
+				$db->setQuery($query);
+				$avatars = $db->loadObjectList('item_id');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+		}
+
+		$itemId = self::getItemid('index.php?option=com_users&view=profile');
+
+		foreach ($comments as $comment)
+		{
+			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
+
+			if ($this->params->get('avatar_link') == 1)
+			{
+				$comment->profileLink = $uid ? Route::_('index.php?option=com_users&view=profile' . $itemId) : '';
+			}
+
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+
+			if (isset($avatars[$uid]) && !empty($avatars[$uid]->value))
+			{
+				if ($avatars[$uid]->type == 'media')
+				{
+					$fieldValue = json_decode($avatars[$uid]->value);
+
+					$comment->avatar = Uri::base() . $fieldValue->imagefile;
+				}
+				elseif ($avatars[$uid]->type == 'imagelist')
+				{
+					$fieldParams = json_decode($avatars[$uid]->fieldparams);
+
+					if (property_exists($fieldParams, 'directory') || !empty($fieldParams->directory))
+					{
+						if ($fieldParams->directory == '/')
+						{
+							$comment->avatar = Uri::base() . 'images/' . $avatars[$uid]->value;
+						}
+						else
+						{
+							$comment->avatar = Uri::base() . 'images/' . StringHelper::str_ireplace('\\', '/', $fieldParams->directory) . '/' . $avatars[$uid]->value;
+						}
+					}
+					else
+					{
+						$comment->avatar = Uri::base() . 'images/' . $avatars[$uid]->value;
+					}
+				}
+				elseif ($avatars[$uid]->type == 'url')
+				{
+					$comment->avatar = $avatars[$uid]->value;
+				}
+				else
+				{
+					$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				}
+			}
+			else
+			{
+				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			}
+		}
+	}
+
+	/**
 	 * Get image URL from Community Builder
 	 *
 	 * @param   array  $comments  Array with comment objects
@@ -84,7 +187,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getComprofilerImage(array $comments)
 	{
@@ -157,7 +260,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  void
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getContactsImage(array $comments)
 	{
@@ -233,13 +336,18 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  string
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getDefaultImage(string $type = 'default'): string
 	{
 		switch ($type)
 		{
 			case 'custom':
+				if (empty(ltrim($this->params->get('avatar_custom_default_avatar'))))
+				{
+					return '';
+				}
+
 				return Uri::base() . ltrim($this->params->get('avatar_custom_default_avatar'), '/');
 			default:
 				return Uri::base() . 'media/com_jcomments/images/no_avatar.png';
@@ -254,7 +362,8 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	protected function getEasysocialImage(array $comments)
 	{
@@ -333,7 +442,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  void
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getGravatarImage(array $comments)
 	{
@@ -343,9 +452,18 @@ class PlgJcommentsAvatar extends CMSPlugin
 		{
 			$options = parse_ini_string($options);
 
-			if (!isset($options['d']))
+			if (!isset($options['d']) && !isset($options['default']))
 			{
-				$options['d'] = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$defaultImg = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$options['d'] = empty($defaultImg) ? 'mp' : $defaultImg;
+			}
+
+			if (isset($options['f']) || isset($options['forcedefault']))
+			{
+				if ($options['f'] == 'y' || $options['forcedefault'] == 'y')
+				{
+					$options['f'] = 'y';
+				}
 			}
 
 			$query = http_build_query($options);
@@ -368,14 +486,14 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  string
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected static function getItemid(string $link): string
 	{
+		/** @var \Joomla\CMS\Menu\AbstractMenu $menu */
 		$menu = Factory::getApplication()->getMenu();
 		$item = $menu->getItems('link', $link, true);
-
-		$id = null;
+		$id   = null;
 
 		if (is_array($item))
 		{
@@ -393,6 +511,69 @@ class PlgJcommentsAvatar extends CMSPlugin
 	}
 
 	/**
+	 * Get JomSocial URL and avatar
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @since   4.2
+	 */
+	protected function getJomsocialImage(array $comments)
+	{
+		$users = $this->getUsers($comments);
+
+		if (count($users))
+		{
+			/** @var \Joomla\Database\DatabaseDriver $db */
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
+			$query = $db->getQuery(true)
+				->select(array($db->qn('userid'), $db->qn('thumb', 'avatar')))
+				->from($db->qn('#__community_users'))
+				->where($db->qn('userid') . ' IN (' . implode(',', $users) . ')');
+
+			try
+			{
+				$db->setQuery($query);
+				$avatars = $db->loadObjectList('userid');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+		}
+
+		$avatarA = Path::clean(JPATH_SITE . '/');
+		$avatarL = Uri::base() . '/';
+
+		foreach ($comments as &$comment)
+		{
+			$uid = (int) $comment->userid;
+			$comment->profileLink = '';
+
+			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '' && $avatars[$uid]->avatar != 'components/com_community/assets/default_thumb.jpg')
+			{
+				if (is_file($avatarA . $avatars[$uid]->avatar))
+				{
+					$comment->avatar = $avatarL . $avatars[$uid]->avatar;
+				}
+			}
+			else
+			{
+				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			}
+
+			if ($this->params->get('avatar_link') == 1)
+			{
+				$comment->profileLink = $uid ? Route::_('index.php?option=com_community&view=profile&userid=' . $uid) : '';
+			}
+		}
+	}
+
+	/**
 	 * Get image URL from com_kunena
 	 *
 	 * @param   array  $comments  Array with comment objects
@@ -400,7 +581,8 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	protected function getKunenaImage(array $comments)
 	{
@@ -479,7 +661,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getPhocagalleryImage(array $comments)
 	{
@@ -538,7 +720,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getPhpbb3Image(array $comments)
 	{
@@ -550,7 +732,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
 			->createCacheController('output', array('defaultgroup' => $cacheId));
 
-		// Init default values.
+		// Init default values. do not rename variables!
 		$dbms         = '';
 		$dbhost       = '';
 		$dbport       = '';
@@ -568,7 +750,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 
 		include $forumConfig;
 
-		/** @var Joomla\CMS\Cache\Cache $cache */
+		/** @var \Joomla\CMS\Cache\Cache $cache */
 		// Force cache only if caching is disabled in global configuration.
 		if (Factory::getApplication()->get('caching') == 0)
 		{
@@ -689,7 +871,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 				elseif ($phpBB3Profile->user_avatar_type == 'avatar.driver.upload' || $phpBB3Profile->user_avatar_type == 'avatar.driver.local')
 				{
 					// .htaccess file in avatars folder will deny access, so we must to use data:image
-					$avatarExt = \Joomla\CMS\Filesystem\File::getExt($phpBB3Profile->user_avatar);
+					$avatarExt = \Joomla\Filesystem\File::getExt($phpBB3Profile->user_avatar);
 
 					if ($phpBB3Profile->user_avatar_type == 'avatar.driver.upload')
 					{
@@ -724,7 +906,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 * @return  void
 	 *
 	 * @throws  \Exception
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getSmfImage(array $comments)
 	{
@@ -736,7 +918,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
 			->createCacheController('output', array('defaultgroup' => $cacheId));
 
-		// Init default values.
+		// Init default values. do not rename variables!
 		$db_type   = '';
 		$db_server = '';
 		$db_port   = '';
@@ -754,7 +936,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 
 		include $forumConfig;
 
-		/** @var Joomla\CMS\Cache\Cache $cache */
+		/** @var \Joomla\CMS\Cache\Cache $cache */
 		// Force cache only if caching is disabled in global configuration.
 		if (Factory::getApplication()->get('caching') == 0)
 		{
@@ -916,7 +1098,7 @@ class PlgJcommentsAvatar extends CMSPlugin
 	 *
 	 * @return  array
 	 *
-	 * @since   4.0
+	 * @since   4.2
 	 */
 	protected function getUsers(array $comments, bool $emails = false, bool $login = false): array
 	{

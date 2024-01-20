@@ -184,7 +184,7 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 			<button class="btn btn-secondary btn-sm" id="comments-form-reset" type="reset"
 					title="<?php echo Text::_('JCLEAR'); ?>"><?php echo Text::_('JCLEAR'); ?></button>
 			<button class="btn btn-secondary btn-sm" id="comments-form-cancel" type="button" style="display: none;"
-					title="<?php echo Text::_('JCLEAR'); ?>"><?php echo Text::_('JCANCEL'); ?></button>
+					title="<?php echo Text::_('JCANCEL'); ?>"><?php echo Text::_('JCANCEL'); ?></button>
 			<div style="clear: both;"></div>
 		</div>
 		<br>
@@ -289,7 +289,7 @@ else {if (typeof window.onload=='function'){var oldload=window.onload;window.onl
 ";
 		}
 
-		Factory::getApplication()->getDocument()->addScriptDeclaration($script);
+		echo '<script type="text/javascript">' . $script . '</script>';
 		?>
 
 		<?php

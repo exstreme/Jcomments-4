@@ -40,7 +40,7 @@ class JcommentsModelSubscriptions extends BaseDatabaseModel implements DatabaseM
 	 *
 	 * @since   4.0
 	 */
-	public function subscribe($objectID, $objectGroup, $userID, $name, $email, $lang)
+	public function subscribe($objectID, $objectGroup, $userID, $name = '', $email = '', $lang = '')
 	{
 		$db = $this->getDbo();
 

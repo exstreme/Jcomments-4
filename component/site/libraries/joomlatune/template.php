@@ -21,13 +21,14 @@ defined('_JEXEC') or die;
 class JoomlaTuneTemplate
 {
 	/**
-	 * Class constructor
-	 *
+	 * @var array
 	 */
-	function __construct()
-	{
-		$this->_vars = array();
-	}
+	public $_vars = [];
+	/**
+	 * @var array
+	 * @since version
+	 */
+	private $_globals;
 
 	/**
 	 * Render template into string
