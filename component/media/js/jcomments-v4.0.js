@@ -1093,17 +1093,21 @@ JComments.prototype = {
 			if (this.form) {
 				this.form.storeValues();
 			}
-			this.busy.show();
+			if (this.busy) {
+				this.busy.show();
+			}
 		} else {
 			f = 'JCommentsSaveComment';
-			this.busy.show();
+			if (this.busy) {
+				this.busy.show();
+			}
 		}
 		return this.ajax(f, null, this.form_id);
 	},
 	saveCommentAsync: function () {
 		return new Promise((resolve, reject) => {
 			try {
-				var response = JComments.prototype.saveComment();
+				var response = this.saveComment();
 				resolve(response);
 			} catch (e) {
 				reject(e);
@@ -1494,9 +1498,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				await jcomments.saveCommentAsync();
 				var jc = window.jcomments;
 				if (jc) {
-					setTimeout(() => {
-						jc.showPage(jc.oi, jc.og, 0);
-					}, 200);
+					jc.showPage(jc.oi, jc.og, 0);
 				}
 			} catch (error) {
 				console.error('Error saving comment:', error);
@@ -1511,13 +1513,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-	document.querySelectorAll('.cmd-subscribe').forEach(function (subscribeButton) {
+	const subscribeButton = document.querySelector('.cmd-subscribe');
+	if (subscribeButton) {
 		subscribeButton.addEventListener('click', function (e) {
 			e.preventDefault();
 			let href = this.getAttribute('href');
 			Joomla.request({
 				url: href + '&format=json',
-				onSuccess: function (response) {
+				onSuccess: (response) => {
 					let _response = JSON.parse(response);
 					if (_response.success) {
 						this.setAttribute('href', _response.data.href);
@@ -1534,5 +1537,5 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 			});
 		});
-	});
+	}
 });
