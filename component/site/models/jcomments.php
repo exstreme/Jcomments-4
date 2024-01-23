@@ -90,7 +90,7 @@ class JCommentsModel
 				unset($options['level']);
 				unset($options['limit']);
 
-				$options['filter'] = ($options['filter'] ? $options['filter'] . ' AND ' : '') . 'c.thread_id IN (' . implode(', ', $threads) . ')';
+				$options['filter'] = (isset($options['filter']) ? $options['filter'] . ' AND ' : '') . 'c.thread_id IN (' . implode(', ', $threads) . ')';
 
 				$db->setQuery(self::getCommentsQuery($options));
 				$rows = array_merge($rows, $db->loadObjectList());
