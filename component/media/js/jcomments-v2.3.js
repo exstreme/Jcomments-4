@@ -110,7 +110,7 @@ JCommentsEditor.prototype = {
 
 	init: function (textareaID, r) {
 		this.ta = JComments.prototype.$(textareaID);
-		this.l10n = { counterPre: '', counterPost: ' symbols left' };
+		this.l10n = {counterPre: '', counterPost: ' symbols left'};
 		this.resizable = r;
 		this.events = new JCommentsEvents();
 		this.defaultHeight = this.ta.clientHeight;
@@ -178,7 +178,7 @@ JCommentsEditor.prototype = {
 		if (ta.createTextRange) ta.caretPos = document.selection.createRange().duplicate();
 	},
 	getElementPos: function (e) {
-		var p = { left: 0, top: 0, right: 0, bottom: 0 };
+		var p = {left: 0, top: 0, right: 0, bottom: 0};
 		while (e != null) {
 			p.left += e.offsetLeft;
 			p.top += e.offsetTop;
@@ -260,12 +260,12 @@ JCommentsEditor.prototype = {
 	initTags: function () {
 		if (this.bbc == null || this.bbc.length == 0) {
 			this.bbc = {};
-			this.bbc['b'] = { id: 'bbcode-b', open: '[b]', close: '[/b]', key: 'B', ctrl: 'ctrl', hint: 'Bold' };
-			this.bbc['i'] = { id: 'bbcode-i', open: '[i]', close: '[/i]', key: 'I', ctrl: 'ctrl', hint: 'Italic' };
-			this.bbc['u'] = { id: 'bbcode-u', open: '[u]', close: '[/u]', key: 'U', ctrl: 'ctrl', hint: 'Underline' };
-			this.bbc['s'] = { id: 'bbcode-s', open: '[s]', close: '[/s]', key: null, ctrl: null, hint: 'Strikeout' };
-			this.bbc['img'] = { id: 'bbcode-img', open: '[img]', close: '[/img]', key: null, ctrl: null, hint: 'Image' };
-			this.bbc['url'] = { id: 'bbcode-url', open: '[url]', close: '[/url]', key: null, ctrl: null, hint: 'Link' };
+			this.bbc['b'] = {id: 'bbcode-b', open: '[b]', close: '[/b]', key: 'B', ctrl: 'ctrl', hint: 'Bold'};
+			this.bbc['i'] = {id: 'bbcode-i', open: '[i]', close: '[/i]', key: 'I', ctrl: 'ctrl', hint: 'Italic'};
+			this.bbc['u'] = {id: 'bbcode-u', open: '[u]', close: '[/u]', key: 'U', ctrl: 'ctrl', hint: 'Underline'};
+			this.bbc['s'] = {id: 'bbcode-s', open: '[s]', close: '[/s]', key: null, ctrl: null, hint: 'Strikeout'};
+			this.bbc['img'] = {id: 'bbcode-img', open: '[img]', close: '[/img]', key: null, ctrl: null, hint: 'Image'};
+			this.bbc['url'] = {id: 'bbcode-url', open: '[url]', close: '[/url]', key: null, ctrl: null, hint: 'Link'};
 			this.bbc['hide'] = {
 				id: 'bbcode-hide',
 				open: '[hide]',
@@ -334,7 +334,7 @@ JCommentsEditor.prototype = {
 			var tag = this.bbc[id], th = this;
 			if (!tag) {
 				if (ot && ct) {
-					this.bbc[id] = { id: id, open: ot, close: ct, key: null, ctrl: null, hint: h };
+					this.bbc[id] = {id: id, open: ot, close: ct, key: null, ctrl: null, hint: h};
 					tag = this.bbc[id];
 				} else {
 					return;
@@ -444,7 +444,7 @@ JCommentsEditor.prototype = {
 				this.ta.parentNode.insertBefore(d, this.ta.nextSibling);
 				d.appendChild(ch);
 			}
-			this.counter = { e: c, max: m };
+			this.counter = {e: c, max: m};
 			this.updateCounter();
 		}
 	},
@@ -490,7 +490,7 @@ JCommentsEditor.prototype = {
 			px = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
 			py = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
 		}
-		return { x: px, y: py };
+		return {x: px, y: py};
 	},
 	onChange: function () {
 		this.updateCounter();
@@ -876,7 +876,7 @@ JComments.prototype = {
 
 		try {
 			prevURI = jtajax.options.url;
-			jtajax.setup({ url: this.requestURI });
+			jtajax.setup({url: this.requestURI});
 			response = jtajax.call(func, args, 'post', formId);
 			jtajax.options.url = prevURI;
 		} catch (e) {
@@ -1093,26 +1093,12 @@ JComments.prototype = {
 			if (this.form) {
 				this.form.storeValues();
 			}
-			if (this.busy) {
-				this.busy.show();
-			}
+			this.busy.show();
 		} else {
 			f = 'JCommentsSaveComment';
-			if (this.busy) {
-				this.busy.show();
-			}
+			this.busy.show();
 		}
 		return this.ajax(f, null, this.form_id);
-	},
-	saveCommentAsync: function () {
-		return new Promise((resolve, reject) => {
-			try {
-				var response = this.saveComment();
-				resolve(response);
-			} catch (e) {
-				reject(e);
-			}
-		});
 	},
 	editComment: function (i) {
 		this.busyComment(i);
@@ -1380,22 +1366,22 @@ JComments.prototype = {
 			}
 		}
 	},
-	hideChildComments: function (e, id) {
-		var b = this.$('show-button-' + id);
-		var c = this.$('comment-item-' + id);
-		b.style.display = '';
-		c.classList.add('hide-children');
-		e.style.display = 'none';
-		return false;
-	},
-	showChildComments: function (e, id) {
-		var b = this.$('hide-button-' + id);
-		var c = this.$('comment-item-' + id);
-		b.style.display = '';
-		c.classList.remove('hide-children');
-		e.style.display = 'none';
-		return false;
-	},
+    hideChildComments: function(e, id) {
+        var b = this.$('show-button-' + id);
+        var c = this.$('comment-item-' + id);
+        b.style.display = '';
+        c.classList.add('hide-children');
+        e.style.display = 'none';
+        return false;
+    },
+    showChildComments: function(e, id) {
+        var b = this.$('hide-button-' + id);
+        var c = this.$('comment-item-' + id);
+        b.style.display = '';
+        c.classList.remove('hide-children');
+        e.style.display = 'none';
+        return false;
+    },
 	reportComment: function (id) {
 		this.busyComment(id);
 		this.cancelReply();
@@ -1487,55 +1473,56 @@ JComments.prototype = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-	document.body.addEventListener('click', async function (e) {
+	document.body.addEventListener('click',function(e) {
 		if (e.target && e.target.id == 'addcomments') {
 			e.preventDefault();
+
 			var el = e.target;
+
 			jcomments.showForm(el.dataset.object_id, el.dataset.object_group, 'comments-form-link');
 		} else if (e.target && e.target.id == 'comments-form-send') {
 			e.preventDefault();
-			try {
-				await jcomments.saveCommentAsync();
-				var jc = window.jcomments;
-				if (jc) {
-					jc.showPage(jc.oi, jc.og, 0);
-				}
-			} catch (error) {
-				console.error('Error saving comment:', error);
-			}
+
+			jcomments.saveComment();
 		} else if (e.target && e.target.id == 'comments-form-reset') {
 			e.preventDefault();
 
 			document.querySelector('#comments-form').reset();
 		} else if (e.target && (e.target.id == 'comments-form-captcha-image' || e.target.id == 'cmd-captcha-reload')) {
 			e.preventDefault();
+
 			jcomments.clear('captcha');
 		}
 	});
+})
 
-	const subscribeButton = document.querySelector('.cmd-subscribe');
-	if (subscribeButton) {
-		subscribeButton.addEventListener('click', function (e) {
-			e.preventDefault();
-			let href = this.getAttribute('href');
-			Joomla.request({
-				url: href + '&format=json',
-				onSuccess: (response) => {
-					let _response = JSON.parse(response);
-					if (_response.success) {
-						this.setAttribute('href', _response.data.href);
-						this.setAttribute('title', _response.data.title);
-						this.innerHTML = '<span aria-hidden="true" class="icon-mail icon-fw"></span> ' + _response.data.title;
-						Joomla.renderMessages({ 'message': [_response.message] }, '.comments-list-footer');
-					} else {
-						Joomla.renderMessages({ 'warning': [_response.message] }, '.comments-list-footer');
-					}
-				},
-				onError: function (xhr) {
-					let response = JSON.parse(xhr.responseText);
-					Joomla.renderMessages({ 'error': [response.message] }, '.comments-list-footer');
+jQuery(document).ready(function ($) {
+	$('.cmd-subscribe').on('click',function (e) {
+		e.preventDefault();
+
+		let $this = $(this);
+
+		Joomla.request({
+			url: $this.attr('href') + '&format=json',
+			onSuccess: function (response) {
+				let _response = JSON.parse(response);
+
+				if (_response.success) {
+					$this.attr({
+						href: _response.data.href,
+						title: _response.data.title
+					});
+					$this.html('<span aria-hidden="true" class="icon-mail icon-fw"></span> ' + _response.data.title);
+
+					Joomla.renderMessages({'message': [_response.message]}, '.comments-list-footer');
+				} else {
+					Joomla.renderMessages({'warning': [_response.message]}, '.comments-list-footer');
 				}
-			});
+			},
+			onError: function (xhr) {
+				let response = JSON.parse(xhr.responseText);
+				Joomla.renderMessages({'error': [response.message]}, '.comments-list-footer');
+			}
 		});
-	}
+	});
 });
