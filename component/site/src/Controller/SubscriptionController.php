@@ -19,8 +19,8 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /**
  * Subscription controller class
@@ -83,7 +83,7 @@ class SubscriptionController extends BaseController
 		$name        = $this->input->post->getString('name', '');
 		$email       = $this->input->post->getString('email', '');
 		$langTag     = $this->app->getLanguage()->getTag();
-		$return      = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return      = Route::_(JcommentsContentHelper::getReturnPage(), false);
 
 		if (!$user->authorise('comment.subscribe', 'com_jcomments') || is_null($state))
 		{
@@ -167,7 +167,7 @@ class SubscriptionController extends BaseController
 	public function unsubscribeByHash(string $hash)
 	{
 		$user   = $this->app->getIdentity();
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
 
 		if (!$user->authorise('comment.subscribe', 'com_jcomments'))
 		{
@@ -194,7 +194,7 @@ class SubscriptionController extends BaseController
 			return;
 		}
 
-		$redirect = ObjectHelper::getObjectField(null, 'link', $result['object_id'], $result['object_group'], $result['lang']);
+		$redirect = ObjectHelper::getObjectField(null, 'object_link', $result['object_id'], $result['object_group'], $result['lang']);
 
 		if (empty($redirect))
 		{

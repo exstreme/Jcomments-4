@@ -132,11 +132,11 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 								<td class="text-center">
 									<?php echo HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->id); ?>
 								</td>
-								<td class="small text-center">
+								<td class="text-center">
 									<?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'comments.', $canChange); ?>
 								</td>
 								<th scope="row" class="has-context">
-									<div class="small break-word">
+									<div class="break-word">
 										<?php if ($item->checked_out):
 											echo HTMLHelper::_(
 												'jgrid.checkedout', $i, $item->editor, $item->checked_out_time, 'comments.', $canCheckin
@@ -152,11 +152,26 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 										<?php endif; ?>
 									</div>
 									<?php if ($item->reports > 0): ?>
-										<span class="badge bg-warning text-dark hasTooltip" aria-hidden="true"
+										<span class="badge text-bg-warning px-2 hasTooltip" aria-hidden="true"
 											  title="<?php echo Text::_('A_REPORTS_TOTAL'); ?>">
 											<?php echo $item->reports; ?>
 										</span>
 									<?php endif; ?>
+									<?php if ($item->pinned && $this->canPin):
+										/** @see Joomla\CMS\HTML\Helpers\JGrid::state() */
+										$states = array(
+											1 => array(
+												'unpin', 'A_COMMENT_PINNED', 'A_COMMENT_UNPIN', 'A_COMMENT_PINNED',
+												true, 'pin border-0 link-success', 'pin border-0 link-secondary'
+											),
+											0 => array(
+												'pin', 'A_COMMENT_UNPINNED', 'A_COMMENT_PIN', 'A_COMMENT_UNPINNED',
+												true, 'pin border-0 link-primary', 'pin border-0 link-secondary'
+											)
+										);
+
+										echo HTMLHelper::_('jgrid.state', $states, (int) $item->pinned, $i, 'comments.', $canEdit);
+									endif; ?>
 									<?php if ($item->deleted): ?>
 										<span class="badge bg-secondary" aria-hidden="true">
 											<?php echo Text::_('A_COMMENTS_HAS_BEEN_MARKED_AS_DELETED'); ?>
@@ -184,7 +199,7 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 										<a href="<?php echo $item->object_link; ?>"
 										   target="_blank"><span class="read-more"><?php echo $this->escape($item->object_title); ?></span></a>
 									<?php else: ?>
-										<span class="read-more"><?php echo $item->object_title; ?></span>
+										<span class="read-more"><?php echo max($item->object_title, ''); ?></span>
 									<?php endif; ?>
 								</td>
 								<td class="small d-none d-md-table-cell text-break">

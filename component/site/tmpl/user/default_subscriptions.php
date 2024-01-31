@@ -16,6 +16,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /** @var Joomla\Component\Jcomments\Site\View\User\HtmlView $this */
@@ -27,7 +28,9 @@ $wa->useScript('multiselect')
 $canSubscribe = JcommentsFactory::getAcl()->canSubscribe();
 ?>
 <div class="container-fluid mt-2">
-	<div class="h6"><?php echo Text::_('SUBSCRIPTIONS_LIST'); ?></div>
+	<div class="col col-auto h5 me-2"><?php echo Text::_('SUBSCRIPTIONS_LIST'); ?>
+		<span class="text-info ps-2 total-subscriptions"><?php echo $this->total; ?></span>
+	</div>
 
 	<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post" name="adminForm"
 		  id="adminForm" autocomplete="off">
@@ -107,12 +110,23 @@ $canSubscribe = JcommentsFactory::getAcl()->canSubscribe();
 		</div>
 	</form>
 
-	<?php if ($this->pagination->pagesTotal > 1): ?>
+	<form action="<?php echo htmlspecialchars(Uri::getInstance()->toString()); ?>" method="post" name="adminForm" id="adminForm">
+		<div class="w-100">
+			<?php if ($this->pagination->total > 5): ?>
+			<div class="btn-group">
+				<label for="limit" class="visually-hidden">
+					<?php echo Text::_('JGLOBAL_DISPLAY_NUM'); ?>
+				</label>
+				<?php echo $this->pagination->getLimitBox(); ?>
+			</div>
+			<?php endif; ?>
+			<span class="ms-2 float-end"><?php echo $this->pagination->getResultsCounter(); ?></span>
+		</div>
 		<div class="w-100">
 			<p class="float-end pt-3 pe-2">
 				<?php echo $this->pagination->getPagesCounter(); ?>
 			</p>
 			<?php echo $this->pagination->getPagesLinks(); ?>
 		</div>
-	<?php endif; ?>
+	</form>
 </div>

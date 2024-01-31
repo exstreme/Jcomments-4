@@ -17,6 +17,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /**
@@ -38,7 +39,7 @@ class SubscriptionsController extends BaseController
 	{
 		$this->checkToken();
 
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
 
 		if (!JcommentsFactory::getAcl()->canSubscribe())
 		{

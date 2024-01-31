@@ -61,24 +61,40 @@
 				addfieldprefix="Joomla\Component\Jcomments\Site\Field"
 				name="comment"
 				type="Jceditor"
-				label="FORM_HEADER"
+				label="FORM_TEXT"
 				hiddenLabel="true"
 				hint="COMMENT_ITEM"
 				rows="10"
 				cols="100"
-				filter="JComponentHelper::filterText"
+				filter="Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText::filterText"
 				required="true"
 				width="100%"
 				height="350"
 		/>
 
 		<field
+				name="pinned"
+				type="radio"
+				default="0"
+				label="FORM_COMMENT_PINNED"
+				filter="integer"
+				layout="joomla.form.field.radio.switcher"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<field
 				name="subscribe"
-				type="checkbox"
+				type="radio"
 				default="0"
 				label="LINK_SUBSCRIBE"
 				filter="integer"
-		/>
+				layout="joomla.form.field.radio.switcher"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
 
 		<field
 				name="terms_of_use"
@@ -88,9 +104,10 @@
 				label="FORM_TOS"
 				filter="integer"
 				required="true"
+				layout="joomla.form.field.radio.switcher"
 		>
-			<option value="1">FORM_TOS_ACCEPT</option>
 			<option value="0">FORM_TOS_DECLINE</option>
+			<option value="1">FORM_TOS_ACCEPT</option>
 		</field>
 
 		<field

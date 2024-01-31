@@ -22,6 +22,8 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 
 /**
@@ -45,6 +47,8 @@ class DisplayController extends BaseController
 	public function display($cachable = false, $urlparams = array())
 	{
 		$cachable = true;
+		$id       = $this->input->getInt('object_id');
+		$option   = $this->app->input->get('option');
 
 		// Set the default view name and format from the Request.
 		$viewName = $this->input->get('view', 'comments');
@@ -57,6 +61,30 @@ class DisplayController extends BaseController
 
 		$safeurlparams = array('id' => 'INT', 'cid' => 'ARRAY', 'limit' => 'UINT', 'limitstart' => 'UINT',
 							   'return' => 'BASE64', 'filter-search' => 'STRING', 'lang' => 'CMD');
+
+		// Set locked state for views called not from Jcomments content plugin event.
+		if (isset($id) || ($option == 'com_content' && $option == 'com_multicategories'))
+		{
+			/** @var \Joomla\Component\Content\Site\Model\ArticleModel $articleModel */
+			$articleModel     = $this->app->bootComponent('com_content')->getMVCFactory()->createModel('Article', 'Site');
+			$article          = $articleModel->getItem($this->input->getInt('object_id'));
+			$config           = ComponentHelper::getParams('com_jcomments');
+			$categoryEnabled  = JcommentsContentHelper::checkCategory($article->catid);
+			$commentsEnabled  = JcommentsContentHelper::isEnabled($article) || $categoryEnabled;
+			$commentsDisabled = JcommentsContentHelper::isDisabled($article) || !$commentsEnabled;
+			$commentsLocked   = JcommentsContentHelper::isLocked($article);
+			$archivesState    = 2;
+
+			if (isset($article->state) && $article->state == $archivesState && $config->get('enable_for_archived') == 0)
+			{
+				$commentsLocked = true;
+				JcommentsFactory::getAcl()->setCommentsLocked($commentsLocked);
+			}
+
+			$config->set('comments_on', $commentsEnabled);
+			$config->set('comments_off', $commentsDisabled);
+			$config->set('comments_locked', $commentsLocked);
+		}
 
 		parent::display($cachable, $safeurlparams);
 

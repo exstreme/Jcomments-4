@@ -16,6 +16,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 
 /** @var Joomla\Component\Jcomments\Site\View\User\HtmlView $this */
@@ -29,7 +30,7 @@ $wa->useScript('bootstrap.collapse')
 	(function ($) {
 		$(document).ready(function () {
 			$('.read-more').more({
-				length: 80,
+				length: 200,
 				wordBreak: true,
 				moreText: '<?php echo Text::_('JSHOW'); ?>',
 				lessText: '<?php echo Text::_('JHIDE'); ?>'
@@ -38,7 +39,9 @@ $wa->useScript('bootstrap.collapse')
 	})(jQuery);
 </script>
 <div class="container-fluid mt-2">
-	<div class="h6"><?php echo Text::_('COMMENTS_LIST'); ?></div>
+	<div class="col col-auto h5 me-2"><?php echo Text::_('COMMENTS_LIST'); ?>
+		<span class="text-info ps-2 total-comments"><?php echo $this->total; ?></span>
+	</div>
 
 	<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post" name="adminForm"
 		  id="adminForm" autocomplete="off">
@@ -83,7 +86,7 @@ $wa->useScript('bootstrap.collapse')
 									</div>
 									<div class="row h6 bg-light py-2">
 										<div class="col-9">
-											<a href="<?php echo JcommentsContentHelper::getPermalink($item); ?>"
+											<a href="<?php echo JcommentsContentHelper::getCommentLink($item, 'permalink'); ?>"
 											   target="_blank"><?php echo Text::_('COMMENT_ITEM'); ?></a>
 										</div>
 										<div class="col-3"><?php echo Text::_('JDATE'); ?></div>
@@ -112,12 +115,23 @@ $wa->useScript('bootstrap.collapse')
 		</div>
 	</form>
 
-	<?php if ($this->pagination->pagesTotal > 1): ?>
+	<form action="<?php echo htmlspecialchars(Uri::getInstance()->toString()); ?>" method="post" name="adminForm" id="adminForm">
+		<div class="w-100">
+			<?php if ($this->pagination->total > 5): ?>
+				<div class="btn-group">
+					<label for="limit" class="visually-hidden">
+						<?php echo Text::_('JGLOBAL_DISPLAY_NUM'); ?>
+					</label>
+					<?php echo $this->pagination->getLimitBox(); ?>
+				</div>
+			<?php endif; ?>
+			<span class="ms-2 float-end"><?php echo $this->pagination->getResultsCounter(); ?></span>
+		</div>
 		<div class="w-100">
 			<p class="float-end pt-3 pe-2">
 				<?php echo $this->pagination->getPagesCounter(); ?>
 			</p>
 			<?php echo $this->pagination->getPagesLinks(); ?>
 		</div>
-	<?php endif; ?>
+	</form>
 </div>

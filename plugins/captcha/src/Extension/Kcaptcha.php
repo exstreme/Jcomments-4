@@ -7,7 +7,7 @@
  *
  * @copyright   (C) 2022 Vladimir Globulopolis. All rights reserved.
  * @license     GNU General Public License version 2 or later
- * @url         https://xn--80aeqbhthr9b.com
+ * @url         https://libra.ms
  */
 
 namespace Joomla\Plugin\Captcha\Kcaptcha\Extension;
@@ -51,8 +51,10 @@ final class Kcaptcha extends CMSPlugin
 	 */
 	public function onInit()
 	{
+		$app = $this->getApplication() ?: $this->app;
+
 		// Load assets, the callback should be first
-		$this->app->getDocument()->getWebAssetManager()
+		$app->getDocument()->getWebAssetManager()
 			->registerAndUseScript('plg_captcha_kcaptcha', 'plg_captcha_kcaptcha/kcaptcha.min.js');
 
 		return true;
@@ -69,7 +71,8 @@ final class Kcaptcha extends CMSPlugin
 	 */
 	public function onAjaxKcaptcha()
 	{
-		$session = $this->app->getSession();
+		$app = $this->getApplication() ?: $this->app;
+		$session = $app->getSession();
 		$captcha = new JKcaptcha($this->params->toArray());
 
 		$captcha->render();
@@ -124,7 +127,8 @@ final class Kcaptcha extends CMSPlugin
 	 */
 	public function onCheckAnswer($code = null)
 	{
-		$session = $this->app->getSession();
+		$app = $this->getApplication() ?: $this->app;
+		$session = $app->getSession();
 
 		if ($code != '' && $code == $session->get('comments-captcha-code'))
 		{

@@ -181,11 +181,19 @@ class JceditorField extends TextareaField
 	 */
 	protected function getInput()
 	{
-		$app    = Factory::getApplication();
-		$user   = $app->getIdentity();
-		$doc    = $app->getDocument();
-		$params = ComponentHelper::getParams('com_jcomments');
-		$format = $params->def('editor_format', 'bbcode');
+		$app          = Factory::getApplication();
+		$user         = $app->getIdentity();
+		$doc          = $app->getDocument();
+		$params       = ComponentHelper::getParams('com_jcomments');
+		$format       = $params->def('editor_format', 'bbcode');
+		$editorConfig = array(
+			'field'       => $this->id,
+			'editor_type' => $params->get('editor_type'),
+			'format'      => $format
+		);
+
+		/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
+		$wa = $doc->getWebAssetManager();
 
 		if ($format == 'xhtml' && $params->get('editor_type') == 'joomla')
 		{
@@ -195,6 +203,8 @@ class JceditorField extends TextareaField
 				'readonly'  => $this->readonly || $this->disabled,
 				'syntax'    => (string) $this->element['syntax']
 			);
+			$doc->addScriptOptions('jceditor', $editorConfig);
+			$wa->useScript('editors');
 
 			return $editor->display(
 				$this->name,
@@ -211,15 +221,13 @@ class JceditorField extends TextareaField
 			);
 		}
 
-		/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
-		$wa          = $doc->getWebAssetManager();
 		$langTag     = $app->getLanguage()->getTag();
 		$_lang       = in_array($langTag, array('en-US', 'pt-BR')) ? $langTag : strtolower(substr($langTag, -2));
 		$emoticons   = JcommentsFactory::getSmilies()->getList();
 		$plugins     = array('autoyoutube', 'undo');
 		$buttons     = (string) $this->element['buttons'];
 		$editorTheme = File::makeSafe($params->get('editor_theme'));
-		$editorIcons = File::makeSafe($params->get('editor_theme_icons'));
+		$editorIcons = $params->get('editor_theme_icons') == '' ? null : File::makeSafe($params->get('editor_theme_icons'));
 		$themeUrl    = Uri::root() . 'media/com_jcomments/images/tmpl/editor/' . $editorTheme;
 
 		// Override standart buttons list with buttons from xml attribute.
@@ -274,7 +282,7 @@ class JceditorField extends TextareaField
 				->useStyle('jceditor.plg.emoji.styles');
 		}
 
-		if ($editorIcons !== '')
+		if ($editorIcons)
 		{
 			$wa->useScript('jceditor.icons.' . $editorIcons);
 		}
@@ -309,21 +317,18 @@ class JceditorField extends TextareaField
 		Text::script('ERROR_YOUR_COMMENT_IS_TOO_SHORT');
 		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
-		$editorConfig = array(
-			'field'         => $this->id,
-			'format'        => $format,
-			'style'         => Uri::root() . 'media/com_jcomments/css/editor/content/' . File::makeSafe($params->get('custom_css', 'frontend-style') . '.css'),
-			'width'         => $this->width,
-			'height'        => $this->height,
-			'icons'         => $editorIcons === '' ? null : $editorIcons,
-			'locale'        => $langTag,
-			'toolbar'       => ToolbarHelper::buildToolbar($buttons),
-			'emoticonsRoot' => Uri::root() . $params->get('smilies_path'),
-			'plugins'       => implode(',', $plugins),
-			'autoUpdate'    => true,
-			'minlength'     => $user->get('isRoot') ? 0 : $params->get('comment_minlength'),
-			'maxlength'     => $user->get('isRoot') ? 0 : $params->get('comment_maxlength')
-		);
+		$editorConfig['style']         = Uri::root() . 'media/com_jcomments/css/editor/content/'
+			. File::makeSafe($params->get('custom_css', 'frontend-style') . '.css');
+		$editorConfig['width']         = $this->width;
+		$editorConfig['height']        = $this->height;
+		$editorConfig['icons']         = $editorIcons;
+		$editorConfig['locale']        = $langTag;
+		$editorConfig['toolbar']       = ToolbarHelper::buildToolbar($buttons);
+		$editorConfig['emoticonsRoot'] = Uri::root() . $params->get('smilies_path');
+		$editorConfig['plugins']       = implode(',', $plugins);
+		$editorConfig['autoUpdate']    = true;
+		$editorConfig['minlength']     = $user->get('isRoot') ? 0 : $params->get('comment_minlength');
+		$editorConfig['maxlength']     = $user->get('isRoot') ? 0 : $params->get('comment_maxlength');
 
 		if ($emojiEnabled)
 		{
@@ -358,14 +363,14 @@ class JceditorField extends TextareaField
 	/**
 	 * Generate javascript for cutom bbcode buttons
 	 *
-	 * @param   array   $buttons   Array with buttons
-	 * @param   string  $iconFile  Filename with icon file
+	 * @param   array        $buttons   Array with buttons
+	 * @param   string|null  $iconFile  Filename with icon file
 	 *
 	 * @return  string
 	 *
 	 * @since   4.1
 	 */
-	private function generateCustomButtonsJs(array $buttons, string $iconFile): string
+	private function generateCustomButtonsJs(array $buttons, ?string $iconFile): string
 	{
 		ob_start();
 

@@ -14,7 +14,6 @@ namespace Joomla\Plugin\Content\Jcomments\Extension;
 
 defined('_JEXEC') or die;
 
-use ContentHelperRoute;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Layout\FileLayout;
@@ -22,9 +21,10 @@ use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
-use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
+use Joomla\Component\Content\Site\Helper\RouteHelper;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Event\DispatcherInterface;
 use Joomla\Registry\Registry;
@@ -57,16 +57,18 @@ final class Jcomments extends CMSPlugin
 	/**
 	 * Constructor
 	 *
-	 * @param   DispatcherInterface  $subject  The object to observe
-	 * @param   array                $config   An optional associative array of configuration settings.
-	 *                                         Recognized key values include 'name', 'group', 'params', 'language'
-	 *                                         (this list is not meant to be comprehensive).
+	 * @param   DispatcherInterface  $dispatcher  The object to observe
+	 * @param   array                $config      An optional associative array of configuration settings.
+	 *                                            Recognized key values include 'name', 'group', 'params', 'language'
+	 *                                            (this list is not meant to be comprehensive).
 	 *
 	 * @since   1.5
 	 */
-	public function __construct(&$subject, $config = array())
+	public function __construct(DispatcherInterface $dispatcher, array $config = array())
 	{
-		parent::__construct($subject, $config);
+		parent::__construct($dispatcher, $config);
+
+		$this->app = $this->getApplication() ?: $this->app;
 
 		// Load component language file
 		$this->app->getLanguage()->load('com_jcomments');
@@ -122,7 +124,7 @@ final class Jcomments extends CMSPlugin
 		if (isset($article->state) && $article->state == $archivesState && $this->params->get('enable_for_archived') == 0)
 		{
 			$commentsLocked = true;
-			JcommentsFactory::getAcl()->setCommentsLocked($commentsLocked);
+			JcommentsFactory::getAcl()->setCommentsLocked(true);
 		}
 
 		$config->set('comments_on', $commentsEnabled);
@@ -140,11 +142,11 @@ final class Jcomments extends CMSPlugin
 
 			if ($params->get('access-view'))
 			{
-				$readmoreLink = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
+				$readmoreLink = Route::_(RouteHelper::getArticleRoute($slug, $article->catid, $language));
 			}
 			else
 			{
-				$returnURL = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
+				$returnURL = Route::_(RouteHelper::getArticleRoute($slug, $article->catid, $language));
 
 				$menu   = $this->app->getMenu();
 				$active = $menu->getActive();
@@ -174,22 +176,13 @@ final class Jcomments extends CMSPlugin
 				if ($this->params->get('link_read_comments') != 0)
 				{
 					$acl = JcommentsFactory::getACL();
-
-					/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
-					$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
-						->createModel('Comments', 'Site', array('ignore_request' => true));
-
-					$model->setState('object_id', $article->id);
-					$model->setState('object_group', 'com_content');
-					$model->setState(
-						'list.options.published',
-						$acl->canPublish() || $acl->canPublishForObject($article->id, 'com_content') ? null : 1
+					$count = ObjectHelper::getTotalCommentsForObject(
+						$article->id,
+						'com_content',
+						$acl->canPublish() || $acl->canPublishForObject($article->id, 'com_content') ? null : 1,
+						0,
+						$language
 					);
-					$model->setState('list.options.lang', $language);
-					$model->setState('list.options.objectinfo', $language);
-
-					$count = $model->getTotal();
-
 					$layoutData['commentsCount'] = $count;
 				}
 			}
@@ -433,32 +426,35 @@ final class Jcomments extends CMSPlugin
 	 * Method is called right after the content is saved
 	 *
 	 * @param   string   $context  The context of the content passed to the plugin (added in 1.6)
-	 * @param   object   $article  A TableContent object
+	 * @param   object   $item     A TableContent or CategoryTable object
 	 * @param   boolean  $isNew    If the content is just about to be created
 	 *
 	 * @return  void
 	 *
 	 * @since   1.6
-	 * @todo Need refactoring
 	 */
-	public function onContentAfterSave(string $context, $article, bool $isNew): void
+	public function onContentAfterSave(string $context, $item, bool $isNew): void
 	{
-		if (($context == 'com_content.article' || $context == 'com_content.form') && !$isNew)
+		// Check for com_categories.category required to update object_link if category alias has changed.
+		if (($context == 'com_content.article' || $context == 'com_categories.category' || $context == 'com_content.form') && !$isNew)
 		{
-			if (JcommentsContentHelper::checkCategory($article->catid))
+			/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
+			$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
+				->createModel('Objects', 'Site', array('ignore_request' => true));
+
+			if ($context == 'com_content.article' || $context == 'com_content.form')
 			{
-				//require_once JPATH_ROOT . '/components/com_jcomments/helpers/object.php';
-
-				//JcommentsObject::storeObjectInfo($article->id);
-
-				/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
-				/*$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
-					->createModel('Object', 'Site', array('ignore_request' => true));
-
-				$model->save($article->id);*/
-
-				CacheHelper::removeCachedItem('', 'com_jcomments_comments');
-				CacheHelper::removeCachedItem('', 'com_jcomments_objects');
+				if (JcommentsContentHelper::checkCategory($item->catid))
+				{
+					$model->save($item->id, \Joomla\Component\Jcomments\Site\Helper\ObjectHelper::getObjectInfoFromPlugin($item->id));
+				}
+			}
+			elseif ($context == 'com_categories.category')
+			{
+				if (JcommentsContentHelper::checkCategory($item->id))
+				{
+					$model->updateLink($item->id, 'com_categories');
+				}
 			}
 		}
 	}

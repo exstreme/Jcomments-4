@@ -16,6 +16,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
+use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Filesystem\File;
 use Joomla\Registry\Registry;
@@ -104,7 +105,7 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 
 		if (!isset($config['layout']))
 		{
-			$config['layout'] = $app->input->get('layout', 'default', 'string');
+			$config['layout'] = $app->input->getString('layout', 'default');
 		}
 
 		/** @var \Joomla\CMS\MVC\Factory\MVCFactory $factory */
@@ -151,5 +152,29 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 		list($usec, $sec) = explode(' ', microtime());
 
 		return (int) $sec + $usec * 10000000;
+	}
+
+	/**
+	 * Renders the error and returns the results as a string.
+	 *
+	 * @param   string   $msg    Message
+	 * @param   string   $type   Message type
+	 * @param   string   $icon   Icon type
+	 * @param   boolean  $close  Show close button
+	 *
+	 * @return  string
+	 *
+	 * @since   4.1
+	 */
+	public static function renderMessage(string $msg, string $type = 'info', string $icon = '', bool $close = false): string
+	{
+		$icon = empty($icon) ? $type : $icon;
+
+		return LayoutHelper::render(
+			'message',
+			array('msg' => $msg, 'type' => $type, 'icon' => $icon, 'close' => $close),
+			'',
+			array('component' => 'com_jcomments')
+		);
 	}
 }

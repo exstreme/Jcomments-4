@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Layout\LayoutHelper;
 
-/** @var Joomla\Component\Jcomments\Site\View\Comments\HtmlView $this */
+/** @var Joomla\Component\Jcomments\Site\View\Comments\RawView $this */
 
 if (!$this->items)
 {
@@ -24,16 +24,20 @@ if (!$this->items)
 $currentLevel = 0;
 $i            = 0;
 $j            = 0;
+$maxLevel     = $this->params->get('comments_tree_levels');
+
+echo $this->loadTemplate('pinned');
 ?>
 <div class="list-unstyled comments-list-parent">
 
 <?php foreach ($this->items as $id => $comment):
 	if ($currentLevel < $comment->level)
 	{
+		$margin = ($currentLevel >= $maxLevel && $maxLevel > -1) ? 'ms-0' : 'ms-4';
 		?>
 
 	</div>
-	<div class="ms-4 comments-list-child" id="comments-list-<?php echo $comment->parent; ?>">
+	<div class="<?php echo $margin; ?> comments-list-child" id="comments-list-<?php echo $comment->parent; ?>">
 
 		<?php
 	}

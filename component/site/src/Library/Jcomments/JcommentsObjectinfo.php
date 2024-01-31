@@ -17,41 +17,68 @@ defined('_JEXEC') or die;
 /**
  * JComments object
  *
- * @since   3.0
+ * @since   2.3
  */
 class JcommentsObjectinfo
 {
-	/** @var integer */
-	public $id = null;
-
-	/** @var integer */
+	/**
+	 * @var   integer
+	 * @since 2.3
+	 */
 	public $object_id = null;
 
-	/** @var string */
+	/**
+	 * @var   string
+	 * @since 2.3
+	 */
 	public $object_group = null;
 
-	/** @var integer */
-	public $category_id = null;
+	/**
+	 * @var   integer
+	 * @since 2.3
+	 */
+	public $catid = null;
 
-	/** @var string */
-	public $lang = null;
+	/**
+	 * @var   string
+	 * @since 2.3
+	 */
+	public $object_lang = null;
 
-	/** @var string */
-	public $title = null;
+	/**
+	 * @var   string
+	 * @since 2.3
+	 */
+	public $object_title = null;
 
-	/** @var string */
-	public $link = null;
+	/**
+	 * @var   string
+	 * @since 2.3
+	 */
+	public $object_link = null;
 
-	/** @var integer */
-	public $access = null;
+	/**
+	 * @var   integer
+	 * @since 2.3
+	 */
+	public $object_access = null;
 
-	/** @var integer */
-	public $userid = null;
+	/**
+	 * @var   integer
+	 * @since 2.3
+	 */
+	public $object_owner = null;
 
-	/** @var integer */
+	/**
+	 * @var   string
+	 * @since 2.3
+	 */
 	public $expired = null;
 
-	/** @var string */
+	/**
+	 * @var   string
+	 * @since 2.3
+	 */
 	public $modified = null;
 
 	/**
@@ -59,7 +86,7 @@ class JcommentsObjectinfo
 	 *
 	 * @param   null  $src  Source
 	 *
-	 * @since   3.0
+	 * @since   2.3
 	 */
 	public function __construct($src = null)
 	{

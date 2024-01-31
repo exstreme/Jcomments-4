@@ -21,7 +21,7 @@ use Joomla\Database\ParameterType;
 use Joomla\Utilities\IpHelper;
 
 /**
- * Comment item class
+ * Blacklist model class
  *
  * @since  4.1
  */
@@ -36,7 +36,7 @@ class BlacklistModel extends BaseDatabaseModel
 	 * @return  array
 	 *
 	 * @since   4.1
-	 * @see     JcommentsAcl::isUserBlocked()
+	 * @see     JcommentsAcl::getUserBlockState()
 	 */
 	public function isBlacklisted(string $ip, $user = null): array
 	{
@@ -52,7 +52,7 @@ class BlacklistModel extends BaseDatabaseModel
 		if ($userId > 0)
 		{
 			$query = $db->getQuery(true)
-				->select($db->quoteName('reason'))
+				->select($db->quoteName(array('userid', 'reason')))
 				->from($db->quoteName('#__jcomments_blacklist'))
 				->where($db->quoteName('userid') . ' = :uid')
 				->bind(':uid', $userId, ParameterType::INTEGER);
@@ -60,12 +60,12 @@ class BlacklistModel extends BaseDatabaseModel
 			try
 			{
 				$db->setQuery($query);
-				$reason = $db->loadResult();
+				$row = $db->loadAssoc();
 
-				if (!empty($reason))
+				if (!empty($row))
 				{
 					$result['block'] = true;
-					$result['reason'] = $reason;
+					$result['reason'] = $row['reason'];
 				}
 			}
 			catch (\RuntimeException $e)
@@ -73,7 +73,9 @@ class BlacklistModel extends BaseDatabaseModel
 				Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 			}
 		}
-		else
+
+		// Nothing found by user id, try to search in IP list(s).
+		if ($result['block'] === false)
 		{
 			$query = $db->getQuery(true)
 				->select($db->quoteName(array('ip', 'reason')))
@@ -82,20 +84,20 @@ class BlacklistModel extends BaseDatabaseModel
 			try
 			{
 				$db->setQuery($query);
-				$rows = $db->loadObjectList();
+				$rows = $db->loadAssocList();
 
 				foreach ($rows as $row)
 				{
 					// IPv4
-					if (strpos($row->ip, '.') !== false)
+					if (strpos($row['ip'], '.') !== false)
 					{
-						$row->ip = $this->toCIDR($row->ip);
+						$row['ip'] = $this->toCIDR($row['ip']);
 					}
 
-					if (IpHelper::IPinList($ip, $row->ip))
+					if (IpHelper::IPinList($ip, $row['ip']))
 					{
 						$result['block'] = true;
-						$result['reason'] = $row->reason;
+						$result['reason'] = $row['reason'];
 						break;
 					}
 				}

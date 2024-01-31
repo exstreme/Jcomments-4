@@ -18,9 +18,16 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Content\Site\Helper\RouteHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
+use Joomla\String\StringHelper;
 
+/**
+ * Class to get object information from com_content extension.
+ *
+ * @since  2.0
+ */
 class jc_com_content extends JcommentsPlugin
 {
 	/**
@@ -34,7 +41,7 @@ class jc_com_content extends JcommentsPlugin
 	 * @throws  \Exception
 	 * @since   1.5
 	 */
-	public function getObjectInfo($id, $language = null)
+	public function getObjectInfo(int $id, $language = null)
 	{
 		$app = Factory::getApplication();
 		$link = null;
@@ -58,21 +65,21 @@ class jc_com_content extends JcommentsPlugin
 		{
 			$article->slug    = $article->alias ? ($article->id . ':' . $article->alias) : $article->id;
 			$article->catslug = $article->category_alias ? ($article->catid . ':' . $article->category_alias) : $article->catid;
-
-			$authorised  = Access::getAuthorisedViewLevels($app->getIdentity()->get('id'));
-			$checkAccess = in_array($article->access, $authorised);
+			$language         = StringHelper::substr(!empty($language) ? $language : $article->language, 0, 2);
+			$authorised       = Access::getAuthorisedViewLevels($app->getIdentity()->get('id'));
+			$checkAccess      = in_array($article->access, $authorised);
 
 			if ($checkAccess)
 			{
-				$link = Route::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catslug, $article->language), false);
+				$link = Route::link('site', RouteHelper::getArticleRoute($article->slug, $article->catslug, $language), false);
 			}
 			else
 			{
-				$returnURL = Route::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catslug, $article->language));
+				$returnURL = Route::link('site', RouteHelper::getArticleRoute($article->slug, $article->catslug, $language), false);
 				$menu      = $app->getMenu();
 				$active    = $menu->getActive();
 				$itemId    = $active->id;
-				$link      = Route::_('index.php?option=com_users&view=login&Itemid=' . $itemId);
+				$link      = Route::link('site', 'index.php?option=com_users&view=login&Itemid=' . $itemId,  false);
 				$uri       = new Uri($link);
 				$uri->setVar('return', base64_encode($returnURL));
 				$link = $uri->toString();
@@ -83,11 +90,14 @@ class jc_com_content extends JcommentsPlugin
 
 		if (!empty($article))
 		{
-			$info->category_id = $article->catid;
-			$info->title       = $article->title;
-			$info->access      = $article->access;
-			$info->userid      = $article->created_by;
-			$info->link        = $link;
+			$info->catid    = $article->catid;
+			$info->object_lang     = $article->language;
+			$info->object_title = $article->title;
+			$info->object_access   = $article->access;
+			$info->object_owner   = $article->created_by;
+			$info->object_link     = $link;
+			$info->expired  = $article->publish_down;
+			$info->modified = $article->modified;
 		}
 
 		return $info;

@@ -77,7 +77,7 @@ if ($displayData['active'])
 	}
 	elseif ($app->isClient('site'))
 	{
-		$link = 'href="#"';
+		$link = 'href="#" onclick="Jcomments.loadComments(null, \'\', \'\', ' . (int) $item->base . ', true, \'#comments\');return false;"';
 	}
 }
 else
@@ -87,14 +87,16 @@ else
 ?>
 <?php if ($displayData['active']) : ?>
 	<li class="page-item">
-		<a aria-label="<?php echo $aria; ?>" <?php echo $link; ?> class="page-link hasPages" data-page="<?php echo $item->base; ?>">
+		<a aria-label="<?php echo $aria; ?>" <?php echo $link; ?> class="page-link" data-page="<?php echo (int) $item->base; ?>">
 			<?php echo $display; ?>
 		</a>
 	</li>
 <?php elseif (isset($item->active) && $item->active) : ?>
 	<?php $aria = Text::sprintf('JLIB_HTML_PAGE_CURRENT', strtolower($item->text)); ?>
 	<li class="<?php echo $class; ?> page-item">
-		<a aria-current="true" aria-label="<?php echo $aria; ?>" href="#" class="page-link"><?php echo $display; ?></a>
+		<a aria-current="true" aria-label="<?php echo $aria; ?>" href="#" class="page-link" onclick="return false;">
+			<?php echo $display; ?>
+		</a>
 	</li>
 <?php else : ?>
 	<li class="<?php echo $class; ?> page-item">

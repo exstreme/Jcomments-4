@@ -13,6 +13,8 @@ namespace Joomla\Plugin\Extension\Jcomments\Extension;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Filter\InputFilter;
+use Joomla\CMS\Mail\MailHelper;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 /**
@@ -33,19 +35,20 @@ final class Jcomments extends CMSPlugin
 	/**
 	 * Change some values before save component parameters.
 	 *
-	 * @param   string             $context  com_config.component
-	 * @param   \Joomla\CMS\Table  $table    Table
-	 * @param   boolean            $isNew    New or not
+	 * @param   string                   $context  com_config.component
+	 * @param   \Joomla\CMS\Table\Table  $table    Table
+	 * @param   boolean                  $isNew    New or not
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.2
-	 * @see     Joomla\Component\Config\Administrator\Model\ComponentModel::save()
+	 * @see     \Joomla\Component\Config\Administrator\Model\ComponentModel::save()
 	 */
-	public function onExtensionBeforeSave($context, $table, $isNew = false)
+	public function onExtensionBeforeSave(string $context, $table, bool $isNew = false)
 	{
+		$app = $this->getApplication() ?: $this->app;
 
-		if ($context !== 'com_config.component' || $this->app->input->getCmd('component') != 'com_jcomments')
+		if ($context !== 'com_config.component' || $app->input->getCmd('component') != 'com_jcomments')
 		{
 			return true;
 		}
@@ -73,6 +76,32 @@ final class Jcomments extends CMSPlugin
 		{
 			$params['comment_minlength'] = 0;
 		}
+
+		$filter  = InputFilter::getInstance();
+		$_emails = explode(',', $params['notification_email']);
+		$emails  = array();
+		$db      = $table->getDbo();
+
+		foreach ($_emails as $email)
+		{
+			$email = $filter->clean($email);
+			$email = str_replace(array('"', '\'', ';', ':', '(', ')', '[', ']', '{', '}', ' '), '', $email);
+			$email = trim($email);
+
+			if (!MailHelper::isEmailAddress($email))
+			{
+				continue;
+			}
+			else
+			{
+				if (!in_array($email, $emails))
+				{
+					$emails[] = $db->escape($email);
+				}
+			}
+		}
+
+		$params['notification_email'] = implode(',', $emails);
 
 		$table->params = json_encode($params);
 

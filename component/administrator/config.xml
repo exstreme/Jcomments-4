@@ -11,6 +11,7 @@
 					layout="joomla.form.field.list-fancy-select"
 					label="A_CATEGORIES"
 					description="AP_CATEGORIES_DESC"
+					required="true"
 			>
 				<option value="*">JOPTION_ALL_CATEGORIES</option>
 			</field>
@@ -25,7 +26,7 @@
 					hide_none="true"
 					hide_default="true"
 					fileFilter="\.css$"
-					exclude="backend-style|frontend-style"
+					exclude="backend-style|frontend-style|email-style"
 					stripext="true"
 					label="AP_STYLE"
 					description="AP_STYLE_DESC"
@@ -146,20 +147,6 @@
 			</field>
 
 			<field
-					name="load_cached_comments"
-					type="radio"
-					class="btn-group"
-					default="1"
-					label="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE"
-					description="AP_ALWAYS_EMBED_COMMENTS_INTO_PAGE_SOURCE_DESC"
-					layout="joomla.form.field.radio.switcher"
-					filter="boolean"
-			>
-				<option value="0">JNO</option>
-				<option value="1">JYES</option>
-			</field>
-
-			<field
 					name="delete_mode"
 					type="list"
 					default="0"
@@ -196,6 +183,16 @@
 			<option value="1">AP_TREE_ORDER_REVERSE</option>
 			<option value="2">AP_TREE_ORDER_COMBINED</option>
 		</field>
+
+		<field
+				name="comments_tree_levels"
+				type="text"
+				default="-1"
+				label="AP_TREE_LEVELS"
+				description="AP_TREE_LEVELS_DESC"
+				filter="int"
+				showon="template_view:tree"
+		/>
 
 		<field
 				name="comments_list_order"
@@ -243,6 +240,31 @@
 			<option value="bottom">AP_PAGINATION_BOTTOM</option>
 			<option value="both">AP_PAGINATION_BOTH</option>
 		</field>
+
+		<field
+				name="max_pinned"
+				type="number"
+				default="0"
+				label="AP_ALLOW_PINNED"
+				description="AP_ALLOW_PINNED_DESC"
+				filter="integer"
+				min="0"
+				max="10"
+				step="1"
+		/>
+
+		<field
+				name="allow_pinned_list"
+				type="radio"
+				default="0"
+				label="AP_DISPLAY_PINNED_LIST"
+				description="AP_DISPLAY_PINNED_LIST_DESC"
+				layout="joomla.form.field.radio.switcher"
+				filter="boolean"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
 	</fieldset>
 
 	<fieldset name="form" label="A_FORM_PARAMS">
@@ -282,6 +304,35 @@
 		/>
 
 		<field
+				name="show_commentlength"
+				type="radio"
+				default="1"
+				label="AP_SHOW_COMMENTLENGTH"
+				description="AP_SHOW_COMMENTLENGTH_DESC"
+				layout="joomla.form.field.radio.switcher"
+				filter="boolean"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<field
+				name="smilies_path"
+				type="text"
+				default="media/com_jcomments/images/tmpl/smilies/default/"
+				label="AP_FORM_FIELD_SMILIES_PATH"
+				filter="path"
+		/>
+
+		<field
+				name="extra_fields_note"
+				type="note"
+				class="alert alert-info"
+				label="AP_FORM_FIELD_EXTRA"
+				description="AP_FORM_FIELD_EXTRA_DESC"
+		/>
+
+		<field
 				name="author_name"
 				type="list"
 				default="2"
@@ -299,7 +350,6 @@
 				type="list"
 				default="2"
 				label="AP_FORM_FIELD_AUTHOR_EMAIL"
-				description="AP_FORM_FIELD_AUTHOR_EMAIL_DESC"
 				filter="int">
 			<option value="0">AP_FORM_FIELD_DISABLED</option>
 			<option value="1">AP_FORM_FIELD_UNREQUIRED</option>
@@ -332,27 +382,6 @@
 			<option value="1">AP_FORM_FIELD_UNREQUIRED</option>
 			<option value="3">AP_FORM_FIELD_REQUIRED_FOR_ALL</option>
 		</field>
-
-		<field
-				name="show_commentlength"
-				type="radio"
-				default="1"
-				label="AP_SHOW_COMMENTLENGTH"
-				description="AP_SHOW_COMMENTLENGTH_DESC"
-				layout="joomla.form.field.radio.switcher"
-				filter="boolean"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field
-				name="smilies_path"
-				type="text"
-				default="media/com_jcomments/images/tmpl/smilies/default/"
-				label="AP_FORM_FIELD_SMILIES_PATH"
-				filter="path"
-		/>
 
 		<field
 				name="custom_fields_enable"
@@ -427,6 +456,15 @@
 		</field>
 
 		<field
+				name="editor_buttons_note"
+				type="note"
+				class="alert alert-info"
+				label="AP_FORM_FIELD_EDITOR_BUTTONS"
+				description="AP_FORM_FIELD_EDITOR_BUTTONS_DESC"
+				showon="editor_format:bbcode[OR]editor_type:component"
+		/>
+
+		<field
 				name="editor_buttons"
 				type="subform"
 				label="AP_FORM_FIELD_EDITOR_BUTTONS"
@@ -442,7 +480,6 @@
 						name="btn"
 						type="list"
 						label=""
-						description="AP_FORM_FIELD_EDITOR_BUTTONS_DESC"
 						translateLabel="false"
 				>
 					<option value="|">SEPARATOR</option>
@@ -509,6 +546,19 @@
 			</field>
 
 			<field
+					name="enable_user_notification"
+					type="radio"
+					default="1"
+					label="AP_ENABLE_USER_NOTIFICATION"
+					description="AP_ENABLE_USER_NOTIFICATION_DESC"
+					layout="joomla.form.field.radio.switcher"
+					filter="boolean"
+			>
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
+			</field>
+
+			<field
 					name="notification_type"
 					type="list"
 					default="1,2"
@@ -524,8 +574,10 @@
 
 			<field
 					name="notification_email"
-					type="text"
+					type="textarea"
 					default=""
+					rows="3"
+					cols="50"
 					label="AP_ENABLE_NOTIFICATION_EMAIL"
 					description="AP_ENABLE_NOTIFICATION_EMAIL_DESC"
 					showon="enable_notification:1"
@@ -537,7 +589,7 @@
 					label="AP_NOTIFICATION_MAILS_FIELD_MAIL_STYLE_LABEL"
 					default="plaintext"
 					validate="options"
-					showon="enable_notification:1"
+					showon="enable_notification:1[OR]enable_user_notification:1"
 			>
 				<option value="plaintext">AP_NOTIFICATION_MAILS_FIELD_OPTION_PLAINTEXT</option>
 				<option value="html">AP_NOTIFICATION_MAILS_FIELD_OPTION_HTML</option>
@@ -879,7 +931,7 @@
 					multiple="true"
 					min="1"
 					buttons="add,remove"
-					default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned.","message_terms_of_use":"Before posting a comment you must accept our terms of use."}}'
+					default='{"__field60":{"lang":"*","message_policy_post":"","message_policy_whocancomment":"You have no rights to post comments.","message_locked":"Comments are now closed for this entry.","message_banned":"You are banned.","message_terms_of_use":"Before posting a comment you must accept our terms of use.","message_terms_of_use_article":"","message_comment_pinned":"Best comment"}}'
 			>
 				<form>
 					<field
@@ -954,6 +1006,14 @@
 							edit="true"
 							clear="true"
 							filter="integer"
+					/>
+
+					<field
+							name="message_comment_pinned"
+							type="text"
+							default=""
+							label="A_MESSAGES_COMMENT_PINNED_LABEL"
+							filter="string"
 					/>
 				</form>
 			</field>

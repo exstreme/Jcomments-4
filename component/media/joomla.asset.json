@@ -8,7 +8,7 @@
     {
       "name": "jcomments.backend_style",
       "type": "style",
-      "uri": "com_jcomments/backend-style.css"
+      "uri": "com_jcomments/backend-style.min.css"
     },
     {
       "name": "jcomments.style",
@@ -52,7 +52,8 @@
       "type": "script",
       "uri": "com_jcomments/jcomments.core.min.js",
       "dependencies": [
-        "locutus"
+        "locutus",
+        "bootstrap.collapse"
       ],
       "version": "4.1.0"
     },
@@ -60,10 +61,19 @@
       "name": "jcomments.frontend",
       "type": "script",
       "uri": "com_jcomments/jcomments.frontend.min.js",
-      "dependencies": [
-        "jquery"
-      ],
       "version": "4.1.0"
+    },
+    {
+      "name": "com_content.form-edit",
+      "type": "script",
+      "uri": "com_content/form-edit.min.js",
+      "dependencies": [
+        "core"
+      ],
+      "attributes": {
+        "type": "module"
+      },
+      "version": "ff12aa"
     },
     {
       "name": "kwood.plugin",

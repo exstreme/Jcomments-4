@@ -16,11 +16,14 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsTree;
+use Joomla\Event\DispatcherInterface;
 
 /**
  * Raw View class for the Jcomments component
@@ -35,6 +38,12 @@ class RawView extends BaseHtmlView
 	 * @since  4.1
 	 */
 	protected $items = null;
+
+	/**
+	 * @var  \stdClass[]  The comments array with pinned comments
+	 * @since  4.1
+	 */
+	protected $pinnedItems = null;
 
 	/**
 	 * @var  \Joomla\CMS\Pagination\Pagination  The pagination object.
@@ -90,17 +99,16 @@ class RawView extends BaseHtmlView
 		$this->params      = $state->get('params');
 		$this->objectID    = $state->get('object_id');
 		$this->objectGroup = $state->get('object_group');
-
-		// Set model state before calling getItems()
-		$state->set('list.options.object_info', true);
+		$dispatcher        = $this->getDispatcher();
 
 		// Set default template. Because this view loaded through plugin event the default template is 'blog'.
 		$this->templateView = $this->params->get('template_view');
 		$this->setLayout('default');
 
 		// Import plugins due the view called not from controller but from other plugin.
-		PluginHelper::importPlugin('jcomments');
+		PluginHelper::importPlugin('jcomments', null, true, $dispatcher);
 
+		$objectInfo = ObjectHelper::getObjectInfoFromPlugin($this->objectID, $this->objectGroup);
 		$rows = $this->get('Items');
 
 		if (count($errors = $this->get('Errors')))
@@ -110,32 +118,23 @@ class RawView extends BaseHtmlView
 			$app->close();
 		}
 
+		if (!in_array($objectInfo->object_access, $user->getAuthorisedViewLevels()))
+		{
+			echo new JsonResponse(null, Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE'), true);
+
+			$app->close();
+		}
+
 		if (count($rows))
 		{
-			$dispatcher = $this->getDispatcher();
-			$dispatcher->dispatch(
-				'onJCommentsCommentsPrepare',
-				AbstractEvent::create(
-					'onJCommentsCommentsPrepare',
-					array('subject' => new \stdClass, array($rows))
-				)
-			);
-
-			if ($user->authorise('comment.avatar', 'com_jcomments'))
-			{
-				$dispatcher->dispatch(
-					'onPrepareAvatars',
-					AbstractEvent::create(
-						'onPrepareAvatars',
-						array('subject' => new \stdClass, $rows)
-					)
-				);
-			}
+			$this->dispatchSomeEvents($dispatcher, array('user' => $user, 'rows' => $rows));
 
 			if ($this->templateView == 'tree')
 			{
-				$tree  = new JcommentsTree($rows);
-				$items = $tree->get();
+				$pinnedComments  = array();
+				$tree            = new JcommentsTree($rows);
+				$items           = $tree->get();
+				$allowPinnedList = $this->params->get('allow_pinned_list');
 
 				foreach ($rows as $row)
 				{
@@ -146,6 +145,13 @@ class RawView extends BaseHtmlView
 					{
 						$row->commentData->set('number', '');
 					}
+
+					if ($allowPinnedList && $row->pinned == 1 && $row->deleted == 0)
+					{
+						$pinnedComments[] = $row;
+					}
+
+					JcommentsContentHelper::dispatchContentEvents($dispatcher, $row);
 				}
 
 				$this->totalComments = empty($items) ? 0 : count($items);
@@ -202,16 +208,52 @@ class RawView extends BaseHtmlView
 						}
 					}
 
+					JcommentsContentHelper::dispatchContentEvents($dispatcher, $row);
+
 					$items[$row->id] = $row;
 				}
 
 				$this->pagination = &$pagination;
 				$this->totalComments = $totalComments;
+
+				if ($this->params->get('allow_pinned_list'))
+				{
+					$model = $app->bootComponent('com_jcomments')->getMVCFactory()->createModel('Comments', 'Site', array('ignore_request' => true));
+					$model->setState('list.limit', '0');
+					$model->setState('list.start', '0');
+					$model->setState('list.options.votes', $this->params->get('enable_voting', 0));
+					$model->setState('list.options.lang', $app->getLanguage()->getTag());
+					$model->setState('list.options.labels', true);
+					$model->setState('list.options.blacklist', true);
+					$model->setState('list.options.comment_lang', true);
+					$model->setState('list.options.filter', 'c.pinned = 1 AND c.deleted = 0');
+					$pinnedRows = $model->getItems();
+					$pinnedComments = array();
+
+					$this->dispatchSomeEvents($dispatcher, array('user' => $user, 'rows' => $pinnedRows));
+
+					foreach ($pinnedRows as $k => $v)
+					{
+						// Run autocensor, replace quotes, smilies and other pre-view processing
+						JcommentsContentHelper::prepareComment($v);
+
+						if (isset($items[$v->id]))
+						{
+							$v->commentData->set('number', '');
+						}
+
+						JcommentsContentHelper::dispatchContentEvents($dispatcher, $v);
+
+						$pinnedComments[$k] = $v;
+					}
+				}
 			}
 
 			$this->items = &$items;
+			$this->pinnedItems = &$pinnedComments;
 
 			unset($rows);
+			unset($pinnedRows);
 		}
 
 		ob_start();
@@ -221,8 +263,48 @@ class RawView extends BaseHtmlView
 
 		ob_end_clean();
 
-		echo new JsonResponse(array('total' => $this->totalComments, 'html' => $output));
+		echo new JsonResponse(
+			array(
+				'total' => $this->totalComments,
+				'html' => $output,
+				// Used in jcomments.core.js/Jcomments.loadComments() to dynamically switch comments list type.
+				'type' => $this->params->get('template_view')
+			)
+		);
 
 		$app->close();
+	}
+
+	/**
+	 * Dispatch some events for each comment item.
+	 * Do not use inside loops.
+	 *
+	 * @param   DispatcherInterface  $dispatcher  The event dispatcher through which to launch the event.
+	 * @param   array                $data        Array with user object and comments
+	 *
+	 * @return  void
+	 *
+	 * @since   4.1
+	 */
+	private function dispatchSomeEvents(DispatcherInterface $dispatcher, array $data)
+	{
+		$dispatcher->dispatch(
+			'onJCommentsCommentsPrepare',
+			AbstractEvent::create(
+				'onJCommentsCommentsPrepare',
+				array('subject' => new \stdClass, array($data['rows']))
+			)
+		);
+
+		if ($data['user']->authorise('comment.avatar', 'com_jcomments'))
+		{
+			$dispatcher->dispatch(
+				'onPrepareAvatars',
+				AbstractEvent::create(
+					'onPrepareAvatars',
+					array('subject' => new \stdClass, $data['rows'])
+				)
+			);
+		}
 	}
 }

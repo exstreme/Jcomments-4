@@ -65,11 +65,11 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							<th scope="col" class="w-20 d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'A_BLACKLIST_IP', 'jb.ip', $listDirn, $listOrder, null, 'asc', 'A_BLACKLIST_IP', 'icon-sort'); ?>
 							</th>
-							<th scope="col" class="d-none d-sm-table-cell">
-								<?php echo Text::_('A_BLACKLIST_REASON'); ?>
+							<th scope="col" class="d-sm-table-cell">
+								<?php echo HTMLHelper::_('searchtools.sort', 'A_BLACKLIST_USER', 'u3.username', $listDirn, $listOrder); ?>
 							</th>
 							<th scope="col" class="d-none d-sm-table-cell">
-								<?php echo Text::_('A_BLACKLIST_NOTES'); ?>
+								<?php echo Text::_('A_BLACKLIST_REASON'); ?>
 							</th>
 							<th scope="col" class="w-10 d-sm-table-cell">
 								<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_CREATED_BY', 'u.name', $listDirn, $listOrder); ?>
@@ -128,10 +128,19 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 									</div>
 								</th>
 								<td class="small d-none d-sm-table-cell">
-									<span class="read-more"><?php echo $item->reason; ?></span>
+									<?php if ($canEdit && $canCheckin): ?>
+										<a href="<?php echo Route::_('index.php?option=com_jcomments&task=blacklist.edit&id=' . (int) $item->id); ?>"
+										   title="<?php echo Text::_('JACTION_EDIT'); ?>"><?php echo $item->login_username; ?></a>
+									<?php else: ?>
+										<?php echo $item->login_username; ?>
+									<?php endif; ?>
+
+									<?php if ($item->login_name > ''): ?>
+										<div class="small">(<?php echo $item->login_name; ?>)</div>
+									<?php endif; ?>
 								</td>
 								<td class="small d-none d-sm-table-cell">
-									<span class="read-more"><?php echo $item->notes; ?></span>
+									<span class="read-more"><?php echo $item->reason; ?></span>
 								</td>
 								<td class="d-md-table-cell">
 									<?php echo $item->name; ?>

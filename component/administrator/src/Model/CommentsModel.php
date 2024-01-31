@@ -79,7 +79,8 @@ class CommentsModel extends ListModel
 					$db->quoteName('jc.published'),
 					$db->quoteName('jc.deleted'),
 					$db->quoteName('jc.checked_out'),
-					$db->quoteName('jc.checked_out_time')
+					$db->quoteName('jc.checked_out_time'),
+					$db->quoteName('jc.pinned')
 				)
 			)
 		)

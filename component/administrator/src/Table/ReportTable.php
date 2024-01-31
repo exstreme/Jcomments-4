@@ -26,7 +26,6 @@ use Joomla\Database\DatabaseDriver;
  * @property   integer  $ip
  * @property   integer  $date
  * @property   integer  $reason
- * @property   integer  $status
  *
  * @since  1.5
  */

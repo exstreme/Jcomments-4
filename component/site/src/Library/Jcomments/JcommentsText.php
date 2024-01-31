@@ -43,11 +43,25 @@ class JcommentsText
 		if ($params->get('editor_format') == 'bbcode')
 		{
 			$bbcode = JcommentsFactory::getBbcode();
+
+			// First, we delete the bbcodes that are prohibited. Entering the contents of [code] into the array.
+			// Cleaning the rest of the text from html, and replacing {code} with the contents from the array.
 			$text = $bbcode->filter($text, $forceStrip);
+			$text = ComponentHelper::filterText($text);
 
 			if ((int) $params->get('enable_custom_bbcode'))
 			{
 				$text = $bbcode->filterCustom($text, $forceStripCustom);
+			}
+
+			$codeTags = $bbcode->codeTagsArray;
+
+			if (count($codeTags))
+			{
+				foreach ($codeTags as $key => $code)
+				{
+					$text = str_replace('{code' . $key . '}', $code, $text);
+				}
 			}
 		}
 		else
@@ -192,12 +206,13 @@ class JcommentsText
 	 * @param   object  $messages  Object in subform format. E.g. array(subform => array(form => value, ...))
 	 * @param   string  $field     Field name to search.
 	 * @param   string  $lang      Language tag.
+	 * @param   string  $default   Fallback message string if language defined but message not defined.
 	 *
 	 * @return  string  Returns the string according to current frontend language.
 	 *
 	 * @since   4.0
 	 */
-	public static function getMessagesBasedOnLanguage(object $messages, string $field, string $lang = ''): string
+	public static function getMessagesBasedOnLanguage(object $messages, string $field, string $lang = '', string $default = ''): string
 	{
 		$data = array();
 
@@ -213,10 +228,16 @@ class JcommentsText
 		}
 		else
 		{
-			// Get messages for current item language
+			// Get messages for current language
 			if (array_key_exists($lang, $data))
 			{
 				$message = $data[$lang]->$field;
+
+				// Message not defined, fallback to 'All' language messages
+				if (empty($message) && array_key_exists('*', $data))
+				{
+					$message = $data['*']->$field;
+				}
 			}
 			// If not found, fallback to 'All' language messages
 			else
@@ -228,9 +249,15 @@ class JcommentsText
 				// Give up. User not defined messages for proper language in component settings.
 				else
 				{
-					$message = Text::_('ERROR');
+					$message = Text::_($default);
 				}
 			}
+		}
+
+		// If the user has not set a message for this language, we output a standard error message.
+		if (empty($message))
+		{
+			$message = Text::_($default);
 		}
 
 		return $message;

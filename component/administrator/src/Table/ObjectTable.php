@@ -18,15 +18,24 @@ use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseDriver;
 
 /**
- * JComments users table
+ * JComments objects table.
+ * Store information about component item(e.g. com_content article item). Used to easy access to item parameters.
  *
  * @property integer id
- * @property string  labels
- * @property integer terms_of_use
+ * @property integer object_id
+ * @property string  object_group
+ * @property integer category_id
+ * @property string  lang
+ * @property string  title
+ * @property string  link
+ * @property integer access
+ * @property integer userid
+ * @property string  expired
+ * @property string  modified
  *
  * @since  4.1
  */
-class UserTable extends Table
+class ObjectTable extends Table
 {
 	/**
 	 * Constructor
@@ -37,6 +46,6 @@ class UserTable extends Table
 	 */
 	public function __construct($db)
 	{
-		parent::__construct('#__jcomments_users', 'id', $db);
+		parent::__construct('#__jcomments_objects', 'id', $db);
 	}
 }

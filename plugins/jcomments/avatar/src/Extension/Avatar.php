@@ -87,7 +87,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	}
 
 	/**
-	 * Get image URL from user field
+	 * Get image URL from user field(com_fields)
 	 *
 	 * @param   array  $comments  Array with comment objects
 	 *
@@ -135,9 +135,9 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			$uid = (int) $comment->userid;
 			$comment->profileLink = '';
 
-			if ($this->params->get('avatar_link') == 1)
+			if ($this->params->get('avatar_link') == 1 && $uid)
 			{
-				$comment->profileLink = $uid ? Route::_('index.php?option=com_users&view=profile' . $itemId) : '';
+				$comment->profileLink = Route::_('index.php?option=com_users&view=profile' . $itemId);
 			}
 
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');

@@ -21,8 +21,24 @@ use Joomla\String\StringHelper;
 
 class BlacklistsModel extends ListModel
 {
+	/**
+	 * Context string for the model type.  This is used to handle uniqueness
+	 * when dealing with the getStoreId() method and caching data structures.
+	 *
+	 * @var    string
+	 * @since  1.6
+	 */
 	protected $context = 'com_jcomments.blacklists';
 
+	/**
+	 * Constructor
+	 *
+	 * @param   array                 $config   An array of configuration options (name, state, dbo, table_path, ignore_request).
+	 * @param   ?MVCFactoryInterface  $factory  The factory.
+	 *
+	 * @since   1.6
+	 * @throws  \Exception
+	 */
 	public function __construct($config = array(), MVCFactoryInterface $factory = null)
 	{
 		if (empty($config['filter_fields']))
@@ -33,12 +49,20 @@ class BlacklistsModel extends ListModel
 				'created', 'jb.created',
 				'expire', 'jb.expire',
 				'name', 'u.name',
+				'username', 'u3.username',
 			);
 		}
 
 		parent::__construct($config, $factory);
 	}
 
+	/**
+	 * Method to get a DatabaseQuery object for retrieving the data set from a database.
+	 *
+	 * @return  \Joomla\Database\DatabaseQuery|string  A DatabaseQuery object to retrieve the data set.
+	 *
+	 * @since   1.6
+	 */
 	protected function getListQuery()
 	{
 		$db = $this->getDatabase();
@@ -63,7 +87,11 @@ class BlacklistsModel extends ListModel
 
 		// Join over the users
 		$query->select($db->quoteName('u2.name', 'editor'));
-		$query->join('LEFT', $db->quoteName('#__users') . ' AS u2 ON u.id = jb.checked_out');
+		$query->join('LEFT', $db->quoteName('#__users') . ' AS u2 ON u2.id = jb.checked_out');
+
+		// Join over the users
+		$query->select($db->quoteName('u3.name', 'login_name') . ', ' . $db->quoteName('u3.username', 'login_username'));
+		$query->join('LEFT', $db->quoteName('#__users') . ' AS u3 ON u3.id = jb.userid');
 
 		$search = $this->getState('filter.search');
 
@@ -74,6 +102,12 @@ class BlacklistsModel extends ListModel
 				$search = trim(StringHelper::substr($search, 7));
 				$search = $db->quote('%' . $db->escape($search, true) . '%');
 				$query->where('jb.reason LIKE ' . $search);
+			}
+			elseif (stripos($search, 'login:') === 0)
+			{
+				$search = trim(StringHelper::substr($search, 6));
+				$search = $db->quote('%' . $db->escape($search, true) . '%');
+				$query->where('u3.username LIKE ' . $search);
 			}
 			elseif (stripos($search, 'notes:') === 0)
 			{
@@ -96,6 +130,22 @@ class BlacklistsModel extends ListModel
 		return $query;
 	}
 
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * This method should only be called once per instantiation and is designed
+	 * to be called on the first call to the getState() method unless the model
+	 * configuration flag to ignore the request is set.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @param   string  $ordering   An optional ordering field.
+	 * @param   string  $direction  An optional direction (asc|desc).
+	 *
+	 * @return  void
+	 *
+	 * @since   1.6
+	 */
 	protected function populateState($ordering = 'jb.ip', $direction = 'asc')
 	{
 		$app = Factory::getApplication();

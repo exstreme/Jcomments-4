@@ -15,7 +15,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 
 /**
  * @var array $displayData
@@ -23,7 +23,7 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
  */
 $comment = $displayData['data'];
 
-if ($comment->notification_type == 'comment-delete' || $comment->notification_type == 'moderate-delete'):
+if ($comment->notification_type == 'comment-delete' || $comment->notification_type == 'comment-admin-delete'):
 	echo Text::sprintf('NOTIFICATION_SUBJECT_DELETED', $comment->object_title) . "\n";
 else:
 	echo Text::_('EMAIL_HEADER'); ?> <?php echo $comment->object_title . "\n";
@@ -48,13 +48,12 @@ endif;
 <?php echo Text::_('NOTIFICATION_COMMENT_TEXT') . ": \n"; ?>
 >------------------------------------------
 <?php echo $comment->comment . "\n"; ?>
-<?php if ($comment->notification_type != 'comment-delete' && $comment->notification_type != 'moderate-delete'): ?>
+<?php if ($comment->notification_type != 'comment-delete' && $comment->notification_type != 'comment-admin-delete'): ?>
 >------------------------------------------
 <?php echo Text::_('BUTTON_PERMALINK'); ?>
 
-<?php echo Route::_($comment->object_link) ?>#comment-<?php echo $comment->id . "\n";
-endif;
-?>
+<?php echo \Joomla\Component\Jcomments\Site\Helper\ContentHelper::getCommentLink($comment, 'permalink') . "\n"; ?>
+<?php endif; ?>
 <?php if ($displayData['isAdmin']): ?>
 >------------------------------------------
 <?php if ($displayData['config']->get('enable_quick_moderation')):
@@ -63,19 +62,19 @@ $return = '&return=' . base64_encode(Route::_($comment->object_link));
 
 // Publish/unpublish link
 $action = ($comment->published == 0) ? 'publish' : 'unpublish';
-$hash   = JcommentsFactory::getCmdHash($action, $comment->id);
-$link   = 'index.php?option=com_jcomments&task=comment.' . $action . '&id=' . $comment->id . '&hash=' . $hash;
+$hash   = JcommentsContentHelper::getCmdHash($action, $comment->id);
+$link   = 'index.php?option=com_jcomments&task=comment.' . $action . '&comment_id=' . $comment->id . '&hash=' . $hash;
 $aTag[] = Text::_(strtoupper($action)) . "\n" . Route::link('site', $link, false, 0, true) . $return;
 
 // Delete link
-$hash   = JcommentsFactory::getCmdHash('delete', $comment->id);
-$link   = 'index.php?option=com_jcomments&task=comment.delete&id=' . $comment->id . '&hash=' . $hash;
+$hash   = JcommentsContentHelper::getCmdHash('delete', $comment->id);
+$link   = 'index.php?option=com_jcomments&task=comment.delete&comment_id=' . $comment->id . '&hash=' . $hash;
 $aTag[] = Text::_('JACTION_DELETE') . "\n" . Route::link('site', $link, false, 0, true) . $return;
 
 if ($displayData['config']->get('enable_blacklist'))
 {
-	$hash   = JcommentsFactory::getCmdHash('banIP', $comment->id);
-	$link   = 'index.php?option=com_jcomments&task=comment.banIP&id=' . $comment->id . '&hash=' . $hash;
+	$hash   = JcommentsContentHelper::getCmdHash('banIP', $comment->id);
+	$link   = 'index.php?option=com_jcomments&task=comment.banIP&comment_id=' . $comment->id . '&hash=' . $hash;
 	$aTag[] = Text::_('BUTTON_BANIP') . "\n" . Route::link('site', $link, false, 0, true) . $return;
 }
 
@@ -95,7 +94,9 @@ endif; ?>
 <?php echo Text::_('FORM_PRIVACY'); ?>
 
 <?php echo Route::link('site', 'index.php?option=com_jcomments&task=privacy', false, 0, true) . "\n"; ?>
+<?php if (!$displayData['report']): ?>
 >------------------------------------------
 <?php echo Text::_('NOTIFICATION_COMMENT_UNSUBSCRIBE_LINK'); ?>
 
 <?php echo Route::link('site', 'index.php?option=com_jcomments&task=subscription.remove&hash=' . $displayData['hash'], false, 0, true);
+endif;

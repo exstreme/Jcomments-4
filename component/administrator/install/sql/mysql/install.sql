@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `#__jcomments` (
     `source_id` INT(11) UNSIGNED NOT NULL DEFAULT '0',
     `checked_out` INT(11) UNSIGNED,
     `checked_out_time` DATETIME,
+    `pinned` TINYINT(1) UNSIGNED,
     PRIMARY KEY  (`id`),
     KEY `idx_userid` (`userid`),
     KEY `idx_lang` (`lang`),
@@ -97,7 +98,6 @@ CREATE TABLE IF NOT EXISTS `#__jcomments_reports` (
     `ip` VARCHAR(45) NOT NULL DEFAULT '',
     `date` DATETIME NOT NULL,
     `reason` TINYTEXT  NOT NULL,
-    `status` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
     PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
 
@@ -128,7 +128,7 @@ CREATE TABLE IF NOT EXISTS `#__jcomments_objects` (
     `link` TEXT,
     `access` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
     `userid` INT(11) UNSIGNED NOT NULL DEFAULT '0',
-    `expired` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+    `expired` DATETIME NOT NULL,
     `modified` DATETIME NOT NULL,
     PRIMARY KEY  (`id`),
     KEY `idx_object` (`object_id`, `object_group`, `lang`)
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `#__jcomments_mailq` (
     `name` varchar(255) NOT NULL,
     `email` varchar(319) NOT NULL,
     `subject` text NOT NULL,
-    `body` text NOT NULL,
+    `body` mediumtext NOT NULL,
     `created` datetime NOT NULL,
     `attempts` tinyint(1) NOT NULL DEFAULT '0',
     `priority` tinyint(1) NOT NULL DEFAULT '0',

@@ -14,6 +14,7 @@ namespace Joomla\Component\Jcomments\Administrator\View\Comments;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
@@ -21,12 +22,14 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 class HtmlView extends BaseHtmlView
 {
 	protected $items;
 	protected $pagination;
 	protected $state;
+	protected $canPin = false;
 	public $filterForm;
 	public $activeFilters;
 
@@ -42,9 +45,11 @@ class HtmlView extends BaseHtmlView
 	 */
 	public function display($tpl = null)
 	{
+		$app = Factory::getApplication();
+
 		if ($this->getLayout() === 'objects_refresh')
 		{
-			Factory::getApplication()->input->set('hidemainmenu', true);
+			$app->input->set('hidemainmenu', true);
 
 			ToolbarHelper::title(Text::_('A_REFRESH_OBJECTS_TITLE'), 'database');
 		}
@@ -58,6 +63,8 @@ class HtmlView extends BaseHtmlView
 
 			$this->addToolbar();
 		}
+
+		$this->canPin = JcommentsFactory::getAcl()->canPin();
 
 		parent::display($tpl);
 	}
@@ -92,6 +99,12 @@ class HtmlView extends BaseHtmlView
 		{
 			$childBar->publish('comments.publish')->listCheck(true);
 			$childBar->unpublish('comments.unpublish')->listCheck(true);
+
+			if ($this->canPin)
+			{
+				$childBar->standardButton('pin', 'A_COMMENT_UNPIN', 'comments.unpin')->listCheck(true);
+			}
+
 			$childBar->checkin('comments.checkin')->listCheck(true);
 		}
 

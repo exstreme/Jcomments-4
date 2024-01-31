@@ -16,11 +16,12 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 
 /** @var Joomla\Component\Jcomments\Site\View\User\HtmlView $this */
-/** @var Joomla\Component\Jcomments\Site\Model\CommentsModel::getVotesQuery $this->item */
+/** @var Joomla\Component\Jcomments\Site\Model\UserModel::getVotesQuery $this->item */
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('multiselect')
@@ -28,13 +29,13 @@ $wa->useScript('multiselect')
 	->useScript('kwood.more')
 	->useStyle('jcomments.style');
 
-$canVote = JcommentsFactory::getAcl()->canVote;
+$acl = JcommentsFactory::getAcl();
 ?>
 <script type="text/javascript">
 	(function ($) {
 		$(document).ready(function () {
 			$('.read-more').more({
-				length: 80,
+				length: 200,
 				wordBreak: true,
 				moreText: '<?php echo Text::_('JSHOW'); ?>',
 				lessText: '<?php echo Text::_('JHIDE'); ?>'
@@ -43,7 +44,13 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 	})(jQuery);
 </script>
 <div class="container-fluid mt-2">
-	<div class="h6"><?php echo Text::_('VOTES_LIST'); ?></div>
+	<div class="col col-auto h5 me-2"><?php echo Text::_('VOTES_LIST'); ?>
+		<span class="text-info ps-2 total-votes"><?php echo $this->total; ?></span>
+	</div>
+	<div class="col col-auto m-2 stat-votes">
+		<span class="text-success me-4"><span class="icon-thumbs-up pe-2" aria-hidden="true"></span><?php echo $this->voteStats['good']; ?></span>
+		<span class="text-danger"><span class="icon-thumbs-down pe-2" aria-hidden="true"></span><?php echo $this->voteStats['bad']; ?></span>
+	</div>
 
 	<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post" name="adminForm"
 		  id="adminForm" autocomplete="off">
@@ -62,9 +69,7 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 						<thead>
 							<tr>
 								<td class="w-1">
-									<?php if ($canVote): ?>
-										<?php echo HTMLHelper::_('grid.checkall'); ?>
-									<?php endif; ?>
+									<?php echo HTMLHelper::_('grid.checkall'); ?>
 								</td>
 								<th scope="col" style="min-width: 100px;">
 									<?php echo Text::_('JOBJECT'); ?> / <?php echo Text::_('JARTICLE'); ?>
@@ -75,7 +80,7 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 						<?php foreach ($this->items as $i => $item): ?>
 							<tr>
 								<td class="text-center align-top">
-								<?php if ($canVote): ?>
+								<?php if ($acl->canVote($item)): ?>
 									<?php echo HTMLHelper::_('grid.id', $i, $item->vote_id, false, 'cid', 'cb', $item->object_title); ?>
 								<?php endif; ?>
 								</td>
@@ -115,9 +120,9 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 										</div>
 										<div class="col-1">
 											<?php if ($item->value == 1): ?>
-												<span class="link-success icon-thumbs-up" aria-hidden="true"></span>
+												<span class="link-success icon-thumbs-up" aria-hidden="true" title="<?php echo Text::_('BUTTON_VOTE_GOOD'); ?>"></span>
 											<?php elseif ($item->value == -1): ?>
-												<span class="link-danger icon-thumbs-down" aria-hidden="true"></span>
+												<span class="link-danger icon-thumbs-down" aria-hidden="true" title="<?php echo Text::_('BUTTON_VOTE_BAD'); ?>"></span>
 											<?php endif; ?>
 										</div>
 									</div>
@@ -125,7 +130,7 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 							</tr>
 						<?php endforeach; ?>
 						</tbody>
-						<?php if ($canVote): ?>
+						<?php if ($acl->canVote): ?>
 						<tfoot>
 							<tr>
 								<td colspan="3">
@@ -138,7 +143,7 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 										'joomla.toolbar.standard',
 										array(
 											'id'             => 'jc_submit',
-											'task'           => 'comments.removeVotes',
+											'task'           => 'user.removeVotes',
 											'listCheck'      => true,
 											'btnClass'       => 'button-remove btn btn-danger btn-sm',
 											'htmlAttributes' => 'type="button"',
@@ -159,12 +164,23 @@ $canVote = JcommentsFactory::getAcl()->canVote;
 		</div>
 	</form>
 
-	<?php if ($this->pagination->pagesTotal > 1): ?>
+	<form action="<?php echo htmlspecialchars(Uri::getInstance()->toString()); ?>" method="post" name="adminForm" id="adminForm">
+		<div class="w-100">
+			<?php if ($this->pagination->total > 5): ?>
+				<div class="btn-group">
+					<label for="limit" class="visually-hidden">
+						<?php echo Text::_('JGLOBAL_DISPLAY_NUM'); ?>
+					</label>
+					<?php echo $this->pagination->getLimitBox(); ?>
+				</div>
+			<?php endif; ?>
+			<span class="ms-2 float-end"><?php echo $this->pagination->getResultsCounter(); ?></span>
+		</div>
 		<div class="w-100">
 			<p class="float-end pt-3 pe-2">
 				<?php echo $this->pagination->getPagesCounter(); ?>
 			</p>
 			<?php echo $this->pagination->getPagesLinks(); ?>
 		</div>
-	<?php endif; ?>
+	</form>
 </div>

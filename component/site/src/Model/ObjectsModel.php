@@ -18,9 +18,11 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
 use Joomla\Database\ParameterType;
+use Joomla\String\StringHelper;
 
 /**
  * JComments objects model
@@ -44,12 +46,13 @@ class ObjectsModel extends BaseDatabaseModel
 	 * @param   string        $objectGroup  Object group.
 	 * @param   integer|null  $state        Comment state.
 	 * @param   integer|null  $deleted      Comment is deleted?
+	 * @param   string|null   $lang         Object(item) language
 	 *
 	 * @return  integer
 	 *
 	 * @since   4.1
 	 */
-	public function getTotalCommentsForObject(int $objectID, string $objectGroup, ?int $state = null, ?int $deleted = null): int
+	public function getTotalCommentsForObject(int $objectID, string $objectGroup, ?int $state = null, ?int $deleted = null, ?string $lang = null): int
 	{
 		$db          = $this->getDatabase();
 		$total       = 0;
@@ -73,6 +76,12 @@ class ObjectsModel extends BaseDatabaseModel
 		{
 			$query->where($db->quoteName('deleted') . ' = :deleted')
 				->bind(':deleted', $deleted, ParameterType::INTEGER);
+		}
+
+		if (!is_null($lang))
+		{
+			$query->where($db->quoteName('lang') . ' = :lang')
+				->bind(':lang', $lang);
 		}
 
 		try
@@ -164,13 +173,12 @@ class ObjectsModel extends BaseDatabaseModel
 	 * @param   integer  $objectID     Object ID
 	 * @param   string   $objectGroup  Object group. E.g. com_content
 	 * @param   mixed    $language     Object language tag or null
-	 * @param   boolean  $useCache     Load infromation from cache. If set to false when information will be loaded from DB.
 	 *
-	 * @return  mixed
+	 * @return  object|null
 	 *
-	 * @since   3.0
+	 * @since   4.1
 	 */
-	public function getItem(int $objectID, string $objectGroup, $language, bool $useCache = true)
+	public function getItem(int $objectID, string $objectGroup, $language): ?object
 	{
 		if (!isset($this->_item))
 		{
@@ -178,7 +186,7 @@ class ObjectsModel extends BaseDatabaseModel
 			$db          = $this->getDatabase();
 			$language    = empty($language) ? $app->getLanguage()->getTag() : $db->escape($language);
 			$filter      = InputFilter::getInstance();
-			$objectGroup = strtolower($filter->clean($objectGroup));
+			$objectGroup = StringHelper::strtolower($filter->clean($objectGroup));
 			$cacheGroup  = 'com_jcomments_objects_' . $objectGroup;
 			$cacheId     = md5(__METHOD__ . $objectID);
 
@@ -192,13 +200,21 @@ class ObjectsModel extends BaseDatabaseModel
 			else
 			{
 				$query = $db->getQuery(true);
+				$objectGroup = $db->escape($objectGroup);
 
 				$query->select(
-					$db->quoteName(
-						array(
-							'id', 'object_id', 'object_group', 'category_id', 'lang', 'title', 'link', 'access',
-							'userid', 'expired', 'modified'
-						)
+					array(
+						$db->quoteName('id'),
+						$db->quoteName('object_id'),
+						$db->quoteName('object_group'),
+						$db->quoteName('category_id', 'catid'),
+						$db->quoteName('lang', 'object_lang'),
+						$db->quoteName('title', 'object_title'),
+						$db->quoteName('link', 'object_link'),
+						$db->quoteName('access', 'object_access'),
+						$db->quoteName('userid', 'object_owner'),
+						$db->quoteName('expired'),
+						$db->quoteName('modified')
 					)
 				)
 					->from($db->quoteName('#__jcomments_objects'))
@@ -433,59 +449,73 @@ class ObjectsModel extends BaseDatabaseModel
 	/**
 	 * Save object information into database.
 	 *
-	 * @param   integer|null  $objectID  Object ID.
-	 * @param   object        $info      Object with information.
+	 * @param   integer|null  $objectID    Object ID.
+	 * @param   object        $objectInfo  Object with information.
 	 *
-	 * @return  boolean
+	 * @return  boolean|object  Object on insert, true on update, false on error.
 	 *
 	 * @since   4.0
 	 */
-	public function save(?int $objectID, object $info): bool
+	public function save(?int $objectID, object $objectInfo)
 	{
-		$db       = $this->getDatabase();
-		$query    = $db->getQuery(true);
-		$modified = Factory::getDate()->toSql();
+		$db          = $this->getDatabase();
+		$query       = $db->getQuery(true);
+		$modified    = Factory::getDate()->toSql();
+		$objectGroup = $db->escape($objectInfo->object_group);
 
-		if (!empty($objectID))
+		if ($objectGroup == 'com_content')
+		{
+			$expired = $objectInfo->expired;
+		}
+		else
+		{
+			$expired = null;
+		}
+
+		// Load object information from database(not cache) to test if record for certain object ID and object group exists.
+		$_objectInfo = $this->getItem($objectInfo->object_id, $objectGroup, $objectInfo->object_lang);
+
+		if (!empty($objectID) && !empty($_objectInfo))
 		{
 			$query->update($db->quoteName('#__jcomments_objects'))
 				->set($db->quoteName('access') . ' = :access')
 				->set($db->quoteName('userid') . ' = :uid')
-				->set($db->quoteName('expired') . ' = "0"')
+				->set($db->quoteName('expired') . ' = :expired')
 				->set($db->quoteName('modified') . ' = :modified')
-				->bind(':access', $info->access, ParameterType::INTEGER)
-				->bind(':uid', $info->userid, ParameterType::INTEGER)
+				->bind(':access', $objectInfo->object_access, ParameterType::INTEGER)
+				->bind(':uid', $objectInfo->object_owner, ParameterType::INTEGER)
+				->bind(':expired', $expired)
 				->bind(':modified', $modified);
 
-			if (empty($info->title))
+			if (!empty($objectInfo->object_title))
 			{
 				$query->set($db->quoteName('title') . ' = :title')
-					->bind(':title', $info->title);
+					->bind(':title', $objectInfo->object_title);
 			}
 
-			if (empty($info->link))
+			if (!empty($objectInfo->object_link))
 			{
 				$query->set($db->quoteName('link') . ' = :link')
-					->bind(':link', $info->link);
+					->bind(':link', $objectInfo->object_link);
 			}
 
-			if (empty($info->category_id))
+			if (!empty($objectInfo->catid))
 			{
 				$query->set($db->quoteName('category_id') . ' = :catid')
-					->bind(':catid', $info->category_id, ParameterType::INTEGER);
+					->bind(':catid', $objectInfo->catid, ParameterType::INTEGER);
 			}
 
-			$query->where($db->quoteName('id') . ' = :oid')
-				->bind(':oid', $objectID, ParameterType::INTEGER);
+			$query->where($db->quoteName('object_id') . ' = :oid')
+				->where($db->quoteName('object_group') . ' = :ogroup')
+				->bind(':oid', $objectID, ParameterType::INTEGER)
+				->bind(':ogroup', $objectGroup);
 		}
 		else
 		{
 			$id          = null;
-			$objectGroup = $db->escape($info->object_group);
-			$lang        = $db->escape($info->lang);
-			$title       = $db->escape($info->title);
-			$link        = $db->escape($info->link);
-			$expired     = 0;
+			$lang        = $db->escape($objectInfo->object_lang);
+			$title       = $db->escape($objectInfo->object_title);
+			$link        = $db->escape($objectInfo->object_link);
 			$modified    = $db->escape($modified);
 			$query->insert($db->quoteName('#__jcomments_objects'))
 				->columns(
@@ -498,15 +528,15 @@ class ObjectsModel extends BaseDatabaseModel
 				)
 				->values(':id, :oid, :ogroup, :cat, :lang, :title, :link, :access, :uid, :expired, :modified')
 				->bind(':id', $id)
-				->bind(':oid', $info->object_id, ParameterType::INTEGER)
+				->bind(':oid', $objectInfo->object_id, ParameterType::INTEGER)
 				->bind(':ogroup', $objectGroup)
-				->bind(':cat', $info->category_id, ParameterType::INTEGER)
+				->bind(':cat', $objectInfo->catid, ParameterType::INTEGER)
 				->bind(':lang', $lang)
 				->bind(':title', $title)
 				->bind(':link', $link)
-				->bind(':access', $info->access, ParameterType::INTEGER)
+				->bind(':access', $objectInfo->object_access, ParameterType::INTEGER)
 				// Userid should be placed in quotes because for guest it will be -1 and throws an 'out of range' error.
-				->bind(':uid', $info->userid)
+				->bind(':uid', $objectInfo->object_owner)
 				->bind(':expired', $expired)
 				->bind(':modified', $modified);
 		}
@@ -515,37 +545,43 @@ class ObjectsModel extends BaseDatabaseModel
 		{
 			$db->setQuery($query);
 			$db->execute();
-
-			if (empty($objectID))
-			{
-				$filter      = InputFilter::getInstance();
-				$objectGroup = strtolower($filter->clean($info->object_group));
-				$cacheGroup  = 'com_jcomments_objects_' . $objectGroup;
-				$cacheId     = md5('Joomla\Component\Jcomments\Site\Model\ObjectsModel::getItem' . (int) $info->object_id);
-				$data        = (object) array(
-					'id'           => $db->insertid(),
-					'object_id'    => (int) $info->object_id,
-					'object_group' => $objectGroup,
-					'category_id'  => $info->category_id,
-					'lang'         => $info->lang,
-					'title'        => $info->title,
-					'link'         => $info->link,
-					'access'       => $info->access,
-					'userid'       => $info->userid,
-					'expired'      => 0,
-					'modified'     => $modified
-				);
-
-				// WARNING! Do not use createCacheController()->store() as it will lead to create wrong cached object
-				$cache = Factory::getCache($cacheGroup, '');
-				$cache->store($data, $cacheId);
-			}
 		}
 		catch (\RuntimeException $e)
 		{
 			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
 
 			return false;
+		}
+
+		if (empty($objectID))
+		{
+			// Clean cache before store new cache object
+			CacheHelper::removeCachedItem('', 'com_jcomments_comments');
+			CacheHelper::removeCachedItem('', 'com_jcomments_objects');
+
+			$filter      = InputFilter::getInstance();
+			$objectGroup = strtolower($filter->clean($objectInfo->object_group));
+			$cacheGroup  = 'com_jcomments_objects_' . $objectGroup;
+			$cacheId     = md5('Joomla\Component\Jcomments\Site\Model\ObjectsModel::getItem' . (int) $objectInfo->object_id);
+			$data        = (object) array(
+				'id'           => $db->insertid(),
+				'object_id'    => (int) $objectInfo->object_id,
+				'object_group' => $objectGroup,
+				'category_id'  => $objectInfo->catid,
+				'lang'         => $objectInfo->object_lang,
+				'title'        => $objectInfo->object_title,
+				'link'         => $objectInfo->object_link,
+				'access'       => $objectInfo->object_access,
+				'userid'       => $objectInfo->object_owner,
+				'expired'      => $expired,
+				'modified'     => $modified
+			);
+
+			// WARNING! Do not use createCacheController()->store() as it will lead to create wrong cached object
+			$cache = Factory::getCache($cacheGroup, '');
+			$cache->store($data, $cacheId);
+
+			return $data;
 		}
 
 		return true;
@@ -607,6 +643,79 @@ class ObjectsModel extends BaseDatabaseModel
 		}
 
 		return $info;
+	}
+
+	/**
+	 * Update object link field for all rows in table for certain object id and group.
+	 *
+	 * NOTE! Only com_categories supported.
+	 *
+	 * @param   integer  $id           Object ID
+	 * @param   string   $objectGroup  Object group. E.g. com_content
+	 * @param   mixed    $language     Object language tag or null
+	 *
+	 * @return  boolean
+	 *
+	 * @since   4.1
+	 */
+	public function updateLink(int $id, string $objectGroup = 'com_content', $language = null)
+	{
+		$db          = $this->getDatabase();
+		$query       = $db->getQuery(true);
+		$objectGroup = $db->escape($objectGroup);
+
+		try
+		{
+			$query->select(
+				$db->quoteName(
+					array(
+						'id', 'object_id', 'object_group', 'category_id', 'lang', 'title', 'link', 'access',
+						'userid', 'expired', 'modified'
+					)
+				)
+			)->from($db->quoteName('#__jcomments_objects'));
+
+			if ($objectGroup == 'com_categories')
+			{
+				$query->where($db->quoteName('category_id') . ' = :catid')
+					->where($db->quoteName('object_group') . ' = ' . $db->quote('com_content'))
+					->bind(':catid', $id, ParameterType::INTEGER);
+			}
+
+			if (!empty($lang))
+			{
+				$query->where($db->quoteName('lang') . ' = :lang')
+					->bind(':lang', $language);
+			}
+
+			$db->setQuery($query);
+			$rows = $db->loadObjectList();
+
+			/** @var \Joomla\Component\Jcomments\Administrator\Table\ObjectTable $table */
+			$table = $this->getTable('Object', 'Administrator');
+
+			foreach ($rows as $row)
+			{
+				if ($objectGroup == 'com_categories')
+				{
+					$objectInfo = ObjectHelper::getObjectInfoFromPlugin($row->object_id, $row->object_group, $row->lang);
+
+					if ($table->load($row->id))
+					{
+						$table->link = $objectInfo->link;
+						$table->store();
+					}
+				}
+			}
+		}
+		catch (\RuntimeException $e)
+		{
+			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

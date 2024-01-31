@@ -14,7 +14,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Layout\LayoutHelper;
 
-/** @var Joomla\Component\Jcomments\Site\View\Comments\HtmlView $this */
+/** @var Joomla\Component\Jcomments\Site\View\Comments\RawView $this */
 
 if (!$this->items)
 {
@@ -31,8 +31,10 @@ if (($this->params->get('comments_pagination') == 'top'  || $this->params->get('
 		</p>
 		<?php echo $this->pagination->getPagesLinks(); ?>
 	</div>
-<?php endif; ?>
+<?php endif;
 
+echo $this->loadTemplate('pinned');
+?>
 <div class="list-unstyled comments-list-parent">
 
 	<?php foreach ($this->items as $id => $comment): ?>

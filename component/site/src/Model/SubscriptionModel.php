@@ -22,6 +22,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\ParameterType;
+use Joomla\String\StringHelper;
 
 /**
  * Subscriptions class
@@ -263,44 +264,37 @@ class SubscriptionModel extends BaseDatabaseModel
 	/**
 	 * Returns list of subscribers for given object and subscription type
 	 *
-	 * @param   int     $objectID     Object ID
-	 * @param   string  $objectGroup  Object group, e.g. com_content
-	 * @param   string  $lang         The language tag, e.g. en-GB
-	 * @param   string  $type         The subscription type
+	 * @param   integer  $objectID     Object ID
+	 * @param   string   $objectGroup  Object group, e.g. com_content
+	 * @param   string   $lang         The language tag, e.g. en-GB
+	 * @param   string   $type         The subscription type
 	 *
-	 * @return  object
+	 * @return  array
 	 *
 	 * @since   4.0
 	 */
-	public function getSubscribers(int $objectID, string $objectGroup, string $lang, string $type): object
+	public function getSubscribers(int $objectID, string $objectGroup, string $lang, string $type): array
 	{
-		$db = $this->getDatabase();
+		$db          = $this->getDatabase();
+		$filter      = InputFilter::getInstance();
 		$subscribers = array();
+		$objectGroup = $db->escape(StringHelper::strtolower($filter->clean($objectGroup)));
 
 		switch ($type)
 		{
-			case 'moderate-new':
-			case 'moderate-update':
-			case 'moderate-published':
-			case 'moderate-unpublished':
-			case 'moderate-delete':
+			case 'comment-admin-new':
+			case 'comment-admin-update':
+			case 'comment-admin-published':
+			case 'comment-admin-unpublished':
+			case 'comment-admin-delete':
 			case 'report':
-				$config = ComponentHelper::getParams('com_jcomments');
+				$emails = ComponentHelper::getParams('com_jcomments')->get('notification_email');
 
-				if ($config->get('notification_email') != '')
+				if (!empty($emails))
 				{
-					$filter = InputFilter::getInstance();
-					$emails = explode(',', $config->get('notification_email'));
-					$emails = array_map(
-						function (string $value) use ($filter): string
-						{
-							return $filter->clean($value);
-						},
-						$emails
-					);
-
+					$emails = explode(',', $emails);
 					$query = $db->getQuery(true)
-						->select('*')
+						->select($db->quoteName(array('id', 'name', 'email', 'block')))
 						->from($db->quoteName('#__users'))
 						->whereIn($db->quoteName('email'), $emails, ParameterType::STRING);
 
@@ -309,15 +303,14 @@ class SubscriptionModel extends BaseDatabaseModel
 
 					foreach ($emails as $email)
 					{
-						$email = trim($email);
-
 						$subscriber         = new \stdClass;
 						$subscriber->userid = isset($users[$email]) ? $users[$email]->id : 0;
-						$subscriber->name   = isset($users[$email]) ? $users[$email]->name : '';
+						$subscriber->name   = isset($users[$email]) ? $users[$email]->name : $email;
 						$subscriber->email  = $email;
 						$subscriber->hash   = md5($email);
+						$subscriber->block  = $users[$email]->block;
 
-						$subscribers[] = $subscriber;
+						$subscribers[$email] = $subscriber;
 					}
 				}
 
@@ -329,12 +322,13 @@ class SubscriptionModel extends BaseDatabaseModel
 			case 'comment-unpublished':
 			default:
 				$query = $db->getQuery(true)
-					->select('DISTINCTROW js.name, js.email, js.hash, js.userid')
-					->from($db->quoteName('#__jcomments_subscriptions', 'js'))
-					->innerJoin(
-						$db->quoteName('#__jcomments_objects', 'jo'),
-						' js.object_id = jo.object_id AND js.object_group = jo.object_group'
+					->select(
+						'DISTINCTROW ' . implode(
+							',', $db->quoteName(array('js.name', 'js.email', 'js.hash', 'js.userid', 'u.block'))
+						)
 					)
+					->from($db->quoteName('#__jcomments_subscriptions', 'js'))
+					->leftJoin($db->quoteName('#__users', 'u'), 'u.email = js.email')
 					->where($db->quoteName('js.object_group') . ' = :ogroup')
 					->where($db->quoteName('js.object_id') . ' = :oid')
 					->where($db->quoteName('js.published') . ' = 1')
@@ -343,14 +337,13 @@ class SubscriptionModel extends BaseDatabaseModel
 
 				if (Multilanguage::isEnabled())
 				{
-					$query->where($db->quoteName('js.lang') . ' = ' . $db->quote($lang))
-						->where($db->quoteName('jo.lang') . ' = ' . $db->quote($lang));
+					$query->where($db->quoteName('js.lang') . ' = ' . $db->quote($lang));
 				}
 
 				try
 				{
 					$db->setQuery($query);
-					$subscribers = $db->loadObjectList();
+					$subscribers = $db->loadObjectList('email');
 				}
 				catch (\RuntimeException $e)
 				{
@@ -360,6 +353,6 @@ class SubscriptionModel extends BaseDatabaseModel
 				break;
 		}
 
-		return (object) $subscribers;
+		return $subscribers;
 	}
 }

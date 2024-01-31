@@ -45,9 +45,9 @@ if (!defined('JOOMLATUNE_TREE'))
 
 			foreach ($items as $v)
 			{
-				$pt   = $v->parent;
-				$list = $this->children[$pt] ?? array();
-				array_push($list, $v);
+				$pt                  = $v->parent;
+				$list                = $this->children[$pt] ?? array();
+				$list[]              = $v;
 				$this->children[$pt] = $list;
 			}
 		}

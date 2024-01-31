@@ -20,6 +20,16 @@ use Joomla\Database\DatabaseDriver;
 /**
  * JComments smilies table
  *
+ * @property integer id
+ * @property string  code
+ * @property string  alias
+ * @property string  image
+ * @property string  name
+ * @property integer published
+ * @property integer ordering
+ * @property integer checked_out
+ * @property string  checked_out_time
+ *
  * @since  1.5
  */
 class SmileyTable extends Table

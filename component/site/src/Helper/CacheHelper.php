@@ -44,6 +44,12 @@ class CacheHelper
 	{
 		$app = Factory::getApplication();
 
+		// Joomla create directory with defaultgroup name even if caching is turned off. Avoid this brhavior here.
+		if (!$app->get('caching'))
+		{
+			return;
+		}
+
 		$options = [
 			'defaultgroup' => $group ?: ($option ?? $app->getInput()->get('option')),
 			'cachebase'    => $app->get('cache_path', JPATH_CACHE),

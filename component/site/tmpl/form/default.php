@@ -21,6 +21,7 @@ use Joomla\CMS\Router\Route;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useStyle('jcomments.style')
+	->useScript('keepalive')
 	->useScript('form.validate')
 	->useScript('jcomments.core')
 	->useScript('bootstrap.collapse');
@@ -46,8 +47,7 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 </div>
 <?php endif; ?>
 
-<div class="form-layout my-2 p-1 <?php echo $displayForm; ?>"
-	 id="editForm">
+<div class="form-layout my-2 p-1 <?php echo $displayForm; ?>" id="editForm">
 	<div class="h6"><?php echo empty($this->form->getValue('comment_id')) ? Text::_('FORM_HEADER') : Text::_('FORM_HEADER_EDIT'); ?></div>
 
 	<?php if ($this->policy != ''): ?>
@@ -60,150 +60,117 @@ if (empty($this->form->getValue('comment_id')) && (!$this->displayForm && !$this
 	?>
 
 	<form action="<?php echo Route::_('index.php?option=com_jcomments'); ?>" method="post"
-		  class="d-grid gap-2 form-validate" id="comments-form" name="comments-form" autocomplete="off">
+		  class="form-validate form-vertical" id="adminForm" name="adminForm" autocomplete="off">
 		<?php
 			// Trigger onJCommentsFormPrepend event
 			echo $this->event->jcommentsFormPrepend;
 		?>
 
-		<?php if ($this->form->getInput('name') != ''): ?>
-			<div class="row align-items-center">
-				<div class="col-7">
-					<?php echo $this->form->getInput('name'); ?>
-				</div>
-				<div class="col-auto">
-					<?php echo $this->form->getLabel('name'); ?>
-				</div>
-			</div>
-		<?php endif; ?>
+		<fieldset>
+			<?php if ($this->form->getInput('name') != ''): ?>
+				<?php echo $this->form->renderField('name'); ?>
+			<?php endif; ?>
 
-		<?php if ($this->form->getInput('email') != ''): ?>
-			<div class="row align-items-center">
-				<div class="col-7">
-					<?php echo $this->form->getInput('email'); ?>
-				</div>
-				<div class="col-auto">
-					<?php echo $this->form->getLabel('email'); ?>
-				</div>
-			</div>
-		<?php endif; ?>
+			<?php if ($this->form->getInput('email') != ''): ?>
+				<?php echo $this->form->renderField('email'); ?>
+			<?php endif; ?>
 
-		<?php if ($this->form->getInput('homepage') != ''): ?>
-			<div class="row align-items-center">
-				<div class="col-7">
-					<?php echo $this->form->getInput('homepage'); ?>
-				</div>
-				<div class="col-auto">
-					<?php echo $this->form->getLabel('homepage'); ?>
-				</div>
-			</div>
-		<?php endif; ?>
+			<?php if ($this->form->getInput('homepage') != ''): ?>
+				<?php echo $this->form->renderField('homepage'); ?>
+			<?php endif; ?>
 
-		<?php if ($this->form->getInput('title') != ''): ?>
-			<div class="row align-items-center">
-				<div class="col-7">
-					<?php echo $this->form->getInput('title'); ?>
-				</div>
-				<div class="col-auto">
-					<?php echo $this->form->getLabel('title'); ?>
-				</div>
-			</div>
-		<?php endif; ?>
+			<?php if ($this->form->getInput('title') != ''): ?>
+				<?php echo $this->form->renderField('title'); ?>
+			<?php endif; ?>
 
-		<div class="row align-items-center">
-			<div class="col-12"><?php echo $this->form->getInput('comment'); ?></div>
+			<?php echo $this->form->renderField('comment'); ?>
 			<?php if ($this->params->get('show_commentlength') && $this->params->get('editor_type') == 'component'): ?>
 				<div class="col-12 text-secondary small jce-counter">
 
-				<?php if ($this->form->getFieldAttribute('comment', 'maxlength', '') > 0): ?>
-					<?php echo Text::sprintf('FORM_CHARSLEFT', '<span class="chars">' . $this->form->getFieldAttribute('comment', 'maxlength', 0) . '</span>'); ?>
-				<?php else: ?>
-					<?php echo Text::sprintf('FORM_CHARSLEFT', Text::_('FORM_CHARSLEFT_NOLIMIT')); ?>
-				<?php endif; ?>
+					<?php if ($this->form->getFieldAttribute('comment', 'maxlength', '') > 0): ?>
+						<?php echo Text::sprintf('FORM_CHARSLEFT', '<span class="chars">' . $this->form->getFieldAttribute('comment', 'maxlength', 0) . '</span>'); ?>
+					<?php else: ?>
+						<?php echo Text::sprintf('FORM_CHARSLEFT', Text::_('FORM_CHARSLEFT_NOLIMIT')); ?>
+					<?php endif; ?>
 
 				</div>
 			<?php endif; ?>
-		</div>
 
-		<?php if ($this->form->getInput('subscribe') != ''): ?>
-			<div class="mb-1">
-				<div class="form-check">
-					<input type="checkbox" name="jform[subscribe]" id="jform_subscribe" class="form-check-input"
-						   value="<?php echo $this->form->getValue('subscribe', '', 0); ?>"
-						<?php echo $this->form->getFieldAttribute('subscribe', 'checked', ''); ?>>
-					<?php echo $this->form->getLabel('subscribe'); ?>
-				</div>
-			</div>
-		<?php endif; ?>
+			<?php echo $this->form->renderField('pinned'); ?>
+			<?php echo $this->form->renderField('subscribe'); ?>
 
-		<?php if ($this->form->getInput('terms_of_use') != ''): ?>
-			<div class="mb-1">
-				<div class="mb-2 alert alert-info comments-tos" role="alert"><?php echo $this->terms; ?></div>
-				<div class="com-users-registration">
-					<?php echo $this->form->renderField('terms_of_use'); ?>
+			<?php if ($this->form->getInput('terms_of_use') != ''): ?>
+				<div class="mb-1">
+					<div class="mb-2 alert alert-info comments-tos" role="alert"><?php echo $this->terms; ?></div>
+					<div class="com-users-registration">
+						<?php echo $this->form->renderField('terms_of_use'); ?>
+					</div>
 				</div>
-			</div>
+				<?php
+				$link = $this->form->getFieldAttribute('terms_of_use', 'data-url');
+
+				if ($link > '')
+				{
+					echo HTMLHelper::_(
+						'bootstrap.renderModal',
+						'tosModal',
+						array(
+							'url'    => $link,
+							'title'  => $this->form->getFieldAttribute('terms_of_use', 'data-label'),
+							'height' => '100%',
+							'width'  => '100%',
+							'bodyHeight'  => 70,
+							'modalWidth'  => 80,
+							'footer' => '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-hidden="true">'
+								. Text::_('JLIB_HTML_BEHAVIOR_CLOSE') . '</button>'
+						)
+					);
+				}
+			endif; ?>
+
+			<?php echo LayoutHelper::render('params', $this); ?>
+
+			<?php if ($this->captchaEnabled): ?>
+				<?php echo $this->form->renderField('comment_captcha'); ?>
+			<?php endif; ?>
+
 			<?php
-			$link = $this->form->getFieldAttribute('terms_of_use', 'data-url');
+				// Trigger onJCommentsFormAppend event
+				echo $this->event->jcommentsFormAppend;
+			?>
 
-			if ($link > '')
-			{
-				echo HTMLHelper::_(
-					'bootstrap.renderModal',
-					'tosModal',
-					array(
-						'url'    => $link,
-						'title'  => $this->form->getFieldAttribute('terms_of_use', 'data-label'),
-						'height' => '100%',
-						'width'  => '100%',
-						'bodyHeight'  => 70,
-						'modalWidth'  => 80,
-						'footer' => '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-hidden="true">'
-							. Text::_('JLIB_HTML_BEHAVIOR_CLOSE') . '</button>'
-					)
-				);
-			}
-		endif; ?>
-
-		<?php echo LayoutHelper::render('params', $this); ?>
-
-		<?php if ($this->captchaEnabled): ?>
-			<?php echo $this->form->renderField('comment_captcha'); ?>
-		<?php endif; ?>
-
-		<?php
-			// Trigger onJCommentsFormAppend event
-			echo $this->event->jcommentsFormAppend;
-		?>
-
-		<?php echo $this->form->getInput('comment_id'); ?>
-		<?php echo $this->form->getInput('parent'); ?>
-		<?php echo $this->form->getInput('userid'); ?>
-		<input type="hidden" name="object_id" value="<?php echo $this->objectID; ?>">
-		<input type="hidden" name="object_group" value="<?php echo $this->objectGroup; ?>">
-		<input type="hidden" name="task" value="comment.save">
-		<input type="hidden" name="return" value="<?php echo $this->returnPage; ?>">
-		<?php echo HTMLHelper::_('form.token'); ?>
+			<?php echo $this->form->getInput('comment_id'); ?>
+			<?php echo $this->form->getInput('parent'); ?>
+			<?php echo $this->form->getInput('userid'); ?>
+			<input type="hidden" name="object_id" value="<?php echo $this->objectID; ?>">
+			<input type="hidden" name="object_group" value="<?php echo $this->objectGroup; ?>">
+			<input type="hidden" name="task" value="">
+			<input type="hidden" name="return" value="<?php echo $this->returnPage; ?>">
+			<?php echo HTMLHelper::_('form.token'); ?>
+		</fieldset>
 
 		<div class="start-0 btn-container">
-			<button class="button-apply btn btn-outline-success" id="comments-form-send" type="submit"
-					onclick="Jcomments.saveComment(this, false);return false;">
-				<span class="icon-apply" aria-hidden="true"></span> <?php echo Text::_('JSUBMIT'); ?>
+			<button class="btn btn-success" type="button" data-submit-task="comment.apply">
+				<span class="icon-check" aria-hidden="true"></span> <?php echo Text::_('JSAVE'); ?>
 			</button>
-			<button class="button-preview btn btn-outline-primary" id="comments-form-preview" type="button"
-					onclick="Jcomments.saveComment(this, true);return false;">
+
+			<?php if ($this->form->getValue('comment_id') > 0): ?>
+			<button class="btn btn-success" type="button" data-submit-task="comment.save">
+				<span class="icon-check" aria-hidden="true"></span> <?php echo Text::_('JSAVEANDCLOSE'); ?>
+			</button>
+			<?php endif; ?>
+
+			<?php if ($this->params->get('editor_type') == 'component'): ?>
+			<button class="btn btn-light" type="button" data-submit-task="comment.preview">
 				<span class="icon-eye" aria-hidden="true"></span> <?php echo Text::_('FORM_PREVIEW'); ?>
 			</button>
-			<?php if ($this->form->getValue('comment_id') > 0 || $this->params->get('form_show') != 1):
-				$btnCancelEvent = 'Jcomments.hideAddForm();return false;';
+			<?php endif; ?>
 
-				if ($this->form->getValue('comment_id') > 0 || $this->form->getValue('parent') > 0)
-				{
-					$btnCancelEvent = 'Jcomments.hideEditForm(this);return false;';
-				}
+			<?php if ($this->form->getValue('comment_id') > 0 || $this->params->get('form_show') != 1):
+				$btnCancelEvent = $this->form->getValue('parent') > 0 ? 'hideEditForm' : 'hideAddForm';
 				?>
-				<button class="button-cancel btn btn-outline-danger" id="comments-form-cancel" type="button"
-						onclick="<?php echo $btnCancelEvent; ?>">
+				<button class="btn btn-danger" type="button" data-submit-task="comment.cancel"
+						data-cancel="<?php echo $btnCancelEvent; ?>">
 					<span class="icon-cancel" aria-hidden="true"></span> <?php echo Text::_('JCANCEL'); ?>
 				</button>
 			<?php endif; ?>

@@ -22,6 +22,8 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Database\ParameterType;
 use Joomla\Utilities\ArrayHelper;
@@ -64,6 +66,44 @@ class CommentModel extends AdminModel
 		catch (\RuntimeException $e)
 		{
 			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+
+			return false;
+		}
+	}
+
+	/**
+	 * Get total pinned comments
+	 *
+	 * @param   integer  $objectId     Object ID.
+	 * @param   string   $objectGroup  Object group.
+	 *
+	 * @return  false|integer
+	 *
+	 * @since   4.1
+	 */
+	public function getTotalPinned(int $objectId, string $objectGroup)
+	{
+		$db = $this->getDatabase();
+		$objectGroup = $db->escape($objectGroup);
+
+		try
+		{
+			$query = $db->getQuery(true)
+				->select('COUNT(' . $db->quoteName('id') . ')')
+				->from($db->quoteName('#__jcomments'))
+				->where($db->quoteName('pinned') . ' = 1')
+				->where($db->quoteName('object_id') . ' = :oid')
+				->where($db->quoteName('object_group') . ' = :ogroup')
+				->bind(':oid', $objectId, ParameterType::INTEGER)
+				->bind(':ogroup', $objectGroup);
+
+			$db->setQuery($query);
+
+			return (int) $db->loadResult();
+		}
+		catch (\RuntimeException $e)
+		{
+			$this->setError($e->getMessage());
 
 			return false;
 		}
@@ -149,6 +189,7 @@ class CommentModel extends AdminModel
 
 			// In wysiwyg editor <br> must be replaced by new line.
 			$data->comment = JcommentsText::br2nl($data->comment);
+			$data->comment = htmlspecialchars_decode($data->comment);
 		}
 
 		return $data;
@@ -298,14 +339,14 @@ class CommentModel extends AdminModel
 						'com_jcomments_comments'
 					);
 
-					// Send notifications only on publish state. Unpublish state will process only on frontend.
+					if ($params->get('enable_user_notification') && $value == 1)
+					{
+						NotificationHelper::enqueueMessage($table, 'comment-published');
+					}
+
 					if ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 1)
 					{
-						// Send notification to subscribed users.
-						NotificationHelper::push($table, 'comment-published');
-
-						// Send notification to administrator(moderator). List of emails from 'notification_email' option.
-						NotificationHelper::push($table, 'moderate-published');
+						NotificationHelper::enqueueMessage($table, 'comment-admin-published');
 					}
 				}
 			}
@@ -326,6 +367,8 @@ class CommentModel extends AdminModel
 	 */
 	public function save($data)
 	{
+		$app        = Factory::getApplication();
+		$db         = $this->getDatabase();
 		$params     = ComponentHelper::getParams('com_jcomments');
 		$oldState   = 0;
 		$oldComment = '';
@@ -339,8 +382,9 @@ class CommentModel extends AdminModel
 			$origTable = $this->getTable();
 			$origTable->load($pk);
 
-			$oldState = $origTable->published;
+			$oldState   = $origTable->published;
 			$oldComment = $origTable->comment;
+			$oldPinned  = $origTable->pinned;
 		}
 
 		if ($data['userid'] == 0)
@@ -358,15 +402,50 @@ class CommentModel extends AdminModel
 			$data['email']    = $user->email;
 		}
 
-		$data['title']   = stripslashes($data['title']);
-		$data['comment'] = stripslashes($data['comment']);
+		$data['title']   = $db->escape($data['title']);
 		$data['comment'] = JcommentsText::nl2br($data['comment']);
-		$data['comment'] = JcommentsText::filterText($data['comment']);
 
 		if ($data['date'] == $this->getDatabase()->getNullDate() || empty($data['date']))
 		{
 			$data['date'] = Factory::getDate()->toSql();
 		}
+
+		// Check for allready pinned comments. Only 'max_pinned' pinned comments allowed per object.
+		if (JcommentsFactory::getAcl()->canPin())
+		{
+			$totalPinned = $this->getTotalPinned($data['object_id'], $data['object_group']);
+			$totalCommentsByObject = ObjectHelper::getTotalCommentsForObject($data['object_id'], $data['object_group'], 1, 0);
+
+			// Allow pinning for a user with rights, even if pinning is prohibited.
+			$maxPinned = $params->get('max_pinned') == 0 ? 1 : $params->get('max_pinned');
+
+			if (!$isNew)
+			{
+				if ($data['pinned'] != $oldPinned)
+				{
+					if ($data['pinned'] == 1 && ($totalPinned >= $maxPinned || $totalPinned >= ($totalCommentsByObject - 1)))
+					{
+						if ($app->isClient('administrator'))
+						{
+							$this->setError(Text::sprintf('A_COMMENT_PIN_ERROR_MAX', $maxPinned, ($maxPinned + 1)));
+
+							return false;
+						}
+					}
+				}
+			}
+			else
+			{
+				// New comment cannot be pinned before read by user.
+				$data['pinned'] = 0;
+			}
+		}
+		else
+		{
+			$data['pinned'] = 0;
+		}
+
+		// End check
 
 		if (parent::save($data))
 		{
@@ -383,31 +462,43 @@ class CommentModel extends AdminModel
 					// Send notification about new comment added.
 					if (in_array(1, $params->get('notification_type')))
 					{
-						NotificationHelper::push($data);
-						NotificationHelper::push($data, 'moderate-new');
+						NotificationHelper::enqueueMessage($data, 'comment-admin-new');
 					}
 				}
 				elseif (!$isNew && $data['published'] && $oldState != $data['published'])
 				{
 					if (in_array(3, $params->get('notification_type')))
 					{
-						NotificationHelper::push($data, 'comment-published');
-						NotificationHelper::push($data, 'moderate-published');
+						NotificationHelper::enqueueMessage($data, 'comment-admin-published');
 					}
 				}
 				elseif (!$isNew && $oldComment != $data['comment'])
 				{
 					if (in_array(1, $params->get('notification_type')))
 					{
-						NotificationHelper::push($data, 'comment-update');
-
 						// Change the 'comment' field by including the old and new comments so that the administrator sees changes.
 						$data['comment'] = $params->get('mail_style') == 'html'
 							? Text::sprintf('A_COMMENT_TEXT_FOR_MODDERS_HTML', $data['comment'], $oldComment)
 							: Text::sprintf('A_COMMENT_TEXT_FOR_MODDERS', $data['comment'], $oldComment);
 
-						NotificationHelper::push($data, 'moderate-update');
+						NotificationHelper::enqueueMessage($data, 'comment-admin-update');
 					}
+				}
+			}
+
+			if ($params->get('enable_user_notification'))
+			{
+				if ($isNew && $data['published'])
+				{
+					NotificationHelper::enqueueMessage($data, 'comment-new');
+				}
+				elseif (!$isNew && $data['published'] && $oldState != $data['published'])
+				{
+					NotificationHelper::enqueueMessage($data, 'comment-published');
+				}
+				elseif (!$isNew && $oldComment != $data['comment'])
+				{
+					NotificationHelper::enqueueMessage($data, 'comment-update');
 				}
 			}
 
@@ -415,5 +506,82 @@ class CommentModel extends AdminModel
 		}
 
 		return false;
+	}
+
+	/**
+	 * Method to change the pin state of one or more records.
+	 *
+	 * @param   array    $pks    A list of the primary keys to change.
+	 * @param   integer  $value  The value of the pinned state. Always integer, but if equals to 0, will be converted
+	 *                           to NULL value in database query. See CommentTable::pin().
+	 *
+	 * @return  boolean  True on success.
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	public function pin(&$pks, $value = 0)
+	{
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
+		$table = $this->getTable();
+		$user  = $this->getCurrentUser();
+		$pks   = (array) $pks;
+
+		// Access checks.
+		foreach ($pks as $i => $pk)
+		{
+			$table->reset();
+
+			if ($table->load($pk))
+			{
+				if (!$this->canEditState($table))
+				{
+					// Prune items that you can't change.
+					unset($pks[$i]);
+
+					Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'jerror');
+
+					return false;
+				}
+
+				// If the table is checked out by another user, drop it and report to the user trying to change its state.
+				if ($table->hasField('checked_out') && $table->checked_out && ($table->checked_out != $user->id))
+				{
+					Log::add(Text::_('JLIB_APPLICATION_ERROR_CHECKIN_USER_MISMATCH'), Log::WARNING, 'jerror');
+
+					// Prune items that you can't change.
+					unset($pks[$i]);
+
+					return false;
+				}
+
+				/**
+				 * Prune items that are already at the given state.  Note: Only models whose table correctly
+				 * sets 'pinned' column alias (if different than pinned) will benefit from this
+				 */
+				$pinnedColumnName = $table->getColumnAlias('pinned');
+
+				if (property_exists($table, $pinnedColumnName) && $table->get($pinnedColumnName, $value) == $value)
+				{
+					unset($pks[$i]);
+				}
+			}
+		}
+
+		// Check if there are items to change
+		if (!count($pks))
+		{
+			return true;
+		}
+
+		// Attempt to change the state of the records.
+		if (!$table->pin($pks, $value, $user->get('id')))
+		{
+			$this->setError($table->getError());
+
+			return false;
+		}
+
+		return true;
 	}
 }

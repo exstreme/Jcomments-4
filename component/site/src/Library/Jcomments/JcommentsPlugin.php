@@ -23,7 +23,7 @@ use Joomla\Registry\Registry;
 /**
  * JComments plugin base class
  *
- * @since  3.0
+ * @since  2.0
  */
 class JcommentsPlugin
 {

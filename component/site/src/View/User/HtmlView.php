@@ -18,6 +18,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 
 /**
  * HTML View class for the Jcomments component
@@ -26,6 +27,14 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
  */
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The active document object
+	 *
+	 * @var    \Joomla\CMS\Document\Document
+	 * @since  4.1
+	 */
+	public $document;
+
 	/**
 	 * @var  \stdClass[]  The subscriptions array
 	 * @since  4.1
@@ -101,13 +110,48 @@ class HtmlView extends BaseHtmlView
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
-		if ($task != 'subscriptions')
-		{
-			$this->pagination->prefix = 'jc_';
-		}
-
 		$this->pagination->hideEmptyLimitstart = true;
 		$this->total = $this->get('Total');
+
+		foreach ($this->items as $row)
+		{
+			if (ObjectHelper::isEmpty($row))
+			{
+				$info = ObjectHelper::getObjectInfo($row->object_id, $row->object_group, $row->lang);
+
+				if (!ObjectHelper::isEmpty($info))
+				{
+					foreach ($info as $k => $v)
+					{
+						if (!isset($row->$k))
+						{
+							$row->$k = $v;
+						}
+					}
+				}
+			}
+		}
+
+		if ($task == 'votes')
+		{
+			$stats = $this->get('VoteStats');
+			$votesGood = 0;
+			$votesBad = 0;
+
+			foreach ($stats as $stat)
+			{
+				if ($stat->value == 1)
+				{
+					$votesGood++;
+				}
+				elseif ($stat->value == -1)
+				{
+					$votesBad++;
+				}
+			}
+
+			$this->voteStats = array('good' => $votesGood, 'bad' => $votesBad);
+		}
 
 		parent::display($tpl);
 	}

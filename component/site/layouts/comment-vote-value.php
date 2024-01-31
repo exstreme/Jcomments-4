@@ -15,7 +15,13 @@ defined('_JEXEC') or die;
 /** @var array $displayData */
 
 $comment = $displayData['comment'];
-$value   = intval($comment->isgood - $comment->ispoor);
+
+if (!isset($comment->isgood) || !isset($comment->ispoor))
+{
+	return;
+}
+
+$value = $comment->vote_value;
 
 if ($value < 0)
 {

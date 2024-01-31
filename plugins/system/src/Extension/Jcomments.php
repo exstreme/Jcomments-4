@@ -43,17 +43,19 @@ final class Jcomments extends CMSPlugin
 	/**
 	 * Constructor
 	 *
-	 * @param   DispatcherInterface  $subject  The object to observe
-	 * @param   array                $config   An optional associative array of configuration settings.
-	 *                                         Recognized key values include 'name', 'group', 'params', 'language'
-	 *                                         (this list is not meant to be comprehensive).
+	 * @param   DispatcherInterface  $dispatcher  The object to observe
+	 * @param   array                $config      An optional associative array of configuration settings.
+	 *                                            Recognized key values include 'name', 'group', 'params', 'language'
+	 *                                            (this list is not meant to be comprehensive).
 	 *
 	 * @throws  \Exception
 	 * @since   1.5
 	 */
-	public function __construct(&$subject, $config)
+	public function __construct(DispatcherInterface $dispatcher, array $config = array())
 	{
-		parent::__construct($subject, $config);
+		parent::__construct($dispatcher, $config);
+
+		$this->app = $this->getApplication() ?: $this->app;
 
 		// Use this plugin only in site application.
 		if (!$this->app->isClient('site'))

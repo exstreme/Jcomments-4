@@ -18,6 +18,8 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\InputFilter;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
+use Joomla\Filesystem\File;
+use Joomla\Utilities\ArrayHelper;
 
 /**
  * JComments objects frontend helper
@@ -27,6 +29,16 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 class ObjectHelper
 {
 	/**
+	 * An array to hold plugin classes
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	protected static $plugins = array();
+
+	/**
+	 * Get one field from object item. Load object infromation from database if 'Object info' empty.
+	 *
 	 * @param   mixed        $objectInfo   Object info
 	 * @param   string       $field        Object field
 	 * @param   int|null     $objectID     Object ID
@@ -35,7 +47,7 @@ class ObjectHelper
 	 *
 	 * @return  mixed
 	 *
-	 * @since   4.0
+	 * @since   4.1
 	 */
 	public static function getObjectField($objectInfo, string $field, ?int $objectID, ?string $objectGroup = 'com_content', $language = null)
 	{
@@ -53,38 +65,47 @@ class ObjectHelper
 	}
 
 	/**
-	 * Proxy for Joomla\Component\Jcomments\Site\Model::getTotalCommentsForObject()
+	 * Proxy for Joomla\Component\Jcomments\Site\Model\ObjectsModel::getTotalCommentsForObject()
 	 *
 	 * @param   integer       $objectID     Object ID.
 	 * @param   string        $objectGroup  Object group.
 	 * @param   integer|null  $state        Comment state.
 	 * @param   integer|null  $deleted      Comment is deleted?
+	 * @param   string|null   $lang         Object(item) language
 	 *
 	 * @return  integer
 	 *
 	 * @since   4.1
 	 */
-	public static function getTotalCommentsForObject(int $objectID, string $objectGroup, ?int $state = null, ?int $deleted = null): int
+	public static function getTotalCommentsForObject(int $objectID, string $objectGroup, ?int $state = null, ?int $deleted = null, ?string $lang = null): int
 	{
 		/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
 		$model  = Factory::getApplication()->bootComponent('com_jcomments')->getMVCFactory()
 			->createModel('Objects', 'Site', ['ignore_request' => true]);
 
-		return $model->getTotalCommentsForObject($objectID, $objectGroup, $state, $deleted);
+		return $model->getTotalCommentsForObject($objectID, $objectGroup, $state, $deleted, $lang);
 	}
 
 	/**
 	 * Checking if object have title and link
 	 *
-	 * @param   object  $object  Object(comment object) with information.
+	 * @param   object|array  $object  Object(comment object) or array with information.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   3.0
 	 */
-	public static function isEmpty(object $object): bool
+	public static function isEmpty($object): bool
 	{
-		return empty($object->title) && empty($object->link);
+		if (is_array($object))
+		{
+			$object = ArrayHelper::toObject($object);
+		}
+
+		$titleKey = property_exists($object, 'object_title') ? 'object_title' : 'title';
+		$linkKey = property_exists($object, 'object_link') ? 'object_link' : 'link';
+
+		return empty($object->{$titleKey}) || empty($object->{$linkKey});
 	}
 
 	/**
@@ -111,7 +132,7 @@ class ObjectHelper
 	/**
 	 * Get object information via plugin
 	 *
-	 * @param   integer  $objectID     Object ID
+	 * @param   integer  $objectID     Object(article) ID.
 	 * @param   string   $objectGroup  Option, e.g. com_content
 	 * @param   mixed    $language     Content(item) language tag
 	 *
@@ -121,41 +142,17 @@ class ObjectHelper
 	 */
 	public static function getObjectInfoFromPlugin(int $objectID, string $objectGroup = 'com_content', $language = null)
 	{
-		static $plugins = array();
-
-		$objectGroup = InputFilter::getInstance()->clean($objectGroup, 'cmd');
-
-		// Get object information via plugins
-		if (!isset($plugins[$objectGroup]))
-		{
-			ob_start();
-			include_once JPATH_ROOT . '/components/com_jcomments/plugins/' . $objectGroup . '.plugin.php';
-			ob_end_clean();
-
-			$className = 'jc_' . $objectGroup;
-
-			if (class_exists($className))
-			{
-				$plugins[$objectGroup] = $className;
-			}
-			else
-			{
-				$plugins[$objectGroup] = 'JcommentsPlugin';
-			}
-		}
-
-		$className = $plugins[$objectGroup];
-		$class     = new $className;
+		$plugin = self::loadClass($objectGroup);
 
 		// Retrieve object information via getObjectInfo plugin's method
-		$info = self::call($class, 'getObjectInfo', array($objectID, $language));
+		$info = self::call($plugin, 'getObjectInfo', array($objectID, $language));
 
 		if (is_null($info))
 		{
 			$info = new \StdClass;
 		}
 
-		$info->lang         = $language;
+		$info->object_lang  = !is_null($info->object_lang) ? $info->object_lang : $language;
 		$info->object_id    = $objectID;
 		$info->object_group = $objectGroup;
 
@@ -180,7 +177,7 @@ class ObjectHelper
 
 		if (empty($language))
 		{
-			$language = Factory::getApplication()->getLanguage()->getTag();
+			$language = $app->getLanguage()->getTag();
 		}
 
 		/** @var \Joomla\Component\Jcomments\Site\Model\ObjectsModel $model */
@@ -196,17 +193,42 @@ class ObjectHelper
 		else
 		{
 			// Get object information via plugins
-			$info = self::getObjectInfoFromPlugin($objectID, $objectGroup, $language);
+			// NOTE! Do not set third parameter because we need to get item language later
+			$info = self::getObjectInfoFromPlugin($objectID, $objectGroup);
 
 			if (!self::isEmpty($info))
 			{
-				if (!$app->isClient('administrator'))
-				{
-					$model->save(null, $info);
-				}
+				$model->save(null, $info);
 			}
 		}
 
 		return $info;
+	}
+
+	private static function loadClass($objectGroup)
+	{
+		$objectGroup = InputFilter::getInstance()->clean($objectGroup, 'cmd');
+
+		if (!isset(static::$plugins[$objectGroup]))
+		{
+			ob_start();
+			include_once JPATH_ROOT . '/components/com_jcomments/plugins/' . File::makeSafe($objectGroup . '.plugin.php');
+			ob_end_clean();
+
+			$className = 'jc_' . $objectGroup;
+
+			if (class_exists($className))
+			{
+				static::$plugins[$objectGroup] = $className;
+			}
+			else
+			{
+				static::$plugins[$objectGroup] = 'JcommentsPlugin';
+			}
+		}
+
+		$className = static::$plugins[$objectGroup];
+
+		return new $className;
 	}
 }

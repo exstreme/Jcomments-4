@@ -51,8 +51,10 @@ final class Jcomments extends CMSPlugin
 	 */
 	public function onGetIcons(string $context): array
 	{
+		$app = $this->getApplication() ?: $this->app;
+
 		if ($context !== $this->params->get('context', 'mod_quickicon')
-			|| !$this->app->getIdentity()->authorise('core.manage', 'com_jcomments'))
+			|| !$app->getIdentity()->authorise('core.manage', 'com_jcomments'))
 		{
 			return array();
 		}

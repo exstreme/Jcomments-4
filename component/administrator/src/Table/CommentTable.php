@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Administrator\Table;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
@@ -53,6 +54,7 @@ use Joomla\Database\ParameterType;
  * @property   integer $source_id
  * @property   integer $checked_out
  * @property   string  $checked_out_time
+ * @property   integer $pinned
  *
  * @since  1.5
  */
@@ -89,10 +91,9 @@ class CommentTable extends Table
 	 */
 	public function __get($name)
 	{
-		switch ($name)
+		if ($name == 'datetime')
 		{
-			case 'datetime':
-				return $this->date;
+			return $this->date;
 		}
 
 		return null;
@@ -114,6 +115,7 @@ class CommentTable extends Table
 		$db     = $this->getDbo();
 		$config = ComponentHelper::getParams('com_jcomments');
 
+		// See clearComment() method description
 		if ($app->isClient('administrator'))
 		{
 			$language = $app->getLanguage();
@@ -163,7 +165,7 @@ class CommentTable extends Table
 		{
 			if (empty($this->title) && (int) $config->get('comment_title') == 1)
 			{
-				$title = ObjectHelper::getObjectField(null, 'title', $this->object_id, $this->object_group, $this->lang);
+				$title = ObjectHelper::getObjectField(null, 'object_title', $this->object_id, $this->object_group, $this->lang);
 
 				if (!empty($title))
 				{
@@ -184,6 +186,11 @@ class CommentTable extends Table
 			unset($this->author);
 		}
 
+		if ($this->pinned != 1)
+		{
+			$this->pinned = null;
+		}
+
 		return parent::store($updateNulls);
 	}
 
@@ -199,57 +206,68 @@ class CommentTable extends Table
 	 */
 	public function delete($pk = null)
 	{
-		$db     = $this->getDbo();
-		$id     = $pk ?: $this->{$this->getKeyName()};
-		$result = parent::delete($pk);
+		$db          = $this->getDbo();
+		$id          = $pk ?: $this->{$this->getKeyName()};
+		$result      = parent::delete($pk);
+		$objectGroup = $db->escape($this->object_group);
 
 		if ($result)
 		{
-			// Process nested comments (threaded mode).
-			$query = $db->getQuery(true)
-				->select($db->quoteName(array('id', 'parent')))
-				->from($db->quoteName('#__jcomments'))
-				->where($db->quoteName('object_id') . ' = :oid')
-				->where($db->quoteName('object_group') . ' = :ogroup')
-				->bind(':oid', $this->object_id, ParameterType::INTEGER)
-				->bind(':ogroup', $objectGroup);
-
-			$db->setQuery($query);
-			$rows = $db->loadObjectList();
-
-			$tree        = new JcommentsTree($rows);
-			$descendants = $tree->descendants($id);
-
-			unset($rows);
-
-			if (count($descendants))
+			try
 			{
+				// Process nested comments (threaded mode).
 				$query = $db->getQuery(true)
-					->delete($db->quoteName('#__jcomments'))
-					->where($db->quoteName('id') . ' IN (' . implode(',', $descendants) . ')');
+					->select($db->quoteName(array('id', 'parent')))
+					->from($db->quoteName('#__jcomments'))
+					->where($db->quoteName('object_id') . ' = :oid')
+					->where($db->quoteName('object_group') . ' = :ogroup')
+					->bind(':oid', $this->object_id, ParameterType::INTEGER)
+					->bind(':ogroup', $objectGroup);
+
+				$db->setQuery($query);
+				$rows = $db->loadObjectList();
+
+				$tree        = new JcommentsTree($rows);
+				$descendants = $tree->descendants($id);
+
+				unset($rows);
+
+				if (count($descendants))
+				{
+					$query = $db->getQuery(true)
+						->delete($db->quoteName('#__jcomments'))
+						->whereIn($db->quoteName('id'), $descendants);
+
+					$db->setQuery($query);
+					$db->execute();
+
+					$descendants[] = $id;
+					$where = ' IN (' . implode(',', $descendants) . ')';
+					unset($descendants);
+				}
+				else
+				{
+					$where = ' = ' . (int) $id;
+				}
+
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_votes'))
+					->where($db->quoteName('commentid') . $where);
 				$db->setQuery($query);
 				$db->execute();
 
-				$descendants[] = $id;
-				$where = ' IN (' . implode(',', $descendants) . ')';
-				unset($descendants);
+				$query = $db->getQuery(true)
+					->delete($db->quoteName('#__jcomments_reports'))
+					->where($db->quoteName('commentid') . $where);
+				$db->setQuery($query);
+				$db->execute();
 			}
-			else
+			catch (\RuntimeException $e)
 			{
-				$where = ' = ' . (int) $id;
+				$this->setError($e->getMessage());
+
+				return false;
 			}
-
-			$query = $db->getQuery(true)
-				->delete($db->quoteName('#__jcomments_votes'))
-				->where($db->quoteName('commentid') . $where);
-			$db->setQuery($query);
-			$db->execute();
-
-			$query = $db->getQuery(true)
-				->delete($db->quoteName('#__jcomments_reports'))
-				->where($db->quoteName('commentid') . $where);
-			$db->setQuery($query);
-			$db->execute();
 		}
 
 		return $result;
@@ -265,15 +283,179 @@ class CommentTable extends Table
 	 */
 	public function markAsDeleted(): bool
 	{
-		$this->title   = '';
+		$this->title = '';
 		$this->deleted = 1;
 
 		return $this->store();
 	}
 
-	protected function clearComment($value)
+	/**
+	 * Method to set the pinned state for a row or list of rows in the database table.
+	 *
+	 * The method respects checked out rows by other users and will attempt to checkin rows that it can after adjustments are made.
+	 *
+	 * @param   mixed    $pks     An optional array of primary key values to update. If not set the instance property value is used.
+	 * @param   integer  $state   The pinned state. eg. [0 = unpinned, 1 = pinned]
+	 * @param   integer  $userId  The user ID of the user performing the operation.
+	 *
+	 * @return  boolean  True on success; false if $pks is empty.
+	 *
+	 * @since   4.1
+	 */
+	public function pin($pks = null, $state = 0, $userId = 0): bool
+	{
+		// Sanitize input
+		$userId = (int) $userId;
+		$state  = (int) $state;
+
+		// Pre-processing by observers
+		$event = AbstractEvent::create(
+			'onTableBeforePin',
+			[
+				'subject' => $this,
+				'pks'     => $pks,
+				'state'   => $state,
+				'userId'  => $userId,
+			]
+		);
+		$this->getDispatcher()->dispatch('onTableBeforePin', $event);
+
+		if (!is_null($pks))
+		{
+			if (!is_array($pks))
+			{
+				$pks = [$pks];
+			}
+
+			foreach ($pks as $key => $pk)
+			{
+				if (!is_array($pk))
+				{
+					$pks[$key] = [$this->_tbl_key => $pk];
+				}
+			}
+		}
+
+		// If there are no primary keys set check to see if the instance key is set.
+		if (empty($pks))
+		{
+			$pk = [];
+
+			foreach ($this->_tbl_keys as $key)
+			{
+				if ($this->$key)
+				{
+					$pk[$key] = $this->$key;
+				}
+				else
+				{
+					// We don't have a full primary key - return false
+					$this->setError(Text::_('JLIB_DATABASE_ERROR_NO_ROWS_SELECTED'));
+
+					return false;
+				}
+			}
+
+			$pks = [$pk];
+		}
+
+		$pinnedField = 'pinned';
+		$checkedOutField = $this->getColumnAlias('checked_out');
+
+		foreach ($pks as $pk)
+		{
+			// Update the pinning state for rows with the given primary keys.
+			$query = $this->_db->getQuery(true)
+				->update($this->_db->quoteName($this->_tbl))
+				->set($this->_db->quoteName($pinnedField) . ' = ' . ($state == 0 ? 'NULL' : $state));
+
+			// Determine if there is checkin support for the table.
+			if ($this->hasField('checked_out') || $this->hasField('checked_out_time'))
+			{
+				$query->where(
+					'('
+					. $this->_db->quoteName($checkedOutField) . ' = 0'
+					. ' OR ' . $this->_db->quoteName($checkedOutField) . ' = ' . (int) $userId
+					. ' OR ' . $this->_db->quoteName($checkedOutField) . ' IS NULL'
+					. ')'
+				);
+				$checkin = true;
+			}
+			else
+			{
+				$checkin = false;
+			}
+
+			// Build the WHERE clause for the primary keys.
+			$this->appendPrimaryKeys($query, $pk);
+
+			$this->_db->setQuery($query);
+
+			try
+			{
+				$this->_db->execute();
+			}
+			catch (\RuntimeException $e)
+			{
+				$this->setError($e->getMessage());
+
+				return false;
+			}
+
+			// If checkin is supported and all rows were adjusted, check them in.
+			if ($checkin && (count($pks) == $this->_db->getAffectedRows()))
+			{
+				$this->checkIn($pk);
+			}
+
+			// If the Table instance value is in the list of primary keys that were set, set the instance.
+			$ours = true;
+
+			foreach ($this->_tbl_keys as $key)
+			{
+				if ($this->$key != $pk[$key])
+				{
+					$ours = false;
+				}
+			}
+
+			if ($ours)
+			{
+				$this->$pinnedField = $state;
+			}
+		}
+
+		$this->setError('');
+
+		// Post-processing by observers
+		$event = AbstractEvent::create(
+			'onTableAfterPin',
+			[
+				'subject' => $this,
+				'pks'     => $pks,
+				'state'   => $state,
+				'userId'  => $userId,
+			]
+		);
+		$this->getDispatcher()->dispatch('onTableAfterPin', $event);
+
+		return true;
+	}
+
+	/**
+	 * Clear text from tags, replace some tags when importing comments from another component.
+	 *
+	 * @param   string  $value  Text to clean
+	 *
+	 * @return  string
+	 *
+	 * @since   3.0
+	 */
+	protected function clearComment(string $value): string
 	{
 		// Change \n to <br />
+		$value = JcommentsText::nl2br($value);
+
 		$matches = array();
 		preg_match_all('#(\[code\=?([a-z0-9]*?)\].*\[\/code\])#isUu', trim($value), $matches);
 
@@ -287,8 +469,6 @@ class CommentTable extends Table
 			$value     = preg_replace('#' . preg_quote($code, '#') . '#isUu', $key, $value);
 		}
 
-		$value = JcommentsText::nl2br($value);
-
 		foreach ($map as $key => $code)
 		{
 			$value = preg_replace('#' . preg_quote($key, '#') . '#isUu', $code, $value);
@@ -296,47 +476,42 @@ class CommentTable extends Table
 
 		// Strip bbcodes
 		$patterns = array(
-			'/\[font=(.*?)\](.*?)\[\/font\]/i'
-		, '/\[size=(.*?)\](.*?)\[\/size\]/i'
-		, '/\[color=(.*?)\](.*?)\[\/color\]/i'
-		, '/\[b\](null|)\[\/b\]/i'
-		, '/\[i\](null|)\[\/i\]/i'
-		, '/\[u\](null|)\[\/u\]/i'
-		, '/\[s\](null|)\[\/s\]/i'
-		, '/\[url=null\]null\[\/url\]/i'
-		, '/\[img\](null|)\[\/img\]/i'
-		, '/\[url=(.*?)\](.*?)\[\/url\]/i'
-		, '/\[email](.*?)\[\/email\]/i'
+			'/\[font=(.*?)\](.*?)\[\/font\]/i',
+			'/\[size=(.*?)\](.*?)\[\/size\]/i',
+			'/\[color=(.*?)\](.*?)\[\/color\]/i',
+			'/\[b\](null|)\[\/b\]/i',
+			'/\[i\](null|)\[\/i\]/i',
+			'/\[u\](null|)\[\/u\]/i',
+			'/\[s\](null|)\[\/s\]/i',
+			'/\[url=null\]null\[\/url\]/i',
+			'/\[img\](null|)\[\/img\]/i',
+			'/\[url=(.*?)\](.*?)\[\/url\]/i',
+			'/\[email](.*?)\[\/email\]/i',
 			// JA Comment syntax
-		, '/\[quote=\"?([^\:\]]+)(\:[0-9]+)?\"?\]/ism'
-		, '/\[link=\"?([^\]]+)\"?\]/ism'
-		, '/\[\/link\]/ism'
-		, '/\[youtube ([^\s]+) youtube\]/ism'
+			'/\[quote=\"?([^\:\]]+)(\:[0-9]+)?\"?\]/ism',
+			'/\[link=\"?([^\]]+)\"?\]/ism',
+			'/\[\/link\]/ism',
+			'/\[youtube ([^\s]+) youtube\]/ism'
 		);
 
 		$replacements = array(
-			'\\2'
-		, '\\2'
-		, '\\2'
-		, ''
-		, ''
-		, ''
-		, ''
-		, ''
-		, ''
-		, '\\2 ([url]\\1[/url])'
-		, '\\1'
-		, '[quote name="\\1"]'
-		, '[url=\\1]'
-		, '[/url]'
-		, '[youtube]\\1[/youtube]'
+			'\\2',
+			'\\2',
+			'\\2',
+			'',
+			'',
+			'',
+			'',
+			'',
+			'',
+			'\\2 ([url]\\1[/url])',
+			'\\1',
+			'[quote name="\\1"]',
+			'[url=\\1]',
+			'[/url]',
+			'[youtube]\\1[/youtube]'
 		);
 
 		return preg_replace($patterns, $replacements, $value);
-	}
-
-	protected function clearName($value)
-	{
-		return preg_replace('/[\'"\>\<\(\)\[\]]?+/iu', '', $value);
 	}
 }

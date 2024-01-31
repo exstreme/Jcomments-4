@@ -42,12 +42,20 @@ class JcommentsBbcode
 	);
 
 	/**
-	 * Array of bbcodes
+	 * Array of bbcodes filtered by ACL
 	 *
 	 * @var    array
 	 * @since  3.0
 	 */
 	protected $codes = array();
+
+	/**
+	 * Array of bbcodes not filtered by ACL
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	private $allCodes = array();
 
 	/**
 	 * Array of custom bbcodes
@@ -118,7 +126,7 @@ class JcommentsBbcode
 		'rtl'     => '~\[rtl](.*?)\[/rtl]~iu',
 		'email'   => array('~\[email=(.*?)](.*?)\[/email]~isu', '~\[email]([^\s\<\>\(\)\"\'\[\]]*?)\[/email]~isu'),
 		'hide'    => '~\[hide](.*?)\[/hide]~isu',
-		'code'    => '~\[code=?([\p{L}0-9\#\.\+\!\-\-\+\+\*\/]*?)](.*?)\[/code]~ismu',
+		'code'    => '~\[code(=?"?([\p{L}0-9\+\(\)\/\#\.\!\-\*]+)"?)?\](.*?)\[\/code\]~ismu',
 		'img'     => '~\[img(.*?)?](https?|ftp|www)(.*?)\[/img]~iu',
 		'url'     => '~\[url(?|=[\'"]?([^]"\']+)[\'"]?]([^[]+)|](([^[]+)))\[/url]~isu',
 		'list'    => array(
@@ -140,6 +148,14 @@ class JcommentsBbcode
 	 * @see    https://stackoverflow.com/a/41132408
 	 */
 	protected $urlPattern = "/^([a-z][a-z0-9+.-]*):(?:\\/\\/((?:(?=((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*))(\\3)@)?(?=(\\[[0-9A-F:.]{2,}\\]|(?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*))\\5(?::(?=(\\d*))\\6)?)(\\/(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/]|%[0-9A-F]{2})*))\\8)?|(\\/?(?!\\/)(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/]|%[0-9A-F]{2})*))\\10)?)(?:\\?(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/?]|%[0-9A-F]{2})*))\\11)?(?:#(?=((?:[a-z0-9-._~!$&'()*+,;=:@\\/?]|%[0-9A-F]{2})*))\\12)?$/iu";
+
+	/**
+	 * Array of [code] tags to clean and replace after the main text clean.
+	 *
+	 * @var    array
+	 * @since  4.1
+	 */
+	public $codeTagsArray = [];
 
 	/**
 	 * Initialize all bbcodes
@@ -318,11 +334,7 @@ class JcommentsBbcode
 			$replacements[] = Factory::getApplication()->getIdentity()->get('id') ? '\\1' : '';
 		}
 
-		/*
-		 * CODE - [code=language][/code]
-		 * Match programming language name in lower case and can contain symbols: #, ., +, !, --, ++, *, /.
-		 * See https://en.wikipedia.org/wiki/List_of_programming_languages
-		*/
+		// CODE - [code=language][/code]
 		if ((!$this->codes['code']) || ($forceStrip))
 		{
 			$patterns[]     = $this->patterns['code'];
@@ -451,6 +463,27 @@ class JcommentsBbcode
 
 		$str = trim(preg_replace('#( ){4,}#iu', '\\1', $str));
 
+		if (($this->codes['code']) || !($forceStrip))
+		{
+			$index = 0;
+			$str = preg_replace_callback(
+				$this->patterns['code'],
+				function ($matches) use (&$index) {
+					if (isset($matches[0]))
+					{
+						$this->codeTagsArray[$index] = htmlspecialchars($matches[0]);
+						$code = '{code' . $index . '}';
+						$index++;
+
+						return $code;
+					}
+
+					return '';
+				},
+				$str
+			);
+		}
+
 		ob_end_clean();
 
 		return $str;
@@ -520,12 +553,8 @@ class JcommentsBbcode
 
 		foreach ($_codes as $code)
 		{
-			$canUse = $user->authorise('comment.bbcode.' . $code, 'com_jcomments');
-
-			if ($canUse)
-			{
-				$codes[$code] = $canUse;
-			}
+			$codes[$code] = $user->authorise('comment.bbcode.' . $code, 'com_jcomments');
+			$this->allCodes[] = $code;
 		}
 
 		return $codes;
@@ -575,7 +604,7 @@ class JcommentsBbcode
 	 */
 	public function replace(string $str): ?string
 	{
-		ob_start();
+		//ob_start();
 
 		$input        = Factory::getApplication()->input;
 		$filter       = InputFilter::getInstance();
@@ -672,30 +701,36 @@ class JcommentsBbcode
 			$replacements[] = '<span class="badge text-bg-light hide">' . Text::_('BBCODE_MESSAGE_HIDDEN_TEXT') . '</span>';
 		}
 
+		// Main replace
+		$str = preg_replace($patterns, $replacements, $str);
+
 		/*
 		 * CODE - [code=language][/code]
 		 * Match programming language name in lower case and can contain symbols: #, ., +, !, --, ++, *, /.
 		 * See https://en.wikipedia.org/wiki/List_of_programming_languages
 		*/
-		$codePattern    = $this->patterns['code'];
-		$patterns[]     = $codePattern;
-		$replacements[] = '<figure class="codeblock">
-			<figcaption class="code">' . Text::_('COMMENT_TEXT_CODE') . '</figcaption>
-			<pre class="line-numbers card card-body p-2"><code class="lang-\\1">\\2</code></pre>
-		</figure>';
-
 		$str = preg_replace_callback(
-			$codePattern,
-			function ($matches)
-			{
-				$text = htmlspecialchars(trim($matches[0]));
-				$text = str_replace("\r", '', $text);
+			$this->patterns['code'],
+			function ($matches) use ($filter, $input) {
+				$codeLangClass = '';
 
-				return str_replace("\n", '<br />', $text);
+				if (!empty($matches[2]))
+				{
+					$codeLangClass = ' class="lang-' . $filter->clean(StringHelper::strtolower(trim($matches[2]))) . '"';
+				}
+
+				$html = '<figure class="codeblock">
+					<figcaption class="code">' . Text::_('COMMENT_TEXT_CODE') . '</figcaption>
+					<pre class="line-numbers card card-body p-2">
+						<code' . $codeLangClass . '>' . JcommentsText::nl2br(trim($matches[3])) . '</code>
+					</pre>
+				</figure>';
+
+				// Remove extra tabs in feed view
+				return $input->getCmd('format') == 'feed' ? preg_replace('~(\t+)~', "\t", $html) : $html;
 			},
 			$str
 		);
-		$str = preg_replace($patterns, $replacements, $str);
 
 		/*
 		 * IMG - [img]image link[/img], [img=WIDTHxHEIGHT]image link[/img]
@@ -841,7 +876,7 @@ class JcommentsBbcode
 		{
 			$str = preg_replace_callback(
 				$spoilerPattern,
-				function ($matches) use ($filter) {
+				function ($matches) use ($filter, $input) {
 					if (empty($matches[5]))
 					{
 						return '';
@@ -852,14 +887,21 @@ class JcommentsBbcode
 					$randValue = rand(0, 1000);
 					$spoilerId = 'spoiler' . $randValue;
 
-					return '<div class="my-1 spoiler">
-						<a class="my-1 text-start btn btn-sm btn-outline-info d-block spoiler-link" data-bs-toggle="collapse"
-						   href="#' . $spoilerId . '" role="button" aria-expanded="false" aria-controls="' . $spoilerId . '"
-						   title="' . Text::_('BBCODE_MESSAGE_SPOLIER') . '">' . $title . '</a>
-						<div class="spoiler-card border rounded collapse" id="' . $spoilerId . '">
-							<div class="p-2">' . $matches[5] . '</div>
-						</div>
-					</div>';
+					if ($input->getCmd('format') == 'feed')
+					{
+						return '<div class="p-2">' . $matches[5] . '</div>';
+					}
+					else
+					{
+						return '<div class="my-1 spoiler">
+							<a class="my-1 text-start btn btn-sm btn-outline-info d-block spoiler-link" data-bs-toggle="collapse"
+							   href="#' . $spoilerId . '" role="button" aria-expanded="false" aria-controls="' . $spoilerId . '"
+							   title="' . Text::_('BBCODE_MESSAGE_SPOLIER') . '">' . $title . '</a>
+							<div class="spoiler-card border rounded collapse" id="' . $spoilerId . '">
+								<div class="p-2">' . $matches[5] . '</div>
+							</div>
+						</div>';
+					}
 				},
 				$str
 			);
@@ -909,7 +951,9 @@ class JcommentsBbcode
 						}
 
 						return '<blockquote class="blockquote"' . $dataQuoted . '>
-							<span class="cite d-block">' . Text::_('COMMENT_TEXT_QUOTE') . '<span class="author fst-italic fw-semibold">' . $name . '</span>' . $parentLink . '</span>' . $matches[4] . '
+							<span class="cite d-block">' . Text::_('COMMENT_TEXT_QUOTE') . '
+								<span class="author"><strong><i>' . $name . '</i></strong>
+							</span><br>' . $parentLink . '</span>' . $matches[4] . '
 						</blockquote>';
 					}
 					else
@@ -921,13 +965,13 @@ class JcommentsBbcode
 			);
 		}
 
-		// Remove the codes from the list of standard codes that are present in the list of additional codes.
-		$deleteCodes = array_udiff(array_keys($this->codes), self::getCustomBbcodesList()['codes'], 'strcasecmp');
+		// Remove the codes from the list of standard codes that are present in the list of custom codes.
+		$deleteCodes = array_udiff($this->allCodes, self::getCustomBbcodesList()['codes'], 'strcasecmp');
 
 		// Remove starting and/or ending bbcode tags.
 		$str = preg_replace('#\[/?(' . implode('|', array_values($deleteCodes)) . '|tr|td)]#iu', '', $str);
 
-		ob_end_clean();
+		//ob_end_clean();
 
 		return $str;
 	}

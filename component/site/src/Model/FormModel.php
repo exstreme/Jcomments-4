@@ -25,8 +25,8 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Table\Table;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
-use Joomla\Component\Jcomments\Site\Helper\ContentHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Database\ParameterType;
@@ -111,7 +111,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	protected function loadFormData()
 	{
-		if (Factory::getApplication()->input->getInt('quote') > 0)
+		if (Factory::getApplication()->input->getInt('quote') == 1)
 		{
 			return $this->getQuotedItem();
 		}
@@ -124,7 +124,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 *
 	 * @param   integer  $pk  The id of the primary key.
 	 *
-	 * @return  false|object  Data object on success, false on failure.
+	 * @return  object|boolean  Data object on success, false on failure.
 	 *
 	 * @throws  \Exception
 	 *
@@ -132,10 +132,11 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	public function getItem($pk = null)
 	{
-		$commentId   = (int) (!empty($pk)) ? $pk : $this->getState('comment.id');
+		$pk          = (!empty($pk)) ? $pk : (int) $this->getState('comment.id');
 		$app         = Factory::getApplication();
 		$db          = $this->getDatabase();
 		$user        = $app->getIdentity();
+		$params      = ComponentHelper::getParams('com_jcomments');
 		$objectGroup = $this->getState('object_group');
 		$objectId    = $this->getState('object_id');
 		$userId      = $user->get('id');
@@ -146,7 +147,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			->from($db->quoteName('#__jcomments', 'c'))
 			->where($db->quoteName('c.published') . ' = 1')
 			->where($db->quoteName('c.id') . ' = :cid')
-			->bind(':cid', $commentId, ParameterType::INTEGER);
+			->bind(':cid', $pk, ParameterType::INTEGER);
 
 		if ($objectId !== null)
 		{
@@ -165,21 +166,25 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			$db->setQuery($query);
 			$result = $db->loadObject();
 
-			if ($commentId > 0 && !$result)
+			if ($pk > 0 && !$result)
 			{
 				$this->setError(Text::_('ERROR_NOT_FOUND'));
 
 				return false;
 			}
 
-			if (!$commentId)
+			if (!$pk)
 			{
 				$result = (object) array();
 			}
 			else
 			{
-				$result->title = StringHelper::trim($result->title);
-				$result->comment = JcommentsText::br2nl($result->comment);
+				$result->title   = StringHelper::trim($result->title);
+
+				if ($params->get('editor_format') == 'bbcode')
+				{
+					$result->comment = JcommentsText::br2nl(htmlspecialchars_decode($result->comment));
+				}
 			}
 
 			if (!$user->get('guest'))
@@ -200,6 +205,8 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		}
 		catch (\RuntimeException $e)
 		{
+			$this->setError($e->getMessage());
+
 			return false;
 		}
 
@@ -220,7 +227,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$app           = Factory::getApplication();
 		$params        = ComponentHelper::getParams('com_jcomments');
 		$user          = $app->getIdentity();
-		$commentId     = $app->input->getInt('parent');
+		$commentId     = $app->input->getInt('comment_id');
 		$result        = (object) array();
 		$parentComment = $this->getItem($commentId);
 
@@ -229,7 +236,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			return $result;
 		}
 
-		$result->comment = $parentComment->comment;
+		$result = $parentComment;
 
 		if ($params->get('editor_format') == 'bbcode')
 		{
@@ -262,7 +269,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 				$result->comment = JcommentsText::censor($result->comment);
 			}
 
-			$authorName = ContentHelper::getCommentAuthorName($parentComment);
+			$authorName = \Joomla\Component\Jcomments\Site\Helper\ContentHelper::getCommentAuthorName($parentComment);
 
 			if ($params->get('editor_format') == 'bbcode')
 			{
@@ -424,7 +431,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 				$report->userid    = $uid;
 				$report->ip        = $db->escape($ip);
 				$report->name      = $db->escape($name);
-				$report->reason    = $db->escape($data['reason']);
+				$report->reason    = $config->get('report_reason_required') ? $db->escape($data['reason']) : '';
 
 				$dispatcher = $this->getDispatcher();
 				$eventResult = $dispatcher->dispatch(
@@ -458,7 +465,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 								$notify->email = $data['email'];
 							}
 
-							NotificationHelper::push($notify, 'report');
+							NotificationHelper::enqueueMessage($notify, 'report');
 						}
 
 						// Unpublish comment if reports count is enough
@@ -560,40 +567,45 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	protected function preprocessForm(Form $form, $data, $group = 'content')
 	{
+		$app = Factory::getApplication();
+
+		if ($app->input->getString('layout') == 'report')
+		{
+			$this->preprocessReportForm($form, $data, $group);
+		}
+		else
+		{
+			$this->preprocessCommentForm($form, $data, $group);
+		}
+	}
+
+	/**
+	 * Preprocessing of the Form object for comment form.
+	 *
+	 * @param   Form    $form   The form object
+	 * @param   object  $data   The data to be merged into the form object
+	 * @param   string  $group  The plugin group to be executed
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	private function preprocessCommentForm(Form $form, $data, $group = 'content')
+	{
 		$app    = Factory::getApplication();
 		$user   = $app->getIdentity();
 		$params = ComponentHelper::getParams('com_jcomments');
 		$acl    = JcommentsFactory::getACL();
 
-		if ($user->authorise('comment.captcha', 'com_jcomments'))
+		if ($user->authorise('comment.captcha', $this->option))
 		{
 			$form->removeField('comment_captcha');
-			$form->removeField('report_captcha');
-		}
-
-		// Skip some fields preprocess for report form and run only default preprocess.
-		if ($app->input->getString('layout', '') == 'report')
-		{
-			if ($params->get('report_reason_required') == 0)
-			{
-				$form->removeField('reason');
-			}
-
-			if (!$user->get('guest'))
-			{
-				$form->removeField('email');
-			}
-
-			$form->setFieldAttribute('name', 'required', (bool) $user->get('guest'));
-
-			parent::preprocessForm($form, $data, $group);
-
-			return;
 		}
 
 		if ($app->input->getInt('quote') == 1)
 		{
-			$form->setValue('parent', '', $app->input->getInt('parent'));
+			$form->setValue('parent', '', $app->input->getInt('comment_id'));
 		}
 
 		$usernameMaxlength = $params->get('username_maxlength');
@@ -647,7 +659,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			}
 			else
 			{
-				if ($user->authorise('comment.subscribe', 'com_jcomments'))
+				if ($user->authorise('comment.subscribe', $this->option))
 				{
 					$form->setFieldAttribute('email', 'required', true);
 				}
@@ -693,7 +705,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		}
 
 		// Do not use JcommentsFactory::getACL()->canSubscribe() here!
-		if (!$user->authorise('comment.subscribe', 'com_jcomments'))
+		if (!$user->authorise('comment.subscribe', $this->option))
 		{
 			$form->removeField('subscribe');
 		}
@@ -746,7 +758,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 								'terms_of_use',
 								'label',
 								'<a href="' . $articleLink . '" data-bs-toggle="modal" data-bs-target="#tosModal"'
-									. ' class="' . $required . '">' . Text::_($label) . '</a>'
+								. ' class="' . $required . '">' . Text::_($label) . '</a>'
 							);
 							$form->setFieldAttribute('terms_of_use', 'data-url', $articleLink);
 							$form->setFieldAttribute('terms_of_use', 'data-label', Text::_($label));
@@ -773,10 +785,81 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$form->setFieldAttribute(
 			'comment',
 			'maxlength',
-			$user->authorise('comment.length_check', 'com_jcomments') ? 0 : $params->get('comment_maxlength')
+			$user->authorise('comment.length_check', $this->option) ? 0 : $params->get('comment_maxlength')
 		);
 
 		$form->setValue('userid', '', $user->get('id'));
+
+		if (!$acl->canPin)
+		{
+			$form->removeField('pinned');
+		}
+		else
+		{
+			// Check state only on edit comment and if not allready pinned
+			if (!empty($data->id))
+			{
+				// Check for allready pinned comments. Only max 3 pinned comments allowed per object.
+				$totalPinned = $this->getTotalPinned($data->object_id, $data->object_group);
+				$totalCommentsByObject = ObjectHelper::getTotalCommentsForObject($data->object_id, $data->object_group, 1, 0);
+
+				// Allow pinning for a user with rights, even if pinning is prohibited.
+				$maxPinned = $params->get('max_pinned') == 0 ? 1 : $params->get('max_pinned');
+
+				if ($totalPinned >= $maxPinned || $totalPinned >= ($totalCommentsByObject - 1))
+				{
+					$form->removeField('pinned');
+				}
+				else
+				{
+					if ($data->pinned == 1)
+					{
+						$form->setValue('pinned', '', 1);
+						$form->setFieldAttribute('pinned', 'checked', 'checked');
+					}
+				}
+			}
+		}
+
+		parent::preprocessForm($form, $data, $group);
+	}
+
+	/**
+	 * Preprocessing of the Form object for report form.
+	 *
+	 * @param   Form    $form   The form object
+	 * @param   object  $data   The data to be merged into the form object
+	 * @param   string  $group  The plugin group to be executed
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	private function preprocessReportForm(Form $form, $data, $group = 'content')
+	{
+		$user = Factory::getApplication()->getIdentity();
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if ($user->authorise('comment.captcha', $this->option))
+		{
+			$form->removeField('report_captcha');
+		}
+
+		if ($params->get('report_reason_required') == 0)
+		{
+			$form->removeField('reason');
+		}
+
+		if (!$user->get('guest'))
+		{
+			$form->removeField('email');
+			$form->removeField('name');
+		}
+		else
+		{
+			$form->setFieldAttribute('name', 'required', true);
+		}
 
 		parent::preprocessForm($form, $data, $group);
 	}

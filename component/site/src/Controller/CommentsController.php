@@ -31,52 +31,6 @@ use Joomla\String\StringHelper;
 class CommentsController extends BaseController
 {
 	/**
-	 * Remove selected user votes from profile.
-	 *
-	 * @return  void
-	 *
-	 * @throws  \Exception
-	 * @since   4.1
-	 */
-	public function removeVotes()
-	{
-		$this->checkToken();
-
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
-
-		if (!$this->app->getIdentity()->authorise('comment.vote', 'com_jcomments'))
-		{
-			$this->setMessage(Text::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), 'error');
-			$this->setRedirect(Route::_($return, false));
-		}
-
-		$pks = (array) $this->input->get('cid', [], 'int');
-		$pks = array_filter($pks);
-
-		if (empty($pks))
-		{
-			$this->app->getLogger()->warning(Text::_('COM_JCOMMENTS_NO_ITEM_SELECTED'), ['category' => 'jerror']);
-		}
-		else
-		{
-			/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
-			$model = $this->getModel();
-
-			// Remove the items.
-			if ($model->deleteVotes($pks))
-			{
-				$this->setMessage(Text::plural('COM_JCOMMENTS_N_ITEMS_DELETED', count($pks)));
-			}
-			else
-			{
-				$this->setMessage($model->getError(), 'error');
-			}
-		}
-
-		$this->setRedirect(Route::_($return, false));
-	}
-
-	/**
 	 * Method to get the object page with limistarts by comment ID.
 	 *
 	 * @param   mixed  $id  Comment ID. Optional.

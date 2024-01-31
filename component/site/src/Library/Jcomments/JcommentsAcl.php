@@ -17,6 +17,8 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Access\Access;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Utilities\IpHelper;
 
@@ -27,6 +29,38 @@ use Joomla\Utilities\IpHelper;
  */
 class JcommentsAcl
 {
+	/**
+	 * @var    boolean
+	 * @since  4.1
+	 */
+	public $canPin = false;
+
+	/**
+	 * @var    false
+	 * @since  4.1
+	 */
+	public $canViewAvatar = false;
+
+	/**
+	 * @var    boolean
+	 * @since  3.0
+	 */
+	public $canVote = false;
+
+	/**
+	 * @var    integer
+	 * @since  3.0
+	 */
+	public $userID = 0;
+
+	/**
+	 * Asset name
+	 *
+	 * @var    object
+	 * @since  4.1
+	 */
+	private $asset = 'com_jcomments';
+
 	/**
 	 * User object
 	 *
@@ -39,103 +73,91 @@ class JcommentsAcl
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canDelete = false;
+	protected $canDelete = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canDeleteOwn = false;
+	protected $canDeleteOwn = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canDeleteForMyObject = false;
+	protected $canDeleteForMyObject = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canEdit = false;
+	protected $canEdit = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canEditOwn = false;
+	protected $canEditOwn = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canEditForMyObject = false;
+	protected $canEditForMyObject = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canPublish = false;
+	protected $canPublish = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canPublishForMyObject = false;
+	protected $canPublishForMyObject = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canViewIP = false;
+	protected $canViewIP = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canViewEmail = false;
+	protected $canViewEmail = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canViewHomepage = false;
+	protected $canViewHomepage = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canQuote = false;
+	protected $canQuote = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canReply = false;
+	protected $canReply = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canVote = false;
+	protected $canReport = false;
 
 	/**
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $canReport = false;
-
-	/**
-	 * @var    boolean
-	 * @since  3.0
-	 */
-	public $canBan = false;
-
-	/**
-	 * @var    integer
-	 * @since  3.0
-	 */
-	public $userID = 0;
+	protected $canBan = false;
 
 	/**
 	 * @var    integer
@@ -147,13 +169,19 @@ class JcommentsAcl
 	 * @var    boolean
 	 * @since  3.0
 	 */
-	public $userBlocked = false;
+	protected $userBlocked = false;
 
 	/**
 	 * @var    string
 	 * @since  4.1
 	 */
-	public $userBlockedReason = '';
+	protected $userBlockedReason = '';
+
+	/**
+	 * @var    false
+	 * @since  4.1
+	 */
+	protected $commentsLocked = false;
 
 	/**
 	 * @throws \Exception
@@ -165,28 +193,30 @@ class JcommentsAcl
 		$config = ComponentHelper::getParams('com_jcomments');
 		$user   = $app->getIdentity();
 
-		$this->canDelete             = $user->authorise('comment.delete', 'com_jcomments');
-		$this->canDeleteOwn          = $user->authorise('comment.delete.own', 'com_jcomments');
-		$this->canDeleteForMyObject  = $user->authorise('comment.delete.own.articles', 'com_jcomments');
-		$this->canEdit               = $user->authorise('comment.edit', 'com_jcomments');
-		$this->canEditOwn            = $user->authorise('comment.edit.own', 'com_jcomments');
-		$this->canEditForMyObject    = $user->authorise('comment.edit.own.articles', 'com_jcomments');
-		$this->canPublish            = $user->authorise('comment.publish', 'com_jcomments');
-		$this->canPublishForMyObject = $user->authorise('comment.publish.own', 'com_jcomments');
-		$this->canViewIP             = $user->authorise('comment.view.ip', 'com_jcomments');
-		$this->canViewEmail          = $user->authorise('comment.view.email', 'com_jcomments');
-		$this->canViewHomepage       = $user->authorise('comment.view.site', 'com_jcomments');
-		$this->canVote               = $user->authorise('comment.vote', 'com_jcomments');
-		$this->canReport             = $user->authorise('comment.report', 'com_jcomments')
+		$this->canDelete             = $user->authorise('comment.delete', $this->asset);
+		$this->canDeleteOwn          = $user->authorise('comment.delete.own', $this->asset);
+		$this->canDeleteForMyObject  = $user->authorise('comment.delete.own.articles', $this->asset);
+		$this->canEdit               = $user->authorise('comment.edit', $this->asset);
+		$this->canEditOwn            = $user->authorise('comment.edit.own', $this->asset);
+		$this->canEditForMyObject    = $user->authorise('comment.edit.own.articles', $this->asset);
+		$this->canPublish            = $user->authorise('comment.publish', $this->asset);
+		$this->canPublishForMyObject = $user->authorise('comment.publish.own', $this->asset);
+		$this->canViewIP             = $user->authorise('comment.view.ip', $this->asset);
+		$this->canViewEmail          = $user->authorise('comment.view.email', $this->asset);
+		$this->canViewHomepage       = $user->authorise('comment.view.site', $this->asset);
+		$this->canViewAvatar         = $user->authorise('comment.avatar', $this->asset);
+		$this->canVote               = $user->authorise('comment.vote', $this->asset);
+		$this->canReport             = $user->authorise('comment.report', $this->asset)
 											&& $config->get('enable_reports');
-		$this->canBan                = $user->authorise('comment.ban', 'com_jcomments');
+		$this->canBan                = $user->authorise('comment.ban', $this->asset);
+		$this->canPin                = ($user->authorise('core.edit.state', $this->asset)
+											&& $config->get('max_pinned')) || $user->authorise('core.edit.state', $this->asset);
 		$this->canQuote              = $user->authorise('comment.comment', 'com_jcomments')
-											&& $user->authorise('comment.bbcode.quote', 'com_jcomments');
-		$this->canReply              = $user->authorise('comment.comment', 'com_jcomments')
-											&& $user->authorise('comment.reply', 'com_jcomments');
+											&& $user->authorise('comment.bbcode.quote', $this->asset);
+		$this->canReply              = $user->authorise('comment.comment', $this->asset)
+											&& $user->authorise('comment.reply', $this->asset);
 		$this->userID                = $user->get('id');
 		$this->deleteMode            = (int) $config->get('delete_mode');
-		$this->commentsLocked        = false;
 
 		if ($config->get('enable_blacklist', 0) == 1)
 		{
@@ -244,7 +274,7 @@ class JcommentsAcl
 	 */
 	public function showTermsOfUse(): bool
 	{
-		return !$this->user->authorise('comment.terms_of_use', 'com_jcomments');
+		return !$this->user->authorise('comment.terms_of_use', $this->asset);
 	}
 
 	/**
@@ -297,39 +327,6 @@ class JcommentsAcl
 	}
 
 	/**
-	 * Check if user is blocked.
-	 *
-	 * @param   mixed  $ip   IP address.
-	 * @param   mixed  $uid  User object or user ID.
-	 *
-	 * @return  array
-	 *
-	 * @throws  \Exception
-	 * @since   3.0
-	 */
-	public function isUserBlocked($ip = null, $uid = null): array
-	{
-		$app    = Factory::getApplication();
-		$config = ComponentHelper::getParams('com_jcomments');
-
-		if (empty($ip) && empty($uid))
-		{
-			return array('block' => $this->userBlocked, 'reason' => $this->userBlockedReason);
-		}
-
-		if ($config->get('enable_blacklist', 0) == 1)
-		{
-			/** @var \Joomla\Component\Jcomments\Site\Model\BlacklistModel $blacklistModel */
-			$blacklistModel = $app->bootComponent('com_jcomments')->getMVCFactory()
-				->createModel('Blacklist', 'Site', array('ignore_request' => true));
-
-			return $blacklistModel->isBlacklisted($ip, $uid);
-		}
-
-		return array('block' => false, 'reason' => $this->userBlockedReason);
-	}
-
-	/**
 	 * Check if comment is bein edited by someone else.
 	 *
 	 * @param   mixed  $comment  Comment item.
@@ -340,7 +337,7 @@ class JcommentsAcl
 	 */
 	public function isLocked($comment): bool
 	{
-		if (isset($comment) && ($comment != null))
+		if (!is_null($comment))
 		{
 			return $comment->checked_out && $comment->checked_out != $this->userID;
 		}
@@ -368,7 +365,7 @@ class JcommentsAcl
 			$objectOwner = $this->userID
 				? (property_exists($comment, 'object_owner')
 					? $comment->object_owner
-					: ObjectHelper::getObjectField($comment, 'userid', $comment->object_id, $comment->object_group))
+					: ObjectHelper::getObjectField($comment, 'object_owner', $comment->object_id, $comment->object_group))
 				: 0;
 
 			return $this->userID && $this->userID == $objectOwner;
@@ -444,7 +441,7 @@ class JcommentsAcl
 	{
 		return $this->userID
 			&& $this->canPublishForMyObject
-			&& $this->userID == ObjectHelper::getObjectField($object, 'userid', $objectID, $objectGroup);
+			&& $this->userID == ObjectHelper::getObjectField($object, 'object_owner', $objectID, $objectGroup);
 	}
 
 	/**
@@ -464,8 +461,82 @@ class JcommentsAcl
 		}
 		else
 		{
-			return $this->canViewIP && ($comment->ip != '') && (!$comment->deleted);
+			return $this->canViewIP && (!empty($comment->ip)) && (!$comment->deleted);
 		}
+	}
+
+	/**
+	 * Check if user can view comment form
+	 *
+	 * @param   boolean  $sendHeader  Send HTTP header
+	 *
+	 * @return  string|true
+	 *
+	 * @since   4.1
+	 */
+	public function canViewForm(bool $sendHeader = false)
+	{
+		$app    = Factory::getApplication();
+		$user   = $app->getIdentity();
+		$lang   = $app->getLanguage();
+		$acl    = JcommentsFactory::getAcl();
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if ($params->get('comments_locked'))
+		{
+			$message = JcommentsText::getMessagesBasedOnLanguage($params->get('messages_fields'), 'message_locked', $lang->getTag());
+
+			if ($sendHeader)
+			{
+				$app->setHeader('status', 403, true);
+			}
+
+			if ($message != '')
+			{
+				return JcommentsComponentHelper::renderMessage(nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')), 'warning');
+			}
+
+			return JcommentsComponentHelper::renderMessage(Text::_('ERROR_CANT_COMMENT'), 'warning');
+		}
+
+		$userState = $acl->getUserBlockState();
+
+		if ($userState['state'])
+		{
+			$message = JcommentsText::getMessagesBasedOnLanguage($params->get('messages_fields'), 'message_banned', $lang->getTag());
+			$reason = !empty($userState['reason']) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $userState['reason'] : '';
+
+			if ($sendHeader)
+			{
+				$app->setHeader('status', 403, true);
+			}
+
+			return JcommentsComponentHelper::renderMessage(nl2br($message . $reason), 'warning');
+		}
+
+		if (!$user->authorise('comment.comment', 'com_jcomments'))
+		{
+			$message = JcommentsText::getMessagesBasedOnLanguage(
+				$params->get('messages_fields'),
+				'message_policy_whocancomment',
+				$lang->getTag(),
+				'JGLOBAL_AUTH_ACCESS_DENIED'
+			);
+
+			if ($sendHeader)
+			{
+				$app->setHeader('status', 403, true);
+			}
+
+			if ($message != '')
+			{
+				return JcommentsComponentHelper::renderMessage(nl2br($message), 'warning');
+			}
+
+			return JcommentsComponentHelper::renderMessage(Text::_('ERROR_CANT_COMMENT'), 'warning');
+		}
+
+		return true;
 	}
 
 	/**
@@ -564,7 +635,7 @@ class JcommentsAcl
 	 */
 	public function canSubscribe(): bool
 	{
-		return ($this->user->get('id') && $this->user->authorise('comment.subscribe', 'com_jcomments'));
+		return ($this->user->get('id') && $this->user->authorise('comment.subscribe', $this->asset));
 	}
 
 	/**
@@ -647,6 +718,41 @@ class JcommentsAcl
 		{
 			return $this->canBan && (!$comment->deleted);
 		}
+	}
+
+	/**
+	 *
+	 * Check if user can pin.
+	 *
+	 * @param   mixed  $comment  Comment item.
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 */
+	public function canPin($comment = null): bool
+	{
+		if (is_null($comment))
+		{
+			return $this->canPin;
+		}
+		else
+		{
+			return $this->canPin && (!$this->isLocked($comment));
+		}
+	}
+
+	/**
+	 *
+	 * Getter for user block state and reason.
+	 *
+	 * @return  array
+	 *
+	 * @since   4.1
+	 */
+	public function getUserBlockState(): array
+	{
+		return array('state' => $this->userBlocked, 'reason' => $this->userBlockedReason);
 	}
 
 	/**

@@ -9,9 +9,45 @@
  *
  **/
 
+.refresh-list-spin {
+	-webkit-animation: refresh-spin 1s linear infinite;
+	-moz-animation: refresh-spin 1s linear infinite;
+	animation: refresh-spin 1s linear infinite;
+	display: inline-block;
+}
+
+@-moz-keyframes refresh-spin {
+	100% { -moz-transform: rotate(360deg); }
+}
+@-webkit-keyframes refresh-spin {
+	100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes refresh-spin {
+	100% {
+		-webkit-transform: rotate(360deg);
+		transform:rotate(360deg);
+	}
+}
+
 .comments-list-header a {
 	font-size: 1.125em;
 	text-decoration: none;
+}
+
+.comments-list-pinned {
+	background-color: rgba(var(--success-rgb),var(--bs-bg-opacity)) !important;
+	--bs-bg-opacity: .03;
+	border: var(--border-width) var(--border-style) var(--border-color) !important;
+	--border-opacity: 1;
+	border-radius: var(--border-radius) !important;
+	border-color: var(--success) !important;
+	margin-bottom: 1rem !important;
+	padding-top: .5rem !important;
+}
+
+.comment-pinned {
+	margin: 0 0 0.25rem 0 !important;
+	font-weight: bold;
 }
 
 .comment-title {
@@ -55,7 +91,9 @@ a.toolbar-button-edit,
 a.toolbar-button-state,
 a.toolbar-button-delete,
 a.toolbar-button-ip,
-a.toolbar-button-ban {
+a.toolbar-button-pin,
+a.toolbar-button-ban,
+.admin-panel .icon-checkedout {
 	margin-right: 0.5rem;
 	text-decoration: none;
 }
@@ -69,6 +107,27 @@ a.toolbar-button-state span.icon-unpublish {
 	margin-right: 0.25rem;
 	margin-left: 0.25rem;
 	text-decoration: none !important;
+}
+
+.jc-loader {
+	background-color: RGBA(var(--secondary-rgb), var(--bg-opacity, 1));
+	border-radius: var(--border-radius);
+	bottom: 0;
+	color: #fff;
+	left: 50%;
+	margin-bottom: 1.5rem;
+	padding: .25rem .5rem;
+	position: fixed;
+	z-index: 1030;
+}
+
+.jc-loader > div.spinner-border {
+	color: var(--light) !important;
+	--text-opacity: 1;
+}
+
+.jc-loader > span[role="status"] {
+	margin-left: .5rem;
 }
 
 /* Quote, Code and Hidden block styles */
@@ -104,8 +163,12 @@ a.toolbar-button-state span.icon-unpublish {
 	margin-bottom: 0;
 }
 
-#jform_terms_terms {
+#jform_pinned, #jform_subscribe, #jform_terms_terms {
 	margin-bottom: .5em;
+}
+
+.single-comment .comment-body-container .fields-container {
+	list-style-type: none;
 }
 
 .btn-container .btn {
@@ -124,6 +187,18 @@ a.toolbar-button-state span.icon-unpublish {
 
 .vote-result {
 	cursor: default;
+}
+
+.stat-votes {
+	font-size: .8rem;
+}
+
+.rss-link {
+	color: orange;
+}
+
+.rss-link:hover, .rss-link:focus {
+	color: darkorange !important;
 }
 
 /* Sizing */

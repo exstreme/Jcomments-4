@@ -14,10 +14,7 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Router\Route;
-use Joomla\CMS\Uri\Uri;
 
 /**
  * JComments Factory class
@@ -84,97 +81,6 @@ class JcommentsFactory
 	}
 
 	/**
-	 * @param   string   $cmd  Command. Can be 'publish', 'unpublish', 'delete', 'banIP'
-	 * @param   integer  $id   Comment ID
-	 *
-	 * @return  string
-	 *
-	 * @throws  \Exception
-	 * @since   1.5
-	 */
-	public static function getCmdHash(string $cmd, int $id): string
-	{
-		return md5($cmd . $id . JPATH_ROOT . Factory::getApplication()->get('secret'));
-	}
-
-	public static function getCmdLink($cmd, $id)
-	{
-		$hash     = self::getCmdHash($cmd, $id);
-		$liveSite = trim(str_replace('/administrator', '', Uri::root()), '/');
-		$liveSite = str_replace(Uri::root(true), '', $liveSite);
-
-		return $liveSite . Route::_('index.php?option=com_jcomments&task=cmd&cmd=' . $cmd . '&id=' . $id . '&hash=' . $hash . '&format=raw', false);
-	}
-
-	public static function getLink($type = 'ajax', $objectID = 0, $objectGroup = '', $lang = '')
-	{
-		$config = ComponentHelper::getParams('com_jcomments');
-
-		switch ($type)
-		{
-			case 'smiles':
-			case 'smilies':
-				return Uri::root(true) . '/' . trim(str_replace('\\', '/', $config->get('smilies_path')), '/') . '/';
-
-			case 'captcha':
-				mt_srand((double) microtime() * 1000000);
-				$random = mt_rand(10000, 99999);
-
-				return Route::_('index.php?option=com_jcomments&task=captcha&format=raw&ac=' . $random, false);
-
-			case 'ajax':
-				// Support additional param for multilingual sites
-				if (!empty($lang))
-				{
-					$lang = '&lang=' . $lang;
-				}
-
-				$link = Route::_('index.php?option=com_jcomments&tmpl=component' . $lang, false);
-
-				// Fix to prevent cross-domain ajax call
-				if (isset($_SERVER['HTTP_HOST']))
-				{
-					$httpHost = (string) $_SERVER['HTTP_HOST'];
-
-					if (strpos($httpHost, '://www.') !== false && strpos($link, '://www.') === false)
-					{
-						$link = str_replace('://', '://www.', $link);
-					}
-					elseif (strpos($httpHost, '://www.') === false && strpos($link, '://www.') !== false)
-					{
-						$link = str_replace('://www.', '://', $link);
-					}
-				}
-
-				return $link;
-
-			default:
-				return '';
-		}
-	}
-
-	/**
-	 * Convert relative link to absolute (add http:// and site url)
-	 *
-	 * @param   string  $link  The relative url.
-	 *
-	 * @return  string
-	 *
-	 * @since   3.0
-	 */
-	public static function getAbsLink($link): string
-	{
-		$url = Uri::getInstance()->toString(array('scheme', 'user', 'pass', 'host', 'port'));
-
-		if (strpos($link, $url) === false)
-		{
-			$link = $url . $link;
-		}
-
-		return $link;
-	}
-
-	/**
 	 * Return the current state of the language filter.
 	 *
 	 * @return  boolean
@@ -213,29 +119,5 @@ class JcommentsFactory
 		}
 
 		return (bool) $enabled;
-	}
-
-	/**
-	 * Get the decoded return URL.
-	 *
-	 * If a "return" variable has been passed in the request
-	 *
-	 * @return  string    The return URL.
-	 *
-	 * @throws  \Exception
-	 * @since   4.0
-	 */
-	public static function getReturnPage(): string
-	{
-		$return = Factory::getApplication()->input->getBase64('return');
-
-		if (empty($return) || !Uri::isInternal(base64_decode($return)))
-		{
-			return Uri::base();
-		}
-		else
-		{
-			return base64_decode($return);
-		}
 	}
 }

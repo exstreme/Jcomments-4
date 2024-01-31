@@ -16,21 +16,15 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 
 /** @var Joomla\Component\Jcomments\Site\View\Form\HtmlView $this */
-
-// Checking if user can do.
-if ($this->error > '')
-{
-	echo $this->error;
-
-	return;
-}
 
 $input = Factory::getApplication()->input;
 
 $wa = $this->document->getWebAssetManager();
-$wa->useScript('form.validate');
+$wa->useStyle('jcomments.style')
+	->useScript('form.validate');
 ?>
 <div class="container-fluid mt-2 form-layout">
 	<?php if ($input->getString('tmpl') != 'component'): ?>
@@ -39,6 +33,7 @@ $wa->useScript('form.validate');
 
 	<form action="<?php echo Route::_('index.php?option=com_jcomments&view=form&tmpl=component&layout=report'); ?>" method="post"
 		  class="d-grid gap-2 form-validate" id="report-form" name="report-form" autocomplete="off">
+		<?php if ($this->form->getInput('name') > ''): ?>
 		<div class="row align-items-center">
 			<div class="col-6">
 				<?php echo $this->form->getInput('name'); ?>
@@ -47,7 +42,9 @@ $wa->useScript('form.validate');
 				<?php echo $this->form->getLabel('name'); ?>
 			</div>
 		</div>
+		<?php endif; ?>
 
+		<?php if ($this->form->getInput('email') > ''): ?>
 		<div class="row align-items-center">
 			<div class="col-6">
 				<?php echo $this->form->getInput('email'); ?>
@@ -56,7 +53,9 @@ $wa->useScript('form.validate');
 				<?php echo $this->form->getLabel('email'); ?>
 			</div>
 		</div>
+		<?php endif; ?>
 
+		<?php if ($this->form->getInput('reason') > ''): ?>
 		<div class="row align-items-center">
 			<div class="col-6">
 				<?php echo $this->form->getInput('reason'); ?>
@@ -65,6 +64,16 @@ $wa->useScript('form.validate');
 				<?php echo $this->form->getLabel('reason'); ?>
 			</div>
 		</div>
+		<?php endif; ?>
+
+		<?php if (empty($this->form->getInput('name'))
+			&& empty($this->form->getInput('email'))
+			&& empty($this->form->getInput('reason'))):
+		?>
+
+			<?php echo JcommentsComponentHelper::renderMessage(Text::_('REPORT_NOTE'), 'warning'); ?>
+
+		<?php endif; ?>
 
 		<?php echo $this->form->getInput('report_captcha'); ?>
 		<?php echo $this->form->getInput('comment_id'); ?>
@@ -73,11 +82,14 @@ $wa->useScript('form.validate');
 		<input type="hidden" name="task" value="comment.report">
 		<?php echo HTMLHelper::_('form.token'); ?>
 
-		<div class="start-0">
-			<input class="btn btn-danger" id="report-form-send" type="submit" value="<?php echo Text::_('JSUBMIT'); ?>">
+		<div class="start-0 btn-container">
+			<button class="report-form-send btn btn-danger" type="submit">
+				<span class="icon-apply" aria-hidden="true"></span> <?php echo Text::_('JSUBMIT'); ?>
+			</button>
 			<?php if ($input->getString('tmpl') == 'component'): ?>
-				<button class="btn btn-secondary" id="report-form-cancel" type="button"
-						onclick="parent.jQuery('#reportModal').modal('hide');"><?php echo Text::_('JCANCEL'); ?></button>
+				<button class="report-form-cancel btn btn-secondary" type="button"
+						onclick="parent.jQuery('#reportModal').modal('hide');">
+					<span class="icon-cancel" aria-hidden="true"></span> <?php echo Text::_('JCANCEL'); ?></button>
 			<?php endif; ?>
 		</div>
 	</form>

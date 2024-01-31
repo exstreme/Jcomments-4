@@ -16,6 +16,10 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Event\AbstractEvent;
+use Joomla\CMS\Event\Content\AfterDisplayEvent;
+use Joomla\CMS\Event\Content\AfterTitleEvent;
+use Joomla\CMS\Event\Content\BeforeDisplayEvent;
+use Joomla\CMS\Event\Content\ContentPrepareEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
@@ -25,6 +29,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
+use Joomla\Event\DispatcherInterface;
 use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
 
@@ -71,7 +76,7 @@ class ContentHelper
 	 * Searches given tag in content object
 	 *
 	 * @param   object  $row      The content item object
-	 * @param   string  $pattern  RegExp
+	 * @param   string  $pattern  RegExp pattern to search. E.g. /{jcomments\s+off}/is
 	 *
 	 * @return  boolean True if any tag found, False otherwise
 	 *
@@ -178,6 +183,52 @@ class ContentHelper
 	}
 
 	/**
+	 * Dispatch some content events for each comment item. Basically for the output of custom fields.
+	 *
+	 * @param   DispatcherInterface  $dispatcher  The event dispatcher through which to launch the event.
+	 * @param   object               $item        Comment object
+	 *
+	 * @return  void
+	 *
+	 * @since   4.1
+	 */
+	public static function dispatchContentEvents(DispatcherInterface $dispatcher, object $item): void
+	{
+		$item->event = new \StdClass;
+
+		if ($item->deleted == 0)
+		{
+			// Hack to trigger Joomla field event
+			$item->text = $item->comment;
+
+			$contentEventArguments = array(
+				'context' => 'com_jcomments.comment',
+				'subject' => $item,
+				'params'  => (object) array()
+			);
+			$dispatcher->dispatch(
+				'onContentPrepare',
+				new ContentPrepareEvent('onContentPrepare', $contentEventArguments)
+			);
+			$contentEvents = array(
+				'afterDisplayTitle'    => new AfterTitleEvent('onContentAfterTitle', $contentEventArguments),
+				'beforeDisplayContent' => new BeforeDisplayEvent('onContentBeforeDisplay', $contentEventArguments),
+				'afterDisplayContent'  => new AfterDisplayEvent('onContentAfterDisplay', $contentEventArguments)
+			);
+
+			foreach ($contentEvents as $resultKey => $event)
+			{
+				$results = $dispatcher->dispatch($event->getName(), $event)->getArgument('result', []);
+
+				$item->event->{$resultKey} = $results ? trim(implode("\n", $results)) : '';
+			}
+
+			$item->comment = $item->text;
+			unset($item->text);
+		}
+	}
+
+	/**
 	 * Checks if comments are enabled for specified category
 	 *
 	 * @param   integer  $id  Category ID
@@ -217,7 +268,7 @@ class ContentHelper
 			}
 			else
 			{
-				$name = $comment->name ?: Text::_('REPORT_GUEST');
+				$name = !empty($comment->name) ? $comment->name : Text::_('REPORT_GUEST');
 			}
 		}
 
@@ -316,26 +367,26 @@ class ContentHelper
 	/**
 	 * Prepare comment, set some initial data
 	 *
-	 * @param   object   $comment  Comment object
-	 * @param   boolean  $text     Prepare only comment field
+	 * @param   object  $comment  Comment object
 	 *
 	 * @return  void
 	 *
 	 * @throws  \Exception
 	 * @since   4.1
 	 */
-	public static function prepareComment($comment, bool $text = false)
+	public static function prepareComment($comment)
 	{
 		if (isset($comment->_skip_prepare) && $comment->_skip_prepare == 1)
 		{
 			return;
 		}
 
-		$app        = Factory::getApplication();
-		$params     = ComponentHelper::getParams('com_jcomments');
-		$acl        = JcommentsFactory::getACL();
-		$user       = $app->getIdentity();
-		$dispatcher = $app->getDispatcher();
+		$app         = Factory::getApplication();
+		$params      = ComponentHelper::getParams('com_jcomments');
+		$acl         = JcommentsFactory::getACL();
+		$user        = $app->getIdentity();
+		$dispatcher  = $app->getDispatcher();
+		$previewMode = isset($comment->preview);
 
 		$dispatcher->dispatch(
 			'onJCommentsCommentBeforePrepare',
@@ -356,7 +407,7 @@ class ContentHelper
 			}
 		}
 
-		if (!empty($comment->email) && MailHelper::isEmailAddress($comment->email))
+		if (!empty($comment->email) && MailHelper::isEmailAddress($comment->email) && !$previewMode)
 		{
 			$comment->email = HTMLHelper::_(
 				'email.cloak',
@@ -400,14 +451,18 @@ class ContentHelper
 		{
 			/** @note Joomla email cloak plugin did not support IDN in emails. */
 			$comment->comment = preg_replace_callback(
-				'~([\w\.\-]+)@(\w+[\w\.\-]*\.\w{2,6})~iu',
-				function ($matches) use ($text)
+				'~([\w\.\-]+)@([\w\.\-]+)~iu',
+				function ($matches) use ($app, $previewMode)
 				{
 					if (MailHelper::isEmailAddress($matches[0]))
 					{
-						if ($text)
+						if ($previewMode)
 						{
 							$email = '<a href="mailto:' . $matches[0] . '" class="email">' . $matches[0] . '</a>';
+						}
+						elseif ($app->getDocument()->getType() == 'feed')
+						{
+							$email = Text::_('COM_JCOMMENTS_HTML_CLOAKING');
 						}
 						else
 						{
@@ -459,12 +514,9 @@ class ContentHelper
 			$comment->comment = JcommentsFactory::getSmilies()->replace($comment->comment);
 		}
 
-		if ($text === false)
-		{
-			$comment->author     = self::getCommentAuthorName($comment);
-			$comment->permaLink  = self::getPermalink($comment);
-			$comment->parentLink = self::getParentLink($comment);
-		}
+		$comment->author     = self::getCommentAuthorName($comment);
+		$comment->permaLink  = self::getCommentLink($comment, 'permalink');
+		$comment->parentLink = self::getCommentLink($comment, 'parent');
 
 		// Avatar support. Set default values if plugin is not enabled.
 		if (empty($comment->avatar))
@@ -473,42 +525,41 @@ class ContentHelper
 			$comment->profileLink = '';
 		}
 
+		$comment->bottomPanel = (!isset($comment->bottomPanel) || $comment->bottomPanel) && !$previewMode;
 		$comment->adminPanel  = self::initialCommentData('adminPanel');
 		$comment->userPanel   = self::initialCommentData('userPanel');
 		$comment->commentData = self::initialCommentData('commentData');
 
-		if ($text === false)
+		if ($acl->canModerate($comment))
 		{
-			if ($acl->canModerate($comment))
-			{
-				$comment->adminPanel->set('show', true);
-				$comment->adminPanel->set('button.edit', $acl->canEdit($comment));
-				$comment->adminPanel->set('button.delete', $acl->canDelete($comment));
-				$comment->adminPanel->set('button.publish', $acl->canPublish($comment));
-				$comment->adminPanel->set('button.ip', $acl->canViewIP($comment));
-				$comment->adminPanel->set('button.ban', $acl->canBan($comment));
-			}
-
-			$comment->userPanel->set('button.vote', $acl->canVote($comment));
-			$comment->userPanel->set('button.quote', $acl->canQuote($comment));
-			$comment->userPanel->set('button.reply', $acl->canReply($comment));
-			$comment->userPanel->set('button.report', $acl->canReport($comment));
-
-			$comment->commentData->set('showVote', $params->get('enable_voting'));
-			$comment->commentData->set('showEmail', $acl->canViewEmail($comment));
-			$comment->commentData->set('showHomepage', $acl->canViewHomepage($comment));
-			$comment->commentData->set('showTitle', $params->get('display_title'));
-			$comment->commentData->set('showAvatar', $user->authorise('comment.avatar', 'com_jcomments') && !$comment->deleted);
-
-			// Check for empty link to avoid wrong link value in object helper
-			$comment->object_link = empty($comment->object_link) ? '' : $comment->object_link;
-			$comment->labels      = isset($comment->labels) ? json_decode($comment->labels) : null;
+			$comment->adminPanel->set('show', true);
+			$comment->adminPanel->set('button.ban', $acl->canBan($comment));
+			$comment->adminPanel->set('button.delete', $acl->canDelete($comment));
+			$comment->adminPanel->set('button.edit', $acl->canEdit($comment));
+			$comment->adminPanel->set('button.ip', $acl->canViewIP($comment));
+			$comment->adminPanel->set('button.pin', $acl->canPin($comment));
+			$comment->adminPanel->set('button.publish', $acl->canPublish($comment));
 		}
 		else
 		{
-			$comment->object_link = '';
-			$comment->labels = null;
+			$comment->adminPanel->set('show', $acl->canEdit($comment));
+			$comment->adminPanel->set('button.ip', $acl->canViewIP($comment));
 		}
+
+		$comment->userPanel->set('button.vote', $acl->canVote($comment));
+		$comment->userPanel->set('button.quote', $acl->canQuote($comment));
+		$comment->userPanel->set('button.reply', $acl->canReply($comment));
+		$comment->userPanel->set('button.report', $acl->canReport($comment));
+
+		$comment->commentData->set('showVote', $params->get('enable_voting'));
+		$comment->commentData->set('showEmail', $acl->canViewEmail($comment));
+		$comment->commentData->set('showHomepage', $acl->canViewHomepage($comment));
+		$comment->commentData->set('showTitle', $params->get('display_title'));
+		$comment->commentData->set('showAvatar', $user->authorise('comment.avatar', 'com_jcomments') && !$comment->deleted);
+
+		// Check for empty link to avoid wrong link value in object helper
+		$comment->object_link = empty($comment->object_link) ? '' : $comment->object_link;
+		$comment->labels      = isset($comment->labels) ? json_decode($comment->labels) : null;
 
 		$dispatcher->dispatch(
 			'onJCommentsCommentAfterPrepare',
@@ -570,73 +621,118 @@ class ContentHelper
 	}
 
 	/**
-	 * Build permanent link for comment.
+	 * Convert relative link to absolute (add http:// and site url)
+	 *
+	 * @param   string  $link  The relative url.
+	 *
+	 * @return  string
+	 *
+	 * @since   3.0
+	 */
+	public static function getAbsLink(string $link): string
+	{
+		$url = Uri::getInstance()->toString(array('scheme', 'user', 'pass', 'host', 'port'));
+
+		if (strpos($link, $url) === false)
+		{
+			$link = $url . $link;
+		}
+
+		return $link;
+	}
+
+	/**
+	 * Get command hash to use with URL in email to access moderators actions in controller.
+	 *
+	 * @param   string   $cmd  Command. Can be 'publish', 'unpublish', 'delete', 'banIP'
+	 * @param   integer  $id   Comment ID
+	 *
+	 * @return  string
+	 *
+	 * @throws  \Exception
+	 * @since   1.5
+	 */
+	public static function getCmdHash(string $cmd, int $id): string
+	{
+		return md5($cmd . $id . JPATH_ROOT . Factory::getApplication()->get('secret'));
+	}
+
+	/**
+	 * Build parent link or permalink for comment.
 	 *
 	 * @param   object  $comment  Comment object
+	 * @param   string  $type     Link type. 'parent' or 'permalink'
 	 *
 	 * @return  string
 	 *
 	 * @throws  \Exception
 	 * @since   4.1
 	 */
-	public static function getPermalink($comment): string
+	public static function getCommentLink($comment, string $type): string
 	{
-		$input = Factory::getApplication()->input;
+		$app   = Factory::getApplication();
+		$lang  = $app->getLanguage();
+		$input = $app->input;
+
+		if (empty($comment->id))
+		{
+			return '';
+		}
+
+		if (!empty($comment->language))
+		{
+			$lang = '&lang=' . $comment->language;
+		}
+		else
+		{
+			$lang = '&lang=' . $lang->getTag();
+		}
+
+		$id = $type == 'parent' ? $comment->parent : $comment->id;
 
 		// Single comment have a custom links.
 		if ($input->getCmd('controller') . '.' . $input->getCmd('task') == 'comment.show')
 		{
-			$permaLink = Route::_(
+			$link = Route::_(
 				'index.php?option=com_jcomments&task=comment.show&object_id=' . $comment->object_id
-				. '&object_group=' . $comment->object_group . '&id=' . $comment->id . '&lang=' . $comment->language,
+				. '&object_group=' . $comment->object_group . '&comment_id=' . $id . $lang,
 				true, 0, true
 			);
 		}
 		else
 		{
-			$permaLink = Route::_(
+			$link = Route::_(
 				'index.php?option=com_jcomments&task=comments.goto&object_id=' . $comment->object_id
-				. '&object_group=' . $comment->object_group . '&id=' . $comment->id . '&lang=' . $comment->language,
+				. '&object_group=' . $comment->object_group . '&comment_id=' . $id . $lang,
 				true, 0, true
-			) . '#comment-item-' . $comment->id;
+			) . '#comment-item-' . $id;
 		}
 
-		return $permaLink;
+		return $link;
 	}
 
 	/**
-	 * Build parent link for child comment.
+	 * Get the decoded return URL.
 	 *
-	 * @param   object  $comment  Comment object
+	 * If a "return" variable has been passed in the request
 	 *
-	 * @return  string
+	 * @return  string    The return URL.
 	 *
 	 * @throws  \Exception
-	 * @since   4.1
+	 * @since   4.0
 	 */
-	public static function getParentLink($comment): string
+	public static function getReturnPage(): string
 	{
-		$input = Factory::getApplication()->input;
+		$return = Factory::getApplication()->input->getBase64('return');
 
-		// Single comment have custom links.
-		if ($input->getCmd('controller') . '.' . $input->getCmd('task') == 'comment.show')
+		if (empty($return) || !Uri::isInternal(base64_decode($return)))
 		{
-			$parentLink = Route::_(
-				'index.php?option=com_jcomments&task=comment.show&object_id=' . $comment->object_id
-				. '&object_group=' . $comment->object_group . '&id=' . $comment->parent,
-				true, 0, true
-			);
+			return Uri::base();
 		}
 		else
 		{
-			$parentLink = Route::_(
-				'index.php?option=com_jcomments&task=comments.goto&object_id=' . $comment->object_id
-				. '&object_group=' . $comment->object_group . '&id=' . $comment->parent . '&lang=' . $comment->language,
-				true, 0, true
-			) . '#comment-item-' . $comment->parent;
+			return base64_decode($return);
 		}
-
-		return $parentLink;
 	}
 
 	/**

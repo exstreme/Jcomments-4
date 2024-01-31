@@ -100,6 +100,7 @@ final class Jcomments extends CMSPlugin
 			return true;
 		}
 
+		$app = $this->getApplication() ?: $this->app;
 		$data->comments = array();
 
 		/**
@@ -110,7 +111,7 @@ final class Jcomments extends CMSPlugin
 		 * generic and we run the risk of creating naming clashes. Instead, we manipulate the data
 		 * directly.
 		 */
-		if ($this->app->input->get('layout') !== 'edit')
+		if ($app->input->get('layout') !== 'edit')
 		{
 			$db = $this->getDatabase();
 
@@ -314,6 +315,8 @@ final class Jcomments extends CMSPlugin
 	 */
 	public function onContentPrepareForm(Form $form, $data): bool
 	{
+		$app = $this->getApplication() ?: $this->app;
+
 		// Check we are manipulating a valid form.
 		$name = $form->getName();
 
@@ -327,7 +330,7 @@ final class Jcomments extends CMSPlugin
 		FormHelper::addFormPath(dirname(__DIR__, 2) . '/forms');
 		$form->loadFile('comments');
 
-		if ($this->app->input->get('layout') == 'edit')
+		if ($app->input->get('layout') == 'edit')
 		{
 			$form->removeGroup('comments');
 		}

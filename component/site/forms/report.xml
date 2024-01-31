@@ -15,7 +15,6 @@
 				size="30"
 				filter="string"
 				maxlength="60"
-				class="form-control-sm"
 		/>
 
 		<field
@@ -27,7 +26,6 @@
 				validate="email"
 				validDomains="com_users.domains"
 				required="true"
-				class="form-control-sm"
 		/>
 
 		<field
@@ -37,7 +35,6 @@
 				size="30"
 				filter="string"
 				required="true"
-				class="form-control-sm"
 		/>
 
 		<field

@@ -26,12 +26,11 @@ use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
-use Joomla\Filesystem\File;
 use Joomla\Input\Input;
 use Joomla\Utilities\ArrayHelper;
 use Joomla\Utilities\IpHelper;
@@ -63,6 +62,7 @@ class CommentController extends FormController
 		parent::__construct($config, $factory, $app, $input);
 
 		$this->registerTask('unpublish', 'publish');
+		$this->registerTask('unpin', 'pin');
 		$this->registerTask('voteUp', 'vote');
 		$this->registerTask('voteDown', 'vote');
 	}
@@ -77,22 +77,24 @@ class CommentController extends FormController
 	 */
 	public function show()
 	{
+		$user     = $this->app->getIdentity();
 		$document = $this->app->getDocument();
 		$id       = $this->input->getInt('id');
 		$comment  = $this->preprocessComment(null, $id, $this->app->getIdentity()->get('guest'));
+		$html     = '';
 
 		if (!is_object($comment))
 		{
-			throw new \RuntimeException(Text::_('ERROR_NOT_FOUND'), 500);
+			throw new \RuntimeException(Text::_('ERROR_NOT_FOUND'), 404);
+		}
+
+		if (!in_array($comment->object_access, $user->getAuthorisedViewLevels()))
+		{
+			throw new \RuntimeException(Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE'), 403);
 		}
 
 		if ($document->getType() == 'html')
 		{
-			if (ObjectHelper::isEmpty((object) array('title' =>$comment->object_title, 'link' => $comment->object_link)))
-			{
-				$comment->object_title = ObjectHelper::getObjectField(null, 'title', $this->input->getInt('object_id'), $this->input->getCmd('object_group'));
-			}
-
 			$document->setTitle($comment->object_title);
 			$document->getWebAssetManager()
 				->useStyle('jcomments.style')
@@ -101,14 +103,122 @@ class CommentController extends FormController
 				->useScript('jcomments.core')
 				->useScript('jcomments.frontend');
 
+			$html .= '<h5 class="fs-5">' . Text::_('EMAIL_HEADER') . ' <a href="' . $comment->object_link . '">' . $comment->object_title . '</a></h5>';
+
+			Text::script('LOADING');
 			Text::script('BUTTON_DELETE_CONFIRM');
+			Text::script('BUTTON_BANIP');
 		}
 
-		echo '<div class="comments-list-container">
-			<div class="comment-container" id="comment-item-' . $id . '">'
+		$html .= '<div class="list-unstyled">
+			<div class="comment-container single-comment" id="comment-item-' . $id . '">'
 				. LayoutHelper::render('comment', array('comment' => $comment, 'params' => ComponentHelper::getParams('com_jcomments')))
 		. '</div>
 		</div>';
+
+		if ($document->getType() == 'html')
+		{
+			$html .= LayoutHelper::render('comment-report', null, '', array('component' => 'com_jcomments'));
+		}
+
+		echo $html;
+	}
+
+	/**
+	 * Change pinned item state.
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.0
+	 */
+	public function pin()
+	{
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+
+		if (!$this->checkToken('get', false))
+		{
+			$this->setResponse(null, $return, Text::_('JINVALID_TOKEN'), 'error');
+
+			return;
+		}
+
+		$user   = $this->app->getIdentity();
+		$acl    = JcommentsFactory::getAcl();
+		$id     = $this->input->getInt('comment_id');
+		$task   = $this->getTask();
+		$state  = ($task == 'unpin') ? 0 : 1;
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if (empty($id))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
+
+		// Guests not allowed to do this action.
+		if ($user->get('guest'))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_CANT_PIN'), 'error');
+
+			return;
+		}
+
+		/** @var \Joomla\Component\Jcomments\Site\Model\CommentModel $model */
+		$model = $this->getModel();
+		$comment = $model->getItem($id);
+
+		if (!isset($comment->id))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
+
+		if ($acl->isLocked($comment))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_BEING_EDITTED'), 'error');
+
+			return;
+		}
+
+		if ($acl->canPin($comment))
+		{
+			$result = $model->pin($id, $state);
+
+			if ($result)
+			{
+				if ($state === 0)
+				{
+					$link   = $return;
+					$msg    = Text::_('SUCCESSFULLY_UNPINNED');
+					$title  = Text::_('BUTTON_PIN');
+					$url    = Route::_('index.php?option=com_jcomments&task=comment.pin&comment_id=' . $id, false, 0, true);
+					$header = '';
+				}
+				else
+				{
+					$link   = $return . '#comment-item-' . $comment->id;
+					$msg    = Text::_('SUCCESSFULLY_PINNED');
+					$title  = Text::_('BUTTON_UNPIN');
+					$url    = Route::_('index.php?option=com_jcomments&task=comment.unpin&comment_id=' . $id, false, 0, true);
+					$header = LayoutHelper::render(
+						'comment-header-pinned',
+						array('comment' => $comment, 'params' => $params),
+						'',
+						array('component' => 'com_jcomments')
+					);
+				}
+
+				$this->setResponse(array('url' => $url, 'title' => $title, 'current_state' => $state, 'header' => $header), $link, $msg, 'success');
+
+				return;
+			}
+		}
+
+		$this->setResponse(null, $return, Text::_('ERROR_CANT_PIN'), 'error');
 	}
 
 	/**
@@ -126,15 +236,22 @@ class CommentController extends FormController
 	{
 		$user   = $this->app->getIdentity();
 		$acl    = JcommentsFactory::getAcl();
-		$id     = $this->input->getInt('id', 0);
+		$id     = $this->input->getInt('comment_id');
 		$hash   = $this->input->get('hash', '');
 		$task   = $this->getTask();
 		$cmd    = ($task == 'unpublish') ? 'unpublish' : 'publish';
 		$state  = ($task == 'unpublish') ? 0 : 1;
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+
+		if (empty($id))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
 
 		// Guests not allowed to do this action.
-		if ($user->get('guest') || !$id)
+		if ($user->get('guest'))
 		{
 			$this->setResponse(null, $return, Text::_('ERROR_CANT_PUBLISH'), 'error');
 
@@ -150,7 +267,7 @@ class CommentController extends FormController
 				return;
 			}
 
-			if ($hash != JcommentsFactory::getCmdHash($cmd, $id))
+			if ($hash != JcommentsContentHelper::getCmdHash($cmd, $id))
 			{
 				$this->setResponse(null, $return, Text::_('ERROR_QUICK_MODERATION_INCORRECT_HASH'), 'error');
 
@@ -187,14 +304,14 @@ class CommentController extends FormController
 					$link  = $return;
 					$msg   = Text::_('SUCCESSFULLY_UNPUBLISHED');
 					$title = Text::_('PUBLISH');
-					$url   = Route::_('index.php?option=com_jcomments&task=comment.publish', false);
+					$url   = Route::_('index.php?option=com_jcomments&task=comment.publish&comment_id=' . $id, false, 0, true);
 				}
 				else
 				{
 					$link  = $return . '#comment-item-' . $comment->id;
 					$msg   = Text::_('SUCCESSFULLY_PUBLISHED');
 					$title = Text::_('UNPUBLISH');
-					$url   = Route::_('index.php?option=com_jcomments&task=comment.unpublish', false);
+					$url   = Route::_('index.php?option=com_jcomments&task=comment.unpublish&comment_id=' . $id, false, 0, true);
 				}
 
 				$this->setResponse(array('url' => $url, 'title' => $title, 'current_state' => $state), $link, $msg, 'success');
@@ -221,12 +338,19 @@ class CommentController extends FormController
 	{
 		$user   = $this->app->getIdentity();
 		$acl    = JcommentsFactory::getAcl();
-		$id     = $this->input->getInt('id', 0);
+		$id     = $this->input->getInt('comment_id');
 		$hash   = $this->input->get('hash', '');
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+
+		if (empty($id))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
 
 		// Guests not allowed to do this action.
-		if ($user->get('guest') || !$id)
+		if ($user->get('guest'))
 		{
 			$this->setResponse(null, $return, Text::_('ERROR_CANT_DELETE'), 'error');
 
@@ -242,7 +366,7 @@ class CommentController extends FormController
 				return;
 			}
 
-			if ($hash != JcommentsFactory::getCmdHash('delete', $id))
+			if ($hash != JcommentsContentHelper::getCmdHash('delete', $id))
 			{
 				$this->setResponse(null, $return, Text::_('ERROR_QUICK_MODERATION_INCORRECT_HASH'), 'error');
 
@@ -280,9 +404,18 @@ class CommentController extends FormController
 
 		if ($result)
 		{
-			$comment->deleted = 1;
-			$html = LayoutHelper::render('comment', array('comment' => $this->preprocessComment($comment, $comment->id)));
-			$this->setResponse($html, $return, Text::_('COMMENT_DELETED'), 'success');
+			$comment->deleted   = 1;
+			$comment->published = 0;
+			$totalComments      = ObjectHelper::getTotalCommentsForObject($comment->object_id, $comment->object_group);
+			$html               = LayoutHelper::render(
+				'comment',
+				array(
+					'comment' => $this->preprocessComment($comment, $comment->id),
+					'params'  => ComponentHelper::getParams('com_jcomments')
+				)
+			);
+
+			$this->setResponse(array('total' => $totalComments, 'html' => $html), $return, Text::_('COMMENT_DELETED'), 'success');
 		}
 		else
 		{
@@ -306,12 +439,19 @@ class CommentController extends FormController
 		$config = ComponentHelper::getParams('com_jcomments');
 		$user   = $this->app->getIdentity();
 		$acl    = JcommentsFactory::getAcl();
-		$id     = $this->input->getInt('id', 0);
+		$id     = $this->input->getInt('comment_id');
 		$hash   = $this->input->get('hash', '');
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+
+		if (empty($id))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
 
 		// Guests not allowed to do this action.
-		if ($user->get('guest') || !$id)
+		if ($user->get('guest'))
 		{
 			$this->setResponse(null, $return, Text::_('JERROR_AN_ERROR_HAS_OCCURRED'), 'error');
 
@@ -327,7 +467,7 @@ class CommentController extends FormController
 
 		if ($this->input->getWord('format', '') != 'json')
 		{
-			if ($hash != JcommentsFactory::getCmdHash('banIP', $id))
+			if ($hash != JcommentsContentHelper::getCmdHash('banIP', $id))
 			{
 				$this->setResponse(null, $return, Text::_('ERROR_QUICK_MODERATION_INCORRECT_HASH'), 'error');
 
@@ -358,7 +498,7 @@ class CommentController extends FormController
 		if ($comment->ip != IpHelper::getIp())
 		{
 			// Check if comment IP already banned
-			if (!$acl->isUserBlocked($comment->ip, $comment->userid))
+			if (!$acl->getUserBlockState()['state'])
 			{
 				PluginHelper::importPlugin('jcomments');
 
@@ -378,8 +518,8 @@ class CommentController extends FormController
 				if (!$eventResult->getArgument('abort', false))
 				{
 					/** @var \Joomla\Component\Jcomments\Administrator\Table\BlacklistTable $table */
-					$table = $this->app->bootComponent('com_jcomments')->getMVCFactory()->createTable('Blacklist', 'Administrator');
-					$table->ip = $comment->ip;
+					$table         = $this->app->bootComponent('com_jcomments')->getMVCFactory()->createTable('Blacklist', 'Administrator');
+					$table->ip     = $comment->ip;
 					$table->userid = $comment->userid;
 					$table->reason = '';
 
@@ -426,11 +566,50 @@ class CommentController extends FormController
 	 */
 	public function cancel($key = 'comment_id')
 	{
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+		$acl    = JCommentsFactory::getACL();
+		$config = ComponentHelper::getParams('com_jcomments');
+		$app    = Factory::getApplication();
+		$lang   = $app->getLanguage();
+		$user   = $app->getIdentity();
 
 		if (!$this->checkToken('post', false))
 		{
 			$this->setResponse(null, $return, Text::_('JINVALID_TOKEN'), 'error');
+
+			return;
+		}
+
+		$userState = $acl->getUserBlockState();
+
+		if ($userState['state'])
+		{
+			$message = JcommentsText::getMessagesBasedOnLanguage($config->get('messages_fields'), 'message_banned', $lang->getTag());
+			$reason = '';
+
+			if ($message != '')
+			{
+				$reason = !empty($userState['reason']) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $userState['reason'] : '';
+			}
+
+			$this->setResponse(null, $return, nl2br(htmlspecialchars($message . $reason, ENT_QUOTES, 'UTF-8')), 'error');
+
+			return;
+		}
+
+		if (!$user->authorise('comment.comment', 'com_jcomments'))
+		{
+			$message = JcommentsText::getMessagesBasedOnLanguage(
+				$config->get('messages_fields'),
+				'message_policy_whocancomment',
+				$lang->getTag(),
+				'JGLOBAL_AUTH_ACCESS_DENIED'
+			);
+
+			if ($message != '')
+			{
+				echo JcommentsComponentHelper::renderMessage(nl2br($message), 'warning');
+			}
 
 			return;
 		}
@@ -446,7 +625,15 @@ class CommentController extends FormController
 		}
 
 		$recordId = $this->input->getInt($key);
-		$acl = JCommentsFactory::getACL();
+
+		$table->load($recordId);
+
+		if (!$acl->canEdit($table))
+		{
+			$this->setResponse(null, '', Text::_('JGLOBAL_AUTH_ACCESS_DENIED'), 'error');
+
+			return;
+		}
 
 		// Attempt to check-in the current record.
 		if ($recordId && $table->hasField('checked_out') && $table->checkin($recordId) === false && !$acl->isLocked($table))
@@ -471,7 +658,7 @@ class CommentController extends FormController
 	 */
 	public function report()
 	{
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
 
 		if (!$this->checkToken('post', false))
 		{
@@ -480,10 +667,9 @@ class CommentController extends FormController
 			return;
 		}
 
-		$acl    = JcommentsFactory::getAcl();
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$acl = JcommentsFactory::getAcl();
 
-		if ($acl->userBlocked)
+		if ($acl->getUserBlockState()['state'])
 		{
 			$this->setResponse(null, $return, Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'error');
 
@@ -540,7 +726,7 @@ class CommentController extends FormController
 				}
 			}
 
-			$this->setResponse(null, $return, implode(",<br>", $msg), 'warning');
+			$this->setResponse(null, $return, implode("<br>", $msg), 'warning');
 
 			return;
 		}
@@ -552,7 +738,8 @@ class CommentController extends FormController
 			return;
 		}
 
-		$this->setResponse(null, $return, Text::_('REPORT_SUCCESSFULLY_SENT'), 'success');
+		// Just render default message. No redirection is needed.
+		echo \Joomla\Component\Jcomments\Site\Helper\ComponentHelper::renderMessage(Text::_('REPORT_SUCCESSFULLY_SENT'), 'success');
 	}
 
 	/**
@@ -571,26 +758,20 @@ class CommentController extends FormController
 			return;
 		}
 
-		$acl = JcommentsFactory::getAcl();
+		$app         = Factory::getApplication();
+		$acl         = JcommentsFactory::getAcl();
+		$params      = ComponentHelper::getParams('com_jcomments');
+		$canViewForm = $acl->canViewForm(true);
 
-		if ($acl->userBlocked)
+		if ($canViewForm !== true)
 		{
-			$app     = Factory::getApplication();
-			$params  = ComponentHelper::getParams('com_jcomments');
-			$lang    = $app->getLanguage();
-			$message = JcommentsText::getMessagesBasedOnLanguage($params->get('messages_fields'), 'message_banned', $lang->getTag());
-			$reason  = '';
-
-			if ($message != '')
-			{
-				$reason = !empty($acl->userBlockedReason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $acl->userBlockedReason : '';
-			}
-
-			$this->setResponse(null, '', nl2br($message) . $reason, 'error');
+			$this->setResponse(null, '', $canViewForm, 'error');
 
 			return;
 		}
 
+		/** @var \Joomla\Component\Jcomments\Site\Model\FormModel $model */
+		$model = $this->getModel('Form');
 		$data = $this->input->post->get('jform', array(), 'array');
 
 		if (!isset($data))
@@ -600,27 +781,91 @@ class CommentController extends FormController
 			return;
 		}
 
-		$params             = ComponentHelper::getParams('com_jcomments');
-		$data               = ArrayHelper::toObject($data);
+		$form = $model->getForm($data, false);
+
+		if (!$form)
+		{
+			$this->setResponse(null, '', $model->getError(), 'error');
+
+			return;
+		}
+
+		$objData = (object) $data;
+		$this->getDispatcher()->dispatch(
+			'onContentNormaliseRequestData',
+			AbstractEvent::create(
+				'onContentNormaliseRequestData',
+				array($this->option . '.' . $this->context, $objData, $form, 'subject' => new \stdClass)
+			)
+		);
+		$data = (array) $objData;
+
+		$validData = $model->validate($form, $data);
+
+		if ($validData === false)
+		{
+			// Get the validation messages.
+			$errors = $model->getErrors();
+			$msg = array();
+
+			// Push up to three validation messages out to the user.
+			for ($i = 0, $n = count($errors); $i < $n && $i < 3; $i++)
+			{
+				if ($errors[$i] instanceof \Exception)
+				{
+					$msg[] = $errors[$i]->getMessage();
+				}
+				else
+				{
+					$msg[] = $errors[$i];
+				}
+			}
+
+			$this->setResponse(null, '', implode("<br>", $msg), 'warning');
+
+			return;
+		}
+
+		PluginHelper::importPlugin('jcomments');
+
+		$dispatcher         = $app->getDispatcher();
+		$data               = ArrayHelper::toObject($validData);
 		$data->deleted      = 0;
 		$data->published    = 1;
 		$data->object_id    = $this->input->getInt('object_id');
-		$data->object_group = $this->input->getString('object_group', 'com_content');
-		$data->parent       = $this->input->getInt('parent_id');
-		$data->id           = $this->input->getInt('comment_id');
+		$data->object_group = $this->input->getInt('object_group', 'com_content');
+		$data->id           = $data->comment_id;
+		$data->banned       = 0;
 		$data->user_blocked = 0;
-		$data->bottomPanel  = 1;
+		$data->checked_out  = null;
+		$data->title        = $data->title ?? null;
 		$data->comment      = JcommentsText::nl2br($data->comment);
-		$data->comment      = JcommentsText::filterText($data->comment);
+		$data->preview      = true;
 
-		JcommentsContentHelper::prepareComment($data, true);
+		$dispatcher->dispatch(
+			'onJCommentsCommentsPrepare',
+			AbstractEvent::create(
+				'onJCommentsCommentsPrepare',
+				array('subject' => new \stdClass, array($data))
+			)
+		);
+
+		if ($acl->canViewAvatar)
+		{
+			$app->getDispatcher()->dispatch(
+				'onPrepareAvatars',
+				AbstractEvent::create(
+					'onPrepareAvatars',
+					array('subject' => new \stdClass, array($data))
+				)
+			);
+		}
+
+		JcommentsContentHelper::prepareComment($data);
 
 		$html = '<div class="comment-preview">
-			<style>@import url("' . Uri::base() . 'media/com_jcomments/css/' . File::makeSafe($params->get('custom_css') . '.css') . '");</style>
-			<div class="comments-list-container">
-				<div class="comment-container" id="comment-item-">'
-				. LayoutHelper::render('comment', array('comment' => $data, 'params' => $params))
-				. '</div>
+			<div class="comment-container shadow-sm mb-3" id="comment-item-preview">
+				' . LayoutHelper::render('comment', array('comment' => $data, 'params' => $params)) . '
 			</div>
 			<div class="my-2 border-bottom border-success border-3"></div>
 		</div>';
@@ -640,7 +885,7 @@ class CommentController extends FormController
 	 */
 	public function save($key = null, $urlVar = 'comment_id')
 	{
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
+		$return = 'index.php?option=com_jcomments&view=form&tmpl=component&object_id=2&object_group=com_content&lang=ru';
 
 		if (!$this->checkToken('post', false))
 		{
@@ -651,9 +896,12 @@ class CommentController extends FormController
 
 		$data = $this->input->post->get('jform', array(), 'array');
 
-		echo '<pre>';
+		/*echo '<pre>';
 		var_dump($data);
-		echo '</pre>';
+		echo '</pre>';*/
+		//echo '<script>alert(1);</script>';
+		//$this->setRedirect();
+		echo $return;
 	}
 
 	/**
@@ -666,10 +914,17 @@ class CommentController extends FormController
 	 */
 	public function vote()
 	{
-		$return = Route::_(JcommentsFactory::getReturnPage(), false);
-		$id     = $this->input->getInt('id', 0);
+		$return = Route::_(JcommentsContentHelper::getReturnPage(), false);
+		$id     = $this->input->getInt('comment_id');
 		$task   = $this->getTask();
 		$value  = $task == 'voteUp' ? 1 : -1;
+
+		if (empty($id))
+		{
+			$this->setResponse(null, $return, Text::_('ERROR_NOT_FOUND'), 'error');
+
+			return;
+		}
 
 		/** @var \Joomla\Component\Jcomments\Site\Model\CommentModel $model */
 		$model = $this->getModel();
@@ -706,7 +961,7 @@ class CommentController extends FormController
 	 *
 	 * @since   1.5
 	 */
-	public function getModel($name = 'Comment', $prefix = 'Site', $config = array('ignore_request' => false))
+	public function getModel($name = 'Comment', $prefix = 'Site', $config = array('ignore_request' => true))
 	{
 		return parent::getModel($name, $prefix, $config);
 	}
@@ -773,7 +1028,7 @@ class CommentController extends FormController
 	private function preprocessComment($comment = null, $id = null, bool $cache = false)
 	{
 		$user = $this->app->getIdentity();
-		$id   = empty($id) ? $this->input->getInt('id') : $id;
+		$id = empty($id) ? $this->input->getInt('id') : $id;
 
 		if (!is_object($comment))
 		{
@@ -805,6 +1060,7 @@ class CommentController extends FormController
 
 		// Run autocensor, replace quotes, smilies and other pre-view processing
 		JcommentsContentHelper::prepareComment($comment);
+		JcommentsContentHelper::dispatchContentEvents($dispatcher, $comment);
 
 		return $comment;
 	}

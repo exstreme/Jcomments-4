@@ -20,6 +20,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 
@@ -30,6 +31,14 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
  */
 class HtmlView extends BaseHtmlView
 {
+	/**
+	 * The active document object
+	 *
+	 * @var    \Joomla\CMS\Document\Document
+	 * @since  3.0
+	 */
+	public $document;
+
 	/**
 	 * The Form object
 	 *
@@ -84,12 +93,20 @@ class HtmlView extends BaseHtmlView
 	protected $objectID = 0;
 
 	/**
-	 * String with error text
+	 * Text for 'Policy'
 	 *
 	 * @var    string
 	 * @since  4.1
 	 */
-	protected $error = '';
+	protected $policy = '';
+
+	/**
+	 * Text for 'Terms of use'
+	 *
+	 * @var    string
+	 * @since  4.1
+	 */
+	protected $terms = '';
 
 	/**
 	 * Execute and display a template script.
@@ -103,6 +120,8 @@ class HtmlView extends BaseHtmlView
 	 */
 	public function display($tpl = null)
 	{
+		$this->document = $this->getDocument();
+
 		if ($this->getLayout() == 'report')
 		{
 			$this->displayReportForm($tpl);
@@ -137,70 +156,38 @@ class HtmlView extends BaseHtmlView
 		PluginHelper::importPlugin('jcomments');
 
 		// Set up document title
-		$title = empty($this->form->getValue('comment_id')) ? 'FORM_HEADER' : 'FORM_HEADER_EDIT';
+		if (empty($app->input->getInt('comment_id')))
+		{
+			$title = 'FORM_HEADER';
+		}
+		else
+		{
+			if ($app->input->getInt('quote') == 1)
+			{
+				$title = 'FORM_HEADER_QUOTE';
+			}
+			else
+			{
+				$title = 'FORM_HEADER_EDIT';
+			}
+		}
+
 		$this->setDocumentTitle(Text::_($title));
 
-		$this->document->getWebAssetManager()
-			->useScript('bootstrap.alert')
-			->addInlineScript(
-				"document.addEventListener('DOMContentLoaded', function () {
-					const alert = document.querySelector('.jc-alert');
-					
-					if (alert) {
-						alert.addEventListener('close.bs.alert', function () {
-							const editFormIframe = parent.document.querySelector('.commentEditFormFrame');
-							
-							if (editFormIframe) {
-								editFormIframe.remove();
-							}
-						});
-					}
-				});"
-			);
+		$this->document->getWebAssetManager()->useScript('jcomments.core');
 
-		/** @see ./plugins/content/jcomments/jcomments.php#L125 */
-		if ($this->params->get('comments_locked'))
+		$canViewForm = $acl->canViewForm(true);
+
+		if ($canViewForm !== true)
 		{
-			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_locked', $lang->getTag());
-
-			if ($message != '')
-			{
-				echo '<div class="alert alert-secondary text-center mt-2" role="alert">'
-					. nl2br($this->escape($message)) . '</div>';
-			}
+			echo $canViewForm;
 
 			return;
 		}
 
-		if ($acl->userBlocked)
+		if (count($errors = $this->get('Errors')))
 		{
-			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_banned', $lang->getTag());
-			$reason = '';
-
-			if ($message != '')
-			{
-				$reason = !empty($acl->userBlockedReason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($acl->userBlockedReason) : '';
-			}
-
-			echo $this->alert(nl2br($this->escape($message)) . $reason);
-
-			return;
-		}
-
-		if (!$user->authorise('comment.comment', 'com_jcomments'))
-		{
-			$message = JcommentsText::getMessagesBasedOnLanguage(
-				$this->params->get('messages_fields'),
-				'message_policy_whocancomment',
-				$lang->getTag()
-			);
-
-			if ($message != '')
-			{
-				echo $this->alert(nl2br($this->escape($message)));
-			}
-
-			return;
+			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
 		// Access check when edit comment.
@@ -210,7 +197,7 @@ class HtmlView extends BaseHtmlView
 
 			if ($acl->isLocked($this->item))
 			{
-				echo $this->alert(Text::_('ERROR_BEING_EDITTED'));
+				echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_BEING_EDITTED'), 'warning');
 
 				return;
 			}
@@ -218,22 +205,22 @@ class HtmlView extends BaseHtmlView
 			{
 				if ($this->item->get('deleted') == 1)
 				{
-					echo $this->alert(Text::_('ERROR_NOT_FOUND'));
+					echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_NOT_FOUND'), 'warning');
 				}
 				else
 				{
-					echo $this->alert(Text::_('ERROR_CANT_EDIT'));
+					echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_CANT_EDIT'), 'warning');
 				}
 
 				return;
 			}
 
-			if (!$user->get('guest'))
+			if (!$user->get('guest') || $app->input->getInt('quote') != 1)
 			{
 				/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
 				$table = $app->bootComponent('com_jcomments')->getMVCFactory()
 					->createTable('Comment', 'Administrator');
-				$table->checkOut($user->get('id'), $this->form->getValue('comment_id'));
+				$table->checkOut($user->get('id'), $this->item->comment_id);
 			}
 		}
 
@@ -244,6 +231,7 @@ class HtmlView extends BaseHtmlView
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
+		Text::script('LOADING');
 		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
 		$commentsCount = \Joomla\Component\Jcomments\Site\Helper\ObjectHelper::getTotalCommentsForObject($this->objectID, $this->objectGroup, 1, 0);
@@ -368,17 +356,19 @@ class HtmlView extends BaseHtmlView
 		$this->setDocumentTitle(Text::_('REPORT_TO_ADMINISTRATOR'));
 
 		// Blocked user cannot report to admin
-		if ($acl->userBlocked)
+		$userState = $acl->getUserBlockState();
+
+		if ($userState['state'])
 		{
 			$message = JcommentsText::getMessagesBasedOnLanguage($this->params->get('messages_fields'), 'message_banned', $lang->getTag());
 			$reason = '';
 
 			if ($message != '')
 			{
-				$reason = !empty($acl->userBlockedReason) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $this->escape($acl->userBlockedReason) : '';
+				$reason = !empty($user['reason']) ? '<br>' . Text::_('REPORT_REASON') . ': ' . $user['reason'] : '';
 			}
 
-			echo $this->alert(nl2br($this->escape($message)) . $reason);
+			echo JcommentsComponentHelper::renderMessage(nl2br($message . $reason), 'warning');
 
 			return;
 		}
@@ -398,14 +388,14 @@ class HtmlView extends BaseHtmlView
 
 		if (!$acl->canReport($this->item))
 		{
-			echo $this->alert(Text::_('ERROR_YOU_HAVE_NO_RIGHTS_TO_REPORT'));
+			echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_YOU_HAVE_NO_RIGHTS_TO_REPORT'), 'warning');
 
 			return false;
 		}
 
 		if ($table->get('userid') == $acl->userID)
 		{
-			echo $this->alert(Text::_('ERROR_YOU_CANNOT_REPORT_OWN'));
+			echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_YOU_CANNOT_REPORT_OWN'), 'warning');
 
 			return false;
 		}
@@ -428,23 +418,5 @@ class HtmlView extends BaseHtmlView
 		}
 
 		parent::display($tpl);
-	}
-
-	/**
-	 * Return formatted message.
-	 *
-	 * @param   string   $msg    Message.
-	 * @param   boolean  $close  Close button.
-	 *
-	 * @return  string
-	 *
-	 * @since   4.1
-	 */
-	private function alert(string $msg, bool $close = true): string
-	{
-		$closeBtn = $close ? '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . Text::_('JCLOSE') . '"></button>' : '';
-		$closeBtnClass = $close ? ' alert-dismissible' : '';
-
-		return '<div class="jc-alert alert alert-warning mt-2 fade show' . $closeBtnClass . '" role="alert">' . $msg . $closeBtn . '</div>';
 	}
 }

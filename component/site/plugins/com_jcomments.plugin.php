@@ -24,7 +24,6 @@ class jc_com_jcomments extends JcommentsPlugin
 	public function getObjectInfo($id, $language = null)
 	{
 		$info = new JcommentsObjectinfo;
-
 		$menu = self::getMenuItem($id);
 
 		if ($menu != '')

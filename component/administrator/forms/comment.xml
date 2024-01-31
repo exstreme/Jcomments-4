@@ -45,7 +45,7 @@
 				label="A_COMMENT_TEXT"
 				rows="10"
 				cols="100"
-				filter="JComponentHelper::filterText"
+				filter="Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText::filterText"
 				required="true"
 				width="100%"
 				height="350"
@@ -111,6 +111,19 @@
 		>
 			<option value="1">JPUBLISHED</option>
 			<option value="0">JUNPUBLISHED</option>
+		</field>
+
+		<field
+				name="pinned"
+				type="list"
+				label="A_COMMENT_PINNED"
+				description="A_COMMENT_PINNED_DESC"
+				default=""
+				size="1"
+				validate="options"
+		>
+			<option value="">JNO</option>
+			<option value="1">JYES</option>
 		</field>
 
 		<field

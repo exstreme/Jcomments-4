@@ -225,6 +225,10 @@ $this->useCoreUI = true;
 					</div>
 
 					<div class="control-group">
+						<?php echo $this->form->renderField('pinned'); ?>
+					</div>
+
+					<div class="control-group">
 						<div class="control-label">
 							<?php echo $this->form->getLabel('deleted'); ?>
 						</div>

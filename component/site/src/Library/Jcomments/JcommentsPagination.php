@@ -38,23 +38,33 @@ class JcommentsPagination extends Pagination
 	 */
 	protected function _item_active(PaginationObject $item)
 	{
-		$config = ComponentHelper::getParams('com_jcomments');
-		$controller = Factory::getApplication()->input->getString('controller');
-
-		// Skip doing custom page links
-		if ($config->get('template_view') == 'list' && $config->get('load_cached_comments'))
+		// Do not override pagination layout in user profile and when not in list mode.
+		if (ComponentHelper::getParams('com_jcomments')->get('template_view') == 'list' && Factory::getApplication()->input->getString('controller') != 'user')
 		{
-			return parent::_item_active($item);
+			return LayoutHelper::render('pagination_link', ['data' => $item, 'active' => true], '', array('component' => 'com_jcomments'));
 		}
 
+		// Fallback to default layout
+		return parent::_item_active($item);
+	}
+
+	/**
+	 * Method to create an inactive pagination string
+	 *
+	 * @param   PaginationObject  $item  The item to be processed
+	 *
+	 * @return  string
+	 *
+	 * @since   1.5
+	 */
+	protected function _item_inactive(PaginationObject $item)
+	{
 		// Do not override pagination layout in user profile
-		if ($controller == 'user')
+		if (Factory::getApplication()->input->getString('controller') == 'user')
 		{
-			return LayoutHelper::render('joomla.pagination.link', ['data' => $item, 'active' => true]);
+			return parent::_item_inactive($item);
 		}
-		else
-		{
-			return LayoutHelper::render('pagination_link', ['data' => $item, 'active' => true]);
-		}
+
+		return LayoutHelper::render('pagination_link', ['data' => $item, 'active' => false], '', array('component' => 'com_jcomments'));
 	}
 }

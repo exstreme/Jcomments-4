@@ -23,6 +23,8 @@
 			<option value="">JGLOBAL_SORT_BY</option>
 			<option value="jb.ip ASC">A_BLACKLIST_SORT_IP_ASC</option>
 			<option value="jb.ip DESC">A_BLACKLIST_SORT_IP_DESC</option>
+			<option value="u3.username ASC">A_BLACKLIST_SORT_EDITOR_ASC</option>
+			<option value="u3.username DESC">A_BLACKLIST_SORT_EDITOR_DESC</option>
 			<option value="u.name ASC">A_BLACKLIST_SORT_USER_ASC</option>
 			<option value="u.name DESC">A_BLACKLIST_SORT_USER_DESC</option>
 			<option value="jb.created ASC">JDATE_ASC</option>

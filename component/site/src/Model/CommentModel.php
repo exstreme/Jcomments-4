@@ -23,7 +23,9 @@ use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Database\ParameterType;
 use Joomla\String\StringHelper;
@@ -50,12 +52,13 @@ class CommentModel extends BaseDatabaseModel
 	 * @param   integer|null  $pk        ID for the comment
 	 * @param   boolean       $useCache  Store item in cache or not. Cache used only for guests.
 	 *
-	 * @return  mixed    Object or null
+	 * @return  \stdClass|null
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
+	 * @todo    Set $useCache to 'true' in release version
 	 */
-	public function getItem(?int $pk = null, bool $useCache = false)
+	public function getItem(?int $pk = null, bool $useCache = false): ?object
 	{
 		$pk = (int) ($pk ?: $this->getState('comment.id'));
 
@@ -75,19 +78,12 @@ class CommentModel extends BaseDatabaseModel
 			{
 				$query = $db->getQuery(true)
 					->select('c.*')
+					->select('(' . $db->quoteName('c.isgood') . ' - ' . $db->quoteName('c.ispoor') . ') AS ' . $db->quoteName('vote_value'))
 					->select('CASE WHEN ' . $db->quoteName('c.parent') . ' = 0'
 						. ' THEN UNIX_TIMESTAMP(' . $db->quoteName('c.date') . ') ELSE 0 END'
 						. ' AS ' . $db->quoteName('threaddate')
 					)
-					->select(
-						array(
-							$db->quoteName('o.title', 'object_title'),
-							$db->quoteName('o.link', 'object_link'),
-							$db->quoteName('o.access', 'object_access'),
-							$db->quoteName('o.userid', 'object_owner'),
-							$db->quoteName('usr.block', 'user_blocked')
-						)
-					)
+					->select($db->quoteName('usr.block', 'user_blocked'))
 					->select('(CASE WHEN ' . $db->quoteName('b.id') . ' > 0 THEN 1 ELSE 0 END) AS ' . $db->quoteName('banned'))
 					->select(
 						array(
@@ -96,11 +92,8 @@ class CommentModel extends BaseDatabaseModel
 							$db->quoteName('l.image', 'language_image')
 						)
 					)
+					->select($db->quoteName('usr_c.name', 'editor') . ',' . $db->quoteName('usr_c.username', 'editor_username'))
 					->from($db->quoteName('#__jcomments', 'c'))
-					->leftJoin(
-						$db->quoteName('#__jcomments_objects', 'o'),
-						$db->quoteName('c.object_id') . ' = ' . $db->quoteName('o.object_id')
-					)
 					->leftJoin(
 						$db->quoteName('#__jcomments_blacklist', 'b'),
 						$db->quoteName('b.userid') . ' = ' . $db->quoteName('c.userid')
@@ -116,7 +109,8 @@ class CommentModel extends BaseDatabaseModel
 					->leftJoin(
 						$db->quoteName('#__languages', 'l'),
 						$db->quoteName('l.lang_code') . ' = ' . $db->quoteName('c.lang')
-					);
+					)
+					->leftJoin($db->quoteName('#__users', 'usr_c'), 'usr_c.id = c.checked_out');
 
 				// Join over labels
 				$query->select(array($db->quoteName('u.labels'), $db->quoteName('u.terms_of_use')))
@@ -159,18 +153,15 @@ class CommentModel extends BaseDatabaseModel
 							? 0 : 1;
 					}
 
-					$groups = $user->getAuthorisedViewLevels();
-
-					$query->whereIn($db->quoteName('c.published'), array_unique($state))
-						->whereIn($db->quoteName('o.access'), $groups);
+					$query->whereIn($db->quoteName('c.published'), array_unique($state));
 				}
+
+				$objectId    = $this->getState('object_id');
+				$objectGroup = $this->getState('object_group');
+				$parent      = $this->getState('parent');
 
 				if ($this->getState('last_comment') == 1)
 				{
-					$objectId    = $this->getState('object_id');
-					$objectGroup = $this->getState('object_group');
-					$parent      = $this->getState('parent');
-
 					$query->where($db->quoteName('c.object_id') . ' = :oid')
 						->where($db->quoteName('c.object_group') . ' = :ogroup')
 						->where($db->quoteName('c.parent') . ' = :parent')
@@ -187,8 +178,28 @@ class CommentModel extends BaseDatabaseModel
 				}
 
 				$db->setQuery($query);
+				$item = $db->loadObject();
 
-				return $db->loadObject();
+				if ($item)
+				{
+					if (ObjectHelper::isEmpty($item))
+					{
+						$info = ObjectHelper::getObjectInfo($item->object_id, $item->object_group, $item->lang);
+
+						if (!ObjectHelper::isEmpty($info))
+						{
+							foreach ($info as $k => $v)
+							{
+								if (!isset($item->$k))
+								{
+									$item->$k = $v;
+								}
+							}
+						}
+					}
+				}
+
+				return $item;
 			};
 
 			try
@@ -214,7 +225,7 @@ class CommentModel extends BaseDatabaseModel
 	public function getLastComment(int $objectID, string $objectGroup = 'com_content', int $parent = 0)
 	{
 		$this->setState('object_id', $objectID);
-		$this->setState('object_group', trim($objectGroup));
+		$this->setState('object_group', $objectGroup);
 		$this->setState('parent', $parent);
 		$this->setState('published', 1);
 
@@ -412,6 +423,60 @@ class CommentModel extends BaseDatabaseModel
 	}
 
 	/**
+	 * Method to change the pinned state of one record.
+	 *
+	 * @param   integer  $pk     Primary key to change.
+	 * @param   integer  $value  The value of the published state.
+	 *
+	 * @return  boolean  True on success.
+	 *
+	 * @throws  \Exception
+	 * @since   4.1
+	 */
+	public function pin(int $pk, int $value = 0): bool
+	{
+		$user = Factory::getApplication()->getIdentity();
+		$table = $this->getTable('Comment', 'Administrator');
+
+		$table->reset();
+
+		if ($table->load($pk))
+		{
+			if (!$user->authorise('core.edit.state', 'com_jcomments'))
+			{
+				Log::add(Text::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), Log::WARNING, 'com_jcomments');
+
+				return false;
+			}
+
+			// If the table is checked out by another user, drop it and report to the user trying to change its state.
+			if ($table->hasField('checked_out') && $table->checked_out && ($table->checked_out != $user->id))
+			{
+				Log::add(Text::_('JLIB_APPLICATION_ERROR_CHECKIN_USER_MISMATCH'), Log::WARNING, 'com_jcomments');
+
+				return false;
+			}
+		}
+
+		// Attempt to change the state of the records.
+		if (!$table->pin($pk, $value, $user->get('id')))
+		{
+			$this->setError($table->getError());
+
+			return false;
+		}
+		else
+		{
+			CacheHelper::removeCachedItem(
+				md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $pk),
+				'com_jcomments_comments'
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Method to change the published state of one record.
 	 *
 	 * @param   integer  $pk     Primary key to change.
@@ -455,23 +520,31 @@ class CommentModel extends BaseDatabaseModel
 
 			return false;
 		}
+		else
+		{
+			CacheHelper::removeCachedItem(
+				md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $pk),
+				'com_jcomments_comments'
+			);
+		}
 
 		// Send notifications on publish state
-		if ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 1)
+		if ($params->get('enable_user_notification') && $value == 1)
 		{
 			// Send notification to subscribed users.
-			NotificationHelper::push($table, 'comment-published');
+			NotificationHelper::enqueueMessage($table, 'comment-published');
+		}
 
+		if ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 1)
+		{
 			// Send notification to administrator(moderator). List of emails from 'notification_email' option.
-			NotificationHelper::push($table, 'moderate-published');
+			NotificationHelper::enqueueMessage($table, 'comment-admin-published');
 		}
 		// Send notifications on unpublished state only to administrator(moderator)
 		elseif ($params->get('enable_notification') && in_array(3, $params->get('notification_type')) && $value == 0)
 		{
-			NotificationHelper::push($table, 'moderate-unpublished');
+			NotificationHelper::enqueueMessage($table, 'comment-admin-unpublished');
 		}
-
-		$this->cleanCache('com_jcomments_comments');
 
 		return true;
 	}
@@ -489,11 +562,12 @@ class CommentModel extends BaseDatabaseModel
 	{
 		if (isset($data->id))
 		{
+			$data->id = (int) $data->id;
 			$config = ComponentHelper::getParams('com_jcomments');
 
 			/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
 			$table = $this->getTable();
-			$return = $table->load((int) $data->id);
+			$return = $table->load($data->id);
 
 			if ($return === false && $table->getError())
 			{
@@ -518,12 +592,22 @@ class CommentModel extends BaseDatabaseModel
 
 				return false;
 			}
-
-			if ($config->get('enable_notification') && in_array(4, $config->get('enable_notification')))
+			else
 			{
-				NotificationHelper::push($table, 'comment-delete');
-				NotificationHelper::push($table, 'moderate-delete');
+				CacheHelper::removeCachedItem(
+					md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $data->id),
+					'com_jcomments_comments'
+				);
 			}
+
+			if ($config->get('enable_notification') && in_array(4, $config->get('notification_type')))
+			{
+				NotificationHelper::enqueueMessage($data, 'comment-admin-delete');
+			}
+		}
+		else
+		{
+			return false;
 		}
 
 		return true;
@@ -635,6 +719,8 @@ class CommentModel extends BaseDatabaseModel
 
 						return false;
 					}
+
+					CacheHelper::removeCachedItem(md5('Joomla\Component\Jcomments\Site\Model\CommentModel::getItem' . $id), 'com_jcomments_comments');
 
 					$dispatcher->dispatch(
 						'onJCommentsCommentAfterVote',
