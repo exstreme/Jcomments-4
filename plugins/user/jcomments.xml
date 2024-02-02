@@ -13,6 +13,7 @@
 	<files>
 		<folder plugin="jcomments">services</folder>
 		<folder>forms</folder>
+		<folder>src</folder>
 	</files>
 
 	<languages folder="admin">

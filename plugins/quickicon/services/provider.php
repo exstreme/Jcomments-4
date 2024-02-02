@@ -18,7 +18,7 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
 use Joomla\Event\DispatcherInterface;
-use Joomla\Plugin\Quickicon\Jcomments\Extension\Jcomments;
+use Joomla\Plugin\Quickicon\Jcomments\Extension\Quickicon;
 
 return new class implements ServiceProviderInterface {
 	/**
@@ -37,7 +37,7 @@ return new class implements ServiceProviderInterface {
 			function (Container $container)
 			{
 				$subject = $container->get(DispatcherInterface::class);
-				$plugin = new Jcomments(
+				$plugin = new Quickicon(
 					$subject,
 					(array) PluginHelper::getPlugin('quickicon', 'jcomments')
 				);

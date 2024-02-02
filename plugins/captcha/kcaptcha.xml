@@ -8,20 +8,24 @@
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<description>PLG_CAPTCHA_KCAPTCHA_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Plugin\Captcha\Kcaptcha</namespace>
+
 	<files>
 		<folder plugin="kcaptcha">services</folder>
 
 		<folder>layouts</folder>
 		<folder>src</folder>
 	</files>
+
 	<media folder="media" destination="plg_captcha_kcaptcha">
 		<folder>fonts</folder>
 		<folder>js</folder>
 	</media>
+
 	<languages>
 		<language tag="en-GB">language/en-GB/plg_captcha_kcaptcha.ini</language>
 		<language tag="en-GB">language/en-GB/plg_captcha_kcaptcha.sys.ini</language>
 	</languages>
+
 	<config>
 		<fields name="params">
 			<fieldset name="basic">

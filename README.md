@@ -35,3 +35,27 @@ Available plugins can be downloaded <a href="https://github.com/exstreme/Jcommen
 
 * How do I get RSS for...
 * See https://github.com/exstreme/Jcomments-4/issues/130#issuecomment-1409095204
+
+## Events
+
+- onTableBeforePin
+- onTableAfterPin
+- onJCommentsUserBeforeBan
+- onJCommentsUserAfterBan
+- onJCommentsCommentsPrepare
+- onPrepareAvatars
+- onJcommentsCleanCache
+- onJCommentsCommentBeforePrepare
+- onJCommentsCommentAfterPrepare
+- onMailBeforeNotificationPush
+- onMailBeforeSend
+- onMailAfterSend
+- onJCommentsCommentBeforeVote
+- onJCommentsCommentAfterVote
+- onJCommentsCommentBeforeReport
+- onJCommentsCommentAfterReport
+- onJCommentsFormBeforeDisplay
+- onJCommentsFormAfterDisplay
+- onJCommentsFormPrepend
+- onJCommentsFormAppend
+- All other standard Joomla events from MVC where it is applicable.

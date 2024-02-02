@@ -22,7 +22,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
  *
  * @since  4.1
  */
-final class Jcomments extends CMSPlugin
+final class Quickicon extends CMSPlugin
 {
 	/**
 	 * Load the language file on instantiation.
