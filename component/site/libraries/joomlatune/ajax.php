@@ -149,6 +149,7 @@ if (!defined ('JOOMLATUNE_AJAX'))
 		var $aFunctions;
 		var $aObjects;
 		var $aFunctionRequestTypes;
+		var $aFunctionIncludeFiles;
 		var $sRequestURI;
 		var $sEncoding;
 
