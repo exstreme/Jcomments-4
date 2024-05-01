@@ -11,6 +11,7 @@ Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" targe
 ## Requirements
 
 Joomla 4.2+
+
 Joomla 5.0+ with `Behaviour - Backward Compatibility` plugin enabled.
 
 ## Migration from Jcomments 3
