@@ -11,12 +11,13 @@ Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" targe
 ## Requirements
 
 Joomla 4.2+
+Joomla 5.0+ with `Behaviour - Backward Compatibility` plugin enabled.
 
 ## Migration from Jcomments 3
-- make backup
-- uninstall Jcomments 3 (your comments will be saved in the database)
-- install Jcomments 4
-- run database repair if need from `administrator/index.php?option=com_installer&view=database`
+- Make backup
+- Uninstall Jcomments 3 (your comments will be saved in the database)
+- Install Jcomments 4
+- Run database repair if need from `administrator/index.php?option=com_installer&view=database`
 - Go to `administrator/index.php?option=com_config&view=component&component=com_jcomments` and set up access rules again
 
 ## Modules

@@ -16,7 +16,7 @@
 		<sha256>5ea0d885fc9e15a3045fd447e26b9791c32e13d9dd82348637a067b1cdfcdf4d</sha256>
 		<sha384>e945c6cc83c4f875032668eac6b7b2bc4130bfa42c2729b5a0ddb854abc99b776e0126b55bcfa213a1e24f1154842038</sha384>
 		<sha512>4abc57dd3bdedab34e9999e61dc22a1b8e21eb80328bd69db6d7e5ff234745141d60532f5da6d53e3ace3a49a15cedec96ed4ceebdd08876870c83500652e616</sha512>
-		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 
 	<update>
@@ -35,7 +35,7 @@
 		<sha256>7bad4af8fe34b4a5253fdce253519c0589fa50c62b05b9f7a25704628f9a0fad</sha256>
 		<sha384>70c1b91211ab94df0160e90633f416e94010d2be35f3c5d026faacd96fccb1ac4c1c5109f2a64a6ee4faaea549c9a348</sha384>
 		<sha512>d43a775494f9166e29c7131ff8c373ffce4e1e07e6ce0c61adec5b9a7621a2e2a657e6cc1dbff9bd8976aa603d7601e373c4e4184ba6f5e01fed1be768d0e24d</sha512>
-		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 
 	<update>
@@ -54,7 +54,7 @@
 		<sha256>54341e7cd18e2f441c63b484f884d3ad499e5c783bd0da6b7f01c6a3b2c544a1</sha256>
 		<sha384>a3d8783e0df7d4118b01187cb580ee0e36390145427d2700abcef0aee21dc44cf90ab47103ed394b280d2643e55053c4</sha384>
 		<sha512>22e1c066053f274c43a4cf4cca679e62bd9eb50b335123c226d55ba152729b9fb456eae75b8f4eed36cf860ac6bdcd8004beee694ae9445bc1149d1b99d86286</sha512>
-		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 
 	<update>
@@ -73,7 +73,7 @@
 		<sha256>af69e152ca6f706a479a0e4c588a762f0636fdc9cf7e81d8ef503f90fcc13f56</sha256>
 		<sha384>1d93952f789b6f5b3a5b893d1ecbf88d6f59210ada58d287edc5ee6c1981f96abd3851686781bcbc2063e4260543cb3d</sha384>
 		<sha512>5b8305992ab1776bd4029ad839e90ed704b893a7d570a11bc6e10eaca52bdbc66e9a54cc80be8127d3f56e3068021d0da089f473182c667639082e59ff5bd6d8</sha512>
-		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 
 	<update>
@@ -92,6 +92,6 @@
 		<sha256>de17323aa3e0a6010c5a7076da49c1be97c0e5a0b3a05ec14b6a1e454f9868db</sha256>
 		<sha384>4d662613b9f8a7c9decee985dde495709298998cd1cf0a74749bbeabd44d0caf534067c72dcae129388882a919a6bab2</sha384>
 		<sha512>41549585d4c587a1cc14a3fa49020e5ab614eaf80130a45cc5391e348cb288ed24f5275ceb410b96966026e93ef3a7ce52804a6b8c27ac57b557b917c49c8a15</sha512>
-		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 </updates>
