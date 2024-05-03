@@ -18,6 +18,6 @@
 		<sha256>2d2f39480fe8bbe07e0f50e334daf98b244f6a1d126cd9de3423cd5da0b0ed48</sha256>
 		<sha384>d941d7c2aad231e883e1b44097d6de024407b7fc07008469cbd2f699ea833ee9d02d670b994220eaf648a29e72a6fef9</sha384>
 		<sha512>568a41855c903b1782492421c561656fd54acb7a254cde52130173f1c59a3cc052e09fd3eb156b674daed362f00f8abaa74181f01852b54fc59646629f943e7f</sha512>
-		<targetplatform name="joomla" version="4.[0123456789]|10"/>
+		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>				
 </updates>

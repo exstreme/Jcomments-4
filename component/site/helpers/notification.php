@@ -379,7 +379,7 @@ class JCommentsNotification
 	 */
 	public static function getUnsubscribeLink($hash)
 	{
-		$link = 'index.php?option=com_jcomments&task=unsubscribe&hash=' . $hash . '&format=raw';
+		$link = 'index.php?option=com_jcomments&task=subscriptions.remove&hash=' . $hash;
 		$app  = Factory::getApplication();
 
 		if ($app->isClient('administrator'))
