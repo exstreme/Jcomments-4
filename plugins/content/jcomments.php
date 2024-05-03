@@ -175,6 +175,14 @@ class PlgContentJcomments extends CMSPlugin
 				$params->set('show_readmore', false);
 				$layoutData['showReadmore'] = true;
 			}
+			else
+			{
+				if ($this->params->get('yootheme_hack') && $article->readmore)
+				{
+					$params->set('show_readmore', true);
+					$layoutData['showReadmore'] = true;
+				}
+			}
 
 			// Links position
 			if ($this->params->get('links_position') == 'after')
@@ -211,7 +219,6 @@ class PlgContentJcomments extends CMSPlugin
 
 			JCommentsContent::clear($article);
 		}
-
 	}
 
 	/**
