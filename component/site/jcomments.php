@@ -1243,8 +1243,9 @@ class JComments
 		// Avatar support
 		if (empty($comment->avatar))
 		{
-			$comment->avatar = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
-			$comment->profileLink = '';
+			$comment->avatar            = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+			$comment->profileLink       = '';
+			$comment->profileLinkTarget = '_blank';
 		}
 
 		JCommentsEvent::trigger('onJCommentsCommentAfterPrepare', array(&$comment));
