@@ -11,6 +11,8 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+
 /**
  * Main template for JComments. Don't change it without serious reasons ;)
  * Then creating new template you can copy this file to new template's dir without changes
@@ -53,7 +55,7 @@ var jcomments=new JComments($object_id, '$object_group','".$this->getVar('ajaxur
 jcomments.setList('comments-list');
 //-->";
 //</script>
-            JFactory::getDocument()->addScriptDeclaration($script); ?>
+            Factory::getDocument()->addScriptDeclaration($script); ?>
 <?php
 			// IMPORTANT: Do not rename this div's id! Some JavaScript functions references to it!
 ?>
@@ -89,7 +91,7 @@ jcomments.setList('comments-list');
 jcomments.setAntiCache($aca,$acp,$acf);
 //-->
 ";
-JFactory::getDocument()->addScriptDeclaration($script); ?>
+Factory::getDocument()->addScriptDeclaration($script); ?>
 <?php
 			}
 ?>

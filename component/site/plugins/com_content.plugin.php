@@ -15,6 +15,7 @@ use Joomla\CMS\Access\Access;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Content\Site\Helper\RouteHelper;
 
 require_once JPATH_ROOT . '/components/com_jcomments/classes/plugin.php';
 
@@ -50,11 +51,11 @@ class jc_com_content extends JCommentsPlugin
 
 			if ($checkAccess)
 			{
-				$link = Route::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catslug, $article->language), false);
+				$link = Route::_(RouteHelper::getArticleRoute($article->slug, $article->catslug, $article->language), false);
 			}
 			else
 			{
-				$returnURL = Route::_(ContentHelperRoute::getArticleRoute($article->slug, $article->catslug, $article->language));
+				$returnURL = Route::_(RouteHelper::getArticleRoute($article->slug, $article->catslug, $article->language));
 				$menu      = Factory::getApplication()->getMenu();
 				$active    = $menu->getActive();
 				$itemId    = $active->id;

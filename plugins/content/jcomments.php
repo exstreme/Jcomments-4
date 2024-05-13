@@ -20,6 +20,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Content\Site\Helper\RouteHelper;
 use Joomla\Registry\Registry;
 
 /**
@@ -103,11 +104,11 @@ class PlgContentJcomments extends CMSPlugin
 
 			if ($checkAccess)
 			{
-				$readmoreLink = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
+				$readmoreLink = Route::_(RouteHelper::getArticleRoute($slug, $article->catid, $language));
 			}
 			else
 			{
-				$returnURL = Route::_(ContentHelperRoute::getArticleRoute($slug, $article->catid, $language));
+				$returnURL = Route::_(RouteHelper::getArticleRoute($slug, $article->catid, $language));
 
 				$menu   = $app->getMenu();
 				$active = $menu->getActive();
