@@ -1,46 +1,55 @@
 <?php
 /**
- * JComments plugin for DJ-Catalog2 objects support (http://dj-extensions.com)
+ * JComments plugin for DJ-Catalog2 objects support (https://dj-extensions.com/dj-catalog2)
  *
- * @version 3.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2011-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @version       4.0
+ * @package       JComments
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
+
 class jc_com_djcatalog2 extends JCommentsPlugin
 {
-	function getObjectInfo($id, $language = null)
+	public function getObjectInfo($id, $language = null)
 	{
-		$info = new JCommentsObjectInfo();
+		$info = new JCommentsObjectInfo;
 
-		$routerHelper = JPATH_ROOT.'/components/com_djcatalog2/helpers/route.php';
-		if (is_file($routerHelper)) {
-			require_once($routerHelper);
+		$djcatalog2RouterHelper = JPATH_ROOT . '/components/com_djcatalog2/helpers/route.php';
 
-			$db = JFactory::getDBO();
+		if (is_file($djcatalog2RouterHelper))
+		{
+			require_once $djcatalog2RouterHelper;
 
+			/** @var \Joomla\Database\DatabaseInterface $db */
+			$db    = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
-			$query->select('a.id, a.alias, a.name, a.created_by');
-			$query->from('#__djc2_items AS a');
-			$query->select('c.id AS category_id, c.alias AS category_alias');
-			$query->join('LEFT', '#__djc2_categories AS c ON c.id = a.cat_id');
-			$query->where('a.id = ' . (int) $id);
-			
+
+			$query->select($db->quoteName(array('a.id', 'a.alias', 'a.name', 'a.created_by')))
+				->select('c.id AS category_id, c.alias AS category_alias')
+				->from($db->quoteName('#__djc2_items', 'a'))
+				->join('LEFT', $db->quoteName('#__djc2_categories', 'c'), 'c.id = a.cat_id')
+				->where('a.id = :id')
+				->bind(':id', $id, ParameterType::INTEGER);
+
 			$db->setQuery($query);
 			$row = $db->loadObject();
 
-			if (!empty($row)) {
+			if (!empty($row))
+			{
 				$slug = $row->alias ? ($row->id . ':' . $row->alias) : $row->id;
 				$catslug = $row->category_alias ? ($row->category_id . ':' . $row->category_alias) : $row->category_id;
 
-				$info->title = $row->name;
-				$info->category_id = $article->category_id;
-				$info->userid = $row->created_by;
-				$info->link = JRoute::_(DJCatalogHelperRoute::getItemRoute($slug, $catslug));
+				$info->title       = $row->name;
+				$info->category_id = $row->category_id;
+				$info->userid      = $row->created_by;
+				$info->link        = Route::_(DJCatalog2HelperSiteRoute::buildRoute('getItemRoute', array($slug, $catslug)));
 			}
 		}
 

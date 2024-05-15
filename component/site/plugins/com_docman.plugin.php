@@ -1,77 +1,110 @@
 <?php
 /**
- * JComments plugin for DocMan objects support
+ * JComments plugin for DocMan objects support (https://www.joomlatools.com/extensions/docman/)
  *
- * @version 2.0
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @version       4.0
+ * @package       JComments
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
+
 class jc_com_docman extends JCommentsPlugin
 {
-	function getObjectTitle($id)
+	public function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
-		$db->setQuery( 'SELECT dmname, id FROM #__docman WHERE id = ' . $id );
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName(array('id', 'dmname')))
+			->from($db->quoteName('#__docman'))
+			->where('id = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		$db->setQuery($query);
+
 		return $db->loadResult();
 	}
 
-	function getObjectLink($id)
+	public function getObjectLink($id)
 	{
-		static $_Itemid = null;
+		static $itemid = null;
 
-		if (!isset($_Itemid)) {
+		if (!isset($itemid))
+		{
 			$needles = array('gid' => (int) $id);
-			if ($item = self::_findItem($needles)) {
-				$_Itemid = $item->id;
-			} else {
-				$_Itemid = '';
+
+			if ($item = self::findItem($needles))
+			{
+				$itemid = $item->id;
+			}
+			else
+			{
+				$itemid = '';
 			}
 		}
 
-		include_once(JPATH_SITE.'/includes/application.php');
+		include_once JPATH_SITE . '/includes/application.php';
 
 		$link = 'index.php?option=com_docman&task=doc_details&gid=' . $id;
 
-		if ($_Itemid != '') {
-			$link .= '&Itemid=' . $_Itemid;
+		if ($itemid != '')
+		{
+			$link .= '&Itemid=' . $itemid;
 		};
 
-		$router = JPATH_SITE.'/components/com_docman/router.php';
-		if (is_file($router)) {
-			include_once($router);
+		$router = JPATH_SITE . '/components/com_docman/router.php';
+
+		if (is_file($router))
+		{
+			include_once $router;
 		}
-		$link = JRoute::_($link);
 
-		return $link;
+		return Route::_($link);
 	}
 
-	function getObjectOwner($id)
+	public function getObjectOwner($id)
 	{
-		$db = JFactory::getDbo();
-		$db->setQuery( 'SELECT dmsubmitedby FROM #__docman WHERE id = ' . $id );
-		$userid = $db->loadResult();
-		
-		return $userid;
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName('dmsubmitedby'))
+			->from($db->quoteName('#__docman'))
+			->where('id = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		$db->setQuery($query);
+
+		return $db->loadResult();
 	}
 
-	protected static function _findItem($needles)
+	protected static function findItem($needles)
 	{
-		$component = JComponentHelper::getComponent('com_docman');
+		$component = ComponentHelper::getComponent('com_docman');
 
-		$menus = JApplication::getMenu('site');
-		$items = $menus->getItems('componentid', $component->id);
-		$user = JFactory::getUser();
-		$access = (int)$user->get('aid');
+		$app    = Factory::getApplication();
+		$menus  = $app->getMenu('site');
+		$items  = $menus->getItems('componentid', $component->id);
+		$user   = $app->getIdentity();
+		$access = $user->getAuthorisedGroups();
 
-		foreach ($needles as $needle => $id) {
-			if (is_array($items)) {
-				foreach ($items as $item) {
-					if ($item->published == 1 && $item->access <= $access) {
+		foreach ($needles as $needle => $id)
+		{
+			if (is_array($items))
+			{
+				foreach ($items as $item)
+				{
+					if ($item->published == 1 && in_array($item->access, $access))
+					{
 						return $item;
 					}
 				}
@@ -80,5 +113,4 @@ class jc_com_docman extends JCommentsPlugin
 
 		return false;
 	}
-
 }
