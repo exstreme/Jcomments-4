@@ -8,6 +8,7 @@
 - [How to delete all comments of the object](#how-to-delete-all-comments-of-the-object)
 - [How to delete all comments of the given component](#how-to-delete-all-comments-of-the-given-component)
 - [Extra! For FW Gallery users](#for-fw-gallery-users)
+- [Extra! For VirtueMart users](#for-virtuemart-users)
 
 ### Introduction
 
@@ -236,3 +237,27 @@ and add after `}`
 </div>
 <?php
 ```
+
+### For VirtueMart users
+
+Copy file `components/com_virtuemart/views/productdetails/tmpl/default.php` to `templates/YOUR_TEMPATE/html/com_virtuemart/productdetails/default.php` where `YOUR_TEMPATE` is currently used template.
+
+Open copied file and search:
+
+```
+<?php // onContentAfterDisplay event
+echo $this->product->event->afterDisplayContent;
+```
+
+and add after:
+
+```php
+$comments = JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+
+if (file_exists($comments)) {
+    require_once $comments;
+    echo JComments::show($this->product->virtuemart_product_id, 'com_virtuemart', $this->product->product_name);
+}
+```
+
+Replace `echo $this->loadTemplate('reviews');` by the `//echo $this->loadTemplate('reviews');` to disable builtin VitrueMart reviews system.
