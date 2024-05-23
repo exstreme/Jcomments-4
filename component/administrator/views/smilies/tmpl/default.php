@@ -36,7 +36,7 @@ if ($saveOrder)
 	HTMLHelper::_('draggablelist.draggable');
 }
 ?>
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=smilies'); ?>" method="post"
+<form action="<?php echo Route::_('index.php?option=com_jcomments&view=smilies'); ?>" method="post"
 	  name="adminForm" id="adminForm">
 	<div class="row">
 		<div class="col-md-12">

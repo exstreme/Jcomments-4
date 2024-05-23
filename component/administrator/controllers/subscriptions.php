@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Router\Route;
 use Joomla\Utilities\ArrayHelper;
 
 class JCommentsControllerSubscriptions extends JCommentsControllerList
@@ -44,7 +45,7 @@ class JCommentsControllerSubscriptions extends JCommentsControllerList
 			$model->publish($cid, $value);
 		}
 
-		$this->setRedirect(JRoute::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
+		$this->setRedirect(Route::_('index.php?option=' . $this->option . '&view=' . $this->view, false));
 
 		return true;
 	}

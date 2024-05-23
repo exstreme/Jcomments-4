@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
@@ -42,7 +43,7 @@ class JCommentsViewSubscriptions extends HtmlView
 		$toolbar = Toolbar::getInstance('toolbar');
 		$canDo   = ContentHelper::getActions('com_jcomments', 'component');
 
-		ToolbarHelper::title(JText::_('A_SUBMENU_SUBSCRIPTIONS'));
+		ToolbarHelper::title(Text::_('A_SUBMENU_SUBSCRIPTIONS'));
 
 		if ($canDo->get('core.create'))
 		{

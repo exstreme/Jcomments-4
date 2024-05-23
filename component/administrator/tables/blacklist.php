@@ -12,6 +12,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
 
 /**
@@ -28,7 +29,7 @@ class JCommentsTableBlacklist extends Table
 	{
 		if ($this->ip == $_SERVER['REMOTE_ADDR'])
 		{
-			$this->setError(JText::_('A_BLACKLIST_ERROR_YOU_CAN_NOT_BAN_YOUR_IP'));
+			$this->setError(Text::_('A_BLACKLIST_ERROR_YOU_CAN_NOT_BAN_YOUR_IP'));
 
 			return false;
 		}

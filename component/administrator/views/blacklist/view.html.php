@@ -12,6 +12,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
@@ -41,7 +42,7 @@ class JCommentsViewBlacklist extends HtmlView
 		$isNew      = ($this->item->id == 0);
 
 		Factory::getApplication()->input->set('hidemainmenu', 1);
-		ToolbarHelper::title(JText::_('A_BLACKLIST'));
+		ToolbarHelper::title(Text::_('A_BLACKLIST'));
 
 		if (!$checkedOut && $canDo->get('core.edit'))
 		{

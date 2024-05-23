@@ -11,10 +11,12 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Table\Table;
+
 /**
  * JComments report table
  */
-class JCommentsTableReport extends JTable
+class JCommentsTableReport extends Table
 {
 	public function __construct($_db)
 	{

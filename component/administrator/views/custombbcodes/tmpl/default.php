@@ -58,7 +58,7 @@ if ($saveOrder)
 
 HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
 ?>
-<form action="<?php echo JRoute::_('index.php?option=com_jcomments&view=custombbcodes'); ?>" method="post"
+<form action="<?php echo Route::_('index.php?option=com_jcomments&view=custombbcodes'); ?>" method="post"
       name="adminForm" id="adminForm">
 	<div class="row">
 		<div class="col-md-12">

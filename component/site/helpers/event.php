@@ -56,8 +56,6 @@ class JCommentsEvent
 			{
 				$result = Factory::getApplication()->triggerEvent($event);
 			}
-
-
 		}
 
 		return $result;

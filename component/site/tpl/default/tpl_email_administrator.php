@@ -9,10 +9,10 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+defined('_JEXEC') or die;
 
 use Joomla\CMS\HTML\HTMLHelper;
-
-defined('_JEXEC') or die;
+use Joomla\CMS\Language\Text;
 
 /**
  * E-mail notification for administrators
@@ -21,9 +21,9 @@ class jtt_tpl_email_administrator extends JoomlaTuneTemplate
 {
 	function render() 
 	{
-		$comment = $this->getVar('comment');
+		$comment      = $this->getVar('comment');
 		$object_title = $this->getVar('comment-object_title');
-		$object_link =  $this->getVar('comment-object_link');
+		$object_link  = $this->getVar('comment-object_link');
 
 		// add inline styles
 		$comment->comment = str_replace('class="quotebody"', 'style="margin: 5px 0 0 0;padding: 8px; border: 1px dashed #aaa;"', $comment->comment);
@@ -37,7 +37,7 @@ class jtt_tpl_email_administrator extends JoomlaTuneTemplate
   <meta name="Generator" content="JComments" />
 </head>
 <body>
-<?php echo JText::_('NOTIFICATION_DISCUSSION'); ?> <a href="<?php echo $object_link ?>#comment-<?php echo $comment->id; ?>" target="_blank"><?php echo $object_title ?></a><br /><br />
+<?php echo Text::_('NOTIFICATION_DISCUSSION'); ?> <a href="<?php echo $object_link ?>#comment-<?php echo $comment->id; ?>" target="_blank"><?php echo $object_title ?></a><br /><br />
 <a style="color: #777;" href="<?php echo $object_link ?>#comment-<?php echo $comment->id; ?>" target="_bllank">#</a>&nbsp;
 <?php
 		if ($comment->title != '') {
@@ -72,19 +72,19 @@ class jtt_tpl_email_administrator extends JoomlaTuneTemplate
 			$commands = array();
 			
 			if ($comment->published == 0) {
-				$commands[] = $this->getCmdLink('publish', JText::_('BUTTON_PUBLISH'), $comment);
+				$commands[] = $this->getCmdLink('publish', Text::_('BUTTON_PUBLISH'), $comment);
 			} else {
-				$commands[] = $this->getCmdLink('unpublish', JText::_('BUTTON_UNPUBLISH'), $comment);
+				$commands[] = $this->getCmdLink('unpublish', Text::_('BUTTON_UNPUBLISH'), $comment);
 			}
 			
-			$commands[] = $this->getCmdLink('delete', JText::_('BUTTON_DELETE'), $comment);
+			$commands[] = $this->getCmdLink('delete', Text::_('BUTTON_DELETE'), $comment);
 
 			if ($this->getVar('enable-blacklist') == 1) {
-				$commands[] = $this->getCmdLink('ban', JText::_('BUTTON_BANIP'), $comment);
+				$commands[] = $this->getCmdLink('ban', Text::_('BUTTON_BANIP'), $comment);
 			}
 
 			if (count($commands)) {
-				echo JText::_('QUICK_MODERATION') . ' ' . implode(' | ', $commands);
+				echo Text::_('QUICK_MODERATION') . ' ' . implode(' | ', $commands);
 			}
 		}
 ?>

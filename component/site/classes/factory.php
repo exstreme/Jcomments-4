@@ -127,7 +127,7 @@ class JCommentsFactory
 		$tmpl->addGlobalVar('comment-object_id', $objectID);
 		$tmpl->addGlobalVar('comment-object_group', $objectGroup);
 
-		if ($needThisUrl == true)
+		if ($needThisUrl)
 		{
 			$tmpl->addGlobalVar('thisurl', JCommentsObject::getLink($objectID, $objectGroup, $language->getTag()));
 		}

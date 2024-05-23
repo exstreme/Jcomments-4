@@ -18,6 +18,7 @@ use Joomla\CMS\Factory;
 
 require_once JPATH_ROOT . '/components/com_jcomments/models/object.php';
 require_once JPATH_ROOT . '/components/com_jcomments/classes/objectinfo.php';
+require_once JPATH_ROOT . '/components/com_jcomments/classes/plugin.php';
 require_once JPATH_ROOT . '/components/com_jcomments/classes/security.php';
 
 /**

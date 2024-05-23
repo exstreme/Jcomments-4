@@ -1,3 +1,7 @@
+###### 4.0.32
+- \# fixed bug #175
+- \# fixed #173
+
 ###### 4.0.31
 - \+ Update for https://github.com/exstreme/Jcomments-4/pull/97
 - \+ Added B/C for old components which uses JComments::showComments() method for main JComments::show() method.
