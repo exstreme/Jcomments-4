@@ -24,6 +24,7 @@
 
 	<compatibility>
 		<version>4</version>
+		<version>5</version>
 	</compatibility>
 
 	<blockChildUninstall>true</blockChildUninstall>
