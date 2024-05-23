@@ -5,7 +5,7 @@
 		<description>JComments lets your users comment on content items</description>
 		<element>com_jcomments</element>
 		<type>component</type>
-		<version>4.0.30</version>
+		<version>4.0.31</version>
 		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
 		<downloads>
 			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/releases/download/v4.0.30/pkg_jcomments_4.0.30.zip</downloadurl>
@@ -17,9 +17,9 @@
 		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
 		<php_minimum>7.2.0</php_minimum>
 		<supported_databases mysql="5.6.0" mariadb="10.0" />
-		<sha256>2d2f39480fe8bbe07e0f50e334daf98b244f6a1d126cd9de3423cd5da0b0ed48</sha256>
-		<sha384>d941d7c2aad231e883e1b44097d6de024407b7fc07008469cbd2f699ea833ee9d02d670b994220eaf648a29e72a6fef9</sha384>
-		<sha512>568a41855c903b1782492421c561656fd54acb7a254cde52130173f1c59a3cc052e09fd3eb156b674daed362f00f8abaa74181f01852b54fc59646629f943e7f</sha512>
+		<sha256>63911ce4323414b3afe7e5458c975050aec4084dfe220c249ca9187dd00aa319</sha256>
+		<sha384>7c98ffe30ea8471b000859abc7813855b8b05433f4ba4ae26fbfbba7b85562c5e5554f8d99a95ccd2181d42303b6c52d</sha384>
+		<sha512>978b4db2a98a62031962a3902239a44ea6c00ba02ffddc71a5bc4d95743a9df3b0635e4d9a2a46556c67c07f36aeba0410e174b8d2e31b612533df6658c5734e</sha512>
 		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>				
 </updates>
