@@ -19,6 +19,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\LanguageHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\User\User;
 use Joomla\Database\DatabaseDriver;
@@ -326,11 +327,11 @@ class JCommentsAJAX
 						case 'recaptcha_invisible':
 							if ($captchaEngine == 'recaptcha')
 							{
-								JPluginHelper::importPlugin('captcha', 'recaptcha');
+								PluginHelper::importPlugin('captcha', 'recaptcha');
 							}
 							else
 							{
-								JPluginHelper::importPlugin('captcha', 'recaptcha_invisible');
+								PluginHelper::importPlugin('captcha', 'recaptcha_invisible');
 							}
 
 							try
@@ -350,11 +351,11 @@ class JCommentsAJAX
 						case 'hcaptcha_invisible':
 							if ($captchaEngine == 'hcaptcha')
 							{
-								JPluginHelper::importPlugin('captcha', 'hcaptcha');
+								PluginHelper::importPlugin('captcha', 'hcaptcha');
 							}
 							else
 							{
-								JPluginHelper::importPlugin('captcha', 'hcaptcha_invisible');
+								PluginHelper::importPlugin('captcha', 'hcaptcha_invisible');
 							}
 
 							try
@@ -478,7 +479,7 @@ class JCommentsAJAX
 				$comment->parent       = isset($values['parent']) ? (int) $values['parent'] : 0;
 				$comment->lang         = $lang->getTag();
 				$comment->ip           = $userIP;
-				$comment->userid       = $user->get('id') ? $user->get('id') : 0;
+				$comment->userid       = $user->get('id') ?: 0;
 				$comment->date         = Factory::getDate()->toSql();
 
 				// Cast to integer value to store in DB.
@@ -528,8 +529,10 @@ class JCommentsAJAX
 					{
 						require_once JPATH_ROOT . '/components/com_jcomments/models/subscriptions.php';
 
-                        $subscriptionModel = new JcommentsModelSubscriptions;
-                        $subscriptionModel->subscribe($comment->object_id, $comment->object_group, $comment->userid, $comment->email, $comment->name, $comment->lang);
+						$subscriptionModel = new JcommentsModelSubscriptions;
+						$subscriptionModel->subscribe(
+							$comment->object_id, $comment->object_group, $comment->userid, $comment->email, $comment->name, $comment->lang
+						);
 					}
 
 					$merged    = false;
@@ -560,7 +563,7 @@ class JCommentsAJAX
 									// Validate new comment text length and if it longer than specified -
 									// disable union current comment with previous
 									if (($needcheck == 0) || (($needcheck == 1) && ($maxlength != 0)
-											&& (StringHelper::strlen($newText) <= $maxlength)))
+										&& (StringHelper::strlen($newText) <= $maxlength)))
 									{
 										$comment->id      = $prevComment->id;
 										$comment->comment = $newText;
@@ -1014,7 +1017,6 @@ class JCommentsAJAX
 					$comment->comment   = $values['comment'];
 					$comment->comment   = $bbcode->filter($comment->comment);
 					$comment->published = (int) $user->authorise('comment.autopublish', 'com_jcomments');
-
 
 					if (((int) $config->get('comment_title') != 0) && isset($values['title']))
 					{

@@ -13,6 +13,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Installer\Installer;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 
@@ -46,7 +47,7 @@ class JCommentsViewAbout extends HtmlView
 	{
 		$this->component = Installer::parseXMLInstallFile(Path::clean(JPATH_ROOT . '/administrator/components/com_jcomments/jcomments.xml'));
 
-		ToolbarHelper::title(JText::_('A_SUBMENU_ABOUT'));
+		ToolbarHelper::title(Text::_('A_SUBMENU_ABOUT'));
 		ToolbarHelper::preferences('com_jcomments');
 
 		parent::display($tpl);

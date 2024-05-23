@@ -198,7 +198,7 @@ class JCommentsModelList extends ListModel
 							return false;
 						}
 
-						$reorderCondition = $this->getReorderConditions();
+						$reorderCondition = $this->getReorderConditions($table);
 						$found            = false;
 
 						foreach ($conditions as $condition)

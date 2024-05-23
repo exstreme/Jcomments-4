@@ -9,9 +9,10 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\HTML\HTMLHelper;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 /**
  * Template for report to comment message
@@ -20,10 +21,10 @@ class jtt_tpl_email_report extends JoomlaTuneTemplate
 {
 	function render() 
 	{
-		$comment = $this->getVar('comment');
-		$object_link =  $this->getVar('comment-object_link');
-		$name = $this->getVar('report-name');
-		$reason = $this->getVar('report-reason');
+		$comment     = $this->getVar('comment');
+		$object_link = $this->getVar('comment-object_link');
+		$name        = $this->getVar('report-name');
+		$reason      = $this->getVar('report-reason');
 
 		// add inline styles
 		$comment->comment = str_replace('class="quotebody"', 'style="margin: 5px 0 0 0;padding: 8px; border: 1px dashed #aaa;"', $comment->comment);
@@ -37,7 +38,7 @@ class jtt_tpl_email_report extends JoomlaTuneTemplate
   <meta name="Generator" content="JComments" />
 </head>
 <body>
-<?php echo JText::sprintf('REPORT_NOTIFICATION_MESSAGE', $comment->author, $name); ?>
+<?php echo Text::sprintf('REPORT_NOTIFICATION_MESSAGE', $comment->author, $name); ?>
 <br />
 <br />
 <a href="<?php echo $object_link ?>#comment-<?php echo $comment->id; ?>" target="_blank"><?php echo $object_link; ?>#comment-<?php echo $comment->id; ?></a>
@@ -46,13 +47,13 @@ class jtt_tpl_email_report extends JoomlaTuneTemplate
 <?php
 		if ($reason != '') {
 ?>
-<?php echo JText::_('REPORT_NOTIFICATION_MESSAGE_REASON'); ?>:
+<?php echo Text::_('REPORT_NOTIFICATION_MESSAGE_REASON'); ?>:
 <div style="border: 1px solid #ccc; padding: 10px 5px; margin: 5px 0; font: normal 1em Verdana, Arial, Sans-Serif;"><?php echo $reason; ?></div>
 <?php
 		}
 ?>
 <br />
-<?php echo JText::_('NOTIFICATION_COMMENT_TEXT'); ?>:
+<?php echo Text::_('NOTIFICATION_COMMENT_TEXT'); ?>:
 <br />
 <br />
 <a style="color: #777;" href="<?php echo $object_link ?>#comment-<?php echo $comment->id; ?>" target="_blank">#</a>&nbsp;
@@ -90,19 +91,19 @@ class jtt_tpl_email_report extends JoomlaTuneTemplate
 			$commands = array();
 			
 			if ($comment->published == 0) {
-				$commands[] = $this->getCmdLink('publish', JText::_('BUTTON_PUBLISH'), $comment);
+				$commands[] = $this->getCmdLink('publish', Text::_('BUTTON_PUBLISH'), $comment);
 			} else {
-				$commands[] = $this->getCmdLink('unpublish', JText::_('BUTTON_UNPUBLISH'), $comment);
+				$commands[] = $this->getCmdLink('unpublish', Text::_('BUTTON_UNPUBLISH'), $comment);
 			}
 			
-			$commands[] = $this->getCmdLink('delete', JText::_('BUTTON_DELETE'), $comment);
+			$commands[] = $this->getCmdLink('delete', Text::_('BUTTON_DELETE'), $comment);
 
 			if ($this->getVar('enable-blacklist') == 1) {
-				$commands[] = $this->getCmdLink('ban', JText::_('BUTTON_BANIP'), $comment);
+				$commands[] = $this->getCmdLink('ban', Text::_('BUTTON_BANIP'), $comment);
 			}
 
 			if (count($commands)) {
-				echo JText::_('QUICK_MODERATION') . ' ' . implode(' | ', $commands);
+				echo Text::_('QUICK_MODERATION') . ' ' . implode(' | ', $commands);
 			}
 		}
 ?>

@@ -9,9 +9,10 @@
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
-use Joomla\CMS\HTML\HTMLHelper;
-
 defined('_JEXEC') or die;
+
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 /**
  * E-mail notification for users 
@@ -21,13 +22,13 @@ class jtt_tpl_email extends JoomlaTuneTemplate
 	function render() 
 	{
 		$comment = $this->getVar('comment');
-		
+
 		$object_title = $this->getVar('comment-object_title');
-		$object_link =  $this->getVar('comment-object_link');
-		$hash =  $this->getVar('subscriber-hash');
+		$object_link  = $this->getVar('comment-object_link');
+		$hash         = $this->getVar('subscriber-hash');
 
 		$link = '<a href="' . $object_link . '" target="_blank">' . $object_title . '</a>';
-		$unsubscribeMessage = JText::sprintf('NOTIFICATION_COMMENT_UNSUBSCRIBE_MESSAGE', $link);
+		$unsubscribeMessage = Text::sprintf('NOTIFICATION_COMMENT_UNSUBSCRIBE_MESSAGE', $link);
 		$unsubscribeLink = $this->getVar('notification-unsubscribe-link');
 
 		// add inline styles
@@ -61,7 +62,7 @@ class jtt_tpl_email extends JoomlaTuneTemplate
 ?> &mdash; <span style="font-size: 11px; color: #999;"><?php echo HTMLHelper::_('date', $comment->date, 'DATE_FORMAT_LC1'); ?></span>
 <div style="border: 1px solid #ccc; padding: 10px 5px; margin: 5px 0; font: normal 1em Verdana, Arial, Sans-Serif;"><?php echo $comment->comment; ?></div>
 
-<p style="border-top: 1px solid #ccc; margin: 10px 0 0 0; color: #555;"><?php echo $unsubscribeMessage; ?>:<br /><a href="<?php echo $unsubscribeLink; ?>" target="_blank"><?php echo JText::_('NOTIFICATION_COMMENT_UNSUBSCRIBE_LINK');?></a></p>
+<p style="border-top: 1px solid #ccc; margin: 10px 0 0 0; color: #555;"><?php echo $unsubscribeMessage; ?>:<br /><a href="<?php echo $unsubscribeLink; ?>" target="_blank"><?php echo Text::_('NOTIFICATION_COMMENT_UNSUBSCRIBE_LINK');?></a></p>
 </body>
 </html>
 <?php

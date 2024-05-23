@@ -43,7 +43,7 @@ class JCommentsControllerForm extends BaseController
 			$r = null;
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
 			{
-				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
+				throw new Exception(Text::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
 			}
 			$this->context = strtolower($r[2]);
 		}
@@ -123,7 +123,7 @@ class JCommentsControllerForm extends BaseController
 		{
 			$this->setRedirect(
 				Route::_($this->getRedirectToList(), false),
-				JText::_('JLIB_APPLICATION_ERROR_CREATE_RECORD_NOT_PERMITTED'),
+				Text::_('JLIB_APPLICATION_ERROR_CREATE_RECORD_NOT_PERMITTED'),
 				'error'
 			);
 
@@ -182,7 +182,7 @@ class JCommentsControllerForm extends BaseController
 		{
 			$this->holdEditId($context, $recordId);
 			$app->setUserState($context . '.data', null);
-			$this->setRedirect(JRoute::_($this->getRedirectToItem($recordId), false));
+			$this->setRedirect(Route::_($this->getRedirectToItem($recordId), false));
 
 			return true;
 		}

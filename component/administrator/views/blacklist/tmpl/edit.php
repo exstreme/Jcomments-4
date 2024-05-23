@@ -21,40 +21,40 @@ $wa->useScript('keepalive')
 	->useScript('form.validate');
 ?>
 <form action="<?php echo Route::_('index.php?option=com_jcomments&view=blacklist&layout=edit&id=' . (int) $this->item->id); ?>"
-      method="post" name="adminForm" id="item-form" class="form-validate">
-    <div class="main-card">
-        <div class="row">
-            <div class="col-12">
-                <fieldset id="fieldset-edit" class="options-form">
-                    <legend><?php echo Text::_('A_BLACKLIST_EDIT'); ?></legend>
+	  method="post" name="adminForm" id="item-form" class="form-validate">
+	<div class="main-card">
+		<div class="row">
+			<div class="col-12">
+				<fieldset id="fieldset-edit" class="options-form">
+					<legend><?php echo Text::_('A_BLACKLIST_EDIT'); ?></legend>
 
-                    <div class="control-group">
-                        <div class="control-label">
-                            <?php echo $this->form->getLabel('ip'); ?>
-                        </div>
-                        <div class="controls">
-                            <?php echo $this->form->getInput('ip'); ?>
-                        </div>
-                    </div>
+					<div class="control-group">
+						<div class="control-label">
+							<?php echo $this->form->getLabel('ip'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('ip'); ?>
+						</div>
+					</div>
 
-	                <?php echo $this->form->renderField('reason'); ?>
+					<?php echo $this->form->renderField('reason'); ?>
 
-	                <?php echo $this->form->renderField('notes'); ?>
+					<?php echo $this->form->renderField('notes'); ?>
 
-	                <?php echo $this->form->renderField('created'); ?>
+					<?php echo $this->form->renderField('created'); ?>
 
-                    <div class="control-group">
-                        <div class="control-label">
-                            <?php echo $this->form->getLabel('id'); ?>
-                        </div>
-                        <div class="controls">
-                            <?php echo $this->form->getInput('id'); ?>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-        </div>
-        <input type="hidden" name="task" value=""/>
-        <?php echo HTMLHelper::_('form.token'); ?>
-    </div>
+					<div class="control-group">
+						<div class="control-label">
+							<?php echo $this->form->getLabel('id'); ?>
+						</div>
+						<div class="controls">
+							<?php echo $this->form->getInput('id'); ?>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+		<input type="hidden" name="task" value=""/>
+		<?php echo HTMLHelper::_('form.token'); ?>
+	</div>
 </form>

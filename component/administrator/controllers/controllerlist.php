@@ -43,7 +43,7 @@ class JCommentsControllerList extends BaseController
 			$r = null;
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
 			{
-				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
+				throw new Exception(Text::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
 			}
 			$this->context = strtolower($r[2]);
 		}
@@ -53,7 +53,7 @@ class JCommentsControllerList extends BaseController
 			$r = null;
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
 			{
-				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
+				throw new Exception(Text::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
 			}
 			$this->view = strtolower($r[2]);
 		}

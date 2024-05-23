@@ -15,6 +15,7 @@ use Joomla\CMS\Access\Access;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 
@@ -51,7 +52,10 @@ class JCommentsControllerSettings extends BaseController
 		$app->setHeader('Expires', '-1');
 		$app->setHeader('Cache-Control', 'public, no-store, no-cache, must-revalidate, post-check=0, pre-check=0', true);
 		$app->setHeader('Content-Transfer-Encoding', 'Binary');
-		$app->setHeader('Content-disposition', 'attachment; filename="com_jcomments-settings-' . JHtml::_('date', time(), 'Y-m-d_H-i-s') . '.json"');
+		$app->setHeader(
+			'Content-disposition',
+			'attachment; filename="com_jcomments-settings-' . HTMLHelper::_('date', time(), 'Y-m-d_H-i-s') . '.json"'
+		);
 		$app->sendHeaders();
 
 		$_access = new Access;

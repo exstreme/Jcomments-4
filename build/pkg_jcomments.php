@@ -528,7 +528,7 @@ class pkg_jcommentsInstallerScript
 						<div class="text-success"><strong><?php echo $data->finish; ?></strong></div>
 						<?php if (!empty($data->next)): ?>
 							<div>
-								<a href="<?php echo $data->next; ?>" class="btn btn-success">
+								<a href="<?php echo $data->next; ?>" class="btn btn-success text-white">
 									<?php echo Text::_('JNEXT'); ?>
 								</a>
 							</div>
