@@ -82,16 +82,16 @@
 		<element>mod_jcomments_top_posters</element>
 		<type>module</type>
 		<client>site</client>
-		<version>4.0.4</version>
+		<version>4.0.5</version>
 		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
 		<downloads>
 			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_top_posters_4.0.4.zip</downloadurl>
 		</downloads>
 		<maintainer>exstreme and Globulopolis</maintainer>
 		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
-		<sha256>de17323aa3e0a6010c5a7076da49c1be97c0e5a0b3a05ec14b6a1e454f9868db</sha256>
-		<sha384>4d662613b9f8a7c9decee985dde495709298998cd1cf0a74749bbeabd44d0caf534067c72dcae129388882a919a6bab2</sha384>
-		<sha512>41549585d4c587a1cc14a3fa49020e5ab614eaf80130a45cc5391e348cb288ed24f5275ceb410b96966026e93ef3a7ce52804a6b8c27ac57b557b917c49c8a15</sha512>
+		<sha256>b06aa17b74040735678aea9fe5140cc5bea621a3ea3d70ab88a5b84d8cb73ef8</sha256>
+		<sha384>f1d7b840c5daa5fdcb1c052559817452adae1d0201cba663587e8387dbf38fec933411f8c1fe4e120b1fb7d26995d86f</sha384>
+		<sha512>6047f9cdc8286ed1803a90d9b059ae7195b99de482345f50428256b0c1127639144d3fcbb6275f82dc0863ac55f07dcf29a9595c77ef5ca22cc40050c292d47a</sha512>
 		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 </updates>
