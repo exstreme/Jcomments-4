@@ -1,46 +1,69 @@
 <?php
 /**
- * JComments plugin for Joomla com_weblinks component
+ * JComments plugin for Joomla Weblinks (https://extensions.joomla.org/extension/weblinks/) component
  *
- * @version 1.4
- * @package JComments
- * @author Tommy Nilsson (tommy@architechtsoftomorrow.com)
- * @copyright (C) 2011 Tommy Nilsson (http://www.architechtsoftomorrow.com)
- * @copyright (C) 2011-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @version       4.0
+ * @package       JComments
+ * @author        Tommy Nilsson (tommy@architechtsoftomorrow.com)
+ * @copyright (C) 2011 Tommy Nilsson (https://www.architechtsoftomorrow.com)
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: https://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
+
 class jc_com_weblinks extends JCommentsPlugin
 {
-	function getObjectTitle($id)
+	public function getObjectTitle($id)
 	{
-		$db = JFactory::getDbo();
-		$db->setQuery( 'SELECT title, id FROM #__categories WHERE section = "com_weblinks" and id = ' . $id );
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName(array('id', 'title')))
+			->from($db->quoteName('#__categories', 'u'))
+			->where($db->quoteName('section') . " = 'com_weblinks'")
+			->where($db->quoteName('id') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		$db->setQuery($query);
+
 		return $db->loadResult();
 	}
 
-	function getObjectLink($id)
+	public function getObjectLink($id)
 	{
-		$db = JFactory::getDBO();
-		$db->setQuery( 'SELECT alias FROM #__categories WHERE section = "com_weblinks" and id = ' . $id );
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName('alias'))
+			->from($db->quoteName('#__categories', 'u'))
+			->where($db->quoteName('section') . " = 'com_weblinks'")
+			->where($db->quoteName('id') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		$db->setQuery($query);
 		$alias = $db->loadResult();
-		
-		$link = 'index.php?option=com_weblinks&view=category&id='. $id.':'.$alias;
 
-		require_once(JPATH_SITE.'/includes/application.php');
+		$link      = 'index.php?option=com_weblinks&view=category&id=' . $id . ':' . $alias;
+		$component = ComponentHelper::getComponent('com_weblinks');
 
-		$component = JComponentHelper::getComponent('com_weblinks');
-		$menus = JApplication::getMenu('site');
-		$items = $menus->getItems('componentid', $component->id);
+		/** @var \Joomla\CMS\Menu\SiteMenu $menus */
+		$menus     = Factory::getApplication()->getMenu('site');
+		$items     = $menus->getItems('componentid', $component->id);
 
-		if (count($items)) {
+		if (count($items))
+		{
 			$link .= "&Itemid=" . $items[0]->id;
 		}
 
-		$link = JRoute::_($link);
-
-		return $link;
+		return Route::_($link);
 	}
 }

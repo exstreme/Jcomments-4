@@ -192,6 +192,23 @@ if (isset($_REQUEST['jtxf']))
 class JComments
 {
 	/**
+	 * Alias for JComments::show(), left only for B/C reasons. Do not use it! Use onJCommentsShow event if possible.
+	 *
+	 * @param   integer  $objectID     Comment ID.
+	 * @param   string   $objectGroup  Component system name.
+	 * @param   string   $objectTitle  Item title.
+	 *
+	 * @return  string
+	 *
+	 * @throws  Exception
+	 * @since   4.0
+	 */
+	public static function showComments($objectID, $objectGroup = 'com_content', $objectTitle = '')
+	{
+		return self::show($objectID, $objectGroup, $objectTitle);
+	}
+
+	/**
 	 * The main function that displays comments list & form (if needed).
 	 *
 	 * @param   integer  $objectID     Comment ID.
@@ -1243,8 +1260,9 @@ class JComments
 		// Avatar support
 		if (empty($comment->avatar))
 		{
-			$comment->avatar = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
-			$comment->profileLink = '';
+			$comment->avatar            = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+			$comment->profileLink       = '';
+			$comment->profileLinkTarget = '_blank';
 		}
 
 		JCommentsEvent::trigger('onJCommentsCommentAfterPrepare', array(&$comment));

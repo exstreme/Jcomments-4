@@ -7,6 +7,8 @@
 - [How to display the last comment of the object](#how-to-display-the-last-comment-of-the-object)
 - [How to delete all comments of the object](#how-to-delete-all-comments-of-the-object)
 - [How to delete all comments of the given component](#how-to-delete-all-comments-of-the-given-component)
+- [Extra! For FW Gallery users](#for-fw-gallery-users)
+- [Extra! For VirtueMart users](#for-virtuemart-users)
 
 ### Introduction
 
@@ -170,3 +172,92 @@ if (is_file($comments))
 ```
 
 After the method is called all comments of a given component will be deleted.
+
+### For FW Gallery users
+
+By default FW Gallery did not supported JComments. And you need to do some hacks.
+
+1. Open file `administrator/components/com_fwgallery/views/configuration/tmpl/default.php`, search for
+
+```php
+HTMLHelper::_('select.option', 'komento', 'Komento', 'id', 'name')
+```
+
+and replace by
+
+```php
+HTMLHelper::_('select.option', 'komento', 'Komento', 'id', 'name'),
+HTMLHelper::_('select.option', 'jcomments', 'JComments', 'id', 'name')
+```
+
+Go to FW Gallery settings and select Jcomments as commenting settings.
+
+2. Open file `plugins/fwgallerytmpl/classic/item/comments.php`, search for code block
+
+```php
+} elseif ($comments_type == 'komento') {
+    ...
+}
+```
+
+add after `}`
+
+```php
+ elseif ($comments_type == 'jcomments') {
+    require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+    echo JComments::show($view->item->id, 'com_fwgallery');
+}
+```
+
+This will display comments in item view(e.g. single file).
+
+3. To display comments counter in gallery view, open file `plugins/fwgallerytmpl/classic/listing/file_text.php`
+
+Search for code block
+
+```php
+if ($view->params->get('show_files_owner', 1)) {
+?>
+<div class="fwmg-grid-item-owner">
+	<span uk-icon="user"></span> <?php echo esc_html($row->_user_name); ?>
+</div>
+<?php
+}
+```
+
+and add after `}`
+
+```
+?>
+<div class="fwmg-grid-item-comments">
+	<span uk-icon="comment"></span> <?php
+	require_once JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+	$comments = JComments::getCommentsCount($row->id, 'com_fwgallery');
+	echo Joomla\CMS\Language\Text::plural('LINK_READ_COMMENTS', $comments); ?>
+</div>
+<?php
+```
+
+### For VirtueMart users
+
+Copy file `components/com_virtuemart/views/productdetails/tmpl/default.php` to `templates/YOUR_TEMPATE/html/com_virtuemart/productdetails/default.php` where `YOUR_TEMPATE` is currently used template.
+
+Open copied file and search:
+
+```
+<?php // onContentAfterDisplay event
+echo $this->product->event->afterDisplayContent;
+```
+
+and add after:
+
+```php
+$comments = JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+
+if (file_exists($comments)) {
+    require_once $comments;
+    echo JComments::show($this->product->virtuemart_product_id, 'com_virtuemart', $this->product->product_name);
+}
+```
+
+Replace `echo $this->loadTemplate('reviews');` by the `//echo $this->loadTemplate('reviews');` to disable builtin VitrueMart reviews system.

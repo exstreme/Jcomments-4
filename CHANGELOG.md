@@ -1,5 +1,12 @@
 ###### 4.0.31
+- \+ Update for https://github.com/exstreme/Jcomments-4/pull/97
+- \+ Added B/C for old components which uses JComments::showComments() method for main JComments::show() method.
+- \# fixed #171 See README.md for more information.
+- \# fixed bug #168
+- \# fixed bug #165
 - \# fixed bug #161
+- \# other small changes
+- \! Due to some changes in the table of smiles and the smiles themselves, it is recommended to make a backup of the table and your smiles.
 
 ###### 4.0.30
 - \# fixed bug #156 again

@@ -2,49 +2,55 @@
 /**
  * JComments plugin for JComments ;)
  *
- * @version 2.3
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @version       4.0
+ * @package       JComments
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\Registry\Registry;
+
 class jc_com_jcomments extends JCommentsPlugin
 {
-	function getObjectInfo($id, $language)
+	public function getObjectInfo($id, $language)
 	{
-		$info = new JCommentsObjectInfo();
+		$info = new JCommentsObjectInfo;
+		$menu = self::getMenuItem($id);
 
-	        $menu = self::getMenuItem($id);
+		if ($menu != '')
+		{
+			$params = new Registry($menu->params);
 
-	        if ($menu != '') {
-			$params = new JRegistry($menu->params);
-
-			$info->title = $params->get('page_title') ? $params->get('page_title') : $menu->title;
+			$info->title  = $params->get('page_title') ? $params->get('page_title') : $menu->title;
 			$info->access = $menu->access;
-			$info->link = JRoute::_('index.php?option=com_jcomments&amp;Itemid='.$menu->id);
+			$info->link   = Route::_('index.php?option=com_jcomments&Itemid=' . $menu->id);
 			$info->userid = 0;
-	        }
+		}
 
 		return $info;
 	}
 
 	protected static function getMenuItem($id)
 	{
-		$db = JFactory::getDBO();
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
 
-		$query = "SELECT m.*"
-			. " FROM `#__menu` AS m"
-			. " JOIN `#__extensions` AS e ON m.component_id = e.extension_id"
-			. " WHERE m.type = 'component'"
-			. " AND e.element = 'com_jcomments'"
-			. " AND m.published = 1"
-			. " AND m.parent_id > 0"
-			. " AND m.client_id = 0"
-			. " AND m.params LIKE '%\"object_id\":\"" . $id . "\"%'"
-			;			
+		$query->select('m.*')
+			->from($db->quoteName('#__menu', 'm'))
+			->join('INNER', $db->quoteName('#__extensions', 'e'), 'm.component_id = e.extension_id')
+			->where('m.type = \'component\'')
+			->where('e.element = \'com_jcomments\'')
+			->where('m.published = 1')
+			->where('m.parent_id > 0')
+			->where('m.client_id = 0')
+			->where('m.params LIKE \'%"object_id":":oid"%\'')
+			->bind(':oid', $id);
 
 		$db->setQuery($query, 0, 1);
 		$menus = $db->loadObjectList();

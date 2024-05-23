@@ -12,7 +12,7 @@ Download <a href="https://github.com/exstreme/Jcomments-4/releases/latest" targe
 
 Joomla 4.2+
 
-Joomla 5.0+ with `Behaviour - Backward Compatibility` plugin enabled.
+Joomla 5.0+
 
 ## Migration from Jcomments 3
 - Make backup
@@ -28,6 +28,12 @@ Available modules can be downloaded <a href="https://github.com/exstreme/Jcommen
 ## Plugins
 
 Available plugins can be downloaded <a href="https://github.com/exstreme/Jcomments-4/tree/master/build/plugins" target="_blank">here</a>.
+
+## Integrations
+
+The JComments has integrations with other components. See the full list in the folder https://github.com/exstreme/Jcomments-4/tree/master/component/site/plugins
+
+**NOTE!** For _**FW Gallery**_ and _**VirtueMart**_ integration see `Extra section` at https://github.com/exstreme/Jcomments-4/blob/master/FOR_DEVELOPERS.md
 
 ## FAQ
 

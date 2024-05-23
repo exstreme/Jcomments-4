@@ -1,33 +1,45 @@
 <?php
 /**
- * JComments plugin for Mosets tree support
+ * JComments plugin for Mosets tree (https://www.mosets.com/) support
  *
- * @version 2.3
- * @package JComments
- * @author Sergey M. Litvinov (smart@joomlatune.ru)
- * @copyright (C) 2006-2013 by Sergey M. Litvinov (http://www.joomlatune.ru)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @version       4.0
+ * @package       JComments
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
 
 defined('_JEXEC') or die;
 
 class jc_com_mtree extends JCommentsPlugin
 {
-	function getObjectInfo($id, $language = null)
+	public function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT link_id, link_name, user_id FROM #__mt_links WHERE link_id = ' . $id);
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName(array('link_id', 'link_name', 'user_id')))
+			->from($db->quoteName('#__mt_links'))
+			->where($db->quoteName('link_id') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
 		$row = $db->loadObject();
 
-		$info = new JCommentsObjectInfo();
+		$info = new JCommentsObjectInfo;
 
-		if (!empty($row)) {
-			$Itemid = self::getItemid('com_mtree');
-			$Itemid = $Itemid > 0 ? '&Itemid=' . $Itemid : '';
+		if (!empty($row))
+		{
+			$itemid = self::getItemid('com_mtree');
+			$itemid = $itemid > 0 ? '&Itemid=' . $itemid : '';
 
-			$info->title = $row->link_name;
+			$info->title  = $row->link_name;
 			$info->userid = $row->user_id;
-			$info->link = JRoute::_('index.php?option=com_mtree&amp;task=viewlink&amp;link_id=' . $id . $Itemid);
+			$info->link   = Route::_('index.php?option=com_mtree&task=viewlink&link_id=' . $id . $itemid);
 		}
 
 		return $info;

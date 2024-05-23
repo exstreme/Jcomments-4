@@ -1,6 +1,6 @@
 <?php
 /**
- * JComments plugin for FLEXIcontent (https://www.flexicontent.org) contents support
+ * JComments plugin for TZ Portfolio+ (https://www.tzportfolio.com/) support
  *
  * @version       4.0
  * @package       JComments
@@ -9,19 +9,19 @@
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
+defined('_JEXEC') or die;
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\ParameterType;
 
-defined('_JEXEC') or die;
-
-class jc_com_flexicontent extends JCommentsPlugin
+class jc_com_tz_portfolio_plus extends JCommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
 		$info = new JCommentsObjectInfo;
 
-		$routerHelper = JPATH_ROOT . '/components/com_flexicontent/helpers/route.php';
+		$routerHelper = JPATH_ROOT . '/components/com_tz_portfolio_plus/helpers/route.php';
 
 		if (is_file($routerHelper))
 		{
@@ -31,12 +31,11 @@ class jc_com_flexicontent extends JCommentsPlugin
 			$db    = Factory::getContainer()->get('DatabaseDriver');
 			$query = $db->getQuery(true);
 
-			$query->select($db->quoteName(array('i.id', 'i.title', 'i.access', 'i.created_by')))
-				->select('CASE WHEN CHAR_LENGTH(i.alias) THEN CONCAT_WS(\':\', i.id, i.alias) ELSE i.id END as slug')
-				->select('CASE WHEN CHAR_LENGTH(c.alias) THEN CONCAT_WS(\':\', c.id, c.alias) ELSE c.id END as catslug')
-				->from($db->quoteName('#__content', 'i'))
-				->join('LEFT', $db->quoteName('#__categories', 'c'), 'c.id = i.catid')
-				->where($db->quoteName('i.id') . ' = :id')
+			$query->select($db->quoteName(array('a.id', 'a.title', 'a.created_by', 'a.access', 'a.alias', 'a.catid')))
+				->select($db->quoteName('c.alias', 'category_alias'))
+				->from($db->quoteName('#__content', 'a'))
+				->join('LEFT', $db->quoteName('#__categories', 'c'), 'c.id = a.catid')
+				->where($db->quoteName('a.id') . ' = :id')
 				->bind(':id', $id, ParameterType::INTEGER);
 
 			$db->setQuery($query);
@@ -44,11 +43,13 @@ class jc_com_flexicontent extends JCommentsPlugin
 
 			if (!empty($row))
 			{
-				$info->category_id = $row->catid;
+				$row->slug    = $row->alias ? ($row->id . ':' . $row->alias) : $row->id;
+				$row->catslug = $row->category_alias ? ($row->catid . ':' . $row->category_alias) : $row->catid;
+
+				$info->category_id = $row->category_id;
 				$info->title       = $row->title;
-				$info->access      = $row->access;
 				$info->userid      = $row->created_by;
-				$info->link        = Route::_(FlexicontentHelperRoute::getItemRoute($row->slug, $row->catslug));
+				$info->link        = Route::_(TZ_Portfolio_PlusHelperRoute::getArticleRoute($row->slug, $row->catslug));
 			}
 		}
 

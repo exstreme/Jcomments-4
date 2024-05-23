@@ -6,7 +6,7 @@
 	<copyright>2006-2022 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.3</version>
+	<version>4.0.4</version>
 	<description>PLG_CONTENT_JCOMMENTS_XML_DESCRIPTION</description>
 
 	<files>
@@ -47,6 +47,17 @@
 				>
 					<option value="0">JHIDE</option>
 					<option value="1">JSHOW</option>
+				</field>
+				<field
+						name="yootheme_hack"
+						type="radio"
+						default="0"
+						layout="joomla.form.field.radio.switcher"
+						label="PLG_CONTENT_JCOMMENTS_FIELD_YOOTHEME_LABEL"
+						description="PLG_CONTENT_JCOMMENTS_FIELD_YOOTHEME_DESC"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
 				</field>
 				<field
 						name="links_position"
