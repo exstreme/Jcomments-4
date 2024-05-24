@@ -23,22 +23,24 @@ use Joomla\Database\DatabaseDriver;
  */
 class JCommentsTableComment extends Table
 {
-	/** @var int Primary key */
+	protected $_supportNullValue = true;
+
+	/** @var integer Primary key */
 	public $id = null;
 
-	/** @var int */
+	/** @var integer */
 	public $parent = null;
 
-	/** @var int */
+	/** @var integer */
 	public $thread_id = null;
 
 	/** @var string */
 	public $path = null;
 
-	/** @var int */
+	/** @var integer */
 	public $level = null;
 
-	/** @var int */
+	/** @var integer */
 	public $object_id = null;
 
 	/** @var string */
@@ -47,7 +49,7 @@ class JCommentsTableComment extends Table
 	/** @var string */
 	public $lang = null;
 
-	/** @var int */
+	/** @var integer */
 	public $userid = null;
 
 	/** @var string */
@@ -74,10 +76,10 @@ class JCommentsTableComment extends Table
 	/** @var string */
 	public $ip = null;
 
-	/** @var int */
+	/** @var integer */
 	public $isgood = null;
 
-	/** @var int */
+	/** @var integer */
 	public $ispoor = null;
 
 	/** @var boolean */
@@ -93,10 +95,10 @@ class JCommentsTableComment extends Table
 	public $source = null;
 
 	/** @var boolean */
-	public $checked_out = 0;
+	public $checked_out = null;
 
 	/** @var datetime */
-	public $checked_out_time = 0;
+	public $checked_out_time = null;
 
 	/**
 	 * Object constructor to set table and key fields.  In most cases this will

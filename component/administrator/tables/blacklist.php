@@ -20,6 +20,8 @@ use Joomla\CMS\Table\Table;
  */
 class JCommentsTableBlacklist extends Table
 {
+	protected $_supportNullValue = true;
+
 	public function __construct($_db)
 	{
 		parent::__construct('#__jcomments_blacklist', 'id', $_db);

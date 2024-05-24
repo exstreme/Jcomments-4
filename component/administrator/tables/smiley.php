@@ -19,6 +19,8 @@ use Joomla\CMS\Table\Table;
  */
 class JCommentsTableSmiley extends Table
 {
+	protected $_supportNullValue = true;
+
 	public function __construct($_db)
 	{
 		parent::__construct('#__jcomments_smilies', 'id', $_db);

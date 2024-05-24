@@ -18,6 +18,8 @@ use Joomla\CMS\Table\Table;
  */
 class JCommentsTableReport extends Table
 {
+	protected $_supportNullValue = true;
+
 	public function __construct($_db)
 	{
 		parent::__construct('#__jcomments_reports', 'id', $_db);
