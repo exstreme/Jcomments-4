@@ -21,6 +21,8 @@ use Joomla\Database\DatabaseDriver;
  */
 class JCommentsTableSubscription extends Table
 {
+	protected $_supportNullValue = true;
+
 	/** @var integer Primary key */
 	public $id = null;
 
@@ -52,10 +54,10 @@ class JCommentsTableSubscription extends Table
 	public $source = null;
 
 	/** @var boolean */
-	public $checked_out = 0;
+	public $checked_out = null;
 
 	/** @var datetime */
-	public $checked_out_time = 0;
+	public $checked_out_time = null;
 
 	public function __construct($table)
 	{

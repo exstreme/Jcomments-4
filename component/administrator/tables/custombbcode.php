@@ -18,6 +18,8 @@ use Joomla\CMS\Table\Table;
  */
 class JCommentsTableCustomBBCode extends Table
 {
+	protected $_supportNullValue = true;
+
 	public function __construct($_db)
 	{
 		parent::__construct('#__jcomments_custom_bbcodes', 'id', $_db);

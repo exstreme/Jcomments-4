@@ -18,7 +18,9 @@ use Joomla\CMS\Table\Table;
  */
 class JCommentsTableMailqueue extends Table
 {
-	/** @var int Primary key */
+	protected $_supportNullValue = true;
+
+	/** @var integer Primary key */
 	public $id = null;
 
 	/** @var string */
@@ -36,10 +38,10 @@ class JCommentsTableMailqueue extends Table
 	/** @var datetime */
 	public $created = null;
 
-	/** @var int */
+	/** @var integer */
 	public $attempts = null;
 
-	/** @var int */
+	/** @var integer */
 	public $priority = null;
 
 	/** @var string */

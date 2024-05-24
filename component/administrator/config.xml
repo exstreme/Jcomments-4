@@ -10,6 +10,7 @@
 				label="A_CATEGORIES"
 				description="AP_CATEGORIES_DESC"
 		>
+			<option value="">JOPTION_DO_NOT_USE</option>
 			<option value="*">JOPTION_ALL_CATEGORIES</option>
 		</field>
 	</fieldset>
