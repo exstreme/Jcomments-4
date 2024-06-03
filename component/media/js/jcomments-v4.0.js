@@ -409,7 +409,7 @@ JCommentsEditor.prototype = {
 				return;
 			}
 			var th = this, e = document.createElement('img');
-			e.setAttribute('src', this.smilesPath + '/' + image);
+			e.setAttribute('src', this.smilesPath + image);
 			e.setAttribute('alt', code);
 			e.className = 'smile';
 			e.onclick = function () {
