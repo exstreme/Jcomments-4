@@ -72,11 +72,12 @@ class JCommentsModelComment extends JCommentsModelForm
 
 	protected function loadFormData()
 	{
-		$data = Factory::getApplication()->getUserState('com_jcomments.edit.comment.data', array());
+		$app = Factory::getApplication();
+		$data = $app->getUserState('com_jcomments.edit.comment.data', array());
 
 		if (empty($data))
 		{
-			$data          = $this->getItem();
+			$data          = $this->getItem($app->input->getInt('id'));
 			$data->comment = strip_tags(str_replace('<br />', "\n", $data->comment));
 		}
 

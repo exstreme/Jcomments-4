@@ -50,10 +50,11 @@
 				sql_select="c.lang AS value, l.title AS name"
 				sql_from="#__jcomments AS c"
 				sql_join="#__languages AS l ON l.lang_code = c.lang"
-				sql_order="value ASC"
+				sql_where="c.lang != '*'"
+				sql_order="c.lang ASC"
 				key_field="value"
 				value_field="name"
-				sql_group="value"
+				sql_group="c.lang"
 				onchange="this.form.submit();"
 		>
 			<option value="">JOPTION_SELECT_LANGUAGE</option>
