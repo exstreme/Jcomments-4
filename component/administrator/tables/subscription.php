@@ -23,42 +23,6 @@ class JCommentsTableSubscription extends Table
 {
 	protected $_supportNullValue = true;
 
-	/** @var integer Primary key */
-	public $id = null;
-
-	/** @var integer */
-	public $object_id = null;
-
-	/** @var string */
-	public $object_group = null;
-
-	/** @var string */
-	public $lang = null;
-
-	/** @var integer */
-	public $userid = null;
-
-	/** @var string */
-	public $name = null;
-
-	/** @var string */
-	public $email = null;
-
-	/** @var string */
-	public $hash = null;
-
-	/** @var boolean */
-	public $published = null;
-
-	/** @var string */
-	public $source = null;
-
-	/** @var boolean */
-	public $checked_out = null;
-
-	/** @var datetime */
-	public $checked_out_time = null;
-
 	public function __construct($table)
 	{
 		parent::__construct('#__jcomments_subscriptions', 'id', $table);
