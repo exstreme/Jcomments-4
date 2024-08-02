@@ -713,6 +713,65 @@ class PlgJcommentsAvatar extends CMSPlugin
 	}
 
 	/**
+	 * Get image URL from com_osmembership
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.2
+	 */
+	protected function getMembershipproImage(array $comments)
+	{
+		$users = $this->getUsers($comments);
+
+		if (count($users))
+		{
+			/** @var \Joomla\Database\DatabaseDriver $db */
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
+			$query = $db->getQuery(true)
+				->select($db->qn(array('user_id', 'avatar')))
+				->from($db->qn('#__osmembership_subscribers'))
+				->where($db->qn('user_id') . ' IN (' . implode(',', $users) . ')');
+
+			try
+			{
+				$db->setQuery($query);
+				$avatars = $db->loadObjectList('user_id');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+		}
+
+		$avatarFolder = JPATH_ROOT . '/media/com_osmembership/avatars/';
+		$avatarLink   = '/media/com_osmembership/avatars/';
+
+		foreach ($comments as $comment)
+		{
+			$uid = (int) $comment->userid;
+
+			$comment->profileLink = '';
+			$comment->avatar      = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '')
+			{
+				if (is_file($avatarFolder . $avatars[$uid]->avatar))
+				{
+					$comment->avatar = $avatarLink . $avatars[$uid]->avatar;
+				}
+			}
+
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+		}
+	}
+
+	/**
 	 * Get image URL from phpBB3
 	 *
 	 * @param   array  $comments  Array with comment objects
