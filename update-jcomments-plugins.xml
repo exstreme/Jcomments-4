@@ -7,16 +7,16 @@
 		<type>plugin</type>
 		<folder>jcomments</folder>
 		<client>site</client>
-		<version>4.2.7</version>
+		<version>4.2.8</version>
 		<infourl title="JComments">https://github.com/exstreme/Jcomments-4</infourl>
 		<downloads>
-			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_4.2.7.zip</downloadurl>
+			<downloadurl type="full" format="zip">https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_4.2.8.zip</downloadurl>
 		</downloads>
 		<maintainer>exstreme and Globulopolis</maintainer>
 		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
-		<sha256>7d08fccc95652e43a9ef36d3a62ae468e346bfce07863df36e390e5afa14b94a</sha256>
-		<sha384>d959ac2592af36018d8184bc9b1f31a2ad5bf7695ce0295234cae7578d427e3b71d380df8ae563467ffafd6c5e548c1d</sha384>
-		<sha512>2c7b00ba0e768e4629933105d958c7ecccb9e92b26fe326f286186055ecd96ef10a30a3fdbd48d188ab0afc523f85df02d48c2c8b81a9e4336d86ce27ad8a34d</sha512>
+		<sha256>ea7d2c58c811f702b9af013bffcd5afd94d6b931c9358293866b0fd75a7918f7</sha256>
+		<sha384>ae1b7fd5cbcc4a1e7d2669612b8d69f06fe8725cf233e63ac4789a269a612782abf776b12cfadac79774d890cf9fa792</sha384>
+		<sha512>a7df5693116d8e5651e49edce5a60c2e7cc8194a34cac6082f6e0ea352960fbdbc68446e34e0c9f9aa30e6b21c9a9f2d80c8bde0e5a01c310c17ec868cc334b2</sha512>
 		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
 	</update>
 
