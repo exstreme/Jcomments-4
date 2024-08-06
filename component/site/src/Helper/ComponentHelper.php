@@ -79,7 +79,7 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 			}
 		}
 
-		$wa->useScript('jcomments.core')->useScript('jcomments.frontend');
+		$wa->useScript('jcomments.core');
 	}
 
 	/**
@@ -157,17 +157,23 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 	/**
 	 * Renders the error and returns the results as a string.
 	 *
-	 * @param   string   $msg    Message
-	 * @param   string   $type   Message type
-	 * @param   string   $icon   Icon type
-	 * @param   boolean  $close  Show close button
+	 * @param   string   $msg       Message
+	 * @param   string   $type      Message type
+	 * @param   boolean  $onlyText  Return only message text
+	 * @param   string   $icon      Icon type
+	 * @param   boolean  $close     Show close button
 	 *
 	 * @return  string
 	 *
 	 * @since   4.1
 	 */
-	public static function renderMessage(string $msg, string $type = 'info', string $icon = '', bool $close = false): string
+	public static function renderMessage(string $msg, string $type = 'info', bool $onlyText = false, string $icon = '', bool $close = false): string
 	{
+		if ($onlyText)
+		{
+			return $msg;
+		}
+
 		$icon = empty($icon) ? $type : $icon;
 
 		return LayoutHelper::render(
@@ -176,5 +182,31 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 			'',
 			array('component' => 'com_jcomments')
 		);
+	}
+
+	/**
+	 * Get min and max comment length based on settings and ACL.
+	 *
+	 * @return  array
+	 *
+	 * @since   4.1
+	 */
+	public static function getAllowedCommentsLength(): array
+	{
+		$user   = Factory::getApplication()->getIdentity();
+		$params = self::getParams('com_jcomments');
+		$min    = 0;
+		$max    = 0;
+
+		if (!$user->get('isRoot'))
+		{
+			if (!$user->authorise('comment.length_check', 'com_jcomments'))
+			{
+				$min = (int) $params->get('comment_minlength');
+				$max = (int) $params->get('comment_maxlength');
+			}
+		}
+
+		return array('min' => $min, 'max' => $max);
 	}
 }

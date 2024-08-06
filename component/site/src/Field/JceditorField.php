@@ -20,7 +20,7 @@ use Joomla\Filesystem\File;
 use Joomla\CMS\Form\Field\TextareaField;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Uri\Uri;
-use Joomla\Component\Jcomments\Site\Helper\ComponentHelper;
+use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ToolbarHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\String\StringHelper;
@@ -150,18 +150,29 @@ class JceditorField extends TextareaField
 			$buttons    = (string) $this->element['buttons'];
 			$hide       = (string) $this->element['hide'];
 			$editorType = (string) $this->element['editor'];
+			$params     = JcommentsComponentHelper::getParams('com_jcomments');
 
-			if ($buttons === 'true' || $buttons === 'yes' || $buttons === '1')
-			{
-				$this->buttons = true;
-			}
-			elseif ($buttons === 'false' || $buttons === 'no' || $buttons === '0')
+			// Disable editor-xtd buttons for Joomla editor. These buttons only available for superuser, because
+			// plugins do not have an access rules.
+			if ($params->get('editor_type') == 'joomla' && $params->get('editor_xtd_buttons') == 0
+				&& !Factory::getApplication()->getIdentity()->get('isRoot'))
 			{
 				$this->buttons = false;
 			}
 			else
 			{
-				$this->buttons = !empty($hide) ? explode(',', $buttons) : [];
+				if ($buttons === 'true' || $buttons === 'yes' || $buttons === '1')
+				{
+					$this->buttons = true;
+				}
+				elseif ($buttons === 'false' || $buttons === 'no' || $buttons === '0')
+				{
+					$this->buttons = false;
+				}
+				else
+				{
+					$this->buttons = !empty($hide) ? explode(',', $buttons) : [];
+				}
 			}
 
 			$this->hide        = !empty($hide) ? explode(',', (string) $this->element['hide']) : [];
@@ -182,14 +193,16 @@ class JceditorField extends TextareaField
 	protected function getInput()
 	{
 		$app          = Factory::getApplication();
-		$user         = $app->getIdentity();
 		$doc          = $app->getDocument();
-		$params       = ComponentHelper::getParams('com_jcomments');
+		$params       = JcommentsComponentHelper::getParams('com_jcomments');
 		$format       = $params->def('editor_format', 'bbcode');
+		$maxlength    = JcommentsComponentHelper::getAllowedCommentsLength()['max'];
 		$editorConfig = array(
 			'field'       => $this->id,
 			'editor_type' => $params->get('editor_type'),
-			'format'      => $format
+			'editor'      => $app->get('editor'),
+			'format'      => $format,
+			'maxlength'   => $maxlength === 0 ? null : $maxlength // TODO Неправильная проверка для админа
 		);
 
 		/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
@@ -203,7 +216,7 @@ class JceditorField extends TextareaField
 				'readonly'  => $this->readonly || $this->disabled,
 				'syntax'    => (string) $this->element['syntax']
 			);
-			$doc->addScriptOptions('jceditor', $editorConfig);
+			$doc->addScriptOptions('jcomments', array('editor' => $editorConfig));
 			$wa->useScript('editors');
 
 			return $editor->display(
@@ -213,7 +226,7 @@ class JceditorField extends TextareaField
 				$this->height,
 				$this->columns,
 				$this->rows,
-				$this->buttons ? (\is_array($this->buttons) ? array_merge($this->buttons, $this->hide) : $this->hide) : false,
+				$this->buttons ? (is_array($this->buttons) ? array_merge($this->buttons, $this->hide) : $this->hide) : false,
 				$this->id,
 				$this->asset,
 				$this->form->getValue($this->authorField),
@@ -231,7 +244,7 @@ class JceditorField extends TextareaField
 		$themeUrl    = Uri::root() . 'media/com_jcomments/images/tmpl/editor/' . $editorTheme;
 
 		// Override standart buttons list with buttons from xml attribute.
-		if (!empty($buttons))
+		if (!empty($buttons) && !in_array($buttons, array('yes', 'no', 'true', 'false', '1', '0')))
 		{
 			$buttons = (object) array_map(
 				function ($value)
@@ -247,6 +260,10 @@ class JceditorField extends TextareaField
 		}
 
 		$emojiEnabled = in_array('emoji', ToolbarHelper::getStandardButtons($buttons));
+
+		/** @var \Joomla\CMS\WebAsset\WebAssetRegistry $wr */
+		$wr = $wa->getRegistry();
+		$wr->addRegistryFile('media/com_jcomments/joomla.asset.json');
 
 		$wa->registerAndUseStyle(
 			'jceditor.theme.square',
@@ -307,8 +324,8 @@ class JceditorField extends TextareaField
 			$wa->addInlineStyle($this->customButtonsCSS);
 		}
 
-		$wa->useScript('jceditor.init')
-			/*->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2'])*/;
+		$wa->useScript('jceditor.init');
+			/*->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2']);*/
 
 		Text::script('COMMENT_TEXT_CODE');
 		Text::script('COMMENT_TEXT_QUOTE');
@@ -327,8 +344,6 @@ class JceditorField extends TextareaField
 		$editorConfig['emoticonsRoot'] = Uri::root() . $params->get('smilies_path');
 		$editorConfig['plugins']       = implode(',', $plugins);
 		$editorConfig['autoUpdate']    = true;
-		$editorConfig['minlength']     = $user->get('isRoot') ? 0 : $params->get('comment_minlength');
-		$editorConfig['maxlength']     = $user->get('isRoot') ? 0 : $params->get('comment_maxlength');
 
 		if ($emojiEnabled)
 		{
@@ -355,7 +370,7 @@ class JceditorField extends TextareaField
 			$editorConfig['toolbar'] = str_replace(array('emoticon,', 'emoticon|'), '', $editorConfig['toolbar']);
 		}
 
-		$doc->addScriptOptions('jceditor', $editorConfig);
+		$doc->addScriptOptions('jcomments', array('editor' => $editorConfig));
 
 		return parent::getInput();
 	}
@@ -374,7 +389,7 @@ class JceditorField extends TextareaField
 	{
 		ob_start();
 
-		$params = ComponentHelper::getParams('com_jcomments');
+		$params = JcommentsComponentHelper::getParams('com_jcomments');
 		$js = '';
 
 		foreach ($buttons as $button)

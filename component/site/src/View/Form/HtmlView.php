@@ -21,6 +21,7 @@ use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
+use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 
@@ -32,17 +33,13 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 class HtmlView extends BaseHtmlView
 {
 	/**
-	 * The active document object
-	 *
-	 * @var    \Joomla\CMS\Document\Document
+	 * @var    \Joomla\CMS\Document\Document  The active document object
 	 * @since  3.0
 	 */
 	public $document;
 
 	/**
-	 * The Form object
-	 *
-	 * @var    \Joomla\CMS\Form\Form
+	 * @var    \Joomla\CMS\Form\Form  The Form object
 	 * @since  4.1
 	 */
 	protected $form;
@@ -69,44 +66,40 @@ class HtmlView extends BaseHtmlView
 	protected $params;
 
 	/**
-	 * Should we show a captcha form for the submission of the comment?
-	 *
-	 * @var    boolean
+	 * @var    boolean  Should we show a captcha form for the submission of the comment?
 	 * @since  4.1
 	 */
 	protected $captchaEnabled = false;
 
 	/**
-	 * Option value from request
-	 *
-	 * @var    string
+	 * @var    string  Option value from request
 	 * @since  4.1
 	 */
 	protected $objectGroup = '';
 
 	/**
-	 * Object ID
-	 *
-	 * @var    integer
+	 * @var    integer  Object ID
 	 * @since  4.1
 	 */
 	protected $objectID = 0;
 
 	/**
-	 * Text for 'Policy'
-	 *
-	 * @var    string
+	 * @var    mixed  Check if user can add comments
 	 * @since  4.1
 	 */
-	protected $policy = '';
+	protected $canComment;
 
 	/**
-	 * Text for 'Terms of use'
-	 *
-	 * @var    string
+	 * @var    mixed  Check if user can see comment form
 	 * @since  4.1
 	 */
-	protected $terms = '';
+	protected $canViewForm;
+
+	/**
+	 * @var    boolean  Display or hide form?
+	 * @since  4.1
+	 */
+	protected $displayForm = true;
 
 	/**
 	 * Execute and display a template script.
@@ -144,21 +137,20 @@ class HtmlView extends BaseHtmlView
 	public function displayCommentForm($tpl = null)
 	{
 		$app               = Factory::getApplication();
-		$user              = $app->getIdentity();
-		$acl               = JcommentsFactory::getACL();
+		$acl               = JcommentsFactory::getAcl();
 		$state             = $this->get('State');
 		$this->form        = $this->get('Form');
-		$lang              = $app->getLanguage();
 		$this->params      = $state->get('params');
 		$this->objectGroup = $state->get('object_group');
 		$this->objectID    = $state->get('object_id');
+		$this->canViewForm = $acl->canViewForm();
 
 		PluginHelper::importPlugin('jcomments');
 
 		// Set up document title
 		if (empty($app->input->getInt('comment_id')))
 		{
-			$title = 'FORM_HEADER';
+			$title = 'FORM_HEADER_ADD';
 		}
 		else
 		{
@@ -173,55 +165,28 @@ class HtmlView extends BaseHtmlView
 		}
 
 		$this->setDocumentTitle(Text::_($title));
+		$this->item = $this->get('Item');
+		$input = Factory::getApplication()->input;
 
-		$this->document->getWebAssetManager()->useScript('jcomments.core');
-
-		$canViewForm = $acl->canViewForm(true);
-
-		if ($canViewForm !== true)
+		if ($input->getInt('comment_id') > 0 && $input->getInt('quote') == 0)
 		{
-			echo $canViewForm;
-
-			return;
+			$this->canComment = $acl->canEdit($this->item);
+		}
+		else
+		{
+			if ($input->getInt('quote') > 0)
+			{
+				$this->canComment = $acl->canQuote();
+			}
+			else
+			{
+				$this->canComment = $acl->canComment();
+			}
 		}
 
 		if (count($errors = $this->get('Errors')))
 		{
 			throw new GenericDataException(implode("\n", $errors), 500);
-		}
-
-		// Access check when edit comment.
-		if ($app->input->getInt('comment_id') > 0 && !$app->input->getInt('quote'))
-		{
-			$this->item = $this->get('Item');
-
-			if ($acl->isLocked($this->item))
-			{
-				echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_BEING_EDITTED'), 'warning');
-
-				return;
-			}
-			elseif (!$acl->canEdit($this->item))
-			{
-				if ($this->item->get('deleted') == 1)
-				{
-					echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_NOT_FOUND'), 'warning');
-				}
-				else
-				{
-					echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_CANT_EDIT'), 'warning');
-				}
-
-				return;
-			}
-
-			if (!$user->get('guest') || $app->input->getInt('quote') != 1)
-			{
-				/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $table */
-				$table = $app->bootComponent('com_jcomments')->getMVCFactory()
-					->createTable('Comment', 'Administrator');
-				$table->checkOut($user->get('id'), $this->item->comment_id);
-			}
 		}
 
 		$this->returnPage = $this->get('ReturnPage');
@@ -234,33 +199,15 @@ class HtmlView extends BaseHtmlView
 		Text::script('LOADING');
 		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
-		$commentsCount = \Joomla\Component\Jcomments\Site\Helper\ObjectHelper::getTotalCommentsForObject($this->objectID, $this->objectGroup, 1, 0);
+		$commentsCount = ObjectHelper::getTotalCommentsForObject($this->objectID, $this->objectGroup, 1, 0);
 		$this->displayForm = ((int) $this->params->get('form_show') == 1)
 			|| ((int) $this->params->get('form_show') == 2 && $commentsCount == 0)
 			|| $app->input->getInt('comment_id') > 0;
 
-		if ($acl->showPolicy())
-		{
-			$this->policy = JcommentsText::getMessagesBasedOnLanguage(
-				$this->params->get('messages_fields'),
-				'message_policy_post', $lang->getTag()
-			);
-		}
-		else
-		{
-			$this->policy = '';
-		}
-
-		$this->terms = JcommentsText::getMessagesBasedOnLanguage(
-			$this->params->get('messages_fields'),
-			'message_terms_of_use', $lang->getTag()
-		);
-		$this->terms = !empty($this->terms) ? $this->terms : Text::_('FORM_ACCEPT_TERMS_OF_USE');
-
 		if ($this->params->get('enable_plugins'))
 		{
 			$dispatcher = $this->getDispatcher();
-			$this->event = new \StdClass;
+			$this->item->event = new \StdClass;
 
 			$eventResults = $dispatcher->dispatch(
 				'onJCommentsFormBeforeDisplay',
@@ -272,7 +219,7 @@ class HtmlView extends BaseHtmlView
 					)
 				)
 			)->getArgument('result', array());
-			$this->event->jcommentsFormBeforeDisplay = trim(
+			$this->item->event->jcommentsFormBeforeDisplay = trim(
 				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
 			);
 
@@ -286,7 +233,7 @@ class HtmlView extends BaseHtmlView
 					)
 				)
 			)->getArgument('result', array());
-			$this->event->jcommentsFormAfterDisplay = trim(
+			$this->item->event->jcommentsFormAfterDisplay = trim(
 				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
 			);
 
@@ -300,7 +247,7 @@ class HtmlView extends BaseHtmlView
 					)
 				)
 			)->getArgument('result', array());
-			$this->event->jcommentsFormPrepend = trim(
+			$this->item->event->jcommentsFormPrepend = trim(
 				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
 			);
 
@@ -314,7 +261,7 @@ class HtmlView extends BaseHtmlView
 					)
 				)
 			)->getArgument('result', array());
-			$this->event->jcommentsFormAppend = trim(
+			$this->item->event->jcommentsFormAppend = trim(
 				implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
 			);
 		}
@@ -325,7 +272,7 @@ class HtmlView extends BaseHtmlView
 		{
 			if ($captchaSet === $plugin->name)
 			{
-				$this->captchaEnabled = true;
+				$this->item->captchaEnabled = true;
 				break;
 			}
 		}
@@ -388,7 +335,7 @@ class HtmlView extends BaseHtmlView
 
 		if (!$acl->canReport($this->item))
 		{
-			echo JcommentsComponentHelper::renderMessage(Text::_('ERROR_YOU_HAVE_NO_RIGHTS_TO_REPORT'), 'warning');
+			echo JcommentsComponentHelper::renderMessage(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'warning');
 
 			return false;
 		}

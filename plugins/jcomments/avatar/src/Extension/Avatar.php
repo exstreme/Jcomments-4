@@ -38,6 +38,20 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	use DatabaseAwareTrait;
 
 	/**
+	 * Should I try to detect and register legacy event listeners, i.e. methods which accept unwrapped arguments? While
+	 * this maintains a great degree of backwards compatibility to Joomla! 3.x-style plugins it is much slower. You are
+	 * advised to implement your plugins using proper Listeners, methods accepting an AbstractEvent as their sole
+	 * parameter, for best performance. Also bear in mind that Joomla! 5.x onwards will only allow proper listeners,
+	 * removing support for legacy Listeners.
+	 *
+	 * @var    boolean
+	 * @since  4.0.0
+	 *
+	 * @deprecated  4.3 will be removed in 6.0
+	 */
+	protected $allowLegacyListeners = false;
+
+	/**
 	 * Returns an array of events this subscriber will listen to.
 	 *
 	 * @return  array
@@ -64,15 +78,25 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	public function onPrepareAvatars(EventInterface $event)
 	{
 		/** @var array $comments */
-		$comments = $event->getArgument('0');
+		$comments = $event->getArgument('items');
 
 		if ($this->params->get('avatar_type') == 'default')
 		{
 			foreach ($comments as $comment)
 			{
 				$comment->profileLink       = '';
-				$comment->avatar            = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 				$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+				$defaultAvatar              = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+				if (is_array($defaultAvatar))
+				{
+					$comment->avatar = $defaultAvatar['src'];
+					$comment->avatarAlt = $defaultAvatar['srcset'];
+				}
+				else
+				{
+					$comment->avatar = $defaultAvatar;
+				}
 			}
 		}
 		else
@@ -141,6 +165,7 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			}
 
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+			$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 
 			if (isset($avatars[$uid]) && !empty($avatars[$uid]->value))
 			{
@@ -176,12 +201,28 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 				}
 				else
 				{
-					$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+					if (is_array($defaultAvatar))
+					{
+						$comment->avatar = $defaultAvatar['src'];
+						$comment->avatarAlt = $defaultAvatar['srcset'];
+					}
+					else
+					{
+						$comment->avatar = $defaultAvatar;
+					}
 				}
 			}
 			else
 			{
-				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				if (is_array($defaultAvatar))
+				{
+					$comment->avatar = $defaultAvatar['src'];
+					$comment->avatarAlt = $defaultAvatar['srcset'];
+				}
+				else
+				{
+					$comment->avatar = $defaultAvatar;
+				}
 			}
 		}
 	}
@@ -253,7 +294,17 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			}
 			else
 			{
-				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+				if (is_array($defaultAvatar))
+				{
+					$comment->avatar = $defaultAvatar['src'];
+					$comment->avatarAlt = $defaultAvatar['srcset'];
+				}
+				else
+				{
+					$comment->avatar = $defaultAvatar;
+				}
 			}
 		}
 	}
@@ -326,7 +377,17 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			}
 			else
 			{
-				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+				if (is_array($defaultAvatar))
+				{
+					$comment->avatar = $defaultAvatar['src'];
+					$comment->avatarAlt = $defaultAvatar['srcset'];
+				}
+				else
+				{
+					$comment->avatar = $defaultAvatar;
+				}
 			}
 
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
@@ -338,11 +399,11 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	 *
 	 * @param   string  $type  Avatar default type
 	 *
-	 * @return  string
+	 * @return  string|array
 	 *
 	 * @since   4.2
 	 */
-	protected function getDefaultImage(string $type = 'default'): string
+	protected function getDefaultImage(string $type = 'default')
 	{
 		switch ($type)
 		{
@@ -354,7 +415,10 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 
 				return Uri::base() . ltrim($this->params->get('avatar_custom_default_avatar'), '/');
 			default:
-				return Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+				return array(
+					'src'    => Uri::base() . 'media/com_jcomments/images/no_avatar.png',
+					'srcset' => Uri::base() . 'media/com_jcomments/images/no_avatar.svg'
+				);
 		}
 	}
 
@@ -565,7 +629,17 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			}
 			else
 			{
-				$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+				$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+				if (is_array($defaultAvatar))
+				{
+					$comment->avatar = $defaultAvatar['src'];
+					$comment->avatarAlt = $defaultAvatar['srcset'];
+				}
+				else
+				{
+					$comment->avatar = $defaultAvatar;
+				}
 			}
 
 			if ($this->params->get('avatar_link') == 1)
@@ -639,7 +713,77 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 					: '';
 			}
 
-			$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+			if (is_array($defaultAvatar))
+			{
+				$comment->avatar = $defaultAvatar['src'];
+				$comment->avatarAlt = $defaultAvatar['srcset'];
+			}
+			else
+			{
+				$comment->avatar = $defaultAvatar;
+			}
+
+			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '')
+			{
+				if (is_file($avatarFolder . $avatars[$uid]->avatar))
+				{
+					$comment->avatar = $avatarLink . $avatars[$uid]->avatar;
+					unset($comment->avatarAlt);
+				}
+			}
+
+			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
+		}
+	}
+
+	/**
+	 * Get image URL from com_osmembership
+	 *
+	 * @param   array  $comments  Array with comment objects
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   4.2
+	 */
+	protected function getMembershipproImage(array $comments)
+	{
+		$users = $this->getUsers($comments);
+
+		if (count($users))
+		{
+			/** @var \Joomla\Database\DatabaseDriver $db */
+			$db = Factory::getContainer()->get('DatabaseDriver');
+
+			$query = $db->getQuery(true)
+				->select($db->qn(array('user_id', 'avatar')))
+				->from($db->qn('#__osmembership_subscribers'))
+				->where($db->qn('user_id') . ' IN (' . implode(',', $users) . ')');
+
+			try
+			{
+				$db->setQuery($query);
+				$avatars = $db->loadObjectList('user_id');
+			}
+			catch (\RuntimeException $e)
+			{
+				Log::add($e->getMessage(), Log::ERROR, 'plg_jcomments_avatars');
+
+				return;
+			}
+		}
+
+		$avatarFolder = JPATH_ROOT . '/media/com_osmembership/avatars/';
+		$avatarLink   = '/media/com_osmembership/avatars/';
+
+		foreach ($comments as $comment)
+		{
+			$uid = (int) $comment->userid;
+
+			$comment->profileLink = '';
+			$comment->avatar      = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 
 			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '')
 			{
@@ -696,13 +840,24 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 			$uid = (int) $comment->userid;
 
 			$comment->profileLink = '';
-			$comment->avatar      = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+			$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+
+			if (is_array($defaultAvatar))
+			{
+				$comment->avatar = $defaultAvatar['src'];
+				$comment->avatarAlt = $defaultAvatar['srcset'];
+			}
+			else
+			{
+				$comment->avatar = $defaultAvatar;
+			}
 
 			if (isset($avatars[$uid]) && $avatars[$uid]->avatar != '')
 			{
 				if (is_file($avatarFolder . $avatars[$uid]->avatar))
 				{
 					$comment->avatar = $avatarLink . $avatars[$uid]->avatar;
+					unset($comment->avatarAlt);
 				}
 			}
 
@@ -722,9 +877,15 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	 */
 	protected function getPhpbb3Image(array $comments)
 	{
-		$forumConfig = Path::clean($this->params->get('forums_config'));
-		$data        = array('config' => array(), 'user_data' => array());
-		$cacheId     = 'plg_jcomments_avatar_phpbb3';
+		if (empty($this->params->get('forums_config')))
+		{
+			return;
+		}
+
+		$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+		$forumConfig   = Path::clean($this->params->get('forums_config'));
+		$data          = array('config' => array(), 'user_data' => array());
+		$cacheId       = 'plg_jcomments_avatar_phpbb3';
 
 		/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
 		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
@@ -836,9 +997,18 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 
 		foreach ($comments as $comment)
 		{
-			$comment->profileLink = '';
-			$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 			$phpBB3Profile = array();
+			$comment->profileLink = '';
+
+			if (is_array($defaultAvatar))
+			{
+				$comment->avatar = $defaultAvatar['src'];
+				$comment->avatarAlt = $defaultAvatar['srcset'];
+			}
+			else
+			{
+				$comment->avatar = $defaultAvatar;
+			}
 
 			foreach ($data['user_data'] as $phpBB3)
 			{
@@ -890,6 +1060,8 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 					$avatar          = file_get_contents($avatar);
 					$comment->avatar = 'data:' . image_type_to_mime_type($imageData[2]) . ';base64,' . base64_encode($avatar);
 				}
+
+				unset($comment->avatarAlt);
 			}
 
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');
@@ -908,9 +1080,15 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 	 */
 	protected function getSmfImage(array $comments)
 	{
-		$forumConfig = Path::clean($this->params->get('forums_config'));
-		$data        = array('config' => array(), 'user_data' => array());
-		$cacheId     = 'plg_jcomments_avatar_smf';
+		if (empty($this->params->get('forums_config')))
+		{
+			return;
+		}
+
+		$defaultAvatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
+		$forumConfig   = Path::clean($this->params->get('forums_config'));
+		$data          = array('config' => array(), 'user_data' => array());
+		$cacheId       = 'plg_jcomments_avatar_smf';
 
 		/** @var \Joomla\CMS\Cache\Controller\CallbackController $cache */
 		$cache = Factory::getContainer()->get(CacheControllerFactoryInterface::class)
@@ -1032,9 +1210,18 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 
 		foreach ($comments as $comment)
 		{
-			$comment->profileLink = '';
-			$comment->avatar = $this->getDefaultImage($this->params->get('avatar_default_avatar'));
 			$smfProfile = array();
+			$comment->profileLink = '';
+
+			if (is_array($defaultAvatar))
+			{
+				$comment->avatar = $defaultAvatar['src'];
+				$comment->avatarAlt = $defaultAvatar['srcset'];
+			}
+			else
+			{
+				$comment->avatar = $defaultAvatar;
+			}
 
 			foreach ($data['user_data'] as $smf)
 			{
@@ -1081,6 +1268,8 @@ final class Avatar extends CMSPlugin implements SubscriberInterface
 						$comment->avatar = $data['config']['custom_avatar_url']->value . '/' . $smfProfile->filename;
 					}
 				}
+
+				unset($comment->avatarAlt);
 			}
 
 			$comment->profileLinkTarget = $this->params->get('avatar_link_target');

@@ -14,15 +14,16 @@ namespace Joomla\Component\Jcomments\Site\View\Comments;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Router\Route;
-use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 
 /**
  * HTML View class for the Jcomments component
@@ -32,9 +33,7 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 class HtmlView extends BaseHtmlView
 {
 	/**
-	 * The active document object
-	 *
-	 * @var    \Joomla\CMS\Document\Document
+	 * @var    \Joomla\CMS\Document\Document  The active document object
 	 * @since  3.0
 	 */
 	public $document;
@@ -44,6 +43,27 @@ class HtmlView extends BaseHtmlView
 	 * @since  4.1
 	 */
 	public $paginationPrefix = 'jc_';
+
+	/**
+	 * @var    object  The item for Form object
+	 * @since  4.1
+	 */
+	protected $item;
+
+	/**
+	 * @var    \Joomla\CMS\Form\Form  The Form object
+	 * @since  4.1
+	 */
+	protected $form;
+
+	/**
+	 * The page to return to after the form is submitted
+	 *
+	 * @var    string
+	 * @see    \Joomla\Component\Jcomments\Site\Model\FormModel::getReturnPage()
+	 * @since  4.1
+	 */
+	protected $returnPage = '';
 
 	/**
 	 * @var    \Joomla\Registry\Registry  Component params
@@ -76,10 +96,22 @@ class HtmlView extends BaseHtmlView
 	protected $isSubscribed = false;
 
 	/**
+	 * @var    mixed  Check if user can add comments
+	 * @since  4.1
+	 */
+	protected $canComment;
+
+	/**
 	 * @var    mixed  Check if user can see comment form
 	 * @since  4.1
 	 */
 	protected $canViewForm;
+
+	/**
+	 * @var    boolean  Display or hide form?
+	 * @since  4.1
+	 */
+	protected $displayForm = true;
 
 	/**
 	 * Execute and display a template script.
@@ -105,6 +137,7 @@ class HtmlView extends BaseHtmlView
 		$this->document     = $app->getDocument();
 		$this->canSubscribe = $acl->canSubscribe();
 		$this->canViewForm  = $acl->canViewForm();
+		$this->canComment   = $acl->canComment();
 
 		if ($this->canSubscribe)
 		{
@@ -123,11 +156,24 @@ class HtmlView extends BaseHtmlView
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
-		$this->document->addScriptOptions('jcform', array('form_show' => $this->params->get('form_show')));
-
+		$objectInfo = ObjectHelper::getObjectInfo($this->objectID, $this->objectGroup);
 		$title = empty($state->get('title', null))
-			? ObjectHelper::getObjectField(null, 'object_title', $this->objectID, $this->objectGroup) . ' '
+			? ObjectHelper::getObjectField($objectInfo, 'object_title', $this->objectID, $this->objectGroup) . ' '
 			: $state->get('title') . ' ';
+		$this->returnPage = base64_encode(Uri::getInstance()->toString());
+
+		$this->document->addScriptOptions(
+			'jcomments',
+			array(
+				'object_id'         => $this->objectID,
+				'object_group'      => $this->objectGroup,
+				'object_link'       => Route::_(Uri::getInstance()->toString(), true, 0, true),
+				'list_url'          => Route::_('index.php?option=com_jcomments&view=comments', false),
+				'pagination_prefix' => $this->paginationPrefix,
+				'template'          => $this->params->get('template_view'),
+				'return'            => $this->returnPage
+			)
+		);
 
 		// Add feed links
 		if ($this->params->get('enable_rss')
@@ -147,48 +193,111 @@ class HtmlView extends BaseHtmlView
 		Text::script('BUTTON_DELETE_CONFIRM');
 		Text::script('BUTTON_BANIP');
 
-
-
-
-
-
-
-
-
-		/*$this->document->getWebAssetManager()->useScript('form.validate');
-
-		$formModel = $app->bootComponent('com_jcomments')->getMVCFactory()->createModel('Form', 'Site');
-		$this->form = $formModel->getForm();
-		$lang = $app->getLanguage();
-
-		$commentsCount = \Joomla\Component\Jcomments\Site\Helper\ObjectHelper::getTotalCommentsForObject($this->objectID, $this->objectGroup, 1, 0);
-		$this->displayForm = ((int) $this->params->get('form_show') == 1)
-			|| ((int) $this->params->get('form_show') == 2 && $commentsCount == 0)
-			|| $app->input->getInt('comment_id') > 0;
-
-		if ($acl->showPolicy())
+		if ($this->canViewForm === true && $this->canComment)
 		{
-			$this->policy = JcommentsText::getMessagesBasedOnLanguage(
-				$this->params->get('messages_fields'),
-				'message_policy_post', $lang->getTag()
-			);
+			PluginHelper::importPlugin('jcomments', null, true, $this->getDispatcher());
+
+			$this->document->getWebAssetManager()
+				->useScript('form.validate');
+
+			Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
+
+			$formModel = $app->bootComponent('com_jcomments')->getMVCFactory()->createModel('Form', 'Site');
+			$formModel->setState('object_id', $this->objectID);
+			$formModel->setState('object_group', $this->objectGroup);
+
+			$this->item = $formModel->getItem();
+			$this->form = $formModel->getForm();
+
+			$commentsCount = ObjectHelper::getTotalCommentsForObject($this->objectID, $this->objectGroup, 1, 0);
+			$this->displayForm = ((int) $this->params->get('form_show') == 1)
+				|| ((int) $this->params->get('form_show') == 2 && $commentsCount == 0)
+				|| $app->input->getInt('comment_id') > 0;
+
+			if ($this->params->get('enable_plugins'))
+			{
+				$dispatcher = $this->getDispatcher();
+				$this->item->event = new \StdClass;
+
+				$eventResults = $dispatcher->dispatch(
+					'onJCommentsFormBeforeDisplay',
+					AbstractEvent::create(
+						'onJCommentsFormBeforeDisplay',
+						array(
+							'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+							'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+						)
+					)
+				)->getArgument('result', array());
+				$this->item->event->jcommentsFormBeforeDisplay = trim(
+					implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+				);
+
+				$eventResults = $dispatcher->dispatch(
+					'onJCommentsFormAfterDisplay',
+					AbstractEvent::create(
+						'onJCommentsFormAfterDisplay',
+						array(
+							'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+							'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+						)
+					)
+				)->getArgument('result', array());
+				$this->item->event->jcommentsFormAfterDisplay = trim(
+					implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+				);
+
+				$eventResults = $dispatcher->dispatch(
+					'onJCommentsFormPrepend',
+					AbstractEvent::create(
+						'onJCommentsFormPrepend',
+						array(
+							'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+							'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+						)
+					)
+				)->getArgument('result', array());
+				$this->item->event->jcommentsFormPrepend = trim(
+					implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+				);
+
+				$eventResults = $dispatcher->dispatch(
+					'onJCommentsFormAppend',
+					AbstractEvent::create(
+						'onJCommentsFormAppend',
+						array(
+							'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+							'subject' => $this, 'objectId' => $this->objectID, 'objectGroup' => $this->objectGroup
+						)
+					)
+				)->getArgument('result', array());
+				$this->item->event->jcommentsFormAppend = trim(
+					implode("\n", array_key_exists(0, $eventResults) ? $eventResults[0] : array())
+				);
+			}
+
+			$captchaSet = $this->params->get('captcha', $app->get('captcha', '0'));
+
+			foreach (PluginHelper::getPlugin('captcha') as $plugin)
+			{
+				if ($captchaSet === $plugin->name)
+				{
+					$this->item->captchaEnabled = true;
+					break;
+				}
+			}
+
+			/*$objectInfo->userid = $user->id;
+			$dispatcher->dispatch(
+				'onJCommentsCommentAfterAdd',
+				AbstractEvent::create(
+					'onJCommentsCommentAfterAdd',
+					array(
+						'subject' => $objectInfo
+					)
+				)
+			);*/
 		}
-		else
-		{
-			$this->policy = '';
-		}
-
-		$this->terms = JcommentsText::getMessagesBasedOnLanguage(
-			$this->params->get('messages_fields'),
-			'message_terms_of_use', $lang->getTag()
-		);
-		$this->terms = !empty($this->terms) ? $this->terms : Text::_('FORM_ACCEPT_TERMS_OF_USE');*/
-
-
-
-
-
-
 
 		parent::display($tpl);
 	}

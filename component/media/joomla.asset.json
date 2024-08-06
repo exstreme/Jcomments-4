@@ -53,15 +53,11 @@
       "uri": "com_jcomments/jcomments.core.min.js",
       "dependencies": [
         "locutus",
-        "bootstrap.collapse"
-      ],
-      "version": "4.1.0"
-    },
-    {
-      "name": "jcomments.frontend",
-      "type": "script",
-      "uri": "com_jcomments/jcomments.frontend.min.js",
-      "version": "4.1.0"
+        "bootstrap.collapse",
+        "bootstrap.modal",
+        "webcomponent.hidden-mail",
+        "form.validate"
+      ]
     },
     {
       "name": "com_content.form-edit",
@@ -127,8 +123,7 @@
     {
       "name": "jceditor.plg.emoji",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/emoji.js",
-      "version": "0.0.1"
+      "uri": "com_jcomments/editor/plugins/emoji.js"
     },
     {
       "name": "jceditor.plg.format",
@@ -178,8 +173,7 @@
       "uri": "com_jcomments/editor/init.js",
       "dependencies": [
         "locutus"
-      ],
-      "version": "4.1.0"
+      ]
     }
   ]
 }

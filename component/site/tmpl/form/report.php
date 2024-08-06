@@ -24,7 +24,13 @@ $input = Factory::getApplication()->input;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useStyle('jcomments.style')
-	->useScript('form.validate');
+	->useScript('form.validate')
+	->addInlineScript(
+		"const report_loader = parent.document.querySelector('.report-loader');
+		if (report_loader) {
+			report_loader.classList.add('d-none');
+		}"
+	);
 ?>
 <div class="container-fluid mt-2 form-layout">
 	<?php if ($input->getString('tmpl') != 'component'): ?>

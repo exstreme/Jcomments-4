@@ -1,68 +1,98 @@
 <?php
 /**
- * JComments plugin for HikaShop (http://www.hikashop.com/) support
+ * JComments plugin for HikaShop (https://www.hikashop.com) support
  *
- * @version 1.0
- * @package JComments
- * @author Hikari Team (hikari.software@gmail.com)
- * @copyright (C) 2011 by Hikari Team (http://www.hikashop.com/)
- * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ * @version       4.0
+ * @package       JComments
+ * @author        Hikari Team (hikari.software@gmail.com)
+ * @copyright (C) 2011 by Hikari Team (https://www.hikashop.com)
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  */
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
+
 class jc_com_hikashop extends JCommentsPlugin
 {
-	function getObjectTitle($id)
+	public function getObjectTitle($id)
 	{
-		$db = JFactory::getDBO();
-		$db->setQuery( 'SELECT a.product_name as name, a.product_id as id, b.product_name as parent_name FROM #__hikashop_product AS a LEFT JOIN #__hikashop_product AS b ON a.product_parent_id=b.product_id WHERE a.product_id = ' . $id );
-		$obj = $db->loadObject();
-		$name = @$obj->name;
-		
-		if (empty($name)) {
-			$name = @$obj->parent_name;
-		}
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
 
-		if (empty($name)) {
+		$query->select($db->quoteName('a.product_name', 'name'))
+			->select($db->quoteName('a.product_id', 'id'))
+			->select($db->quoteName('b.product_name', 'parent_name'))
+			->from($db->quoteName('#__hikashop_product', 'a'))
+			->join('LEFT', $db->quoteName('#__hikashop_product', 'b'), 'a.product_parent_id = b.product_id')
+			->where($db->quoteName('a.product_id') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		$db->setQuery($query);
+		$obj  = $db->loadObject();
+		$name = !empty($obj->name) ? $obj->name : $obj->parent_name;
+
+		if (empty($name))
+		{
 			$name = $id;
 		}
 
 		return $name;
 	}
 
-	function getObjectLink($id)
+	public function getObjectLink($id)
 	{
-		$Itemid = self::getItemid('com_hikashop');
-		$Itemid = $Itemid > 0 ? '&Itemid='.$Itemid : '';
+		$itemid = self::getItemid('com_hikashop');
+		$itemid = $itemid > 0 ? '&Itemid=' . $itemid : '';
 
-		$link = JRoute::_('index.php?option=com_hikashop&amp;ctrl=product&amp;task=show&amp;cid=' . $id . $Itemid);
-		return $link;
+		// TODO Wrong link?
+		return Route::_('index.php?option=com_hikashop&task=product.show&cid=' . $id . $itemid);
 	}
 
-	function getObjectOwner($id)
+	public function getObjectOwner($id)
 	{
-		$db = JFactory::getDBO();
-		$db->setQuery( 'SELECT a.product_vendor_id as created_by, a.product_id as id, b.product_vendor_id as parent_created_by FROM #__hikashop_product AS a LEFT JOIN #__hikashop_product AS b ON a.product_parent_id=b.product_id WHERE a.product_id = ' . $id );
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName('a.product_vendor_id', 'created_by'))
+			->select($db->quoteName('a.product_id', 'id'))
+			->select($db->quoteName('b.product_vendor_id', 'parent_created_by'))
+			->from($db->quoteName('#__hikashop_product', 'a'))
+			->join('LEFT', $db->quoteName('#__hikashop_product', 'b'), 'a.product_parent_id = b.product_id')
+			->where($db->quoteName('a.product_id') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
+		$db->setQuery($query);
 		$obj = $db->loadObject();
-		$id = @$obj->created_by;
+		$id = !empty($obj->created_by) ? $obj->created_by : $obj->parent_created_by;
 
-		if (empty($id)) {
-			$id = @$obj->parent_created_by;
-		}
+		if (!empty($id))
+		{
+			$query->select($db->quoteName('user_cms_id'))
+				->from($db->quoteName('#__hikashop_user'))
+				->where($db->quoteName('user_id') . ' = :uid')
+				->bind(':uid', $id, ParameterType::INTEGER);
 
-		if (!empty($id)) {
-			$db->setQuery( 'SELECT user_cms_id FROM #__hikashop_user WHERE user_id = ' . $id );
+			$db->setQuery($query);
 			$id = $db->loadResult();
 		}
 
-		if (empty($id)) {
-			$app = JFactory::getApplication();
-			if ($app->isAdmin()) {
-				$user =& JFactory::getUser();
-				$id = $user->id;
+		if (empty($id))
+		{
+			$app = Factory::getApplication();
+
+			if ($app->isClient('administrator'))
+			{
+				$id = $app->getIdentity()->id;
 			}
 		}
-		return (int)$id;
+
+		return (int) $id;
 	}
 }

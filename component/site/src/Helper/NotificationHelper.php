@@ -23,6 +23,7 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\Mail\Exception\MailDisabledException;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\CMS\String\PunycodeHelper;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
@@ -406,6 +407,7 @@ class NotificationHelper
 		$data->author            = JcommentsContentHelper::getCommentAuthorName($data);
 		$data->title             = JcommentsText::censor($data->title);
 		$data->comment           = JcommentsText::censor($data->comment);
+		$data->email             = PunycodeHelper::emailToPunycode($data->email);
 
 		// Convert bbcodes back to HTML.
 		if ($params->get('editor_format') == 'bbcode')

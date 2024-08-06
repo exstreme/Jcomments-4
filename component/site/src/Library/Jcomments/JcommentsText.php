@@ -17,6 +17,8 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\String\PunycodeHelper;
+use Joomla\String\StringHelper;
 
 /**
  * JComments common text functions
@@ -49,10 +51,39 @@ class JcommentsText
 			$text = $bbcode->filter($text, $forceStrip);
 			$text = ComponentHelper::filterText($text);
 
-			if ((int) $params->get('enable_custom_bbcode'))
+			if ($text != '')
 			{
-				$text = $bbcode->filterCustom($text, $forceStripCustom);
+				if ($params->get('enable_custom_bbcode'))
+				{
+					$text = $bbcode->filterCustom($text, $forceStripCustom);
+				}
 			}
+
+			if ($text == '')
+			{
+				return '';
+			}
+
+			foreach ($bbcode->getPattern('email') as $pattern)
+			{
+				$text = preg_replace_callback(
+					$pattern,
+					function ($matches)
+					{
+						return (string) str_replace($matches[1], PunycodeHelper::emailToPunycode($matches[1]), $matches[0]);
+					},
+					$text
+				);
+			}
+
+			$text = preg_replace_callback(
+				$bbcode->getPattern('url'),
+				function ($matches)
+				{
+					return (string) str_replace($matches[1], PunycodeHelper::urlToPunycode($matches[1]), $matches[0]);
+				},
+				$text
+			);
 
 			$codeTags = $bbcode->codeTagsArray;
 

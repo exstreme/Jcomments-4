@@ -17,8 +17,8 @@ use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 
 /** @var array $displayData */
 ?>
-<div class="row py-1 border-bottom rounded <?php echo $displayData['comment']->published ? 'text-bg-success' : ''; ?> comment-pinned">
+<div class="row py-1 border-bottom rounded <?php echo $displayData['comment']->published ? 'text-bg-success' : ''; ?> comment-pinned-title">
 	<div class="col-auto">
-		<span class="icon icon-pin pe-2"></span> <?php echo JcommentsText::getMessagesBasedOnLanguage($displayData['params']->get('messages_fields'), 'message_comment_pinned', Factory::getApplication()->getLanguage()->getTag()); ?>
+		<span class="icon icon-pin pe-2"></span> <?php echo JcommentsText::getMessagesBasedOnLanguage($displayData['params']->get('messages_fields'), 'message_comment_pinned', Factory::getApplication()->getLanguage()->getTag(), 'COMMENT_PINNED_TITLE'); ?>
 	</div>
 </div>

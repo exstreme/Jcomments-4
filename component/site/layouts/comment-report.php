@@ -25,7 +25,9 @@ echo HTMLHelper::_(
 		'width'  => '100%',
 		'footer' => ''
 	),
-	'<div class="spinner-border spinner-border-sm text-info report-loader" role="status" aria-hidden="true"></div>
-	<iframe width="100%" onload="Jcomments.iframeHeight(this);" style="overflow: hidden;" class="reportFormFrame"'
-	. ' id="reportFormFrame" name="' . bin2hex(random_bytes(4)) . '"></iframe>'
+	'<div class="d-flex align-items-center report-loader">
+		<div class="spinner-border spinner-border-sm text-info" role="status" aria-hidden="true"></div>&nbsp;
+		<span role="status">' . Text::_('LOADING') . '</span>
+	</div>
+	<iframe width="100%" style="overflow: hidden;" class="reportFormFrame" id="reportFormFrame" name="' . bin2hex(random_bytes(4)) . '"></iframe>'
 );

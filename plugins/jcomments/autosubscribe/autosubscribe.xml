@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="jcomments" method="upgrade">
+	<name>plg_jcomments_autosubscribe</name>
+	<creationDate>January 2024</creationDate>
+	<author>JComments team</author>
+	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.1.0</version>
+	<description>PLG_JCOMMENTS_AUTOSUBSCRIBE_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\Jcomments\Autosubscribe</namespace>
+
+	<files>
+		<folder plugin="autosubscribe">services</folder>
+		<folder>src</folder>
+	</files>
+
+	<languages>
+	    <language tag="en-GB">language/en-GB/plg_jcomments_autosubscribe.ini</language>
+	    <language tag="en-GB">language/en-GB/plg_jcomments_autosubscribe.sys.ini</language>
+	    <language tag="es-ES">language/es-ES/plg_jcomments_autosubscribe.ini</language>
+	    <language tag="es-ES">language/es-ES/plg_jcomments_autosubscribe.sys.ini</language>
+	    <language tag="lt-LT">language/lt-LT/plg_jcomments_autosubscribe.ini</language>
+	    <language tag="lt-LT">language/lt-LT/plg_jcomments_autosubscribe.sys.ini</language>
+	    <language tag="nl-NL">language/nl-NL/plg_jcomments_autosubscribe.ini</language>
+	    <language tag="nl-NL">language/nl-NL/plg_jcomments_autosubscribe.sys.ini</language>
+	    <language tag="ru-RU">language/ru-RU/plg_jcomments_autosubscribe.ini</language>
+	    <language tag="ru-RU">language/ru-RU/plg_jcomments_autosubscribe.sys.ini</language>
+	    <language tag="th-TH">language/th-TH/plg_jcomments_autosubscribe.ini</language>
+	    <language tag="th-TH">language/th-TH/plg_jcomments_autosubscribe.sys.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic" addfieldprefix="Joomla\Component\Jcomments\Administrator\Field">
+				<field
+						name="source"
+						type="objectgroup"
+						multiple="true"
+						default="com_content"
+						required="true"
+						filter="string"
+						layout="joomla.form.field.list-fancy-select"
+						label="PLG_JCOMMENTS_AUTOSUBSCRIBE_FIELD_COMPONENTS_LABEL"
+						description="PLG_JCOMMENTS_AUTOSUBSCRIBE_FIELD_COMPONENTS_DESC"
+				/>
+			</fieldset>
+		</fields>
+	</config>
+
+	<updateservers>
+		<server type="extension" priority="1" name="JComments Plugins Update Site">
+			<![CDATA[https://raw.githubusercontent.com/exstreme/Jcomments-4/master/update-jcomments-plugins.xml]]>
+		</server>
+	</updateservers>
+</extension>

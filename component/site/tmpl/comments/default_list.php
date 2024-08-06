@@ -25,7 +25,7 @@ $i = 0;
 
 if (($this->params->get('comments_pagination') == 'top'  || $this->params->get('comments_pagination') == 'both')
 	&& $this->pagination->pagesTotal > 1): ?>
-	<div class="w-100 pagination-top">
+	<div class="w-100 pager-container pagination-top">
 		<p class="counter float-end pt-3 pe-2">
 			<?php echo $this->pagination->getPagesCounter(); ?>
 		</p>
@@ -53,7 +53,7 @@ echo $this->loadTemplate('pinned');
 
 <?php if (($this->params->get('comments_pagination') == 'bottom'  || $this->params->get('comments_pagination') == 'both')
 	&& $this->pagination->pagesTotal > 1): ?>
-	<div class="w-100 pagination-bottom">
+	<div class="w-100 pager-container pagination-bottom">
 		<p class="counter float-end pt-3 pe-2">
 			<?php echo $this->pagination->getPagesCounter(); ?>
 		</p>

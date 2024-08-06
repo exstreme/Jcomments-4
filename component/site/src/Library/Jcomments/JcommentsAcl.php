@@ -64,7 +64,7 @@ class JcommentsAcl
 	/**
 	 * User object
 	 *
-	 * @var    object
+	 * @var    \Joomla\CMS\User\User
 	 * @since  3.0
 	 */
 	protected $user;
@@ -160,6 +160,12 @@ class JcommentsAcl
 	protected $canBan = false;
 
 	/**
+	 * @var    boolean
+	 * @since  3.0
+	 */
+	protected $canComment = false;
+
+	/**
 	 * @var    integer
 	 * @since  3.0
 	 */
@@ -193,6 +199,7 @@ class JcommentsAcl
 		$config = ComponentHelper::getParams('com_jcomments');
 		$user   = $app->getIdentity();
 
+		$this->canComment            = $user->authorise('comment.comment', $this->asset);
 		$this->canDelete             = $user->authorise('comment.delete', $this->asset);
 		$this->canDeleteOwn          = $user->authorise('comment.delete.own', $this->asset);
 		$this->canDeleteForMyObject  = $user->authorise('comment.delete.own.articles', $this->asset);
@@ -266,18 +273,6 @@ class JcommentsAcl
 	}
 
 	/**
-	 * Check if need to show 'Term of use' on current user group.
-	 *
-	 * @return  boolean  True if must to show. Always false for Super User
-	 *
-	 * @since   4.0
-	 */
-	public function showTermsOfUse(): bool
-	{
-		return !$this->user->authorise('comment.terms_of_use', $this->asset);
-	}
-
-	/**
 	 * Check if need to see policy message. This parameter is located on the "Comment form" tab -> "Show policies".
 	 *
 	 * @return  boolean
@@ -335,7 +330,7 @@ class JcommentsAcl
 	 *
 	 * @since   3.0
 	 */
-	public function isLocked($comment): bool
+	public function isCheckout($comment): bool
 	{
 		if (!is_null($comment))
 		{
@@ -385,7 +380,7 @@ class JcommentsAcl
 	{
 		return ($this->canDelete || ($this->canDeleteForMyObject && $this->isObjectOwner($comment))
 				|| ($this->canDeleteOwn && ($comment->userid == $this->userID)))
-			&& (!$this->isLocked($comment)) && (!$comment->deleted || $this->deleteMode == 0);
+			&& (!$this->isCheckout($comment)) && (!$comment->deleted || $this->deleteMode == 0);
 	}
 
 	/**
@@ -401,7 +396,7 @@ class JcommentsAcl
 	{
 		return ($this->canEdit || ($this->canEditForMyObject && $this->isObjectOwner($comment))
 				|| ($this->canEditOwn && ($comment->userid == $this->userID)))
-			&& (!$this->isLocked($comment)) && (!$comment->deleted);
+			&& (!$this->isCheckout($comment)) && (!$comment->deleted);
 	}
 
 	/**
@@ -422,7 +417,7 @@ class JcommentsAcl
 		else
 		{
 			return ($this->canPublish || ($this->canPublishForMyObject && $this->isObjectOwner($comment)))
-				&& (!$this->isLocked($comment)) && (!$comment->deleted);
+				&& (!$this->isCheckout($comment)) && (!$comment->deleted);
 		}
 	}
 
@@ -469,17 +464,16 @@ class JcommentsAcl
 	 * Check if user can view comment form
 	 *
 	 * @param   boolean  $sendHeader  Send HTTP header
+	 * @param   boolean  $onlyText    Return only message text
 	 *
 	 * @return  string|true
 	 *
 	 * @since   4.1
 	 */
-	public function canViewForm(bool $sendHeader = false)
+	public function canViewForm(bool $sendHeader = false, bool $onlyText = false)
 	{
 		$app    = Factory::getApplication();
-		$user   = $app->getIdentity();
 		$lang   = $app->getLanguage();
-		$acl    = JcommentsFactory::getAcl();
 		$params = ComponentHelper::getParams('com_jcomments');
 
 		if ($params->get('comments_locked'))
@@ -493,13 +487,13 @@ class JcommentsAcl
 
 			if ($message != '')
 			{
-				return JcommentsComponentHelper::renderMessage(nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')), 'warning');
+				return JcommentsComponentHelper::renderMessage(nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')), 'warning', $onlyText);
 			}
 
-			return JcommentsComponentHelper::renderMessage(Text::_('ERROR_CANT_COMMENT'), 'warning');
+			return JcommentsComponentHelper::renderMessage(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'error', $onlyText);
 		}
 
-		$userState = $acl->getUserBlockState();
+		$userState = $this->getUserBlockState();
 
 		if ($userState['state'])
 		{
@@ -511,29 +505,7 @@ class JcommentsAcl
 				$app->setHeader('status', 403, true);
 			}
 
-			return JcommentsComponentHelper::renderMessage(nl2br($message . $reason), 'warning');
-		}
-
-		if (!$user->authorise('comment.comment', 'com_jcomments'))
-		{
-			$message = JcommentsText::getMessagesBasedOnLanguage(
-				$params->get('messages_fields'),
-				'message_policy_whocancomment',
-				$lang->getTag(),
-				'JGLOBAL_AUTH_ACCESS_DENIED'
-			);
-
-			if ($sendHeader)
-			{
-				$app->setHeader('status', 403, true);
-			}
-
-			if ($message != '')
-			{
-				return JcommentsComponentHelper::renderMessage(nl2br($message), 'warning');
-			}
-
-			return JcommentsComponentHelper::renderMessage(Text::_('ERROR_CANT_COMMENT'), 'warning');
+			return JcommentsComponentHelper::renderMessage(nl2br($message . $reason), 'warning', $onlyText);
 		}
 
 		return true;
@@ -722,6 +694,21 @@ class JcommentsAcl
 
 	/**
 	 *
+	 * Check if user can add comment.
+	 *
+	 * @param   \Joomla\CMS\User\User|null  $user  User object
+	 *
+	 * @return  boolean
+	 *
+	 * @since   4.1
+	 */
+	public function canComment($user = null): bool
+	{
+		return is_null($user) ? $this->canComment : $user->authorise('comment.comment', $this->asset);
+	}
+
+	/**
+	 *
 	 * Check if user can pin.
 	 *
 	 * @param   mixed  $comment  Comment item.
@@ -738,7 +725,7 @@ class JcommentsAcl
 		}
 		else
 		{
-			return $this->canPin && (!$this->isLocked($comment));
+			return $this->canPin && (!$this->isCheckout($comment));
 		}
 	}
 
@@ -778,11 +765,8 @@ class JcommentsAcl
 	public function setCommentsLocked($value)
 	{
 		$this->commentsLocked = $value;
-
-		// TODO Line bellow for that?
-		// $this->canComment = $this->canComment && !$this->commentsLocked;
-
-		$this->canQuote = $this->canQuote && !$this->commentsLocked;
-		$this->canReply = $this->canReply && !$this->commentsLocked;
+		$this->canComment     = $this->canComment && !$this->commentsLocked;
+		$this->canQuote       = $this->canQuote && !$this->commentsLocked;
+		$this->canReply       = $this->canReply && !$this->commentsLocked;
 	}
 }

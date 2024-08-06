@@ -17,6 +17,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\InputFilter;
+use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Database\ParameterType;
@@ -236,7 +237,7 @@ class SubscriptionsModel extends ListModel
 
 		$lang = $this->getState('list.options.lang');
 
-		if (JcommentsFactory::getLanguageFilter() && !is_null($lang))
+		if (Multilanguage::isEnabled() && !is_null($lang))
 		{
 			$language = !empty($lang) ? $lang : Factory::getApplication()->getLanguage()->getTag();
 

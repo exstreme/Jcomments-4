@@ -14,8 +14,6 @@ namespace Joomla\Component\Jcomments\Site\Library\Jcomments;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
-
 /**
  * JComments Factory class
  *
@@ -78,46 +76,5 @@ class JcommentsFactory
 		}
 
 		return $instance;
-	}
-
-	/**
-	 * Return the current state of the language filter.
-	 *
-	 * @return  boolean
-	 *
-	 * @throws  \Exception
-	 * @since   4.0
-	 */
-	public static function getLanguageFilter(): bool
-	{
-		static $enabled = null;
-
-		if (!isset($enabled))
-		{
-			$app = Factory::getApplication();
-
-			// SiteApplication class is not available in admin.
-			if ($app->isClient('site'))
-			{
-				$enabled = $app->getLanguageFilter();
-			}
-			else
-			{
-				/** @var \Joomla\Database\DatabaseDriver $db */
-				$db = Factory::getContainer()->get('DatabaseDriver');
-
-				$query = $db->getQuery(true)
-					->select($db->quoteName('enabled'))
-					->from($db->quoteName('#__extensions'))
-					->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
-					->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
-					->where($db->quoteName('element') . ' = ' . $db->quote('languagefilter'));
-
-				$db->setQuery($query);
-				$enabled = $db->loadResult();
-			}
-		}
-
-		return (bool) $enabled;
 	}
 }

@@ -12,9 +12,7 @@
 
 defined('_JEXEC') or die;
 
-/** @var array $displayData */
-
-$comment = $displayData['comment'];
+extract($displayData);
 
 if (!isset($comment->isgood) || !isset($comment->ispoor))
 {

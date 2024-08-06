@@ -521,7 +521,8 @@ class ContentHelper
 		// Avatar support. Set default values if plugin is not enabled.
 		if (empty($comment->avatar))
 		{
-			$comment->avatar = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+			$comment->avatar      = Uri::base() . 'media/com_jcomments/images/no_avatar.png';
+			$comment->avatarAlt   = Uri::base() . 'media/com_jcomments/images/no_avatar.svg';
 			$comment->profileLink = '';
 		}
 

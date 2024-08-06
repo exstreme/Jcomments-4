@@ -1,11 +1,12 @@
 <?php
 /**
- * Class to build and zip component package
+ * Class to build and zip component package, plugins, modules.
  *
+ * @version       0.2
  * @package       PkgBuilder
  * @copyright (C) 2022 by Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
- * @since         0.1
+ * @license       GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ * @since         4.0
  */
 class PkgBuilder
 {
@@ -14,7 +15,7 @@ class PkgBuilder
 	 * Format array(destination zip file => source folder)
 	 *
 	 * @var   array
-	 * @since 0.1
+	 * @since 4.0
 	 */
 	private $componentFolders = array(
 		'com_jcomments/packages/com_jcomments.zip'               => 'component',
@@ -33,11 +34,12 @@ class PkgBuilder
 	 * Format array(destination zip file => xml file from source folder)
 	 *
 	 * @var   array
-	 * @since 0.1
+	 * @since 4.0
 	 */
 	private $pluginsFolders = array(
-		'build/plugins/plg_jcomments_avatar.zip' => 'plugins/jcomments/avatar/avatar.xml',
-		'build/plugins/plug_cbjcomments.zip'     => 'plugins/community builder/plug_cbjcomments/cb.jcomments.xml'
+		'build/plugins/plg_jcomments_avatar.zip'        => 'plugins/jcomments/avatar/avatar.xml',
+		'build/plugins/plg_jcomments_autosubscribe.zip' => 'plugins/jcomments/autosubscribe/autosubscribe.xml',
+		'build/plugins/plug_cbjcomments.zip'            => 'plugins/community builder/plug_cbjcomments/cb.jcomments.xml'
 	);
 
 	/**
@@ -45,7 +47,7 @@ class PkgBuilder
 	 * Format array(destination zip file => xml file from source folder)
 	 *
 	 * @var   array
-	 * @since 0.1
+	 * @since 4.0
 	 */
 	private $modulesFolders = array(
 		'build/modules/mod_jcomments_latest.zip'           => 'modules/mod_jcomments_latest/mod_jcomments_latest.xml',
@@ -59,18 +61,19 @@ class PkgBuilder
 	 * Download URLs
 	 *
 	 * @var   array
-	 * @since 0.1
+	 * @since 4.0
 	 */
 	private $dlURL = array(
-		'package' => 'https://github.com/exstreme/Jcomments-4/releases/download/v{version}/pkg_jcomments_{version}.zip',
+		'package' => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/pkg_jcomments_{version}_dev.zip',
 		'modules' => array(
-			'mod_jcomments_latest'           => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_{version}.zip',
-			'mod_jcomments_latest_backend'   => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_backend_{version}.zip',
-			'mod_jcomments_latest_commented' => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_latest_commented_{version}.zip',
-			'mod_jcomments_most_commented'   => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_most_commented_{version}.zip',
-			'mod_jcomments_top_posters'      => 'https://github.com/exstreme/Jcomments-4/raw/master/build/modules/mod_jcomments_top_posters_{version}.zip'),
+			'mod_jcomments_latest'           => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/modules/mod_jcomments_latest_{version}.zip',
+			'mod_jcomments_latest_backend'   => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/modules/mod_jcomments_latest_backend_{version}.zip',
+			'mod_jcomments_latest_commented' => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/modules/mod_jcomments_latest_commented_{version}.zip',
+			'mod_jcomments_most_commented'   => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/modules/mod_jcomments_most_commented_{version}.zip',
+			'mod_jcomments_top_posters'      => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/modules/mod_jcomments_top_posters_{version}.zip'),
 		'plugins' => array(
-			'plg_jcomments_avatar' => 'https://github.com/exstreme/Jcomments-4/raw/master/build/plugins/plg_jcomments_avatar_{version}.zip'
+			'plg_jcomments_avatar'        => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/plugins/plg_jcomments_avatar_{version}.zip',
+			'plg_jcomments_autosubscribe' => 'https://github.com/exstreme/Jcomments-4/raw/4.1-dev/build/plugins/plg_jcomments_autosubscribe_{version}.zip'
 		)
 	);
 
@@ -78,7 +81,7 @@ class PkgBuilder
 	 * Update xml file with new extension version
 	 *
 	 * @var   boolean
-	 * @since 0.1
+	 * @since 4.0
 	 */
 	private $updateXML = false;
 
@@ -86,14 +89,14 @@ class PkgBuilder
 	 * Create a hash file alongside the zip file.
 	 *
 	 * @var   boolean
-	 * @since 0.1
+	 * @since 4.0
 	 */
 	private $shaFile = false;
 
 	/**
 	 * Class constructor
 	 *
-	 * @since  0.1
+	 * @since  4.0
 	 */
 	public function __construct()
 	{
@@ -156,7 +159,7 @@ class PkgBuilder
 	 *
 	 * @return  boolean
 	 *
-	 * @since   0.1
+	 * @since   4.0
 	 */
 	private function zipFolder(string $srcPath, string $dstPath): bool
 	{
@@ -203,7 +206,7 @@ class PkgBuilder
 	 * @return void
 	 *
 	 * @throws Exception
-	 * @since  0.1
+	 * @since  4.0
 	 */
 	private function makePackage()
 	{
@@ -308,7 +311,7 @@ class PkgBuilder
 	 * @return  void
 	 *
 	 * @throws  Exception
-	 * @since   0.1
+	 * @since   4.0
 	 */
 	private function packExtensions(string $type, array $ext = array())
 	{
@@ -455,7 +458,7 @@ class PkgBuilder
 	 *
 	 * @return  string
 	 *
-	 * @since   0.1
+	 * @since   4.0
 	 */
 	private function filterString(string $string): string
 	{
@@ -471,7 +474,7 @@ class PkgBuilder
 	 *
 	 * @return  array
 	 *
-	 * @since   0.1
+	 * @since   4.0
 	 */
 	private function makeArrayFromString(string $input): array
 	{
@@ -494,7 +497,7 @@ class PkgBuilder
 	 *
 	 * @return  SimpleXMLElement|boolean  Return boolean false on error, SimpleXMLElement object otherwise.
 	 *
-	 * @since   0.1
+	 * @since   4.0
 	 */
 	private function loadXmlFile(string $path)
 	{

@@ -18,29 +18,26 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 
-/**
- * @var array                     $displayData
- * @var object                    $comment
- * @var \Joomla\Registry\Registry $commentData
- */
+extract($displayData);
 
-$comment        = $displayData['comment'];
-$params         = $displayData['params'];
 $app            = Factory::getApplication();
 $user           = $app->getIdentity();
 $commentData    = $comment->commentData;
-$return         = base64_encode(Joomla\CMS\Uri\Uri::getInstance());
-$formsUrl       = 'index.php?option=com_jcomments&view=form&tmpl=component&object_id=' . $comment->object_id
-	. '&object_group=' . $comment->object_group;
-$editUrl        = $formsUrl . '&return=' . $return . '&comment_id=' . $comment->id;
-$reportUrl      = $formsUrl . '&comment_id=' . $comment->id . '&layout=report';
+$addUrl        = 'index.php?option=com_jcomments&view=comment&object_id=' . $comment->object_id
+	. '&object_group=' . $comment->object_group . '&task=comment.add&comment_id=' . $comment->id;
+$editUrl        = 'index.php?option=com_jcomments&view=comment&object_id=' . $comment->object_id
+	. '&object_group=' . $comment->object_group . '&task=comment.edit&comment_id=' . $comment->id;
+$reportUrl      = 'index.php?option=com_jcomments&view=form&object_id=' . $comment->object_id
+	. '&object_group=' . $comment->object_group . '&view=form&tmpl=component&comment_id=' . $comment->id . '&layout=report';
 $groupClass     = '';
 $usernameClass  = '';
 $boxClass       = '';
 $userGroup      = '';
 $publishedClass = !$comment->published ? ' bg-light text-muted' : '';
 $comment->date  = $comment->date ?? 'now';
-$pinnedMode     = isset($displayData['_pinned']);
+
+// This option is used to hide the comment admin panel and add a style. Set in default_pinned.php
+$pinnedMode     = isset($_pinned);
 
 if (is_object($comment->labels) && $comment->labels->enable == 1 && $comment->deleted == 0)
 {
@@ -71,6 +68,15 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 	 id="comment-<?php echo $pinnedMode ? 'p-' . $comment->id : $comment->id; ?>"
 	 data-id="<?php echo $comment->id; ?>">
 
+	<?php if ($app->input->getCmd('task') == 'preview'):
+		echo LayoutHelper::render(
+			'comment-header-preview',
+			null,
+			'',
+			array('component' => 'com_jcomments')
+		);
+	endif; ?>
+
 	<?php if (isset($comment->pinned) && $comment->pinned == 1 && $comment->deleted == 0):
 		echo LayoutHelper::render(
 			'comment-header-pinned',
@@ -89,12 +95,14 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 				/** @note The profileLink and profileLinkTarget comming from avatar plugin and set to default
 				 *        in JcommentsContentHelper::prepareComment
 				 */
+				$srcset = isset($comment->avatarAlt) ? ' srcset="' . $comment->avatarAlt . '"' : '';
+
 				if ($comment->profileLink > ''): ?>
 					<a href="<?php echo $comment->profileLink; ?>" target="<?php echo $comment->profileLinkTarget; ?>">
-						<img src="<?php echo $comment->avatar; ?>" class="object-fit-scale" alt="">
+						<img src="<?php echo $comment->avatar; ?>" class="object-fit-scale" alt=""<?php echo $srcset; ?>>
 					</a>
 				<?php else: ?>
-					<img src="<?php echo $comment->avatar; ?>" class="object-fit-scale" alt="">
+					<img src="<?php echo $comment->avatar; ?>" class="object-fit-scale" alt=""<?php echo $srcset; ?>>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -113,8 +121,8 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 			<div class="row row-cols-auto text-muted comment-info">
 				<?php if (!empty($comment->permaLink)): ?>
 				<div class="col permalink">
-					<a href="<?php echo $comment->permaLink; ?>" onclick="Jcomments.scrollToByHash(this.href);return false;"
-					   class="link-secondary comment-anchor" title="<?php echo Text::_('BUTTON_PERMALINK'); ?>">
+					<a href="<?php echo $comment->permaLink; ?>" class="link-secondary comment-anchor"
+					   title="<?php echo Text::_('BUTTON_PERMALINK'); ?>">
 						<span class="fa fa-link" aria-hidden="true"></span> <?php echo $commentData->get('number'); ?>
 					</a>
 				</div>
@@ -170,9 +178,8 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 
 				<?php if ($comment->parent > 0): ?>
 					<div class="col parent-comment-link">
-						<a href="<?php echo $comment->parentLink; ?>"
-						   title="<?php echo Text::_('GOTO_PREV_COMMENT_ANCHOR'); ?>"
-						   onclick="Jcomments.parentComment(this);return false;">
+						<a href="<?php echo $comment->parentLink; ?>" class="cmd-parent"
+						   title="<?php echo Text::_('GOTO_PREV_COMMENT_ANCHOR'); ?>">
 							<span class="fa icon-arrow-up-4" aria-hidden="true"></span>
 						</a>
 					</div>
@@ -184,18 +191,16 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 						<?php if ($comment->userPanel->get('button.vote')): ?>
 
 							<div class="col vote-up">
-								<a href="#" class="toolbar-button-vote link-success<?php echo $inPreviewMode; ?>"
+								<a href="#" class="cmd-vote link-success<?php echo $inPreviewMode; ?>"
 								   title="<?php echo Text::_('BUTTON_VOTE_GOOD'); ?>"
-								   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.voteUp', true, 0, true); ?>"
-								   onclick="Jcomments.vote(this, <?php echo $comment->id; ?>);return false;">
+								   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.voteUp', true, 0, true); ?>">
 									<span class="icon-thumbs-up" aria-hidden="true"></span>
 								</a>
 							</div>
 							<div class="col vote-down">
-								<a href="#" class="toolbar-button-vote link-danger<?php echo $inPreviewMode; ?>"
+								<a href="#" class="cmd-vote link-danger<?php echo $inPreviewMode; ?>"
 								   title="<?php echo Text::_('BUTTON_VOTE_BAD'); ?>"
-								   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.voteDown', true, 0, true); ?>"
-								   onclick="Jcomments.vote(this, <?php echo $comment->id; ?>);return false;">
+								   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.voteDown', true, 0, true); ?>">
 									<span class="icon-thumbs-down" aria-hidden="true"></span>
 								</a>
 							</div>
@@ -203,7 +208,12 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 						<?php endif; ?>
 
 							<div class="col vote-result">
-								<?php echo LayoutHelper::render('comment-vote-value', $displayData, '', array('component' => 'com_jcomments')); ?>
+								<?php echo LayoutHelper::render(
+									'comment-vote-value',
+									array('comment' => $comment),
+									'',
+									array('component' => 'com_jcomments')
+								); ?>
 							</div>
 						</div>
 					</div>
@@ -237,10 +247,10 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 				<?php endif; ?>
 
 				<?php if ($comment->adminPanel->get('button.edit')): ?>
-					<a class="toolbar-button-edit<?php echo $inPreviewMode; ?>" href="#"
-					   title="<?php echo Text::_('JACTION_EDIT'); ?>"
-					   data-edit-url="<?php echo Route::_($editUrl, true, 0, true); ?>"
-					   onclick="Jcomments.showEditForm(this);return false;">
+					<a class="cmd-edit<?php echo $inPreviewMode; ?>"
+					   href="<?php echo Route::_($editUrl . '&return=' . $comment->returnUrl); ?>"
+					   data-url="<?php echo Route::_($editUrl); ?>"
+					   title="<?php echo Text::_('JACTION_EDIT'); ?>">
 						<span class="icon-edit" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -256,10 +266,9 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 						$stateTask = 'publish';
 						$stateClass = 'icon-' . $stateTask . ' link-success';
 					} ?>
-					<a href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.' . $stateTask . '&comment_id=' . $comment->id, true, 0, true); ?>"
-					   class="toolbar-button-state<?php echo $inPreviewMode; ?>"
-					   title="<?php echo Text::_(strtoupper($stateTask)); ?>"
-					   onclick="Jcomments.state(this, <?php echo $comment->id; ?>);return false;">
+					<a class="cmd-state<?php echo $inPreviewMode; ?>" href="#"
+					   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.' . $stateTask . '&comment_id=' . $comment->id, true, 0, true); ?>"
+					   title="<?php echo Text::_(strtoupper($stateTask)); ?>">
 						<span class="<?php echo $stateClass; ?>" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -275,19 +284,16 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 						$stateTask = 'pin';
 						$stateClass = 'icon-pin link-success';
 					} ?>
-					<a href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.' . $stateTask . '&comment_id=' . $comment->id, true, 0, true); ?>"
-					   class="toolbar-button-pin<?php echo $inPreviewMode; ?>"
-					   title="<?php echo Text::_('BUTTON_' . strtoupper($stateTask)); ?>"
-					   onclick="Jcomments.pin(this, <?php echo $comment->id; ?>);return false;">
+					<a class="cmd-pin<?php echo $inPreviewMode; ?>" href="#"
+					   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.' . $stateTask . '&comment_id=' . $comment->id, true, 0, true); ?>"
+					   title="<?php echo Text::_('BUTTON_' . strtoupper($stateTask)); ?>">
 						<span class="<?php echo $stateClass; ?>" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
 
 				<?php if ($comment->adminPanel->get('button.delete')): ?>
-					<a class="toolbar-button-delete link-danger<?php echo $inPreviewMode; ?>"
-					   href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.delete&comment_id=' . $comment->id, true, 0, true); ?>"
-					   title="<?php echo Text::_('JACTION_DELETE'); ?>"
-					   onclick="Jcomments.delete(this, <?php echo $comment->id; ?>);return false;">
+					<a class="cmd-delete link-danger<?php echo $inPreviewMode; ?>" href="#"
+					   data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.delete&comment_id=' . $comment->id, true, 0, true); ?>">
 						<span class="icon-trash" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -295,17 +301,18 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 				<?php if ($comment->adminPanel->get('button.ip')):
 					$ripeUrl = 'https://apps.db.ripe.net/db-web-ui/query?searchtext=' . $comment->ip;
 					$errorText = Text::sprintf('ERROR_NEWWINDOW_BLOCKED', $ripeUrl); ?>
-					<a class="toolbar-button-ip<?php echo $comment->banned == 1 ? ' link-secondary text-decoration-line-through' : ''; ?>"
-					   href="<?php echo $ripeUrl; ?>" target="_blank" title="<?php echo Text::_('BUTTON_IP') . ' ' . $comment->ip; ?>"
-					   onclick="Jcomments.openWindow('<?php echo $ripeUrl; ?>', '<?php echo $this->escape($errorText); ?>');return false;">
+					<a class="cmd-ip<?php echo $comment->banned == 1 ? ' link-secondary text-decoration-line-through' : ''; ?>"
+					   href="<?php echo $ripeUrl; ?>" target="_blank"
+					   title="<?php echo Text::_('BUTTON_IP') . ' ' . $comment->ip; ?>"
+					   data-error="<?php echo $this->escape($errorText); ?>">
 						<?php echo $comment->ip; ?>
 					</a>
 				<?php endif; ?>
 
 				<?php if ($comment->adminPanel->get('button.ban') && $comment->banned != 1): ?>
-					<a href="<?php echo Route::_('index.php?option=com_jcomments&task=comment.banIP&comment_id=' . $comment->id, true, 0, true); ?>"
-					   class="toolbar-button-ban<?php echo $inPreviewMode; ?>" title="<?php echo Text::_('BUTTON_BANIP'); ?>"
-					   onclick="Jcomments.banIP(this, <?php echo $comment->id; ?>);return false;">
+					<a data-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.banIP&comment_id=' . $comment->id, true, 0, true); ?>"
+					   href="#" class="cmd-ban<?php echo $inPreviewMode; ?>"
+					   title="<?php echo Text::_('BUTTON_BANIP'); ?>">
 						<span class="fa fa-ban" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -322,36 +329,35 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 			<div class="col pe-0 text-end user-panel">
 				<?php if ($comment->userPanel->get('button.reply') && $app->input->getCmd('task') != 'show'): ?>
 					<a href="#" <?php echo $userPanelLinkAriaAttr; ?>
-					   class="toolbar-button-reply<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
-					   onclick="Jcomments.showAddForm(true);return false;">
+					   class="cmd-reply<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>">
 						<?php echo Text::_('BUTTON_REPLY'); ?>
 					</a><?php if ($comment->userPanel->get('button.quote') || ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id'))): ?> &vert;<?php endif; ?>
 				<?php endif; ?>
 
 				<?php if ($comment->userPanel->get('button.quote')): ?>
 					<a href="#" <?php echo $userPanelLinkAriaAttr; ?>
-					   class="toolbar-button-reply-quote<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
-					   data-edit-url="<?php echo Route::_($editUrl . '&quote=1', true, 0, true); ?>"
-					   onclick="Jcomments.showEditForm(this);return false;">
+					   class="cmd-quote<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
+					   data-url="<?php echo Route::_($addUrl . '&quote=1', true, 0, true); ?>">
 						<?php echo Text::_('BUTTON_REPLY_WITH_QUOTE'); ?>
 					</a>
 				<?php endif; ?>
 
 				<?php if ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id')): ?>
 					<?php if ($comment->userPanel->get('button.quote') && $comment->userPanel->get('button.reply')): ?> &vert;<?php endif; ?>
-					<a href="<?php echo Route::_($reportUrl . '&return=' . base64_encode($reportUrl), true, 0, true); ?>"
-					   class="toolbar-button-report link-warning<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
-					   title="<?php echo Text::_('BUTTON_REPORT'); ?>" onclick="Jcomments.reportComment(this);return false;">
+					<a class="cmd-report link-warning<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
+					   href="#"
+					   data-url="<?php echo Route::_($reportUrl . '&return=' . base64_encode($reportUrl), true, 0, true); ?>"
+					   title="<?php echo Text::_('BUTTON_REPORT'); ?>">
 						<span class="fa icon-exclamation-triangle" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
 
 				<?php if (isset($comment->children) && $comment->children != 0): ?>
 					<?php if ($params->get('template_view') == 'tree'): ?> &vert;<?php endif; ?>
-					<a href="#" title="<?php echo Text::_('BUTTON_HIDE', true); ?>" class="toolbar-button-child-toggle link-secondary"
+					<a href="#" title="<?php echo Text::_('BUTTON_HIDE', true); ?>"
+					   class="cmd-child-toggle link-secondary"
 					   data-title-hide="<?php echo Text::_('BUTTON_HIDE', true); ?>"
-					   data-title-show="<?php echo Text::_('BUTTON_SHOW', true); ?>"
-					   onclick="Jcomments.toggleComments(this);return false;">
+					   data-title-show="<?php echo Text::_('BUTTON_SHOW', true); ?>">
 						<span class="icon-chevron-up" aria-hidden="true"></span>
 					</a>
 				<?php endif; ?>
@@ -359,10 +365,10 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 		<?php else: ?>
 			<?php if ($params->get('template_view') == 'tree'): ?>
 				<div class="col pe-0 text-end user-panel">
-					<a href="#" title="<?php echo Text::_('BUTTON_HIDE', true); ?>" class="toolbar-button-child-toggle link-secondary"
+					<a href="#" title="<?php echo Text::_('BUTTON_HIDE', true); ?>"
+					   class="cmd-child-toggle link-secondary"
 					   data-title-hide="<?php echo Text::_('BUTTON_HIDE', true); ?>"
-					   data-title-show="<?php echo Text::_('BUTTON_SHOW', true); ?>"
-					   onclick="Jcomments.toggleComments(this);return false;">
+					   data-title-show="<?php echo Text::_('BUTTON_SHOW', true); ?>">
 						<span class="icon-chevron-up" aria-hidden="true"></span>
 					</a>
 				</div>

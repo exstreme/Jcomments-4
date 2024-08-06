@@ -17,6 +17,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filter\InputFilter;
+use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
@@ -475,7 +476,7 @@ class UserModel extends ListModel
 				->bind(':uid', $userid, ParameterType::INTEGER);
 		}
 
-		if (JcommentsFactory::getLanguageFilter())
+		if (Multilanguage::isEnabled())
 		{
 			$lang = $this->getState('list.options.lang');
 

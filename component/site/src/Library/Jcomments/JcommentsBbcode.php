@@ -124,7 +124,10 @@ class JcommentsBbcode
 		'hr'      => '~\[hr]~iu',
 		'ltr'     => '~\[ltr](.*?)\[/ltr]~iu',
 		'rtl'     => '~\[rtl](.*?)\[/rtl]~iu',
-		'email'   => array('~\[email=(.*?)](.*?)\[/email]~isu', '~\[email]([^\s\<\>\(\)\"\'\[\]]*?)\[/email]~isu'),
+		'email'   => array(
+			'~\[email=(.*?)](.*?)\[/email]~isu',
+			'~\[email]([^\s\<\>\(\)\"\'\[\]]*?)\[/email]~isu'
+		),
 		'hide'    => '~\[hide](.*?)\[/hide]~isu',
 		'code'    => '~\[code(=?"?([\p{L}0-9\+\(\)\/\#\.\!\-\*]+)"?)?\](.*?)\[\/code\]~ismu',
 		'img'     => '~\[img(.*?)?](https?|ftp|www)(.*?)\[/img]~iu',
@@ -182,8 +185,6 @@ class JcommentsBbcode
 	 */
 	public function filter(string $str, bool $forceStrip = false): ?string
 	{
-		ob_start();
-
 		$filter       = InputFilter::getInstance();
 		$patterns     = array();
 		$replacements = array();
@@ -484,8 +485,6 @@ class JcommentsBbcode
 			);
 		}
 
-		ob_end_clean();
-
 		return $str;
 	}
 
@@ -504,16 +503,12 @@ class JcommentsBbcode
 	{
 		if (count($this->customFilterPatterns))
 		{
-			ob_start();
 			$str = preg_replace($this->customFilterPatterns, $this->customTextReplacements, $str);
-			ob_end_clean();
 		}
 
 		if ($forceStrip === true)
 		{
-			ob_start();
 			$str = preg_replace($this->customPatterns, $this->customTextReplacements, $str);
-			ob_end_clean();
 		}
 
 		return $str;
@@ -536,6 +531,20 @@ class JcommentsBbcode
 		}
 
 		return array('codes' => array_filter(array_unique($codes)), 'raw' => $this->customCodes);
+	}
+
+	/**
+	 * Get pattern to match bbcode.
+	 *
+	 * @param   string  $name  Pattern name
+	 *
+	 * @return  mixed
+	 *
+	 * @since   4.1
+	 */
+	public function getPattern(string $name)
+	{
+		return $this->patterns[$name];
 	}
 
 	/**
@@ -604,8 +613,6 @@ class JcommentsBbcode
 	 */
 	public function replace(string $str): ?string
 	{
-		//ob_start();
-
 		$input        = Factory::getApplication()->input;
 		$filter       = InputFilter::getInstance();
 		$patterns     = array();
@@ -798,7 +805,7 @@ class JcommentsBbcode
 				}
 				else
 				{
-					return '<a href="' . $url . '" target="_blank">' . $matches[2] . '</a>';
+					return '<a href="' . $url . '" target="_blank">' . PunycodeHelper::urlToUTF8($matches[2]) . '</a>';
 				}
 			},
 			$str
@@ -969,11 +976,7 @@ class JcommentsBbcode
 		$deleteCodes = array_udiff($this->allCodes, self::getCustomBbcodesList()['codes'], 'strcasecmp');
 
 		// Remove starting and/or ending bbcode tags.
-		$str = preg_replace('#\[/?(' . implode('|', array_values($deleteCodes)) . '|tr|td)]#iu', '', $str);
-
-		//ob_end_clean();
-
-		return $str;
+		return preg_replace('#\[/?(' . implode('|', array_values($deleteCodes)) . '|tr|td)]#iu', '', $str);
 	}
 
 	/**
@@ -991,13 +994,11 @@ class JcommentsBbcode
 	{
 		if (count($this->customPatterns))
 		{
-			ob_start();
 			$str = preg_replace(
 				$this->customPatterns,
 				($textReplacement ? $this->customTextReplacements : $this->customHtmlReplacements),
 				$str
 			);
-			ob_end_clean();
 		}
 
 		return $str;

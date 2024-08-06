@@ -77,7 +77,7 @@ if ($displayData['active'])
 	}
 	elseif ($app->isClient('site'))
 	{
-		$link = 'href="#" onclick="Jcomments.loadComments(null, \'\', \'\', ' . (int) $item->base . ', true, \'#comments\');return false;"';
+		$link = 'href="#"';
 	}
 }
 else
@@ -87,7 +87,7 @@ else
 ?>
 <?php if ($displayData['active']) : ?>
 	<li class="page-item">
-		<a aria-label="<?php echo $aria; ?>" <?php echo $link; ?> class="page-link" data-page="<?php echo (int) $item->base; ?>">
+		<a aria-label="<?php echo $aria; ?>" <?php echo $link; ?> class="page-link hasNav" data-page="<?php echo (int) $item->base; ?>">
 			<?php echo $display; ?>
 		</a>
 	</li>

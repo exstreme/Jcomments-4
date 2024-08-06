@@ -42,6 +42,7 @@
 					<option value="gravatar">Gravatar</option>
 					<option value="kunena">Kunena</option>
 					<option value="phocagallery">PhocaGallery</option>
+					<option value="membershippro">Membership Pro</option>
 					<option value="easysocial">EasySocial</option>
 					<option value="jomsocial">JomSocial</option>
 					<option value="phpbb3">phpBB3</option>

@@ -13,6 +13,7 @@
 					description="AP_CATEGORIES_DESC"
 					required="true"
 			>
+				<option value="">JOPTION_DO_NOT_USE</option>
 				<option value="*">JOPTION_ALL_CATEGORIES</option>
 			</field>
 		</fieldset>
@@ -304,27 +305,6 @@
 		/>
 
 		<field
-				name="show_commentlength"
-				type="radio"
-				default="1"
-				label="AP_SHOW_COMMENTLENGTH"
-				description="AP_SHOW_COMMENTLENGTH_DESC"
-				layout="joomla.form.field.radio.switcher"
-				filter="boolean"
-		>
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</field>
-
-		<field
-				name="smilies_path"
-				type="text"
-				default="media/com_jcomments/images/tmpl/smilies/default/"
-				label="AP_FORM_FIELD_SMILIES_PATH"
-				filter="path"
-		/>
-
-		<field
 				name="extra_fields_note"
 				type="note"
 				class="alert alert-info"
@@ -350,6 +330,7 @@
 				type="list"
 				default="2"
 				label="AP_FORM_FIELD_AUTHOR_EMAIL"
+				description="AP_FORM_FIELD_AUTHOR_EMAIL_DESC"
 				filter="int">
 			<option value="0">AP_FORM_FIELD_DISABLED</option>
 			<option value="1">AP_FORM_FIELD_UNREQUIRED</option>
@@ -421,6 +402,42 @@
 			<option value="component">Component</option>
 			<option value="joomla">Joomla</option>
 		</field>
+
+		<field
+				name="editor_xtd_buttons"
+				type="radio"
+				label="AP_FORM_EDITOR_XTD_BUTTONS"
+				description="AP_FORM_EDITOR_XTD_BUTTONS_DESC"
+				default="0"
+				layout="joomla.form.field.radio.switcher"
+				filter="boolean"
+				showon="editor_format:xhtml[AND]editor_type:joomla"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<field
+				name="show_commentlength"
+				type="radio"
+				default="1"
+				label="AP_SHOW_COMMENTLENGTH"
+				description="AP_SHOW_COMMENTLENGTH_DESC"
+				layout="joomla.form.field.radio.switcher"
+				filter="boolean"
+		>
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<field
+				name="smilies_path"
+				type="text"
+				default="media/com_jcomments/images/tmpl/smilies/default/"
+				label="AP_FORM_FIELD_SMILIES_PATH"
+				filter="path"
+				showon="editor_type:component"
+		/>
 
 		<field
 				name="editor_theme"

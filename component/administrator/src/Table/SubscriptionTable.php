@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Administrator\Table;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\String\PunycodeHelper;
 use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseDriver;
 use Joomla\Database\ParameterType;
@@ -76,6 +77,10 @@ class SubscriptionTable extends Table
 			$userFactory = Factory::getContainer()->get('user.factory');
 			$user        = $userFactory->loadUserById($this->userid);
 			$this->email = $user->email;
+		}
+		else
+		{
+			$this->email = PunycodeHelper::emailToPunycode($this->email);
 		}
 
 		if ($this->userid == 0 && !empty($this->email))

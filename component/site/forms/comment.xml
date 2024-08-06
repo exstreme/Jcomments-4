@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
-	<fieldset addfieldprefix="Joomla\Plugin\System\PrivacyConsent\Field">
+	<fieldset>
 		<field
-				name="comment_id"
+				name="object_id"
 				type="hidden"
 				default="0"
 				readonly="true"
+				required="true"
+				filter="int"
+		/>
+
+		<field
+				name="object_group"
+				type="hidden"
+				default="com_content"
+				readonly="true"
+				required="true"
+				filter="string"
 		/>
 
 		<field
@@ -47,6 +58,7 @@
 				size="30"
 				filter="url"
 				validate="url"
+				scheme="http,https,ftp"
 		/>
 
 		<field
@@ -70,6 +82,7 @@
 				required="true"
 				width="100%"
 				height="350"
+				buttons="true"
 		/>
 
 		<field
@@ -97,10 +110,10 @@
 		</field>
 
 		<field
+				addfieldprefix="Joomla\Plugin\System\PrivacyConsent\Field"
 				name="terms_of_use"
 				id="terms_terms"
 				type="radio"
-				default="0"
 				label="FORM_TOS"
 				filter="integer"
 				required="true"

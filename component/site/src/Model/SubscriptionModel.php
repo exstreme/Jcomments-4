@@ -20,7 +20,9 @@ use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
+use Joomla\CMS\Mail\MailHelper;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\String\PunycodeHelper;
 use Joomla\Database\ParameterType;
 use Joomla\String\StringHelper;
 
@@ -34,19 +36,21 @@ class SubscriptionModel extends BaseDatabaseModel
 	/**
 	 * Add a new subscription.
 	 *
-	 * @param   integer  $objectID     The object identifier
-	 * @param   string   $objectGroup  The object group (component name)
-	 * @param   integer  $userID       The registered user identifier
-	 * @param   string   $name         Username which is used only for guests
-	 * @param   string   $email        User email
-	 * @param   string   $lang         Content language
+	 * @param   integer      $objectID     The object identifier
+	 * @param   string       $objectGroup  The object group (component name)
+	 * @param   integer      $userID       The registered user identifier
+	 * @param   string       $name         Username which is used only for guests
+	 * @param   string       $email        User email
+	 * @param   string|null  $lang         Content language
 	 *
 	 * @return  boolean  True on success, false otherwise.
 	 *
+	 * @throws \Exception
 	 * @since   4.0
 	 */
-	public function subscribe(int $objectID, string $objectGroup, int $userID, string $name, string $email, string $lang): bool
+	public function subscribe(int $objectID, string $objectGroup, int $userID, string $name = '', string $email = '', string $lang = null): bool
 	{
+		$app = Factory::getApplication();
 		$db = $this->getDatabase();
 
 		if (!empty($userID))
@@ -58,6 +62,18 @@ class SubscriptionModel extends BaseDatabaseModel
 			$name  = $user->name;
 			$email = $user->email;
 			unset($user);
+		}
+		else
+		{
+			if (MailHelper::isEmailAddress($email))
+			{
+				$email = PunycodeHelper::emailToPunycode($email);
+			}
+		}
+
+		if (empty($lang))
+		{
+			$lang = $app->getLanguage()->getTag();
 		}
 
 		$query = $db->getQuery(true)
@@ -89,8 +105,7 @@ class SubscriptionModel extends BaseDatabaseModel
 		}
 
 		/** @var \Joomla\Component\Jcomments\Administrator\Table\SubscriptionTable $subscription */
-		$subscription = Factory::getApplication()->bootComponent('com_jcomments')->getMVCFactory()
-			->createTable('Subscription', 'Administrator');
+		$subscription = $this->getTable('Subscription', 'Administrator');
 
 		if (count($rows) == 0)
 		{
@@ -120,6 +135,8 @@ class SubscriptionModel extends BaseDatabaseModel
 			// subscription data
 			if ($userID > 0 && $rows[0]->userid == 0)
 			{
+				$subscription->load($rows[0]->id);
+
 				$subscription->id        = $rows[0]->id;
 				$subscription->name      = $name;
 				$subscription->email     = $email;

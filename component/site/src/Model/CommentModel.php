@@ -22,7 +22,9 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Mail\MailHelper;
+use Joomla\CMS\MVC\Model\ItemModel;
+use Joomla\CMS\String\PunycodeHelper;
 use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
@@ -36,7 +38,7 @@ use Joomla\Utilities\IpHelper;
  *
  * @since  4.0
  */
-class CommentModel extends BaseDatabaseModel
+class CommentModel extends ItemModel
 {
 	/**
 	 * Cached item object
@@ -49,16 +51,14 @@ class CommentModel extends BaseDatabaseModel
 	/**
 	 * Gets a comment object
 	 *
-	 * @param   integer|null  $pk        ID for the comment
-	 * @param   boolean       $useCache  Store item in cache or not. Cache used only for guests.
+	 * @param   integer|null  $pk  ID for the comment
 	 *
 	 * @return  \stdClass|null
 	 *
 	 * @throws  \Exception
 	 * @since   4.0
-	 * @todo    Set $useCache to 'true' in release version
 	 */
-	public function getItem(?int $pk = null, bool $useCache = false): ?object
+	public function getItem($pk = null)
 	{
 		$pk = (int) ($pk ?: $this->getState('comment.id'));
 
@@ -204,7 +204,7 @@ class CommentModel extends BaseDatabaseModel
 
 			try
 			{
-				if ($useCache)
+				if ($this->getState('cache'))
 				{
 					$this->_item = $cache->get($loader, array($pk), md5(__METHOD__ . $pk));
 				}
@@ -235,21 +235,21 @@ class CommentModel extends BaseDatabaseModel
 	/**
 	 * Checking if user can leave the comment/vote after certain amount of time.
 	 *
-	 * @param   string  $ip    User IP
-	 * @param   string  $type  Content type for checking
+	 * @param   string|null  $ip    User IP
+	 * @param   string       $type  Content type for checking
 	 *
 	 * @return  boolean
 	 *
 	 * @throws  \Exception
 	 * @since   3.0
 	 */
-	public function checkFlood(string $ip, string $type = 'comment'): bool
+	public function checkFlood(?string $ip = '', string $type = 'comment'): bool
 	{
 		$app    = Factory::getApplication();
 		$db     = $this->getDatabase();
 		$params = ComponentHelper::getParams('com_jcomments');
 		$now    = Factory::getDate()->toSql();
-		$ip     = $db->escape($ip);
+		$ip     = empty($ip) ? $db->escape(IpHelper::getIp()) : $db->escape($ip);
 
 		if ($type == 'comment')
 		{
@@ -350,23 +350,25 @@ class CommentModel extends BaseDatabaseModel
 	 *
 	 * @param   string  $username  Username
 	 *
-	 * @return  boolean
+	 * @return  boolean  Return true if username is registered
 	 *
 	 * @since   3.0
 	 */
-	public function checkIsRegisteredUsername(string $username): bool
+	public function isRegisteredUsername(string $username): bool
 	{
-		$db       = $this->getDbo();
-		$config   = ComponentHelper::getParams('com_jcomments');
-		$username = StringHelper::strtolower($username);
+		$db       = $this->getDatabase();
+		$params   = ComponentHelper::getParams('com_jcomments');
+		$username = $db->escape($username, true);
 
-		if ((int) $config->get('enable_username_check') == 1)
+		if ((int) $params->get('enable_username_check') == 1)
 		{
 			$query = $db->getQuery(true)
 				->select('COUNT(id)')
 				->from($db->quoteName('#__users'))
-				->where('LOWER(name) = ' . $db->quote($db->escape($username, true)), 'OR')
-				->where('LOWER(username) = ' . $db->quote($db->escape($username, true)), 'OR');
+				->where('LOWER(name) = :name', 'OR')
+				->where('LOWER(username) = :username', 'OR')
+				->bind(':name', $username)
+				->bind(':username', $username);
 
 			try
 			{
@@ -393,18 +395,19 @@ class CommentModel extends BaseDatabaseModel
 	 *
 	 * @since   3.0
 	 */
-	public function checkIsRegisteredEmail(string $email): bool
+	public function isRegisteredEmail(string $email): bool
 	{
-		$db     = $this->getDbo();
+		$db     = $this->getDatabase();
 		$config = ComponentHelper::getParams('com_jcomments');
-		$email  = StringHelper::strtolower($email);
+		$email  = $db->escape(PunycodeHelper::emailToPunycode($email), true);
 
 		if ((int) $config->get('enable_username_check') == 1)
 		{
 			$query = $db->getQuery(true)
 				->select('COUNT(id)')
 				->from($db->quoteName('#__users'))
-				->where('LOWER(email) = ' . $db->quote($db->escape($email, true)));
+				->where('LOWER(email) = :email')
+				->bind(':email', $email);
 
 			try
 			{
@@ -733,7 +736,7 @@ class CommentModel extends BaseDatabaseModel
 			}
 			else
 			{
-				$this->setError(Text::_('ERROR_PERMISSIONS_CANT_VOTE'));
+				$this->setError(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'));
 
 				return false;
 			}
@@ -812,5 +815,8 @@ class CommentModel extends BaseDatabaseModel
 		// Load state from the request.
 		$pk = $app->getInput()->getInt('id');
 		$this->setState('comment.id', $pk);
+
+		// TODO Set default value to true in release
+		$this->setState('cache', false);
 	}
 }

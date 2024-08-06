@@ -1,103 +1,81 @@
 <?php
 /**
- * JComments - Joomla Comment System
+ * JComments plugin for standart content objects support
  *
- * @package           JComments
- * @author            JComments team
- * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
- *                (C) 2016-2022 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
- * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
- *
- **/
+ * @version       4.0
+ * @package       JComments
+ * @copyright (C) 2006-2016 by Sergey M. Litvinov (http://www.joomlatune.ru)
+ * @copyright (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://xn--80aeqbhthr9b.com/ru/)
+ * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
+ */
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Access;
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
-use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
-use Joomla\String\StringHelper;
+use Joomla\Database\ParameterType;
 
-/**
- * Class to get object information from com_content extension.
- *
- * @since  2.0
- */
-class jc_com_content extends JcommentsPlugin
+class jc_com_content extends JCommentsPlugin
 {
-	/**
-	 * Get object information for com_content
-	 *
-	 * @param   integer  $id        Article ID
-	 * @param   mixed    $language  Language tag
-	 *
-	 * @return  object
-	 *
-	 * @throws  \Exception
-	 * @since   1.5
-	 */
-	public function getObjectInfo(int $id, $language = null)
+	public function getObjectInfo($id, $language = null)
 	{
-		$app = Factory::getApplication();
-		$link = null;
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$link  = null;
+		$query = $db->getQuery(true);
 
-		/** @var Joomla\Component\Content\Site\Model\ArticleModel $model */
-		$model = $app->bootComponent('com_content')->getMVCFactory()->createModel('Article', 'Site', ['ignore_request' => true]);
-		$model->setState('params', ComponentHelper::getParams('com_content'));
+		// Select the required fields from the table.
+		$query->select($db->quoteName(array('a.id', 'a.title', 'a.created_by', 'a.access', 'a.alias', 'a.catid', 'a.language')));
+		$query->from($db->quoteName('#__content', 'a'));
 
-		try
-		{
-			$article = $model->getItem($id);
-		}
-		catch (\Exception $e)
-		{
-			Log::add($e->getMessage() . ' in ' . __METHOD__ . '#' . __LINE__, Log::ERROR, 'com_jcomments');
+		// Join over the categories.
+		$query->select('c.title AS category_title, c.path AS category_route, c.access AS category_access, c.alias AS category_alias');
+		$query->join('LEFT', $db->quoteName('#__categories', 'c'), 'c.id = a.catid');
+		$query->where('a.id = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
 
-			return new JcommentsObjectinfo;
-		}
+		$db->setQuery($query);
+		$article = $db->loadObject();
 
 		if (!empty($article))
 		{
+			$user = Factory::getApplication()->getIdentity();
+
 			$article->slug    = $article->alias ? ($article->id . ':' . $article->alias) : $article->id;
 			$article->catslug = $article->category_alias ? ($article->catid . ':' . $article->category_alias) : $article->catid;
-			$language         = StringHelper::substr(!empty($language) ? $language : $article->language, 0, 2);
-			$authorised       = Access::getAuthorisedViewLevels($app->getIdentity()->get('id'));
-			$checkAccess      = in_array($article->access, $authorised);
+
+			$authorised  = Access::getAuthorisedViewLevels($user->get('id'));
+			$checkAccess = in_array($article->access, $authorised);
 
 			if ($checkAccess)
 			{
-				$link = Route::link('site', RouteHelper::getArticleRoute($article->slug, $article->catslug, $language), false);
+				$link = Route::_(RouteHelper::getArticleRoute($article->slug, $article->catslug, $article->language), false);
 			}
 			else
 			{
-				$returnURL = Route::link('site', RouteHelper::getArticleRoute($article->slug, $article->catslug, $language), false);
-				$menu      = $app->getMenu();
+				$returnURL = Route::_(RouteHelper::getArticleRoute($article->slug, $article->catslug, $article->language));
+				$menu      = Factory::getApplication()->getMenu();
 				$active    = $menu->getActive();
 				$itemId    = $active->id;
-				$link      = Route::link('site', 'index.php?option=com_users&view=login&Itemid=' . $itemId,  false);
+				$link      = Route::_('index.php?option=com_users&view=login&Itemid=' . $itemId);
 				$uri       = new Uri($link);
 				$uri->setVar('return', base64_encode($returnURL));
 				$link = $uri->toString();
 			}
 		}
 
-		$info = new JcommentsObjectinfo;
+		$info = new JCommentsObjectInfo;
 
 		if (!empty($article))
 		{
-			$info->catid    = $article->catid;
-			$info->object_lang     = $article->language;
-			$info->object_title = $article->title;
-			$info->object_access   = $article->access;
-			$info->object_owner   = $article->created_by;
-			$info->object_link     = $link;
-			$info->expired  = $article->publish_down;
-			$info->modified = $article->modified;
+			$info->category_id = $article->catid;
+			$info->title       = $article->title;
+			$info->access      = $article->access;
+			$info->userid      = $article->created_by;
+			$info->link        = $link;
 		}
 
 		return $info;

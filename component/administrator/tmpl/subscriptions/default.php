@@ -17,6 +17,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\String\PunycodeHelper;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Subscriptions\HtmlView $this */
 
@@ -78,11 +79,13 @@ $listDirection  = $this->escape($this->state->get('list.direction'));
 						</thead>
 						<tbody>
 						<?php foreach ($this->items as $i => $item):
-							$canEdit = $user->authorise('core.edit', 'com_jcomments');
-							$canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $userId || $item->checked_out == 0;
-							$canChange = $user->authorise('core.edit.state', 'com_jcomments') && $canCheckin;
+							$canEdit        = $user->authorise('core.edit', 'com_jcomments');
+							$canCheckin     = $user->authorise('core.manage', 'com_checkin')
+								|| $item->checked_out == $userId || $item->checked_out == 0;
+							$canChange      = $user->authorise('core.edit.state', 'com_jcomments') && $canCheckin;
+							$item->email    = PunycodeHelper::emailToUTF8($item->email);
 							$item->language = $item->lang;
-						?>
+							?>
 							<tr class="row<?php echo $i % 2; ?>">
 								<td class="text-center">
 									<?php echo HTMLHelper::_('grid.id', $i, $item->id, false, 'cid', 'cb', $item->id); ?>

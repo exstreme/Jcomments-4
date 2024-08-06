@@ -1,6 +1,6 @@
 // phpcs:disable
 document.addEventListener('DOMContentLoaded', function () {
-	const jce_config = Joomla.getOptions('jceditor');
+	const jce_config = Joomla.getOptions('jcomments').editor;
 	const jce = document.getElementById(jce_config.field);
 	let jce_limitreached = false;
 	const span_hidden = {
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			const length = maxlength - editorInstance.val().length;
 			const charsEl = document.querySelector('.jce-counter .chars');
-			charsEl.textContent = (length < 0) ? '0.' : length.toString() + '.';
+			charsEl.textContent = (length < 0) ? '0' : length.toString();
 
 			if (editorInstance.val().length >= maxlength) {
 				if (jce_limitreached)

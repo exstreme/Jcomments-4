@@ -46,9 +46,11 @@ class DisplayController extends BaseController
 	 */
 	public function display($cachable = false, $urlparams = array())
 	{
-		$cachable = true;
-		$id       = $this->input->getInt('object_id');
-		$option   = $this->app->input->get('option');
+		$cachable  = true;
+		$objectId  = $this->input->getInt('object_id');
+		$commentId = $this->input->getInt('comment_id');
+		$option    = $this->app->input->get('option');
+		$layout    = $this->app->input->getWord('layout');
 
 		// Set the default view name and format from the Request.
 		$viewName = $this->input->get('view', 'comments');
@@ -63,7 +65,7 @@ class DisplayController extends BaseController
 							   'return' => 'BASE64', 'filter-search' => 'STRING', 'lang' => 'CMD');
 
 		// Set locked state for views called not from Jcomments content plugin event.
-		if (isset($id) || ($option == 'com_content' && $option == 'com_multicategories'))
+		if (isset($objectId) || ($option == 'com_content' && $option == 'com_multicategories'))
 		{
 			/** @var \Joomla\Component\Content\Site\Model\ArticleModel $articleModel */
 			$articleModel     = $this->app->bootComponent('com_content')->getMVCFactory()->createModel('Article', 'Site');
@@ -84,6 +86,28 @@ class DisplayController extends BaseController
 			$config->set('comments_on', $commentsEnabled);
 			$config->set('comments_off', $commentsDisabled);
 			$config->set('comments_locked', $commentsLocked);
+		}
+
+		// Global access check.
+		if ($viewName === 'form')
+		{
+			$acl = JcommentsFactory::getACL();
+			$canViewForm = $acl->canViewForm(true, true);
+
+			if ($canViewForm !== true)
+			{
+				throw new \Exception($canViewForm, 403);
+			}
+		}
+
+		// Check for edit form.
+		if ($viewName === 'form' && $layout !== 'report')
+		{
+			if ($this->input->getInt('quote') != 1 && !$this->checkEditId('com_jcomments.edit.comment', $commentId))
+			{
+				// Somehow the person just went to the form - we don't allow that.
+				throw new \Exception(Text::sprintf('JLIB_APPLICATION_ERROR_UNHELD_ID', $commentId), 403);
+			}
 		}
 
 		parent::display($cachable, $safeurlparams);

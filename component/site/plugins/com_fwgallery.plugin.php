@@ -11,52 +11,78 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\OutputFilter;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\ParameterType;
+
 class jc_com_fwgallery extends JCommentsPlugin
 {
-	function getObjectInfo($id, $language = null)
+	public function getObjectInfo($id, $language = null)
 	{
-		$db = JFactory::getDBO();
-		$db->setQuery('SELECT id, name, user_id FROM #__fwg_files WHERE id = ' . $id);
+		/** @var \Joomla\Database\DatabaseInterface $db */
+		$db    = Factory::getContainer()->get('DatabaseDriver');
+		$query = $db->getQuery(true);
+
+		$query->select($db->quoteName(array('id', 'name', 'user_id')))
+			->from($db->quoteName('#__fwg_file'))
+			->where($db->quoteName('id') . ' = :id')
+			->bind(':id', $id, ParameterType::INTEGER);
+
 		$row = $db->loadObject();
 
-		$info = new JCommentsObjectInfo();
+		$info = new JCommentsObjectInfo;
 
-		if (!empty($row)) {
-			$_Itemid = self::_getItemid('image');
-			$_Itemid = (intval($_Itemid) ? '&amp;Itemid=' . $_Itemid : '');
+		if (!empty($row))
+		{
+			$itemid = self::_getItemid('item');
+			$itemid = $itemid > 0 ? '&Itemid=' . $itemid : '';
 
-			$info->title = $row->name;
+			$info->title  = $row->name;
 			$info->userid = $row->user_id;
-			$info->link = JRoute::_('index.php?option=com_fwgallery&view=image&id=' . $row->id . ':' . JFilterOutput::stringURLSafe($row->name) . $_Itemid . '#fwgallerytop');
+			$info->link   = Route::_('index.php?option=com_fwgallery&view=item&id=' . $row->id . ':' . OutputFilter::stringURLSafe($row->name) . $itemid);
 		}
 
 		return $info;
 	}
 
-	protected static function _getItemid($view = 'galleries', $id = 0, $default = 0)
+	protected static function _getItemid($view = 'fwgallery', $id = 0, $default = 0)
 	{
 		$item = null;
-		$menu = JMenu::getInstance('site');
+		$menu = Factory::getApplication()->getMenu('site');
 
-		if ($id && $items = $menu->getItems('link', 'index.php?option=com_fwgallery&view=' . $view)) {
-			foreach ($items as $menuItem) {
-				if ((is_string($menuItem->params) && preg_match('/id\='.$id.'\s/ms', $menuItem->params)) || (is_object($menuItem->params) && $id == $menuItem->params->get('id'))) {
+		if ($id && $items = $menu->getItems('link', 'index.php?option=com_fwgallery&view=' . $view))
+		{
+			foreach ($items as $menuItem)
+			{
+				if ((is_object($menuItem->params) && $id == $menuItem->params->get('file_id')))
+				{
 					$item = $menuItem;
 					break;
 				}
 			}
-        	}
-		
-		if ($item === null) {
-			$item = $menu->getItems('link', 'index.php?option=com_fwgallery&view=galleries', true);
 		}
 
-        	if ($item) {
-        		return $item->id;
-		} elseif ($default) {
-			return $default;
-		} elseif ($item = $menu->getActive()) {
+		if ($item === null)
+		{
+			$item = $menu->getItems('link', 'index.php?option=com_fwgallery&view=fwgallery', true);
+		}
+
+		if ($item)
+		{
 			return $item->id;
 		}
-        }
+		elseif ($default)
+		{
+			return $default;
+		}
+		elseif ($item = $menu->getActive())
+		{
+			return $item->id;
+		}
+		else
+		{
+			return null;
+		}
+	}
 }

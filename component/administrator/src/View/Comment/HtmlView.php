@@ -111,7 +111,13 @@ class HtmlView extends BaseHtmlView
 			$linkLang = '';
 		}
 
-		$toolbar->preview(Route::link('site', 'index.php?option=com_jcomments&task=comment.show' . $linkLang . '&id=' . $this->item->id . '&preview=1'))
+		$link = Route::link(
+			'Site',
+			'index.php?option=com_jcomments&task=comment.show' . $linkLang . '&id=' . $this->item->id . '&preview=1',
+			false, 0, true
+		);
+
+		$toolbar->preview($link)
 			->bodyHeight(80)
 			->modalWidth(90);
 

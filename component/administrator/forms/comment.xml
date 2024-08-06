@@ -97,7 +97,9 @@
 				size="40"
 				label="A_COMMENT_HOMEPAGE"
 				validate="url"
+				filter="url"
 				required="false"
+				schemes="http,https,ftp"
 		/>
 
 		<field

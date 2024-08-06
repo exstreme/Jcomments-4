@@ -12,27 +12,35 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
 /** @var Joomla\Component\Jcomments\Site\View\Comments\HtmlView $this */
 
-$wa = $this->document->getWebAssetManager();
-
-// WebAssetManager assets registry not exist in Application until dispatch happen.
-$wa->useScript('bootstrap.modal')
-	->useScript('bootstrap.collapse');
-
-$locked    = $this->params->get('comments_locked');
-$feedLimit = $this->params->get('feed_limit', \Joomla\CMS\Factory::getApplication()->get('feed_limit'));
-$feedUrl   = 'index.php?option=com_jcomments&view=comments&task=rss&object_id=' . $this->objectID
+$app            = Factory::getApplication();
+$locked         = $this->params->get('comments_locked');
+$feedLimit      = $this->params->get('feed_limit', $app->get('feed_limit'));
+$feedUrl        = 'index.php?option=com_jcomments&view=comments&task=rss&object_id=' . $this->objectID
 	. '&object_group=' . $this->objectGroup . '&type=rss&format=feed';
-$view      = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
+$view           = $app->input->getWord('view');
+$formLayoutData = array(
+	// It is necessary to get the form object in the 'params' layout.
+	'viewObject'    => &$this,
+	'params'        => $this->params,
+	'displayForm'   => $this->displayForm,
+	'canViewForm'   => $this->canViewForm,
+	'canComment'    => $this->canComment,
+	'returnPage'    => $this->returnPage,
+	'form'          => $this->form,
+	'item'          => $this->item
+);
 ?>
-<div class="container-fluid px-0 mt-2 comments" id="comments">
+<div class="container-fluid px-0 mt-2 comments hasLoader" id="comments">
 	<?php if ($this->params->get('form_position') && $view != 'comments'):
-		echo $this->canViewForm === true ? $this->loadTemplate('iframe') : $this->canViewForm;
+		echo LayoutHelper::render('form', $formLayoutData, '', array('component' => 'com_jcomments'));
 	endif; ?>
 
 	<div class="row comments-list-header">
@@ -41,9 +49,8 @@ $view      = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 		</div>
 		<div class="col small">
 			<?php if (!$locked): ?>
-				<a href="#" title="<?php echo Text::_('BUTTON_REFRESH'); ?>" class="me-1 ms-1 mb-1 refresh-list"
-				   onclick="Jcomments.loadComments(this, <?php echo $this->objectID; ?>, '<?php echo $this->objectGroup; ?>', 0); return false;">
-					<span aria-hidden="true" class="icon icon-loop"></span>
+				<a href="#" title="<?php echo Text::_('BUTTON_REFRESH'); ?>" class="me-1 ms-1 mb-1 refresh-list">
+					<span aria-hidden="true" class="fa icon-loop"></span>
 				</a>
 			<?php endif; ?>
 
@@ -56,13 +63,7 @@ $view      = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 		</div>
 	</div>
 
-	<div class="row mb-2 comments-list-container"
-		 data-object-id="<?php echo $this->objectID; ?>"
-		 data-object-group="<?php echo $this->objectGroup; ?>"
-		 data-list-url="<?php echo Route::_('index.php?option=com_jcomments&view=comments'); ?>"
-		 data-object-url="<?php echo Route::_(Uri::getInstance(), true, 0, true); ?>"
-		 data-pagination-prefix="<?php echo $this->paginationPrefix; ?>"
-		 data-template="<?php echo $this->params->get('template_view'); ?>">
+	<div class="row mb-2 comments-list-container">
 		<div class="d-flex align-items-center">
 			<div class="spinner-border spinner-border-sm text-info" role="status" aria-hidden="true"></div>
 			<span class="ms-2"><?php echo Text::_('COMMENTS_LOADING'); ?></span>
@@ -72,9 +73,8 @@ $view      = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 	<div class="row mb-1 comments-list-footer">
 		<?php if (!$locked): ?>
 			<div class="comments-refresh">
-				<a href="#" title="<?php echo Text::_('BUTTON_REFRESH'); ?>" class="refresh-list"
-				   onclick="Jcomments.loadComments(this, <?php echo $this->objectID; ?>, '<?php echo $this->objectGroup; ?>', 0); return false;">
-					<span aria-hidden="true" class="icon icon-loop me-1"></span><?php echo Text::_('BUTTON_REFRESH'); ?>
+				<a href="#" title="<?php echo Text::_('BUTTON_REFRESH'); ?>" class="refresh-list">
+					<span aria-hidden="true" class="fa icon-loop me-1"></span><?php echo Text::_('BUTTON_REFRESH'); ?>
 				</a>
 			</div>
 		<?php endif; ?>
@@ -94,8 +94,7 @@ $view      = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 				. '&object_group=' . $this->objectGroup . '&return=' . base64_encode(Uri::getInstance());
 			?>
 			<div class="comments-subscription">
-				<a href="<?php echo Route::_($url); ?>" class="cmd-subscribe" title="<?php echo $text; ?>"
-				   rel="nofollow" onclick="Jcomments.subscribe(this);return false;">
+				<a href="<?php echo Route::_($url); ?>" class="cmd-subscribe" title="<?php echo $text; ?>" rel="nofollow">
 					<span aria-hidden="true" class="fa icon-mail me-1"></span><?php echo $text; ?>
 				</a>
 			</div>
@@ -103,9 +102,8 @@ $view      = \Joomla\CMS\Factory::getApplication()->input->getWord('view');
 	</div>
 
 	<?php if (!$this->params->get('form_position') && $view != 'comments'):
-		echo $this->canViewForm === true ? $this->loadTemplate('iframe') : $this->canViewForm;
-		//echo \Joomla\CMS\Layout\LayoutHelper::render('form', array('form' => $this->form, 'displayForm' => $this->displayForm, 'params' => $this->params, 'policy' => $this->policy, 'terms' => $this->terms), '', array('component' => 'com_jcomments'));
+		echo LayoutHelper::render('form', $formLayoutData, '', array('component' => 'com_jcomments'));
 	endif; ?>
 </div>
 <?php
-echo \Joomla\CMS\Layout\LayoutHelper::render('comment-report', null, '', array('component' => 'com_jcomments'));
+echo LayoutHelper::render('comment-report', null, '', array('component' => 'com_jcomments'));

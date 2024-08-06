@@ -1,4 +1,6 @@
 // phpcs:disable
+let jce_limitreached = false;
+
 Jcomments = window.Jcomments || {};
 
 (function (Jcomments, document) {
@@ -42,7 +44,7 @@ Jcomments = window.Jcomments || {};
 				defaultHeight = parseInt(defaultHeight, 10);
 				height = !isNaN(defaultHeight) ? defaultHeight : 250;
 			} else {
-				height = parseInt(iframe.body.scrollHeight, 10);
+				height = iframe.body.scrollHeight;
 			}
 
 			iframe.style.height = height + 'px';
@@ -56,14 +58,14 @@ Jcomments = window.Jcomments || {};
 			if (_el !== null) {
 				const style = window.getComputedStyle(_el);
 
-				height = parseInt(_el.scrollHeight, 10);
+				height = _el.scrollHeight;
 
 				if (margins === true) {
 					height = height + parseInt(style.getPropertyValue('margin-top'), 10) + parseInt(style.getPropertyValue('margin-bottom'), 10);
 				}
 			}
 		} else {
-			height = parseInt(doc.body.scrollHeight, 10);
+			height = doc.body.scrollHeight;
 		}
 
 		iframe.style.height = height + 'px';
@@ -72,71 +74,144 @@ Jcomments = window.Jcomments || {};
 	};
 
 	/**
+	 * Initialize editor chars counter. Available only sceditor and Joomla's 'none' editor.
+	 *
+	 * @param   {HTMLFormElement}  form  Form DOM.
+	 *
+	 * @method  Jcomments.initEditorCharsCounter
+	 * @return  {void}
+	 */
+	Jcomments.initEditorCharsCounter = function (form) {
+		const counter_div = form.querySelector('.jce-counter'),
+			options = Joomla.getOptions('jcomments', '');
+
+		if (counter_div) {
+			if (options.editor.editor_type === 'component') {
+				// Do not use .sceditor-container as selector!
+				form.querySelector('textarea#' + options.editor.field).after(counter_div);
+				counter_div.classList.remove('d-none');
+			} else {
+				if (options.editor.editor === 'none') {
+					const editor_value = Joomla.editors.instances[options.editor.field].getValue();
+					const textarea = form.querySelector('joomla-editor-none textarea');
+					const event = function () {
+						if (!options.editor.maxlength) {
+							return true;
+						}
+
+						const length = options.editor.maxlength - editor_value.length,
+							charsEl = counter_div.querySelector('.chars');
+						charsEl.textContent = (length < 0) ? '0' : length.toString();
+
+						if (editor_value.length >= options.editor.maxlength) {
+							if (jce_limitreached)
+							{
+								return true;
+							}
+
+							jce_limitreached = true; // Display error message only once
+							counterEl.insertAdjacentHTML(
+								'beforeend',
+								'<span class="limit-error badge text-bg-danger bg-opacity-75 fw-normal">' + Joomla.Text._('ERROR_YOUR_COMMENT_IS_TOO_LONG') + '</span>'
+							);
+						} else {
+							// Check previous state
+							if (jce_limitreached)
+							{
+								counterEl.querySelector(':scope .limit-error').remove();
+							}
+
+							jce_limitreached = false;
+						}
+					};
+
+					textarea.addEventListener('keyup', event);
+					textarea.addEventListener('blur', event);
+					textarea.addEventListener('focus', event);
+
+					textarea.after(counter_div);
+					counter_div.classList.remove('d-none');
+				}
+			}
+		}
+	}
+
+	/**
 	 * Load comments for object
 	 *
-	 * @param   {HTMLElement|null}  el            DOM element. If null when default 'refresh-list' will be use.
-	 * @param   {string}            object_id     Object ID.
-	 * @param   {string}            object_group  Object group. E.g. com_content
-	 * @param   {string|number}     page          Limitstart value.
-	 * @param   {boolean}           scroll        Scroll the page to the comments if the user came by the link
-	 * 									          from 'Readmore block' or `scrollTo` not an empty string. Default: false.
-	 * @param   {string}   scrollTo               Scroll page to element with this ID. E.g. #comments
+	 * @param   {object|null}    e             Event.
+	 * @param   {string}         object_id     Object ID.
+	 * @param   {string}         object_group  Object group. E.g. com_content
+	 * @param   {string|number}  page          Limitstart value.
+	 * @param   {boolean}        scroll        Scroll the page to the comments if the user came by the link
+	 * 									       from 'Readmore block' or `scrollTo` is not empty. Default: false.
+	 * @param   {string}         scrollTo      Scroll page to element with this ID. E.g. #comments
 	 *
 	 * @method  Jcomments.loadComments
 	 * @return  {void}
 	 */
-	Jcomments.loadComments = function (el, object_id, object_group, page, scroll, scrollTo) {
+	Jcomments.loadComments = function (e, object_id, object_group, page, scroll, scrollTo) {
+		if (e && e.type === 'click') {
+			e.preventDefault();
+		}
+
 		page = parseInt(page, 10);
 
-		const comments_container = document.querySelector('.comments-list-container'),
-			id = empty(object_id) ? comments_container.dataset.objectId : object_id,
-			group = empty(object_group) ? comments_container.dataset.objectGroup : object_group,
-			limitstart_varname = comments_container.dataset.paginationPrefix + 'limitstart',
+		if (isNaN(page)) {
+			page = 0;
+		}
+
+		const container = document.querySelector('.comments-list-container'),
+			options = Joomla.getOptions('jcomments', ''),
+			oid = empty(object_id) ? options.object_id : object_id,
+			ogroup = empty(object_group) ? options.object_group : object_group,
+			limitstart_varname = options.pagination_prefix + 'limitstart',
 			_page = empty(page) ? '' : '&' + limitstart_varname + '=' + page;
 
 		Joomla.request({
-			url: comments_container.dataset.listUrl + '&object_id=' + id + '&object_group=' + group + _page + '&format=raw' + '&_=' + new Date().getTime(),
+			url: options.list_url + '&object_id=' + oid + '&object_group=' + ogroup + _page + '&format=raw' + '&_=' + new Date().getTime(),
 			onBefore: function () {
 				// Do not show loader on first run
-				if (comments_container.querySelectorAll('div.comments-list-parent').length === 1) {
+				if (container.querySelectorAll('div.comments-list-parent').length === 1) {
 					Jcomments.loader(1);
 				}
 
-				if (el === null) {
-					document.querySelectorAll('.refresh-list').forEach(function (el) {
-						el.classList.add('pe-none');
-						el.querySelector('span.icon').classList.add('refresh-list-spin');
-					});
-				} else {
+				document.querySelectorAll('.refresh-list').forEach(function (el) {
 					el.classList.add('pe-none');
-					el.querySelector('span.icon').classList.add('refresh-list-spin');
-				}
+					el.querySelector('span.fa').classList.add('refresh-list-spin');
+				});
 			},
 			onSuccess: function (response) {
 				response = Jcomments.parseJson(response);
 
 				if (response !== false && response.success) {
-					comments_container.dataset.template = response.data.type;
-					comments_container.innerHTML = response.data.html;
+					container.innerHTML = response.data.html;
 					document.querySelector('.total-comments').textContent = response.data.total;
 
 					// Handle limitstart value from query string
-					const searchParams = Jcomments.queryString.init(comments_container.dataset.objectUrl);
+					if (response.data.type === 'list') {
+						let searchParams = Jcomments.queryString.init(window.location.href);
+						let originalParams = Jcomments.queryString.init(window.location.href);
 
-					if (searchParams) {
-						// Change limitstart value in URL
-						if (page > 0) {
-							searchParams.set(limitstart_varname, page);
-						} else if (page === 0 || page === '') {
-							// Remove empty limitstart from query string
-							searchParams.delete(limitstart_varname);
+						if (searchParams) {
+							// Change limitstart value in URL
+							if (page > 0) {
+								searchParams.set(limitstart_varname, page);
+								let newRelativePathQuery = window.location.pathname + '?' + searchParams.toString() + window.location.hash;
+
+								if (originalParams.has(limitstart_varname) === false && page !== originalParams.get(limitstart_varname)) {
+									history.pushState(null, '', decodeURIComponent(newRelativePathQuery));
+								}
+							} else if (page === 0 || page === '') {
+								// Remove empty limitstart from query string
+								searchParams.delete(limitstart_varname);
+								let newRelativePathQuery = window.location.pathname + '?' + searchParams.toString() + window.location.hash;
+
+								if (originalParams.has(limitstart_varname)) {
+									history.pushState(null, '', decodeURIComponent(newRelativePathQuery));
+								}
+							}
 						}
-
-						const params = searchParams.toString();
-						let newRelativePathQuery;
-
-						newRelativePathQuery = window.location.pathname + '?' + searchParams.toString() + window.location.hash;
-						history.pushState(null, '', decodeURIComponent(newRelativePathQuery));
 					}
 
 					if (scroll) {
@@ -155,7 +230,7 @@ Jcomments = window.Jcomments || {};
 				Jcomments.loader();
 				document.querySelectorAll('.refresh-list').forEach(function (el) {
 					el.classList.remove('pe-none');
-					el.querySelector('span.icon').classList.remove('refresh-list-spin');
+					el.querySelector('span.fa').classList.remove('refresh-list-spin');
 				});
 			}
 		});
@@ -164,45 +239,34 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Preview comment
 	 *
-	 * @param   {HTMLButtonElement}  el       Button.
-	 * @param   {boolean}            preview  Preview comment if false, save otherwise.
+	 * @param   {HTMLButtonElement}  el    Button.
+	 * @param   {string}             task  Task.
 	 *
 	 * @method  Jcomments.saveComment
 	 * @return  {void}
 	 * @todo Refactor
 	 */
-	Jcomments.saveComment = function (el, preview) {
-		const jce_config = Joomla.getOptions('jceditor'),
-			doc = Jcomments.isIframe() ? parent.document : document,
-			form = document.getElementById('adminForm');
-		let form_data = new FormData(form),
-			queryString = '';
+	Jcomments.saveComment = function (el, task) {
+		const config = Joomla.getOptions('jcomments', ''),
+			form = document.getElementById('commentForm'),
+			editor_input = document.querySelector('#' + config.editor.field);
+		let editor = null, length = 0, form_data = new FormData(form), queryString = '';
 
-		if (preview === true) {
-			form_data.set('task', 'comment.preview');
-		}
+		form_data.set('task', task);
 
-		const editor = sceditor.instance(document.getElementById(jce_config.field)),
-			length = parseInt(editor.val().length, 10),
-			comment_id = document.getElementById('jform_comment_id') ? parseInt(document.getElementById('jform_comment_id').value, 10) : 0,
-			parent_id = document.getElementById('jform_parent') ? parseInt(document.getElementById('jform_parent').value, 10) : 0,
-			iframeName = comment_id > 0 ? '.commentEditFormFrame' : '.commentFormFrame',
-			minlength = parseInt(jce_config.minlength, 10), maxlength = parseInt(jce_config.maxlength, 10);
+		if (config.editor.editor_type === 'component') {
+			editor = sceditor.instance(document.getElementById(config.editor.field));
+			form_data.set(editor_input.getAttribute('name'), editor.val());
+		} else {
+			editor = Joomla.editors.instances[config.editor.field];
 
-		if (minlength > 0 && maxlength > 0) {
-			if (!(length >= minlength)) {
-				Jcomments.showError({'message': Joomla.Text._('ERROR_YOUR_COMMENT_IS_TOO_SHORT')}, '#system-message-container');
-				Jcomments.iframeHeight(doc.querySelector(iframeName));
+			if (!this.isObject(editor)) {
+				console.log('Error! Joomla editor not loaded!');
 
 				return;
 			}
 
-			if (!(length <= maxlength)) {
-				Jcomments.showError({'message': Joomla.Text._('ERROR_YOUR_COMMENT_IS_TOO_LONG')}, '#system-message-container');
-				Jcomments.iframeHeight(doc.querySelector(iframeName));
-
-				return;
-			}
+			form_data.set(editor_input.getAttribute('name'), editor.getValue());
 		}
 
 		if ('URLSearchParams' in window) {
@@ -214,6 +278,10 @@ Jcomments = window.Jcomments || {};
 			method: 'POST',
 			data: queryString,
 			onBefore: function () {
+				Joomla.removeMessages('#commentForm fieldset');
+				document.querySelectorAll('#commentForm .btn-container button').forEach(function (el) {
+					el.setAttribute('disabled', '');
+				});
 				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
@@ -225,95 +293,47 @@ Jcomments = window.Jcomments || {};
 					previewDiv.remove();
 				}
 
-				if (preview === true) {
+				if (task === 'comment.preview') {
 					if (!response) {
-						Joomla.renderMessages({'error': [Joomla.Text._('ERROR')]}, '#system-message-container');
+						Joomla.renderMessages({'error': [Joomla.Text._('ERROR')]}, '#commentForm fieldset');
 
 						return;
 					}
 
-					if (Jcomments.isIframe()) {
-						el.closest('#adminForm').insertAdjacentHTML('afterbegin', response.data);
-
-						if (comment_id > 0 || parent_id > 0) {
-							Jcomments.iframeHeight(doc.querySelector('.commentEditFormFrame'));
-						} else {
-							Jcomments.iframeHeight(parent.document.querySelector('.commentFormFrame'));
-						}
-
-						Jcomments.scrollToByHash('comment-item-preview', 'frame');
-					} else {
-						doc.querySelector('#adminForm').insertAdjacentHTML('afterbegin', response.data);
-						Jcomments.scrollToByHash('comment-item-preview');
-					}
+					document.querySelector('#commentForm').insertAdjacentHTML('afterbegin', response.data);
+					Jcomments.scrollToByHash('comment-item-preview');
 				} else {
 					if (response.success) {
-						Joomla.renderMessages({'message': [response.message]}, '#system-message-container');
+						Joomla.renderMessages({'message': [response.message]}, '#commentForm fieldset');
 					} else {
-						Jcomments.showError(xhr.response, '#system-message-container');
+						Jcomments.showError(response.message, '#commentForm fieldset', 'error');
 					}
 				}
 			},
 			onError: function (xhr) {
-				Jcomments.showError(xhr.response, '#system-message-container');
+				Jcomments.showError(xhr.response, '#commentForm fieldset', 'error');
 			},
 			onComplete: function () {
+				document.querySelectorAll('#commentForm .btn-container button').forEach(function (el) {
+					el.removeAttribute('disabled');
+				});
 				Jcomments.loader();
 			}
 		});
 	}
 
 	/**
-	 * Reply to comment or reply with quote.
+	 * Navigate to comment edit form.
 	 *
-	 * @param   {HTMLElement}  el  This element.
+	 * @param   {Event}  e  Event.
 	 *
 	 * @method  Jcomments.showEditForm
 	 * @return  {void}
 	 */
-	Jcomments.showEditForm = function (el) {
-		const commentId = parseInt(el.closest('.comment').dataset.id, 10);
-
-		Jcomments.loader(1);
-
-		const iframes = document.querySelectorAll('.commentEditFormFrame');
-
-		if (iframes.length > 0) {
-			for (const el of iframes) {
-				// TODO Unbind iframe events
-
-				el.remove();
-			}
-		}
-
-		const iframeHtml = Jcomments.createIframe(el),
-			parentDiv = el.closest('div.comment');
-
-		// Insert iframe after the comment but inside the comment cotnainer.
-		parentDiv.parentNode.insertBefore(iframeHtml, parentDiv.nextSibling);
-		Jcomments.hideAddForm();
-
-		iframeHtml.addEventListener('load', function () {
-			const iframeDom = Jcomments.getIframeContent(document.querySelector('.commentEditFormFrame')),
-				editForm = iframeDom.querySelector('#editForm');
-
-			if (editForm) {
-				editForm.classList.remove('d-none');
-			}
-
-			const parentDoc = parent.document,
-				parentIframe = parentDoc.querySelector('.commentEditFormFrame');
-
-			// Resize an iframe before scrolling to element inside iframe.
-			parentIframe.style.height = Jcomments.iframeHeight(parentIframe) + 'px';
-
-			Jcomments.scrollTop(
-				parent.window,
-				parentDoc.querySelector('.commentEditFormFrame').getBoundingClientRect().top + parent.window.pageYOffset - parentDoc.documentElement.clientTop
-			);
-
-			Jcomments.loader();
-		});
+	Jcomments.showEditForm = function (e) {
+		e.preventDefault();
+		const options = Joomla.getOptions('jcomments', '');
+		document.location.href = this.dataset.url + '&return=' + options.return;
 	}
 
 	/**
@@ -363,30 +383,31 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Pin/unpin comment.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
-	 * @param   {int}                id  Comment ID
+	 * @param   {Event}  e  Event
 	 *
 	 * @method  Jcomments.pin
 	 * @return  {void}
 	 */
-	Jcomments.pin = function (el, id) {
-		const comment = el.closest('div.comment');
+	Jcomments.pin = function (e) {
+		e.preventDefault();
+
+		const comment = this.closest('.comment'), _this = this, id = parseInt(comment.dataset.id, 10);
 
 		Joomla.request({
-			url: el.href + '&' + Joomla.getOptions('csrf.token') + '=1&format=json&_=' + new Date().getTime(),
+			url: _this.dataset.url + '&' + Joomla.getOptions('csrf.token', '') + '=1&format=json&_=' + new Date().getTime(),
 			onBefore: function () {
-				el.classList.add('pe-none');
+				_this.classList.add('pe-none');
 				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
 				response = Jcomments.parseJson(response);
 
 				if (response !== false && response.success) {
-					el.title = response.data.title;
-					el.href = response.data.url;
+					_this.title = response.data.title;
+					_this.dataset.url = response.data.url;
 
-					const icon = el.querySelectorAll(':scope span')[0],
-						pinned_header = comment.querySelectorAll(':scope .comment-pinned');
+					const icon = _this.querySelectorAll(':scope span')[0],
+						pinned_header = comment.querySelectorAll(':scope .comment-pinned-title');
 
 					if (response.data.current_state === 0) {
 						icon.classList.remove('link-secondary');
@@ -429,8 +450,8 @@ Jcomments = window.Jcomments || {};
 				Jcomments.showError(xhr.response, '#comment-item-' + id);
 			},
 			onComplete: function () {
-				el.classList.remove('pe-none');
-				Jcomments.loader();
+				_this.classList.remove('pe-none');
+				Jcomments.loader(0);
 			}
 		});
 	}
@@ -457,186 +478,11 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Show hidden 'Add comment' form
 	 *
-	 * @param   {boolean}  findIframe  Find iframe with form. Used for 'Reply' link.
-	 *
 	 * @method  Jcomments.showAddForm
 	 * @return  {void}
 	 */
-	Jcomments.showAddForm = function (findIframe) {
-		let btn, form;
-		const doc = Jcomments.isIframe()
-			? Jcomments.getIframeContent(parent.document.querySelector('.commentFormFrame'))
-			: findIframe ? Jcomments.getIframeContent(document.querySelector('.commentFormFrame')) : document;
-
-		btn = doc.querySelectorAll('.showform-btn-container');
-		form = doc.querySelectorAll('#editForm')[0];
-
-		if (btn.length > 0) {
-			if (btn[0].classList.contains('d-none') === false) {
-				btn[0].classList.add('d-none');
-				form.classList.remove('d-none');
-
-				if (Jcomments.isIframe()) {
-					const parentDoc = parent.document,
-						parentIframe = parentDoc.querySelector('.commentFormFrame');
-
-					// Resize an iframe before scrolling to an element inside iframe.
-					parentIframe.style.height = Jcomments.iframeHeight(parentIframe) + 'px';
-
-					Jcomments.scrollTop(
-						parent.window,
-						parentDoc.querySelector('.commentFormFrame').getBoundingClientRect().top + parent.window.pageYOffset - parentDoc.documentElement.clientTop
-					);
-				} else {
-					if (findIframe) {
-						const parentIframe = document.querySelector('.commentFormFrame');
-
-						// Resize an iframe before scrolling to an element inside iframe.
-						parentIframe.style.height = Jcomments.iframeHeight(parentIframe) + 'px';
-
-						Jcomments.scrollTop(
-							window,
-							document.querySelector('.commentFormFrame').getBoundingClientRect().top + window.pageYOffset - document.documentElement.clientTop);
-					}
-				}
-			} else {
-				Jcomments.scrollToByHash('addcomment');
-			}
-		} else {
-			Jcomments.scrollToByHash('addcomment');
-		}
-	}
-
-	/**
-	 * Hide 'Add comment' form
-	 *
-	 * @param   {Element}  el     Button
-	 * @param   {boolean}  close  Just try to remove iframe.
-	 *
-	 * @method  Jcomments.hideAddForm
-	 * @return  {void}
-	 */
-	Jcomments.hideAddForm = function (el, close) {
-		const btn = document.querySelector('.showform-btn-container'),
-			form = document.querySelector('#editForm');
-
-		if (btn) {
-			if (btn.classList.contains('d-none')) {
-				form.classList.add('d-none');
-				btn.classList.remove('d-none');
-
-				if (Jcomments.isIframe()) {
-					const frame = parent.document.querySelector('#addcomment');
-
-					frame.style.height = 0;
-					Jcomments.iframeHeight(frame);
-
-					Jcomments.scrollTop(
-						parent.window,
-						frame.getBoundingClientRect().top + parent.window.pageYOffset - parent.document.documentElement.clientTop
-					);
-				}
-			}
-		} else {
-			if (close === true) {
-				Jcomments.hideEditForm(el);
-			}
-		}
-	}
-
-	/**
-	 * Hide 'Edit comment' form
-	 *
-	 * @param   {Element}  el  Button
-	 *
-	 * @method  Jcomments.hideEditForm
-	 * @return  {void}
-	 */
-	Jcomments.hideEditForm = function (el) {
-		if (el.nodeType !== 1) {
-			console.log('Something wrong with edit form!');
-
-			return;
-		}
-
-		const form = el.closest('#adminForm');
-
-		// Form not found - an error occured.
-		if (!form) {
-			if (Jcomments.isIframe()) {
-				const frame = parent.document.querySelector('#editcomment');
-
-				if (frame) {
-					frame.remove();
-				} else {
-					// Maybe we in 'add comment' frame?
-					const frame = parent.document.querySelector('#addcomment');
-
-					if (frame) {
-						frame.remove();
-					}
-				}
-			} else {
-				const frame = parent.document.querySelector('#editcomment');
-
-				if (frame) {
-					frame.remove();
-				} else {
-					// Maybe we in 'add comment' frame?
-					const frame = parent.document.querySelector('#addcomment');
-
-					if (frame) {
-						frame.remove();
-					}
-				}
-			}
-
-			return;
-		}
-
-		let queryString = '',
-			commentId = parseInt(form.querySelector('#jform_comment_id').value, 10);
-
-		// Run ajax request to cancel edit(check in) only for edit form(not reply with quote).
-		if (!empty(commentId) && parseInt(Jcomments.queryString.get(document.location.href, 'quote'), 10) !== 1) {
-			queryString = Jcomments.queryString.init({
-				'task': 'comment.cancel',
-				[Joomla.getOptions('csrf.token')]: 1,
-				'comment_id': commentId
-			}).toString();
-
-			Joomla.request({
-				url: form.getAttribute('action') + '&format=json',
-				method: 'POST',
-				data: queryString
-			});
-		}
-
-		if (Jcomments.isIframe()) {
-			const frame = parent.document.querySelector('#editcomment');
-
-			if (frame) {
-				let commentDiv = !isNaN(commentId) ? parent.document.querySelector('#comment-item-' + commentId) : null;
-
-				// Maybe this is 'reply with quote' form
-				if (commentDiv === null) {
-					commentId = parseInt(form.querySelector('#jform_parent').value, 10);
-					commentDiv = !isNaN(commentId) ? parent.document.querySelector('#comment-item-' + commentId) : null;
-				}
-
-				if (commentDiv) {
-					Jcomments.scrollTop(
-						parent.window,
-						commentDiv.getBoundingClientRect().top + parent.window.pageYOffset - parent.document.documentElement.clientTop
-					);
-				}
-
-				frame.classList.add('d-none');
-				// Do not remove the iframe here as it will block ajax request.
-			}
-		} else {
-			el.closest('.btn-container').classList.add('d-none');
-		}
+	Jcomments.showAddForm = function () {
+		this.toggleCommentForm(true);
 	}
 
 	/**
@@ -648,7 +494,7 @@ Jcomments = window.Jcomments || {};
 	 * @method  Jcomments.showError
 	 * @return  {void}
 	 */
-	Jcomments.showError = function (response, selector) {
+	Jcomments.showError = function (response, selector, type) {
 		let _response;
 
 		if (typeof response === 'string') {
@@ -657,9 +503,13 @@ Jcomments = window.Jcomments || {};
 			_response = response;
 		}
 
+		if (empty(type)) {
+			type = 'warning';
+		}
+
 		Joomla.renderMessages(
 			{
-				'warning': [empty(_response) ? Joomla.Text._('ERROR') : (empty(_response.message) ? _response : _response.message)]
+				[type]: [empty(_response) ? Joomla.Text._('ERROR') : (empty(_response.message) ? _response : _response.message)]
 			},
 			selector
 		);
@@ -708,7 +558,7 @@ Jcomments = window.Jcomments || {};
 	 */
 	Jcomments.scrollTop = function (el, value) {
 		if (value === undefined) {
-			return el.pageYOffset;
+			return el.scrollY || el.pageYOffset;
 		} else {
 			// See https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 			if ((el === window || el === parent.window) || el.nodeType === 9) {
@@ -728,12 +578,14 @@ Jcomments = window.Jcomments || {};
 	 * @return  {object}  An object containing the properties top and left.
 	 */
 	Jcomments.offset = function (el) {
-		const box = el.getBoundingClientRect();
-		const docElem = document.documentElement;
+		const box = el.getBoundingClientRect(),
+			docElem = document.documentElement,
+			y_offset = window.scrollY || window.pageYOffset,
+			x_offset = window.scrollX || window.pageXOffset;
 
 		return {
-			top: box.top + window.pageYOffset - docElem.clientTop,
-			left: box.left + window.pageXOffset - docElem.clientLeft
+			top: box.top + y_offset - docElem.clientTop,
+			left: box.left + x_offset - docElem.clientLeft
 		};
 	}
 
@@ -741,64 +593,21 @@ Jcomments = window.Jcomments || {};
 	 * Set the current vertical position of the scroll bar for each of the set of matched elements by hash(element ID).
 	 *
 	 * @param   {string}  hash   ID of the element or string with hash
-	 * @param   {string}  taget  Target where to find element. Can be:
-	 *                           window - search in current window/document;
-	 *                           parent - search in parent window/document;
-	 *                           frame - search in iframe document. Default: window
 	 *
 	 * @method  Jcomments.scrollToByHash
 	 * @return  {void}
 	 */
-	Jcomments.scrollToByHash = function (hash, taget) {
+	Jcomments.scrollToByHash = function (hash) {
 		const hashPos = hash.indexOf('#');
 
 		if (hashPos > -1) {
 			hash = hash.split('#')[1];
 		}
 
-		if (taget === 'parent') {
-			// Search an element in parent document and scroll parent document to this position.
-			const el = parent.document.querySelector('#' + hash);
+		const el = document.querySelector('#' + hash);
 
-			if (el) {
-				Jcomments.scrollTop(
-					parent.window,
-					el.getBoundingClientRect().top + parent.window.pageYOffset - frameElement.clientTop
-				);
-			}
-		} else if (taget === 'frame') {
-			// Search an element in iframe document and scroll parent document to this position.
-			const el = document.querySelector('#' + hash),
-				iframe_el = parent.document.querySelector('#' + window.frameElement.id);
-
-			if (iframe_el) {
-				const iframe_el_pos = el.getBoundingClientRect().top;
-
-				Jcomments.scrollTop(
-					parent.window,
-					iframe_el.getBoundingClientRect().top + parent.window.pageYOffset - frameElement.clientTop + iframe_el_pos
-				);
-			}
-		} else {
-			const el = document.querySelector('#' + hash);
-
-			if (el) {
-				Jcomments.scrollTop(window, Jcomments.offset(el).top);
-			}
-		}
-	}
-
-	/**
-	 * Check if we are in iframe
-	 *
-	 * @method  Jcomments.isIframe
-	 * @return  {boolean}
-	 */
-	Jcomments.isIframe = function () {
-		try {
-			return window.self !== window.top;
-		} catch (e) {
-			return true;
+		if (el) {
+			Jcomments.scrollTop(window, Jcomments.offset(el).top);
 		}
 	}
 
@@ -824,21 +633,24 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Ban user.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
-	 * @param   {int}                id  Comment ID
+	 * @param   {Event} e Event
 	 *
-	 * @method  Jcomments.delete
-	 * @return  {void}
+	 * @method  Jcomments.banIP
+	 * @return  {boolean|null}
 	 */
-	Jcomments.banIP = function (el, id) {
+	Jcomments.banIP = function (e) {
+		e.preventDefault();
+
 		if (!confirm(Joomla.Text._('BUTTON_BANIP') + '?')) {
 			return false;
 		}
 
+		const _this = this, id = parseInt(this.closest('.comment').dataset.id, 10);
+
 		Joomla.request({
-			url: el.href + '&format=json&_=' + new Date().getTime(),
+			url: _this.dataset.url + '&format=json&_=' + new Date().getTime(),
 			onBefore: function () {
-				el.classList.add('pe-none');
+				_this.classList.add('pe-none');
 				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
@@ -847,19 +659,19 @@ Jcomments = window.Jcomments || {};
 				if (response !== false && response.success) {
 					Joomla.renderMessages({'message': [response.message]}, '#comment-item-' + id);
 					Jcomments.css(
-						Jcomments.prev(el, '.toolbar-button-ip'),
+						Jcomments.prev(_this, '.cmd-ip'),
 						'text-decoration',
 						'line-through'
 					).classList.add('link-secondary');
-					el.remove();
+					_this.remove();
 				}
 			},
 			onError: function (xhr) {
 				Jcomments.showError(xhr.response, '#comment-item-' + id);
 			},
 			onComplete: function () {
-				el.classList.remove('pe-none');
-				Jcomments.loader();
+				_this.classList.remove('pe-none');
+				Jcomments.loader(0);
 			}
 		});
 	}
@@ -867,21 +679,25 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Delete comment.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
-	 * @param   {int}                id  Comment ID
+	 * @param   {Event} e Event
 	 *
 	 * @method  Jcomments.delete
 	 * @return  {boolean|null}
 	 */
-	Jcomments.delete = function (el, id) {
+	Jcomments.delete = function (e) {
+		e.preventDefault();
+
 		if (!confirm(Joomla.Text._('BUTTON_DELETE_CONFIRM'))) {
 			return false;
 		}
 
+		const _this = this, id = parseInt(this.closest('.comment').dataset.id, 10);
+
 		Joomla.request({
-			url: el.href + '&format=json&_=' + new Date().getTime(),
+			url: _this.dataset.url + '&format=json&_=' + new Date().getTime(),
 			onBefore: function () {
-				el.classList.add('pe-none');
+				_this.classList.add('pe-none');
+				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
 				response = Jcomments.parseJson(response);
@@ -907,7 +723,8 @@ Jcomments = window.Jcomments || {};
 				Jcomments.showError(xhr.response, '#comment-item-' + id);
 			},
 			onComplete: function () {
-				el.classList.remove('pe-none');
+				_this.classList.remove('pe-none');
+				Jcomments.loader(0);
 			}
 		});
 	}
@@ -915,51 +732,95 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Report about the comment.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
+	 * @param   {Event}  e  Event
 	 *
 	 * @method  Jcomments.reportComment
 	 * @return  {void}
 	 */
-	Jcomments.reportComment = function (el) {
-		const reportModalEl = document.querySelector('#reportModal');
+	Jcomments.reportComment = function (e) {
+		e.preventDefault();
 
-		if (reportModalEl)
+		if (document.querySelector('#reportModal'))
 		{
 			const reportModal = new bootstrap.Modal('#reportModal');
 
-			document.querySelector('#reportFormFrame').setAttribute('src', el.href + '&_=' + new Date().getTime());
+			document.querySelector('#reportFormFrame').setAttribute('src', this.dataset.url + '&_=' + new Date().getTime());
 			reportModal.show(reportModal);
+		}
+	}
+
+	/**
+	 * "Show" reply form.
+	 *
+	 * @param   {Event}  e  Event
+	 *
+	 * @method  Jcomments.reply
+	 * @return  {void}
+	 */
+	Jcomments.reply = function (e) {
+		e.preventDefault();
+
+		if (!document.querySelector('#commentForm')) {
+			return;
+		}
+
+		const comment = this.closest('.comment'), parent_id = parseInt(comment.dataset.id, 10),
+			parent_input = document.querySelector('#jform_parent'),
+			form_container = document.querySelector('.form-comment-container'),
+			cancel_btn = document.querySelector('button[data-submit-task="comment.cancel"]');
+
+		if (parent_input && parent_id > 0) {
+			parent_input.value = parent_id;
+
+			if (document.getElementById('addcomment')) {
+				if (form_container.classList.contains('d-none')) {
+					Jcomments.scrollToByHash('#addcomment');
+					Jcomments.showAddForm();
+				} else {
+					Jcomments.scrollTop(window, Jcomments.offset(form_container).top);
+				}
+			} else {
+				Jcomments.scrollTop(window, Jcomments.offset(form_container).top);
+				Jcomments.showAddForm();
+			}
+
+			if (cancel_btn.classList.contains('d-none')) {
+				cancel_btn.classList.remove('d-none');
+			}
+
+			cancel_btn.setAttribute('data-cancel', 'cancelReply');
 		}
 	}
 
 	/**
 	 * Publish/unpublish comment.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
-	 * @param   {int}                id  Comment ID
+	 * @param   {Event}  e  Event
 	 *
 	 * @method  Jcomments.state
 	 * @return  {void}
 	 */
-	Jcomments.state = function (el, id) {
-		const comment = el.closest('div.comment');
+	Jcomments.state = function (e) {
+		e.preventDefault();
+
+		const comment = this.closest('.comment'), _this = this, id = parseInt(comment.dataset.id, 10);
 
 		Joomla.request({
-			url: el.href + '&format=json&_=' + new Date().getTime(),
+			url: _this.dataset.url + '&format=json&_=' + new Date().getTime(),
 			onBefore: function () {
-				el.classList.add('pe-none');
+				_this.classList.add('pe-none');
 				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
 				response = Jcomments.parseJson(response);
 
 				if (response !== false && response.success) {
-					el.title = response.data.title;
-					el.href = response.data.url;
+					_this.title = response.data.title;
+					_this.dataset.url = response.data.url;
 
-					const icon = el.querySelectorAll(':scope span')[0],
-						user_panel_links = el.closest('.comment-panels').querySelectorAll(':scope .user-panel a'),
-						pinned_header = comment.querySelectorAll(':scope .comment-pinned');
+					const icon = _this.querySelectorAll(':scope span')[0],
+						user_panel_links = _this.closest('.comment-panels').querySelectorAll(':scope .user-panel a'),
+						pinned_header = comment.querySelectorAll(':scope .comment-pinned-title');
 
 					if (response.data.current_state === 0) {
 						icon.classList.remove('icon-unpublish', 'link-secondary');
@@ -984,7 +845,7 @@ Jcomments = window.Jcomments || {};
 							const a = user_panel_links[key];
 
 							// Exclude toggle comment link from disabling pointer event
-							if (!a.classList.contains('toolbar-button-child-toggle')) {
+							if (!a.classList.contains('cmd-child-toggle')) {
 								if (response.data.current_state === 0) {
 									a.classList.add('pe-none');
 									a.setAttribute('aria-disabled', 'true');
@@ -1000,7 +861,7 @@ Jcomments = window.Jcomments || {};
 					const pinned_comment = document.querySelector('#comment-p-' + id);
 
 					if (pinned_comment) {
-						const pl_comment_header = pinned_comment.querySelectorAll(':scope .comment-pinned');
+						const pl_comment_header = pinned_comment.querySelectorAll(':scope .comment-pinned-title');
 
 						if (response.data.current_state === 0) {
 							pinned_comment.classList.add('bg-light', 'text-muted');
@@ -1024,8 +885,8 @@ Jcomments = window.Jcomments || {};
 				Jcomments.showError(xhr.response, '#comment-item-' + id);
 			},
 			onComplete: function () {
-				el.classList.remove('pe-none');
-				Jcomments.loader();
+				_this.classList.remove('pe-none');
+				Jcomments.loader(0);
 			}
 		});
 	}
@@ -1033,27 +894,31 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Subscribe to new comments.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
+	 * @param   {Event}  e  Event
 	 *
 	 * @method  Jcomments.subscribe
 	 * @return  {void}
 	 */
-	Jcomments.subscribe = function (el) {
-		const msg = '.comments-list-footer';
+	Jcomments.subscribe = function (e) {
+		e.preventDefault();
+
+		if (e.target.origin !== window.location.origin) return;
+
+		const _this = this, msg = '.comments-list-footer';
 
 		Joomla.request({
-			url: el.href + '&format=json&_=' + new Date().getTime(),
+			url: _this.href + '&format=json&_=' + new Date().getTime(),
 			onBefore: function () {
-				el.classList.add('pe-none');
+				_this.classList.add('pe-none');
 				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
 				response = Jcomments.parseJson(response);
 
 				if (response !== false && response.success) {
-					el.href = response.data.href;
-					el.title = response.data.title;
-					el.innerHTML = '<span aria-hidden="true" class="fa icon-mail me-1"></span>' + response.data.title;
+					_this.href = response.data.href;
+					_this.title = response.data.title;
+					_this.innerHTML = '<span aria-hidden="true" class="fa icon-mail me-1"></span>' + response.data.title;
 
 					Joomla.renderMessages({'message': [response.message]}, msg);
 				} else {
@@ -1064,8 +929,8 @@ Jcomments = window.Jcomments || {};
 				Jcomments.showError(xhr.response, msg);
 			},
 			onComplete: function () {
-				el.classList.remove('pe-none');
-				Jcomments.loader();
+				_this.classList.remove('pe-none');
+				Jcomments.loader(0);
 			}
 		});
 	}
@@ -1073,13 +938,15 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Toggle comments in tree mode.
 	 *
-	 * @param   {HTMLElement}  el  DOM element
+	 * @param   {Event}  e  Event
 	 *
-	 * @method  Jcomments.delete
+	 * @method  Jcomments.toggleComments
 	 * @return  {void}
 	 */
-	Jcomments.toggleComments = function (el) {
-		const span = el.querySelector(':scope > span'),
+	Jcomments.toggleComments = function (e) {
+		e.preventDefault();
+
+		const el = this, span = el.querySelector(':scope > span'),
 			list = Jcomments.next(el.closest('.comment-container'), '.comments-list-child');
 
 		if (list === null) {
@@ -1100,19 +967,53 @@ Jcomments = window.Jcomments || {};
 	}
 
 	/**
+	 * Toggle 'Add comment' form
+	 *
+	 * @method  Jcomments.toggleCommentForm
+	 * @return  {void}
+	 */
+	Jcomments.toggleCommentForm = function (onlyShow) {
+		const btn = document.querySelectorAll('.showform-btn-container'),
+			form = document.querySelectorAll('.form-comment-container')[0];
+
+		if (form) {
+			if (form.classList.contains('d-none')) {
+				form.classList.remove('d-none');
+				Jcomments.scrollToByHash('#addcomment');
+
+				if (btn.length > 0) {
+					btn[0].classList.add('d-none');
+				}
+			} else {
+				if (!onlyShow) {
+					form.classList.add('d-none');
+
+					if (btn.length > 0) {
+						btn[0].classList.remove('d-none');
+						Jcomments.scrollToByHash('#addcomment');
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Vote for comment.
 	 *
-	 * @param   {HTMLAnchorElement}  el  DOM element
-	 * @param   {int}                id  Comment ID
+	 * @param   {Event}  e  Event
 	 *
 	 * @method  Jcomments.vote
 	 * @return  {void}
 	 */
-	Jcomments.vote = function (el, id) {
+	Jcomments.vote = function (e) {
+		e.preventDefault();
+
+		const comment = this.closest('.comment'), _this = this, id = parseInt(comment.dataset.id, 10);
+
 		Joomla.request({
-			url: el.dataset.url + '&comment_id=' + id + '&format=json&_=' + new Date().getTime(),
+			url: _this.dataset.url + '&comment_id=' + id + '&format=json&_=' + new Date().getTime(),
 			onBefore: function () {
-				el.classList.add('pe-none');
+				_this.classList.add('pe-none');
 				Jcomments.loader(1);
 			},
 			onSuccess: function (response) {
@@ -1135,37 +1036,10 @@ Jcomments = window.Jcomments || {};
 				Jcomments.showError(xhr.response, '#comment-item-' + id);
 			},
 			onComplete: function () {
-				el.classList.remove('pe-none');
-				Jcomments.loader();
+				_this.classList.remove('pe-none');
+				Jcomments.loader(0);
 			}
 		});
-	}
-
-	/**
-	 * Create iframe html.
-	 *
-	 * @param   {HTMLElement|null}  el   Link tag with 'edit url' for iframe src attribute.
-	 * @param   {string|null}       url  Edit URL for iframe src attribute if 'el' not set.
-	 *
-	 * @method  Jcomments.createIframe
-	 * @return  {HTMLIFrameElement}
-	 */
-	Jcomments.createIframe = function (el, url) {
-		const randomArr = new Uint32Array(1),
-			iframeHtml = document.createElement('iframe');
-
-		self.crypto.getRandomValues(randomArr);
-
-		iframeHtml.setAttribute('width', '100%');
-		iframeHtml.setAttribute('onload', 'Jcomments.iframeHeight(this);');
-		iframeHtml.setAttribute('style', 'overflow: hidden; height: 0;');
-		iframeHtml.setAttribute('scrolling', 'no');
-		iframeHtml.setAttribute('class', 'commentEditFormFrame');
-		iframeHtml.setAttribute('id', 'editcomment');
-		iframeHtml.setAttribute('name', randomArr[0].toString());
-		iframeHtml.setAttribute('src', (el === null ? url : el.dataset.editUrl) + '&_=' + new Date().getTime());
-
-		return iframeHtml;
 	}
 
 	/**
@@ -1208,11 +1082,11 @@ Jcomments = window.Jcomments || {};
 		el.style.height = el.offsetHeight + 'px';
 		el.offsetHeight;
 		el.style.overflow = 'hidden';
-		el.style.height = 0;
-		el.style.paddingTop = 0;
-		el.style.paddingBottom = 0;
-		el.style.marginTop = 0;
-		el.style.marginBottom = 0;
+		el.style.height = '0px';
+		el.style.paddingTop = '0px';
+		el.style.paddingBottom = '0px';
+		el.style.marginTop = '0px';
+		el.style.marginBottom = '0px';
 
 		window.setTimeout(() => {
 			el.style.display = 'none';
@@ -1254,11 +1128,11 @@ Jcomments = window.Jcomments || {};
 		el.style.display = display;
 		const height = el.offsetHeight;
 		el.style.overflow = 'hidden';
-		el.style.height = 0;
-		el.style.paddingTop = 0;
-		el.style.paddingBottom = 0;
-		el.style.marginTop = 0;
-		el.style.marginBottom = 0;
+		el.style.height = '0px';
+		el.style.paddingTop = '0px';
+		el.style.paddingBottom = '0px';
+		el.style.marginTop = '0px';
+		el.style.marginBottom = '0px';
 		el.offsetHeight;
 		el.style.boxSizing = 'border-box';
 		el.style.transitionProperty = "height, margin, padding";
@@ -1415,7 +1289,7 @@ Jcomments = window.Jcomments || {};
 	/**
 	 * Test for object.
 	 *
-	 * @param   {mixed}  obj  Object to test.
+	 * @param   {HTMLElement|string|mixed}  obj  Object to test.
 	 *
 	 * @method  Jcomments.isObject
 	 * @return  {boolean}
@@ -1425,48 +1299,195 @@ Jcomments = window.Jcomments || {};
 
 		return type === 'function' || (type === 'object' && !!obj);
 	}
-}(Jcomments, document));
-
-((document, submitForm) => {
-	const buttonDataSelector = 'data-submit-task',
-		formId = 'adminForm';
 
 	/**
-	 * Submit the task
-	 * @param task
-	 * @param el
+	 * Attach an event handler function for event to the selected elements.
+	 *
+	 * @param   {HTMLElement}  el            DOM element.
+	 * @param   {string}       eventName     Event type.
+	 * @param   {function}     eventHandler  Event handler.
+	 * @param   {string}       selector      A selector string to filter the descendants of the selected elements that trigger the event.
+	 *
+	 * @method  Jcomments.on
+	 * @return  {function}
 	 */
-	const submitTask = (task, el) => {
-		const form = document.getElementById(formId);
-
-		if (task === 'comment.cancel' || document.formvalidator.isValid(form)) {
-			if (task === 'comment.cancel') {
-				if (el.dataset.cancel === 'hideEditForm') {
-					Jcomments.hideEditForm(document.querySelector('[data-submit-task="' + task + '"]'));
-				} else if (el.dataset.cancel === 'hideAddForm') {
-					Jcomments.hideAddForm();
+	Jcomments.on = function (el, eventName, eventHandler, selector) {
+		if (selector) {
+			const wrappedHandler = (e) => {
+				if (!e.target) return;
+				const el = e.target.closest(selector);
+				if (el) {
+					eventHandler.call(el, e);
 				}
-			} else {
-				const jce_config = Joomla.getOptions('jceditor');
+			};
+			el.addEventListener(eventName, wrappedHandler);
+			return wrappedHandler;
+		}
+	}
+}(Jcomments, document));
 
-				if (jce_config.editor_type === 'joomla' && jce_config.format === 'xhtml') {
-					submitForm(task, form);
+if (typeof Joomla !== 'undefined') {
+	((document, submitForm) => {
+		const buttonDataSelector = 'data-submit-task',
+			formId = 'commentForm';
+
+		/**
+		 * Submit the task
+		 * @param task
+		 * @param el
+		 */
+		const submitTask = (task, el) => {
+			const form = document.getElementById(formId),
+				view_name = Jcomments.queryString.get(window.location.href, 'view');
+
+			if (task === 'comment.cancel' || document.formvalidator.isValid(form)) {
+				if (!form.querySelector('input[name="' + Joomla.getOptions('csrf.token', '') + '"]')) {
+					let input = document.createElement('input');
+
+					input.setAttribute('type', 'hidden');
+					input.setAttribute('value', 1);
+					input.setAttribute('name', Joomla.getOptions('csrf.token', ''));
+					form.querySelector('fieldset').appendChild(input);
+				}
+
+				if (task === 'comment.cancel') {
+					if (view_name !== 'form' && el.dataset.cancel === 'hideAddForm') {
+						Jcomments.toggleCommentForm();
+					} else if (view_name !== 'form' && el.dataset.cancel === 'cancelReply') {
+						document.querySelector('#jform_parent').value = '0';
+						el.classList.add('d-none');
+						el.dataset.cancel = 'hideAddForm';
+					} else {
+						submitForm(task, form);
+					}
 				} else {
-					Jcomments.saveComment(el, !!(task === 'comment.preview'));
+					Jcomments.saveComment(el, task);
 				}
 			}
-		}
-	};
+		};
 
-	// Register events
-	document.addEventListener('DOMContentLoaded', () => {
-		const buttons = [].slice.call(document.querySelectorAll(`[${buttonDataSelector}]`));
+		// Register events
+		document.addEventListener('DOMContentLoaded', () => {
+			const buttons = [].slice.call(document.querySelectorAll(`[${buttonDataSelector}]`));
 
-		buttons.forEach(button => {
-			button.addEventListener('click', e => {
-				e.preventDefault();
-				submitTask(e.target.getAttribute(buttonDataSelector), e.target);
+			buttons.forEach(button => {
+				button.addEventListener('click', e => {
+					e.preventDefault();
+					submitTask(e.target.getAttribute(buttonDataSelector), e.target);
+				});
 			});
 		});
-	});
-})(document, Joomla.submitform);
+	})(document, Joomla.submitform);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+	const options = Joomla.getOptions('jcomments', ''),
+		container = document.querySelector('div.comments'),
+		addCommentForm = document.querySelector('#commentForm');
+
+	if (container && container.classList.contains('hasLoader')) {
+		// Load comments on document ready
+		let page = 0;
+
+		// Get limitstart value from query to load comments page
+		const searchParams = Jcomments.queryString.init(window.location.href),
+			paramName = options.pagination_prefix + 'limitstart';
+
+		if (searchParams.has(paramName) && searchParams.get(paramName)) {
+			page = searchParams.get(paramName);
+		}
+
+		Jcomments.loadComments(null, '', '', page, true);
+		// End
+	}
+
+	if (addCommentForm) {
+		if (window.location.hash === '#addcomment') {
+			Jcomments.scrollToByHash('#addcomment');
+		}
+	}
+
+	// Set the initial value of the height due to the fact that the 'iframe-height' script adds a new height to
+	// the current one. Current iframe content height + (20px or 60 px).
+	const report_iframe = document.querySelector('#reportFormFrame'),
+		subscribe_link = document.querySelector('.cmd-subscribe'),
+		comment_form = document.querySelector('#commentForm');
+
+	if (report_iframe) {
+		const report_loader = document.querySelector('.report-loader');
+
+		document.querySelector('#reportModal').addEventListener('hidden.bs.modal', function () {
+			report_iframe.style.height = 0;
+			Jcomments.getIframeContent(report_iframe).querySelector('body').remove();
+			report_loader.classList.remove('d-none');
+		});
+		document.querySelector('#reportModal').addEventListener('show.bs.modal', function () {
+			report_iframe.style.height = 0;
+		});
+		report_iframe.addEventListener('load', function () {
+			// Do not remove 'd-none' from classlist. Do it directly in iframe content in 'tmpl/form/report.php'
+			Jcomments.iframeHeight(report_iframe);
+		});
+	}
+
+	if (container) {
+		if (subscribe_link) {
+			subscribe_link.addEventListener('click', Jcomments.subscribe);
+		}
+
+		document.querySelectorAll('.refresh-list').forEach(function(el) {
+			if (el) {
+				el.addEventListener('click', Jcomments.loadComments);
+			}
+		});
+
+		if (options.template === 'list') {
+			Jcomments.on(container, 'click',
+				function (e) {
+					e.preventDefault();
+					Jcomments.loadComments(null, '', '', this.dataset.page, true, '#comments');
+				},
+				'.page-link.hasNav'
+			);
+		}
+
+		Jcomments.on(container, 'click',
+			function (e) {
+				e.preventDefault();
+				Jcomments.scrollToByHash(this.href);
+			},
+			'.permalink .comment-anchor'
+		);
+		Jcomments.on(container, 'click', Jcomments.parentComment, '.cmd-parent'); // TODO Not ready
+		Jcomments.on(container, 'click', Jcomments.vote, '.cmd-vote');
+		Jcomments.on(container, 'click', Jcomments.showEditForm, '.cmd-edit');
+		Jcomments.on(container, 'click', Jcomments.state, '.cmd-state');
+		Jcomments.on(container, 'click', Jcomments.pin, '.cmd-pin');
+		Jcomments.on(container, 'click', Jcomments.delete, '.cmd-delete');
+		Jcomments.on(container, 'click',
+			function (e) {
+				e.preventDefault();
+				Jcomments.openWindow(this.href, this.dataset.error);
+			},
+			'.cmd-ip'
+		);
+		Jcomments.on(container, 'click', Jcomments.banIP, '.cmd-ban');
+		Jcomments.on(container, 'click', Jcomments.reply, '.cmd-reply');
+		Jcomments.on(container, 'click', Jcomments.showEditForm, '.cmd-quote'); // TODO Not ready
+		Jcomments.on(container, 'click', Jcomments.reportComment, '.cmd-report');
+		Jcomments.on(container, 'click', Jcomments.toggleComments, '.cmd-child-toggle');
+	}
+
+	if (comment_form) {
+		const show_form_btn = document.querySelector('.cmd-showform');
+
+		if (show_form_btn) {
+			show_form_btn.addEventListener('click', function (e) {
+				e.preventDefault();
+				Jcomments.toggleCommentForm();
+			});
+		}
+
+		Jcomments.initEditorCharsCounter(comment_form);
+	}
+});

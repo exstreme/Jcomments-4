@@ -19,6 +19,7 @@ use Joomla\CMS\Event\AbstractEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Associations;
+use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\PluginHelper;
@@ -28,8 +29,10 @@ use Joomla\Component\Content\Site\Helper\RouteHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Database\ParameterType;
+use Joomla\Event\DispatcherInterface;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\IpHelper;
 
@@ -57,9 +60,14 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$app  = Factory::getApplication();
 		$user = $app->getIdentity();
 
-		if ($app->input->getString('layout', '') == 'report')
+		if ($app->input->getWord('layout', '') == 'report')
 		{
 			$form = $this->loadForm('com_jcomments.report', 'report', array('control' => 'jform', 'load_data' => false));
+
+			if (empty($form))
+			{
+				return false;
+			}
 
 			if ($user->get('guest'))
 			{
@@ -67,15 +75,15 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			}
 
 			$form->setValue('comment_id', '', $app->input->getInt('comment_id', 0));
+		}
+		else
+		{
+			$form = $this->loadForm('com_jcomments.comment', 'comment', array('control' => 'jform', 'load_data' => $loadData));
 
 			if (empty($form))
 			{
 				return false;
 			}
-		}
-		else
-		{
-			$form = parent::getForm($data, $loadData);
 
 			// Check if user can subscribe to comments update, set checkbox state and set email field to required.
 			if (JcommentsFactory::getACL()->canSubscribe())
@@ -113,10 +121,16 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	{
 		if (Factory::getApplication()->input->getInt('quote') == 1)
 		{
-			return $this->getQuotedItem();
+			$data = $this->getQuotedItem();
+		}
+		else
+		{
+			$data = $this->getItem();
 		}
 
-		return $this->getItem();
+		$this->preprocessData('com_jcomments.comment', $data);
+
+		return $data;
 	}
 
 	/**
@@ -136,28 +150,30 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$app         = Factory::getApplication();
 		$db          = $this->getDatabase();
 		$user        = $app->getIdentity();
+		$acl         = JcommentsFactory::getAcl();
+		$lang        = $app->getLanguage();
 		$params      = ComponentHelper::getParams('com_jcomments');
 		$objectGroup = $this->getState('object_group');
 		$objectId    = $this->getState('object_id');
 		$userId      = $user->get('id');
 
 		$query = $db->getQuery(true)
-			->select('c.*')
-			->select($db->quoteName('c.id', 'comment_id'))
-			->from($db->quoteName('#__jcomments', 'c'))
-			->where($db->quoteName('c.published') . ' = 1')
-			->where($db->quoteName('c.id') . ' = :cid')
-			->bind(':cid', $pk, ParameterType::INTEGER);
+			->select('*')
+			->select($db->quoteName('id', 'comment_id'))
+			->from($db->quoteName('#__jcomments'))
+			->where($db->quoteName('published') . ' = 1')
+			->where($db->quoteName('id') . ' = :id')
+			->bind(':id', $pk, ParameterType::INTEGER);
 
 		if ($objectId !== null)
 		{
-			$query->where($db->quoteName('c.object_id') . ' = :oid')
+			$query->where($db->quoteName('object_id') . ' = :oid')
 				->bind(':oid', $objectId, ParameterType::INTEGER);
 		}
 
 		if ($objectGroup !== null)
 		{
-			$query->where($db->quoteName('c.object_group') . ' = :ogroup')
+			$query->where($db->quoteName('object_group') . ' = :ogroup')
 				->bind(':ogroup', $objectGroup);
 		}
 
@@ -175,11 +191,14 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 
 			if (!$pk)
 			{
-				$result = (object) array();
+				// Create default table object to avoid errors about undefined variables.
+				/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $result */
+				$result = parent::getItem($pk);
+				$result->comment_id = $result->id;
 			}
 			else
 			{
-				$result->title   = StringHelper::trim($result->title);
+				$result->title = StringHelper::trim($result->title);
 
 				if ($params->get('editor_format') == 'bbcode')
 				{
@@ -202,6 +221,26 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			{
 				$result->terms_of_use = 0;
 			}
+
+			if ($acl->showPolicy())
+			{
+				$result->policy = JcommentsText::getMessagesBasedOnLanguage(
+					$params->get('messages_fields'),
+					'message_policy_post', $lang->getTag()
+				);
+			}
+			else
+			{
+				$result->policy = '';
+			}
+
+			$terms = JcommentsText::getMessagesBasedOnLanguage(
+				$params->get('messages_fields'),
+				'message_terms_of_use', $lang->getTag()
+			);
+			$result->terms        = !empty($terms) ? $terms : Text::_('FORM_ACCEPT_TERMS_OF_USE');
+			$result->object_id    = $objectId;
+			$result->object_group = $objectGroup;
 		}
 		catch (\RuntimeException $e)
 		{
@@ -236,6 +275,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			return $result;
 		}
 
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $result */
 		$result = $parentComment;
 
 		if ($params->get('editor_format') == 'bbcode')
@@ -301,16 +341,254 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	/**
 	 * Method to save the form data.
 	 *
-	 * @param   array  $data  The form data.
+	 * @param   array  $data  The form data filtered and validated.
 	 *
-	 * @return  boolean  True on success.
+	 * @return  array|boolean  Array with comment state on success, false otherwise.
 	 *
 	 * @throws  \Exception
 	 * @since   4.1
 	 */
 	public function save($data)
 	{
-		return parent::save($data);
+		$app    = Factory::getApplication();
+		$db     = $this->getDatabase();
+		$acl    = JcommentsFactory::getAcl();
+		$user   = $app->getIdentity();
+		$params = ComponentHelper::getParams('com_jcomments');
+		$lang   = $app->getLanguage()->getTag();
+		$id     = $app->input->post->getInt('comment_id');
+
+		// Check comment length after filtering
+		if ($data['comment'] == '')
+		{
+			$this->setError(Text::_('ERROR_EMPTY_COMMENT'));
+
+			return false;
+		}
+
+		// Set user real name to 'Guest' for all languages.
+		$data['name']      = empty($data['name']) ? 'Guest' : $data['name'];
+		$data['parent']    = $data['parent'] ?? 0;
+		$data['lang']      = $app->getLanguage()->getTag();
+		$data['ip']        = IpHelper::getIp();
+		$data['userid']    = $user->get('id') ? $user->get('id') : 0;
+		$data['date']      = Factory::getDate()->toSql();
+		$data['published'] = (int) $user->authorise('comment.autopublish', $this->option);
+
+		if ($params->get('editor_format') == 'bbcode')
+		{
+			$user                 = Factory::getApplication()->getIdentity();
+			$bbcode               = JcommentsFactory::getBbcode();
+			$commentWithoutQuotes = $bbcode->removeQuotes($data['comment']);
+
+			if ($commentWithoutQuotes == '')
+			{
+				$this->setError(Text::_('ERROR_NOTHING_EXCEPT_QUOTES'));
+
+				return false;
+			}
+			elseif (($params->get('comment_minlength') != 0)
+				&& (!$user->authorise('comment.length_check', 'com_jcomments'))
+				&& (StringHelper::strlen($commentWithoutQuotes) < $params->get('comment_minlength')))
+			{
+				$this->setError(Text::_('ERROR_YOUR_COMMENT_IS_TOO_SHORT'));
+
+				return false;
+			}
+		}
+
+		// Check for duplicate comment
+		$query = $db->getQuery(true)
+			->select('COUNT(*)')
+			->from($db->quoteName('#__jcomments'))
+			->where($db->quoteName('comment') . ' = ' . $db->quote($data['comment']))
+			->where($db->quoteName('ip') . ' = :ip')
+			->where($db->quoteName('name') . ' = ' . $db->quote($data['name']))
+			->where($db->quoteName('userid') . ' = :uid')
+			->where($db->quoteName('object_id') . ' = :oid')
+			->where($db->quoteName('parent') . ' = :parent')
+			->where($db->quoteName('object_group') . ' = ' . $db->quote($data['object_group']))
+			->bind(':ip', $data['ip'])
+			->bind(':uid', $data['userid'], ParameterType::INTEGER)
+			->bind(':oid', $data['object_id'], ParameterType::INTEGER)
+			->bind(':parent', $data['parent'], ParameterType::INTEGER);
+
+		if (Multilanguage::isEnabled())
+		{
+			$_lang = $db->quote($lang);
+			$query->where($db->quoteName('lang') . ' = :lang')
+				->bind(':lang', $_lang);
+		}
+
+		$db->setQuery($query);
+
+		try
+		{
+			$found = $db->loadResult();
+		}
+		catch (\RuntimeException $e)
+		{
+			$found = 0;
+			Log::add($e->getMessage(), Log::ERROR, 'com_jcomments');
+		}
+
+		if ($found != 0)
+		{
+			$this->setError(Text::_('ERROR_DUPLICATE_COMMENT'));
+
+			return false;
+		}
+
+		PluginHelper::importPlugin('jcomments');
+
+		$dispatcher = $this->getDispatcher();
+		$eventResults = $dispatcher->dispatch(
+			'onJcommentsCommentBeforeAdd',
+			AbstractEvent::create(
+				'onJcommentsCommentBeforeAdd',
+				array(
+					'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+					'subject' => $this, 'data' => $data
+				)
+			)
+		)->getArgument('result', array());
+
+		if (array_key_exists(0, $eventResults))
+		{
+			// If plugin method return 'false' this indicate about error.
+			if (in_array(false, $eventResults[0], true))
+			{
+				$this->setError(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+
+				return false;
+			}
+		}
+
+		if (!empty($id))
+		{
+			$merged = false;
+			$mergeTime = (int) $params->get('merge_time', 0);
+
+			// Merge comments from same author
+			if ($user->get('id') && $mergeTime > 0)
+			{
+				// Load previous comment for same object and group
+				$commentModel = $this->getMVCFactory()->createModel('Comment', 'Site', array('ignore_request' => true));
+				$prevComment = $commentModel->getLastComment($data['object_id'], $data['object_group'], $data['parent']);
+
+				if ($prevComment != null)
+				{
+					// If previous comment from same author and it currently not edited
+					// by any user - we'll update comment, else - insert new record to database
+					/*if (($prevComment->userid == $comment->userid)
+						&& ($prevComment->parent == $comment->parent)
+						&& (!$acl->isLocked($prevComment)))
+					{
+						$newText  = $prevComment->comment . '<br /><br />' . $comment->comment;
+						$timeDiff = strtotime($comment->date) - strtotime($prevComment->date);
+
+						if ($timeDiff < $mergeTime)
+						{
+							$maxlength = (int) $config->get('comment_maxlength');
+							$needcheck = !$user->authorise('comment.length_check', 'com_jcomments');
+
+							// Validate new comment text length and if it longer than specified -
+							// disable union current comment with previous
+							if (($needcheck == 0) || (($needcheck == 1) && ($maxlength != 0)
+									&& (StringHelper::strlen($newText) <= $maxlength)))
+							{
+								$comment->id      = $prevComment->id;
+								$comment->comment = $newText;
+								$merged           = true;
+							}
+						}
+					}
+
+					unset($prevComment);*/
+				}
+			}
+		}
+
+		//$result = parent::save($data);
+		$result = true;
+
+		if ($result)
+		{
+			if ($acl->canSubscribe())
+			{
+				$factory = $app->bootComponent('com_jcomments')->getMVCFactory();
+
+				/** @var \Joomla\Component\Jcomments\Site\Model\SubscriptionsModel $subscriptionsModel */
+				$subscriptionsModel = $factory->createModel('Subscriptions', 'Site', array('ignore_request' => true));
+
+				/** @var \Joomla\Component\Jcomments\Site\Model\SubscriptionModel $subscriptionModel */
+				$subscriptionModel = $factory->createModel('Subscription', 'Site', array('ignore_request' => true));
+
+				$subscribed = $subscriptionsModel->isSubscribed(
+					$data['object_id'],
+					$data['object_group'],
+					$user->get('id'),
+					$data['email']
+				);
+
+				if (!$subscribed && $data['subscribe'] == 1)
+				{
+					// Subscribe
+					$subsribeResult = $subscriptionModel->subscribe(
+						$data['object_id'],
+						$data['object_group'],
+						$user->get('id'),
+						$data['name'],
+						$data['email']
+					);
+
+					if ($subsribeResult)
+					{
+						$app->enqueueMessage(Text::_('SUCCESSFULLY_SUBSCRIBED'), 'success');
+					}
+				}
+				elseif ($subscribed && $data['subscribe'] == 0)
+				{
+					// Unsubscribe
+					$subsribeResult = $subscriptionModel->unsubscribe(
+						$data['object_id'],
+						$data['object_group'],
+						$user->get('id')
+					);
+
+					if ($subsribeResult)
+					{
+						$app->enqueueMessage(Text::_('SUCCESSFULLY_UNSUBSCRIBED'), 'success');
+					}
+				}
+			}
+		}
+		else
+		{
+			$this->setError(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
+
+			return false;
+		}
+
+		// Store/update information about commented object
+		$objectModel = $this->getMVCFactory()->createModel('Objects', 'Site', ['ignore_request' => true]);
+		$objectModel->save($data['object_id'], ObjectHelper::getObjectInfo($data['object_id'], $data['object_group'], $lang));
+
+		$dispatcher->dispatch(
+			'onJCommentsCommentAfterAdd',
+			AbstractEvent::create(
+				'onJCommentsCommentAfterAdd',
+				array(
+					'eventClass' => 'Joomla\Component\Jcomments\Site\Event\FormEvent',
+					'subject' => $this, 'data' => $data
+				)
+			)
+		);
+
+		echo '<pre>';
+		print_r($data);
+
+		//return array('state' => 0);
 	}
 
 	/**
@@ -333,7 +611,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$config = ComponentHelper::getParams('com_jcomments');
 		$ip     = IpHelper::getIp();
 
-		if ($app->input->getString('layout', '') == 'report')
+		if ($app->input->getWord('layout', '') == 'report')
 		{
 			// Check if comment not reported by user or IP
 			$query = $db->getQuery(true)
@@ -395,7 +673,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 				// Check only access rights
 				if (!$acl->canReport())
 				{
-					$this->setError(Text::_('ERROR_YOU_HAVE_NO_RIGHTS_TO_REPORT'));
+					$this->setError(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'));
 
 					return false;
 				}
@@ -526,7 +804,11 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		$this->setState('return_page', base64_decode($return));
 
 		$this->setState('object_group', $app->input->getCmd('object_group', $app->input->getCmd('option', 'com_content')));
-		$this->setState('object_id', $app->input->getInt('object_id', 0));
+
+		if ($app->input->getInt('object_id', 0) > 0)
+		{
+			$this->setState('object_id', $app->input->getInt('object_id', 0));
+		}
 
 		// Load the parameters.
 		$params = ComponentHelper::getParams('com_jcomments');
@@ -548,7 +830,10 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	protected function preprocessData($context, &$data, $group = 'content')
 	{
-		$data->name = $data->userid ? $data->username : $data->name;
+		$user         = Factory::getApplication()->getIdentity();
+		$data->name   = $data->userid ? $data->username : $data->name;
+		$data->email  = !empty($data->email) ? $data->email : $user->get('email');
+		$data->userid = !empty($data->userid) ? $data->userid : $user->get('id');
 
 		parent::preprocessData($context, $data, $group);
 	}
@@ -569,7 +854,7 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	{
 		$app = Factory::getApplication();
 
-		if ($app->input->getString('layout') == 'report')
+		if ($app->input->getWord('layout') == 'report')
 		{
 			$this->preprocessReportForm($form, $data, $group);
 		}
@@ -616,16 +901,19 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			($usernameMaxlength <= 0 || $usernameMaxlength > 255) ? 255 : $usernameMaxlength
 		);
 
-		if ($user->get('guest') && $params->get('author_name') != 0)
+		if ($params->get('author_name') != 0)
 		{
 			if ($user->get('guest') && $params->get('author_name') == 2)
 			{
-				$form->setFieldAttribute('name', 'required', true);
+				$form->setFieldAttribute('name', 'required', 'true');
 			}
-
-			if (!empty($data) && property_exists($data, 'id'))
+			else
 			{
-				$form->setFieldAttribute('name', 'disabled', true);
+				if (!empty($data->comment_id))
+				{
+					// Disable field for registered user while editing comment.
+					$form->setFieldAttribute('name', 'disabled', 'true');
+				}
 			}
 		}
 		else
@@ -633,19 +921,19 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			$form->removeField('name');
 		}
 
-		// Ugly checks if user can subscibe we will always require email field, except for registered where predefined
+		// Ugly checks if user can subscibe, we will always require email field, except for registered where predefined
 		// value is set and field set to readonly.
 		if ($user->get('guest') && $params->get('author_email') != 0)
 		{
 			if ($user->get('guest') && $params->get('author_email') == 2)
 			{
-				$form->setFieldAttribute('email', 'required', true);
+				$form->setFieldAttribute('email', 'required', 'true');
 			}
 
 			// Do not change original email from comment while editing by guest
-			if (!empty($data) && property_exists($data, 'id'))
+			if (isset($data->comment_id))
 			{
-				$form->setFieldAttribute('email', 'readonly', true);
+				$form->setFieldAttribute('email', 'readonly', 'true');
 			}
 		}
 		else
@@ -653,15 +941,17 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			// Check if registered user can subscribe
 			if ($acl->canSubscribe())
 			{
-				$form->setValue('email', '', $user->get('email'));
-				$form->setFieldAttribute('email', 'required', true);
-				$form->setFieldAttribute('email', 'readonly', true);
+				if (!$user->get('isRoot'))
+				{
+					$form->setFieldAttribute('email', 'required', 'true');
+					$form->setFieldAttribute('email', 'readonly', 'true');
+				}
 			}
 			else
 			{
 				if ($user->authorise('comment.subscribe', $this->option))
 				{
-					$form->setFieldAttribute('email', 'required', true);
+					$form->setFieldAttribute('email', 'required', 'true');
 				}
 				else
 				{
@@ -679,7 +969,10 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			|| ($params->get('author_homepage') == 2 && $user->get('guest'))
 		)
 		{
-			$form->setFieldAttribute('homepage', 'required', true);
+			if (!$user->get('isRoot'))
+			{
+				$form->setFieldAttribute('homepage', 'required', 'true');
+			}
 		}
 		// Optional for guests, disabled for registered.
 		elseif ($params->get('author_homepage') == 5)
@@ -697,7 +990,10 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 
 		if ($params->get('comment_title') == 3)
 		{
-			$form->setFieldAttribute('title', 'required', true);
+			if (!$user->get('isRoot'))
+			{
+				$form->setFieldAttribute('title', 'required', 'true');
+			}
 		}
 		elseif ($params->get('comment_title') == 0)
 		{
@@ -711,10 +1007,11 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		}
 		else
 		{
-			$form->setFieldAttribute('email', 'required', true);
+			$form->setFieldAttribute('email', 'required', 'true');
 		}
 
-		if ($acl->showTermsOfUse())
+		// It is False to show input
+		if (!$user->authorise('comment.terms_of_use', $this->option))
 		{
 			$articleId = JcommentsText::getMessagesBasedOnLanguage(
 				$params->get('messages_fields'),
@@ -751,8 +1048,8 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 						if (!empty($articleLink))
 						{
 							$articleLink = Route::_($articleLink . '&tmpl=component');
-							$required = $form->getFieldAttribute('terms_of_use', 'required') ? 'required' : '';
-							$label = $form->getFieldAttribute('terms_of_use', 'label');
+							$required    = $form->getFieldAttribute('terms_of_use', 'required') ? 'required' : '';
+							$label       = $form->getFieldAttribute('terms_of_use', 'label');
 
 							$form->setFieldAttribute(
 								'terms_of_use',
@@ -776,10 +1073,10 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		}
 
 		// Disable some fields for registered users while editing existing records. Super user can change values of these fields.
-		if (!empty($data->id) && !$user->get('isRoot'))
+		if (!empty($data->comment_id) && !$user->get('isRoot'))
 		{
-			$form->setFieldAttribute('name', 'disabled', true);
-			$form->setFieldAttribute('email', 'disabled', true);
+			$form->setFieldAttribute('name', 'disabled', 'true');
+			$form->setFieldAttribute('email', 'disabled', 'true');
 		}
 
 		$form->setFieldAttribute(
@@ -788,8 +1085,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			$user->authorise('comment.length_check', $this->option) ? 0 : $params->get('comment_maxlength')
 		);
 
-		$form->setValue('userid', '', $user->get('id'));
-
 		if (!$acl->canPin)
 		{
 			$form->removeField('pinned');
@@ -797,18 +1092,21 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		else
 		{
 			// Check state only on edit comment and if not allready pinned
-			if (!empty($data->id))
+			if (!empty($data->comment_id))
 			{
-				// Check for allready pinned comments. Only max 3 pinned comments allowed per object.
+				// Check for allready pinned comments. Only 'max_pinned' pinned comments allowed per object.
 				$totalPinned = $this->getTotalPinned($data->object_id, $data->object_group);
 				$totalCommentsByObject = ObjectHelper::getTotalCommentsForObject($data->object_id, $data->object_group, 1, 0);
 
 				// Allow pinning for a user with rights, even if pinning is prohibited.
-				$maxPinned = $params->get('max_pinned') == 0 ? 1 : $params->get('max_pinned');
+				$maxPinned = $params->get('max_pinned') == 0 || $user->get('isRoot') ? 1 : $params->get('max_pinned');
 
 				if ($totalPinned >= $maxPinned || $totalPinned >= ($totalCommentsByObject - 1))
 				{
-					$form->removeField('pinned');
+					if (!$user->get('isRoot'))
+					{
+						$form->removeField('pinned');
+					}
 				}
 				else
 				{
@@ -879,5 +1177,110 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	public function getTable($name = 'Comment', $prefix = 'Administrator', $options = array())
 	{
 		return parent::getTable($name, $prefix, $options);
+	}
+
+	/**
+	 * Method to validate the form data.
+	 *
+	 * @param   Form    $form   The form to validate against.
+	 * @param   array   $data   The data to validate.
+	 * @param   string  $group  The name of the field group to validate.
+	 *
+	 * @return  array|boolean  Array of filtered data if valid, false otherwise.
+	 *
+	 * @see     FormRule
+	 * @see     InputFilter
+	 * @since   1.6
+	 */
+	public function validate($form, $data, $group = null)
+	{
+		$app    = Factory::getApplication();
+		$user   = $app->getIdentity();
+		$params = ComponentHelper::getParams('com_jcomments');
+
+		if ($app->input->getWord('layout') == 'report')
+		{
+			return parent::validate($form, $data, $group);
+		}
+
+		/** @var \Joomla\Component\Jcomments\Site\Model\CommentModel $commentModel */
+		$commentModel = $this->getMVCFactory()->createModel('Comment', 'Site');
+
+		// Validate 'name' field only for new comment. If variable is not set, check it later in parent method for empty value.
+		if (empty($app->input->getInt('comment_id')) && $params->get('author_name') != 0 && isset($data['name']))
+		{
+			if ($commentModel->isRegisteredUsername($data['name']))
+			{
+				$this->setError(Text::_('ERROR_NAME_EXISTS'));
+
+				return false;
+			}
+			elseif ($commentModel->checkIsForbiddenUsername($data['name']))
+			{
+				$this->setError(Text::_('ERROR_FORBIDDEN_NAME'));
+
+				return false;
+			}
+			elseif (preg_match('/[\"\'\[\]\=\<\>\(\)\;]+/', $data['name']))
+			{
+				$this->setError(Text::_('ERROR_INVALID_NAME'));
+
+				return false;
+			}
+			elseif (($params->get('username_maxlength') != 0)
+				&& (StringHelper::strlen($data['name']) > $params->get('username_maxlength')))
+			{
+				$this->setError(Text::_('ERROR_TOO_LONG_USERNAME'));
+
+				return false;
+			}
+		}
+
+		if (empty($app->input->getInt('comment_id')) && $params->get('author_email') != 0 && isset($data['email']))
+		{
+			if (($params->get('author_email') != 0) && $commentModel->isRegisteredEmail($data['email']) == 1)
+			{
+				$this->setError(Text::_('ERROR_EMAIL_EXISTS'));
+
+				return false;
+			}
+		}
+
+		if (!$user->authorise('comment.terms_of_use', $this->option))
+		{
+			if ($form->getFieldAttribute('terms_of_use', 'required') && (int) $data['terms_of_use'] == 0)
+			{
+				$this->setError(Text::sprintf('ERROR_TERMS_OF_USE', $form->getFieldAttribute('terms_of_use', 'label')));
+
+				return false;
+			}
+		}
+
+		if (($params->get('comment_maxlength') != 0)
+			&& (!$user->authorise('comment.length_check', $this->option))
+			&& (StringHelper::strlen($data['comment']) > $params->get('comment_maxlength')))
+		{
+			$this->setError(Text::_('ERROR_YOUR_COMMENT_IS_TOO_LONG'));
+
+			return false;
+		}
+
+		if (($params->get('comment_minlength') != 0)
+			&& (!$user->authorise('comment.length_check', $this->option))
+			&& (StringHelper::strlen($data['comment']) < $params->get('comment_minlength')))
+		{
+			$this->setError(Text::_('ERROR_YOUR_COMMENT_IS_TOO_SHORT'));
+
+			return false;
+		}
+
+		if ((isset($data['subscribe']) && $data['subscribe'] == 1) && $data['email'] == '')
+		{
+			$this->setError(Text::_('ERROR_SUBSCRIPTION_EMAIL'));
+
+			return false;
+		}
+
+		return parent::validate($form, $data, $group);
 	}
 }

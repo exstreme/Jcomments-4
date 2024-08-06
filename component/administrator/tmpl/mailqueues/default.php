@@ -16,6 +16,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\String\PunycodeHelper;
 
 /** @var Joomla\Component\Jcomments\Administrator\View\Mailqueues\HtmlView $this */
 
@@ -83,7 +84,7 @@ $listDirection = $this->escape($this->state->get('list.direction'));
 									<?php echo $this->escape($item->name); ?>
 								</td>
 								<td class="small d-md-table-cell">
-									<?php echo $this->escape($item->email); ?>
+									<?php echo $this->escape(PunycodeHelper::emailToUTF8($item->email)); ?>
 								</td>
 								<td class="small d-md-table-cell">
 									<?php echo $this->escape($item->subject); ?>

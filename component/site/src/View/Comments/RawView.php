@@ -20,6 +20,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Response\JsonResponse;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Jcomments\Site\Helper\ContentHelper as JcommentsContentHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsTree;
@@ -34,7 +35,7 @@ use Joomla\Event\DispatcherInterface;
 class RawView extends BaseHtmlView
 {
 	/**
-	 * @var  \stdClass[]  The comments array
+	 * @var  \stdClass[]  The comments
 	 * @since  4.1
 	 */
 	protected $items = null;
@@ -68,6 +69,12 @@ class RawView extends BaseHtmlView
 	 * @since  4.1
 	 */
 	protected $objectID = 0;
+
+	/**
+	 * @var    object  Object info
+	 * @since  4.1
+	 */
+	protected $objectInfo = null;
 
 	/**
 	 * @var    string  Comments list template view
@@ -108,8 +115,12 @@ class RawView extends BaseHtmlView
 		// Import plugins due the view called not from controller but from other plugin.
 		PluginHelper::importPlugin('jcomments', null, true, $dispatcher);
 
-		$objectInfo = ObjectHelper::getObjectInfoFromPlugin($this->objectID, $this->objectGroup);
-		$rows = $this->get('Items');
+		$this->objectInfo = ObjectHelper::getObjectInfo($this->objectID, $this->objectGroup);
+		$rows             = $this->get('Items');
+		$returnUrl        = base64_encode(
+			Uri::getInstance()->toString(array('scheme', 'user', 'pass', 'host', 'port'))
+			. $this->objectInfo->object_link
+		);
 
 		if (count($errors = $this->get('Errors')))
 		{
@@ -118,7 +129,7 @@ class RawView extends BaseHtmlView
 			$app->close();
 		}
 
-		if (!in_array($objectInfo->object_access, $user->getAuthorisedViewLevels()))
+		if (!in_array($this->objectInfo->object_access, $user->getAuthorisedViewLevels()))
 		{
 			echo new JsonResponse(null, Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE'), true);
 
@@ -145,6 +156,8 @@ class RawView extends BaseHtmlView
 					{
 						$row->commentData->set('number', '');
 					}
+
+					$row->returnUrl = $returnUrl;
 
 					if ($allowPinnedList && $row->pinned == 1 && $row->deleted == 0)
 					{
@@ -191,6 +204,7 @@ class RawView extends BaseHtmlView
 				{
 					// Run autocensor, replace quotes, smilies and other pre-view processing
 					JcommentsContentHelper::prepareComment($row);
+					$row->returnUrl = $returnUrl;
 
 					if (isset($row->_number))
 					{
@@ -236,6 +250,7 @@ class RawView extends BaseHtmlView
 					{
 						// Run autocensor, replace quotes, smilies and other pre-view processing
 						JcommentsContentHelper::prepareComment($v);
+						$v->returnUrl = $returnUrl;
 
 						if (isset($items[$v->id]))
 						{
@@ -302,7 +317,7 @@ class RawView extends BaseHtmlView
 				'onPrepareAvatars',
 				AbstractEvent::create(
 					'onPrepareAvatars',
-					array('subject' => new \stdClass, $data['rows'])
+					array('subject' => new \stdClass, 'items' => $data['rows'])
 				)
 			);
 		}

@@ -20,6 +20,7 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\String\PunycodeHelper;
 use Joomla\Component\Jcomments\Site\Helper\CacheHelper;
 use Joomla\Component\Jcomments\Site\Helper\NotificationHelper;
 use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
@@ -185,7 +186,31 @@ class CommentModel extends AdminModel
 
 		if (empty($data))
 		{
+			/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $data */
 			$data = $this->getItem();
+
+			$bbcode = JcommentsFactory::getBbcode();
+
+			foreach ($bbcode->getPattern('email') as $pattern)
+			{
+				$data->comment = preg_replace_callback(
+					$pattern,
+					function ($matches)
+					{
+						return (string) str_replace($matches[1], PunycodeHelper::emailToUTF8($matches[1]), $matches[0]);
+					},
+					$data->comment
+				);
+			}
+
+			$data->comment = preg_replace_callback(
+				$bbcode->getPattern('url'),
+				function ($matches)
+				{
+					return (string) str_replace($matches[1], PunycodeHelper::urlToUTF8($matches[1]), $matches[0]);
+				},
+				$data->comment
+			);
 
 			// In wysiwyg editor <br> must be replaced by new line.
 			$data->comment = JcommentsText::br2nl($data->comment);
@@ -399,11 +424,13 @@ class CommentModel extends AdminModel
 			$user             = $userFactory->loadUserById($data['userid']);
 			$data['name']     = $user->name;
 			$data['username'] = $user->username;
-			$data['email']    = $user->email;
+			$data['email']    = empty($data['email']) ? $user->email : $data['email'];
 		}
 
-		$data['title']   = $db->escape($data['title']);
-		$data['comment'] = JcommentsText::nl2br($data['comment']);
+		$data['homepage'] = $db->escape(PunycodeHelper::urlToPunycode($data['homepage']));
+		$data['email']    = $db->escape(PunycodeHelper::emailToPunycode($data['email']));
+		$data['title']    = $db->escape($data['title']);
+		$data['comment']  = JcommentsText::nl2br($data['comment']);
 
 		if ($data['date'] == $this->getDatabase()->getNullDate() || empty($data['date']))
 		{
