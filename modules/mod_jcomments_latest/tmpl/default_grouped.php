@@ -13,6 +13,9 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
+
 
 /** @var object $params */
 /** @var object $list */
@@ -25,7 +28,7 @@ use Joomla\CMS\Language\Text;
 			<div class="d-flex justify-content-between">
 				<h<?php echo $itemHeading; ?> class="mb-1 w-75 text-truncate">
 					<?php if ($params->get('link_object_title', 1) && $group[0]->object_link != ''): ?>
-						<a href="<?php echo $group[0]->object_link;?>"><?php echo $groupName; ?></a>
+						<a href="<?php echo Route::_(URI::base() . ltrim($group[0]->object_link, '/'));?>"><?php echo $groupName; ?></a>
 					<?php else: ?>
 						<?php echo $groupName; ?>
 					<?php endif; ?>

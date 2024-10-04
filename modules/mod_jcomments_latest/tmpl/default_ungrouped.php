@@ -26,7 +26,7 @@ use Joomla\CMS\Language\Text;
 				<div class="d-flex justify-content-between">
 					<h<?php echo $itemHeading; ?> class="mb-1 w-75 text-truncate">
 						<?php if ($params->get('link_object_title', 1) && $item->object_link != ''): ?>
-							<a href="<?php echo $item->object_link;?>"><?php echo $item->displayObjectTitle; ?></a>
+							<a href="<?php echo Route::_(URI::base() . ltrim($group[0]->object_link, '/'));?>"><?php echo $item->displayObjectTitle; ?></a>
 						<?php else: ?>
 							<?php echo $item->displayObjectTitle; ?>
 						<?php endif; ?>
