@@ -62,7 +62,7 @@ use Joomla\CMS\Language\Text;
 								<?php endif; ?>
 							</p>
 
-							<?php if (!$params->get('show_comment_title') && $params->get('show_comment_date')): ?>
+							<?php if (!($params->get('show_comment_title') && $item->displayCommentTitle) && $params->get('show_comment_date')): ?>
 								<small>
 									<?php if ($params->get('date_type') == 'absolute'): ?>
 										<span class="icon-calendar icon-fw" aria-hidden="true"></span>
