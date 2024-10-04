@@ -126,6 +126,7 @@ class LatestCommentsHelper
 			{
 				$query->where($db->qn('content.catid') . ' IN (' . implode(',', $categories) . ')');
 			}
+			$query->where($db->qn('cat.access') . ' IN (' . implode(',', $access) . ')');
 		}
 		elseif (count($source))
 		{
