@@ -371,6 +371,22 @@ class JCommentsAJAX
 							}
 
 							break;
+						case 'turnstile':
+							PluginHelper::importPlugin('captcha', 'turnstile');
+
+							try
+							{
+								$app->triggerEvent('onCheckAnswer', array($app->input->getCmd('turnstile')));
+							}
+							catch (Exception $e)
+							{
+								self::showErrorMessage($e->getMessage());
+								$response->addScript("turnstile.reset()");
+
+								return $response;
+							}
+
+							break;
 						default:
 							$result = JCommentsEvent::trigger('onJCommentsCaptchaVerify', array($values['captcha_refid'], &$response));
 
@@ -594,6 +610,10 @@ class JCommentsAJAX
 							{
 								$response->addScript("grecaptcha.reset()");
 							}
+							elseif ($config->get('captcha_engine', 'kcaptcha') == 'turnstile')
+							{
+								$response->addScript("turnstile.reset()");
+							}
 							elseif ($config->get('captcha_engine', 'kcaptcha') == 'hcaptcha')
 							{
 								$response->addScript("hcaptcha.reset()");
@@ -711,6 +731,10 @@ class JCommentsAJAX
 						elseif ($config->get('captcha_engine', 'kcaptcha') == 'recaptcha')
 						{
 							$response->addScript("grecaptcha.reset();");
+						}
+						elseif ($config->get('captcha_engine', 'kcaptcha') == 'turnstile')
+						{
+							$response->addScript("turnstile.reset();");
 						}
 						elseif ($config->get('captcha_engine', 'kcaptcha') == 'hcaptcha')
 						{

@@ -12,7 +12,6 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Captcha\Captcha;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
 /** @var JoomlaTuneTemplate $displayData */
@@ -167,6 +166,11 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 			{
 				$hcaptcha = Captcha::getInstance($html, array('namespace' => 'jcomments'));
 				echo $hcaptcha->display('hcaptcha', 'dynamic_hcaptcha_1', 'hcaptcha');
+			}
+            elseif ($html == 'turnstile')
+			{
+				$turnstile = Captcha::getInstance($html, array('namespace' => 'jcomments'));
+				echo $turnstile->display('turnstile', 'dynamic_turnstile_1', 'turnstile');
 			}
 		endif; ?>
 
