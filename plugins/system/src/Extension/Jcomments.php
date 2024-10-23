@@ -22,6 +22,9 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\Component\Jcomments\Site\Helper\ComponentHelper as JcommentsComponentHelper;
 use Joomla\Event\DispatcherInterface;
+use Joomla\Event\Event;
+use Joomla\Event\EventInterface;
+use Joomla\Event\SubscriberInterface;
 use Joomla\Http\Exception\InvalidResponseCodeException;
 use Joomla\Registry\Registry;
 
@@ -30,7 +33,7 @@ use Joomla\Registry\Registry;
  *
  * @since 1.5
  */
-final class Jcomments extends CMSPlugin
+final class Jcomments extends CMSPlugin implements SubscriberInterface
 {
 	/**
 	 * Application object.
@@ -39,6 +42,38 @@ final class Jcomments extends CMSPlugin
 	 * @since  3.8.0
 	 */
 	protected $app;
+
+	/**
+	 * Should I try to detect and register legacy event listeners, i.e. methods which accept unwrapped arguments? While
+	 * this maintains a great degree of backwards compatibility to Joomla! 3.x-style plugins it is much slower. You are
+	 * advised to implement your plugins using proper Listeners, methods accepting an AbstractEvent as their sole
+	 * parameter, for best performance. Also bear in mind that Joomla! 5.x onwards will only allow proper listeners,
+	 * removing support for legacy Listeners.
+	 *
+	 * @var    boolean
+	 * @since  4.0.0
+	 *
+	 * @deprecated  4.3 will be removed in 6.0
+	 */
+	protected $allowLegacyListeners = false;
+
+	/**
+	 * Returns an array of events this subscriber will listen to.
+	 *
+	 * @return  array
+	 *
+	 * @since   5.0.0
+	 */
+	public static function getSubscribedEvents(): array
+	{
+		return array(
+			'onAfterRender'               => 'onAfterRender',
+			'onBeforeCompileHead'         => 'onBeforeCompileHead',
+			'onJcommentsShow'             => 'onJcommentsShow',
+			'onJcommentsCount'            => 'onJcommentsCount',
+			'onJcommentsCommentBeforeAdd' => 'onJcommentsCommentBeforeAdd'
+		);
+	}
 
 	/**
 	 * Constructor
@@ -106,114 +141,38 @@ final class Jcomments extends CMSPlugin
 	 * @since   4.1
 	 * @noinspection PhpUnused
 	 */
-	public function onBeforeRender()
+	public function onBeforeCompileHead()
 	{
-		$document = $this->app->getDocument();
-
-		if ($document->getType() != 'html')
+		if ($this->app->getDocument()->getType() == 'html')
 		{
-			return;
-		}
+			$option = $this->app->input->get('option');
 
-		$option = $this->app->input->get('option');
-
-		if ($this->app->isClient('site') && ($option == 'com_content' || $option == 'com_multicategories'))
-		{
-			JcommentsComponentHelper::loadComponentAssets();
+			if ($this->app->isClient('site') && ($option == 'com_content' || $option == 'com_multicategories')
+				&& $this->app->input->get('layout') != 'edit')
+			{
+				JcommentsComponentHelper::loadComponentAssets();
+			}
 		}
 	}
 
 	/**
-	 * @param   integer  $objectId     Object ID
-	 * @param   string   $objectGroup  Object group. E.g. com_content
-	 * @param   string   $objectTitle  Object title. Used in RSS and Atom feed.
+	 * Do spam checks before comment add.
+	 * Return event result as array(true) if not a spam.
+	 *
+	 * @param   Event  $event  The event
 	 *
 	 * @return  void
-	 *
-	 * @throws  \Exception
-	 * @since   1.5
-	 */
-	public function onJcommentsShow(int $objectId, string $objectGroup, string $objectTitle)
-	{
-		// Only one copy of JComments per page is allowed
-		if (defined('JCOMMENTS_SHOW'))
-		{
-			return;
-		}
-
-		JcommentsComponentHelper::loadComponentAssets();
-
-		$basePath = JPATH_ROOT . '/components/com_jcomments';
-		$view = JcommentsComponentHelper::getView(
-			'Comments',
-			'Site',
-			'Html',
-			// View config
-			array('base_path' => $basePath, 'template_path' => $basePath . '/tmpl/comments/'),
-			true,
-			// Model config. NOTE! Do not set up `ignore_request` in this because component params will be empty in view when calling getState()
-			array(
-				'name'      => 'Comments',
-				'prefix'    => 'Site',
-				'base_path' => $basePath,
-				'options'   => array(
-					'object_id'    => $objectId,
-					'object_group' => $objectGroup,
-					'object_title' => $objectTitle
-				)
-			)
-		);
-
-		ob_start();
-
-		$view->display();
-		$output = ob_get_contents();
-
-		ob_end_clean();
-
-		define('JCOMMENTS_SHOW', 1);
-
-		echo $output;
-	}
-
-	/**
-	 * Get total comments for object
-	 *
-	 * @param   integer      $objectId     Object ID
-	 * @param   string       $objectGroup  Object group. E.g. com_content
-	 * @param   string|null  $lang         Language tag
-	 *
-	 * @return  void
-	 *
-	 * @since   1.5
-	 */
-	public function onJcommentsCount(int $objectId, string $objectGroup, ?string $lang = null)
-	{
-		/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
-		$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
-			->createModel('Comments', 'Site', array('ignore_request' => true));
-
-		$model->setState('object_id', $objectId);
-		$model->setState('object_group', $objectGroup);
-		$model->setState('list.options.lang', $lang);
-
-		echo (int) $model->getTotal();
-	}
-
-	/**
-	 * Do spam checks before comment add. Available only on frontend.
-	 *
-	 * @param   string  $ip  IP from comment
-	 *
-	 * @return  boolean  False if IP in spam database, true otherwise.
 	 *
 	 * @see     https://www.stopforumspam.com/usage
 	 * @since   4.0.23
 	 * @noinspection PhpUnused
 	 */
-	public function onJcommentsCommentBeforeAdd(string $ip): bool
+	public function onJcommentsCommentBeforeAdd(Event $event): void
 	{
 		$params = ComponentHelper::getParams('com_jcomments');
+		$data   = $event->getArgument('data');
+		$ip     = $data['ip'];
+		$result = true;
 
 		if ($params->get('stopforumspam', 0) == 1)
 		{
@@ -235,7 +194,7 @@ final class Jcomments extends CMSPlugin
 						Factory::getApplication()->enqueueMessage(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'error');
 						Log::add('Spammer(by StopForumSpam) from IP ' . $ip . ' is trying to send comment.', Log::ERROR, 'com_jcomments');
 
-						return false;
+						$result = false;
 					}
 				}
 			}
@@ -245,6 +204,100 @@ final class Jcomments extends CMSPlugin
 			}
 		}
 
-		return true;
+		$event->setArgument('result', array(array($result)));
+	}
+
+	/**
+	 * Get total comments for object
+	 *
+	 * @param   EventInterface  $event  The event
+	 *
+	 * @return  void
+	 *
+	 * @since   1.5
+	 */
+	public function onJcommentsCount(EventInterface $event)
+	{
+		/** @var \Joomla\Component\Jcomments\Site\Model\CommentsModel $model */
+		$model = $this->app->bootComponent('com_jcomments')->getMVCFactory()
+			->createModel('Comments', 'Site', array('ignore_request' => true));
+
+		$model->setState('object_id', $event->getArgument('object_id', $this->app->input->getInt('object_id')));
+		$model->setState('object_group', $event->getArgument('object_group', $this->app->input->getCmd('object_group', 'com_content')));
+		$model->setState('list.options.lang', $event->getArgument('lang'));
+
+		$event->setArgument('result', array(array((int) $model->getTotal())));
+	}
+
+	/**
+	 * Show comments with form.
+	 *
+	 * Example usage:
+	 * $evt = Factory::getApplication()->getDispatcher()->dispatch(
+	 *     'onJcommentsShow',
+	 *     \Joomla\CMS\Event\AbstractEvent::create(
+	 *         'onJcommentsShow',
+	 *         array(
+	 *             'eventClass' => 'Joomla\CMS\Event\Event',
+	 *             'subject' => new \StdClass, 'object_id' => 2, 'object_group' => 'com_content'
+	 *         )
+	 *     )
+	 * )->getArgument('result', array());
+	 * echo trim(implode('', array_key_exists(0, $evt) ? $evt[0] : array()));
+	 *
+	 * @param   EventInterface  $event  The event
+	 *
+	 * @return  void
+	 *
+	 * @throws  \Exception
+	 * @since   1.5
+	 */
+	public function onJcommentsShow(EventInterface $event)
+	{
+		// Only one copy of JComments per page is allowed
+		if (defined('JCOMMENTS_SHOW'))
+		{
+			return;
+		}
+
+		// Do not run component when edit form is active.
+		if ($this->app->input->get('layout') == 'edit')
+		{
+			return;
+		}
+
+		JcommentsComponentHelper::loadComponentAssets();
+
+		$basePath = JPATH_ROOT . '/components/com_jcomments';
+		$view = JcommentsComponentHelper::getView(
+			'Comments',
+			'Site',
+			'Html',
+			// View config
+			array('base_path' => $basePath, 'template_path' => $basePath . '/tmpl/comments/'),
+			true,
+			// Model config. NOTE! Do not set up `ignore_request` in this because component params will be empty in view when calling getState()
+			array(
+				'name'      => 'Comments',
+				'prefix'    => 'Site',
+				'base_path' => $basePath,
+				'options'   => array(
+					'object_id'    => $event->getArgument('object_id'),
+					'object_group' => $event->getArgument('object_group'),
+					'object_title' => $event->getArgument('object_title')
+				)
+			)
+		);
+
+		ob_start();
+
+		$view->display();
+		$output = ob_get_contents();
+
+		ob_end_clean();
+
+		define('JCOMMENTS_SHOW', 1);
+
+		$event->setArgument('result', array(array($output)));
 	}
 }

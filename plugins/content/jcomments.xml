@@ -19,8 +19,8 @@
 	<languages folder="admin">
 		<language tag="en-GB">language/en-GB/plg_content_jcomments.ini</language>
 		<language tag="en-GB">language/en-GB/plg_content_jcomments.sys.ini</language>
-		<language tag="en-GB">language/ru-RU/plg_content_jcomments.ini</language>
-		<language tag="en-GB">language/ru-RU/plg_content_jcomments.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_content_jcomments.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_content_jcomments.sys.ini</language>
 	</languages>
 
 	<config>
@@ -47,6 +47,17 @@
 				>
 					<option value="0">JHIDE</option>
 					<option value="1">JSHOW</option>
+				</field>
+				<field
+						name="yootheme_hack"
+						type="radio"
+						default="0"
+						layout="joomla.form.field.radio.switcher"
+						label="PLG_CONTENT_JCOMMENTS_FIELD_YOOTHEME_LABEL"
+						description="PLG_CONTENT_JCOMMENTS_FIELD_YOOTHEME_DESC"
+				>
+					<option value="0">JNO</option>
+					<option value="1">JYES</option>
 				</field>
 				<field
 						name="links_position"

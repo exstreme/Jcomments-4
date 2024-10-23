@@ -21,7 +21,6 @@ use Joomla\CMS\Plugin\CMSPlugin;
  * Jcomments master extension plugin.
  *
  * @since  4.1
- * @noinspection PhpUnused
  */
 final class Jcomments extends CMSPlugin
 {
@@ -35,9 +34,9 @@ final class Jcomments extends CMSPlugin
 	/**
 	 * Change some values before save component parameters.
 	 *
-	 * @param   string                   $context  com_config.component
-	 * @param   \Joomla\CMS\Table\Table  $table    Table
-	 * @param   boolean                  $isNew    New or not
+	 * @param   string                       $context  com_config.component
+	 * @param   \Joomla\CMS\Table\Extension  $table    Table
+	 * @param   boolean                      $isNew    New or not
 	 *
 	 * @return  boolean
 	 *

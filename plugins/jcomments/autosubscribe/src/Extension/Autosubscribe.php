@@ -40,7 +40,7 @@ final class Autosubscribe extends CMSPlugin implements SubscriberInterface
 	 * @deprecated  4.3 will be removed in 6.0
 	 */
 	protected $allowLegacyListeners = false;
-	
+
 	/**
 	 * Returns an array of events this subscriber will listen to.
 	 *
