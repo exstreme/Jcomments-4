@@ -16,11 +16,12 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_weblinks extends JCommentsPlugin
+class jc_com_weblinks extends JcommentsPlugin
 {
-	public function getObjectTitle($id)
+	public function getObjectTitle($id): string
 	{
 		/** @var \Joomla\Database\DatabaseInterface $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');
@@ -37,7 +38,7 @@ class jc_com_weblinks extends JCommentsPlugin
 		return $db->loadResult();
 	}
 
-	public function getObjectLink($id)
+	public function getObjectLink($id): string
 	{
 		/** @var \Joomla\Database\DatabaseInterface $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');

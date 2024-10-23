@@ -1,3 +1,16 @@
+// phpcs:disable
+/**
+ * JComments - Joomla Comment System
+ * The code for working with the admin form in backend.
+ *
+ * @package           JComments
+ * @author            JComments team
+ * @copyright     (C) 2006-2016 Sergey M. Litvinov (http://www.joomlatune.ru)
+ *                (C) 2016 exstreme (https://protectyoursite.ru) & Vladimir Globulopolis (https://libra.ms)
+ * @license           GNU General Public License version 2 or later; GNU/GPL: https://www.gnu.org/copyleft/gpl.html
+ *
+ **/
+
 (function () {
 	'use strict';
 

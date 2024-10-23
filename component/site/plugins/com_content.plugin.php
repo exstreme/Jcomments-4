@@ -16,9 +16,11 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_content extends JCommentsPlugin
+class jc_com_content extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
@@ -67,7 +69,7 @@ class jc_com_content extends JCommentsPlugin
 			}
 		}
 
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		if (!empty($article))
 		{
@@ -75,6 +77,7 @@ class jc_com_content extends JCommentsPlugin
 			$info->title       = $article->title;
 			$info->access      = $article->access;
 			$info->userid      = $article->created_by;
+			$info->lang        = $article->language;
 			$info->link        = $link;
 		}
 

@@ -180,7 +180,7 @@ class PkgBuilder
 
 		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcPath), RecursiveIteratorIterator::LEAVES_ONLY);
 
-		foreach ($files as $name => $file)
+		foreach ($files as $path => $file)
 		{
 			if (!$file->isDir())
 			{
@@ -218,20 +218,20 @@ class PkgBuilder
 			die(0);
 		}
 
-		$dst = __DIR__ . '/';
+		$folder = $dst = str_replace('\\', '/', __DIR__) . '/';
 
 		foreach ($this->componentFolders as $dst => $src)
 		{
-			if ($this->zipFolder(__DIR__ . '/' . $src, __DIR__ . '/' . $dst))
+			if ($this->zipFolder($folder . $src, $folder . $dst))
 			{
-				echo __DIR__ . '/' . $dst . ' created.' . "\n";
+				echo $folder . $dst . ' created.' . "\n";
 			}
 			else
 			{
-				echo __DIR__ . '/' . $dst . ' file error.' . "\n";
+				echo $folder . $dst . ' file error.' . "\n";
 			}
 
-			$dst = dirname(__DIR__ . '/' . $dst);
+			$dst = dirname($folder . $dst);
 		}
 
 		// Load package manifest and fix version from component manifest
@@ -267,6 +267,13 @@ class PkgBuilder
 				@unlink($_file);
 				@rmdir(dirname($_file));
 			}
+		}
+
+		if (!is_file($dstFilepath))
+		{
+			echo 'Error! Resulting package file not found.' . "\n";
+
+			return;
 		}
 
 		// Calculate sha hash

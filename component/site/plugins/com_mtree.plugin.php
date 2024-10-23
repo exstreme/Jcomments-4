@@ -11,11 +11,13 @@
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
 defined('_JEXEC') or die;
 
-class jc_com_mtree extends JCommentsPlugin
+class jc_com_mtree extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
@@ -30,7 +32,7 @@ class jc_com_mtree extends JCommentsPlugin
 
 		$row = $db->loadObject();
 
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		if (!empty($row))
 		{

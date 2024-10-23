@@ -33,6 +33,7 @@ use Joomla\Component\Jcomments\Site\Helper\ObjectHelper;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsFactory;
 use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsText;
 use Joomla\Input\Input;
+use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 use Joomla\Utilities\IpHelper;
 
@@ -96,7 +97,7 @@ class CommentController extends FormController
 
 		if (!in_array($comment->object_access, $user->getAuthorisedViewLevels()))
 		{
-			throw new \RuntimeException(Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE'), 403);
+			throw new \RuntimeException(ucfirst(Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE')), 403);
 		}
 
 		if ($document->getType() == 'html')
@@ -522,7 +523,7 @@ class CommentController extends FormController
 	}
 
 	/**
-	 * Method to add a new record.
+	 * Method to add a new record. Including 'Reply' and 'Quote' forms too.
 	 *
 	 * @return  boolean  True if the record can be added, false if not.
 	 *
@@ -536,12 +537,11 @@ class CommentController extends FormController
 		$recordId    = $this->input->getInt('comment_id');
 		$objectId    = $this->input->getInt('object_id');
 		$objectGroup = $this->input->getCmd('object_group', 'com_content');
+		$reply       = $this->input->getInt('reply');
 		$quote       = $this->input->getInt('quote');
-		$redirect    = 'index.php?option=com_jcomments&view=form&object_id=' . $objectId . '&object_group=' . $objectGroup
-			. '&comment_id=' . $recordId . '&quote=' . $quote . '&return=' . base64_encode($return);
 
 		// Access check.
-		if ($quote != 1)
+		if ($quote != 1 && $reply != 1)
 		{
 			if (!$acl->canComment())
 			{
@@ -555,7 +555,7 @@ class CommentController extends FormController
 		}
 		else
 		{
-			if (!$acl->canQuote())
+			if (!$acl->canQuote() || !$acl->canReply())
 			{
 				// Set the internal error and also the redirect error.
 				$this->setMessage(Text::_('JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN'), 'error');
@@ -570,6 +570,11 @@ class CommentController extends FormController
 		$this->app->setUserState($context . '.data', null);
 
 		// Redirect to the edit screen.
+		$recordId = !empty($recordId) ? '&comment_id=' . $recordId : '';
+		$reply    = $reply == 1 ? '&reply=' . $reply : '';
+		$quote    = $quote == 1 ? '&quote=' . $quote : '';
+		$redirect = 'index.php?option=com_jcomments&view=form&object_id=' . $objectId . '&object_group=' . $objectGroup
+			. $recordId . $reply . $quote . '&return=' . base64_encode($return);
 		$this->setRedirect(Route::_($redirect, false));
 
 		return true;
@@ -1270,6 +1275,22 @@ class CommentController extends FormController
 	}
 
 	/**
+	 * Method to get quoted text and new maxlimit(w/o quote).
+	 *
+	 * @return  void
+	 *
+	 * @since   4.1
+	 */
+	public function getQuote()
+	{
+		/** @var \Joomla\Component\Jcomments\Site\Model\FormModel $model */
+		$model = $this->getModel('Form');
+		$result = $model->getQuotedItem();
+
+		$this->setResponse(array('comment' => $result->comment), '', '', 'success');
+	}
+
+	/**
 	 * Method to redirect on typical calls or set json response on ajax.
 	 *
 	 * @param   mixed        $data  Array with some data to use with json responses.
@@ -1313,6 +1334,7 @@ class CommentController extends FormController
 		}
 		else
 		{
+			$url = empty($url) ? Uri::base() : $url;
 			$this->setRedirect($url, $msg, $type);
 		}
 	}

@@ -1,30 +1,31 @@
 // phpcs:disable
-document.addEventListener('DOMContentLoaded', function () {
-	const jce_config = Joomla.getOptions('jcomments').editor;
-	const jce = document.getElementById(jce_config.field);
-	let jce_limitreached = false;
-	const span_hidden = {
-		'html': ['<span class="badge text-bg-light hide">', '</span>'],
-		'class': 'badge text-bg-light hide',
-		'tip': Joomla.Text._('FORM_BBCODE_HIDE'),
-		'state': function (parent) {
-			return sceditor.dom.closest(parent, 'span.hide') ? 1 : 0;
-		}
-	};
-	const codeblock = {
-		'html': ['<figure class="codeblock"><figcaption class="code">{caption}</figcaption><pre class="card card-body p-2"><code class="lang-{lang}">', '</code></pre></figure>'],
-		'tip': Joomla.Text._('COMMENT_TEXT_CODE')
-	};
-	const icon_spoiler = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g stroke-width="1.0595"><path d="m1.9738 1.0168v4.9944h28.022v-4.9944z"/><path d="m1.9738 25.977v4.9944h28.022v-4.9944z"/></g><g><rect x="6.559" y="9.4897" width="3.74" height="7.296" stroke-width=".70362"/><path transform="matrix(.94771 .99029 -1.6415 .57174 44.965 2.7122)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g><g transform="rotate(180 15.463 20.048)"><rect x="5.515" y="17.55" width="3.74" height="7.0931" stroke-width=".69377"/><path transform="matrix(.94771 .99029 -1.6415 .57174 43.921 10.783)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g></svg>';
+import { JoomlaEditor, JoomlaEditorDecorator } from 'editor-api';
 
-	if (sceditor.icons.material) {
-		sceditor.icons.material.icons.hide = '<text fill="#000000" text-anchor="middle" style="line-height:0" xml:space="preserve" y="16" font-size=".8em" x="12">HIDE</text>';
-		sceditor.icons.material.icons.spoiler = icon_spoiler;
-	} else if (sceditor.icons.monocons) {
-		sceditor.icons.monocons.icons.hide = '<text fill="#000000" text-anchor="middle" style="line-height:0" xml:space="preserve" y="12" font-size=".6em" x="8">HIDE</text>';
-		sceditor.icons.monocons.icons.spoiler = icon_spoiler;
+let jce_limitreached = false;
+const jce_config = Joomla.getOptions('jcomments', '').editor;
+const span_hidden = {
+	'html': ['<span class="badge text-bg-light hide">', '</span>'],
+	'class': 'badge text-bg-light hide',
+	'tip': Joomla.Text._('FORM_BBCODE_HIDE', 'Hide'),
+	'state': function (parent) {
+		return sceditor.dom.closest(parent, 'span.hide') ? 1 : 0;
 	}
+};
+const codeblock = {
+	'html': ['<figure class="codeblock"><figcaption class="code">{caption}</figcaption><pre class="card card-body p-2"><code class="lang-{lang}">', '</code></pre></figure>'],
+	'tip': Joomla.Text._('COMMENT_TEXT_CODE', 'Code')
+};
+const icon_spoiler = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g stroke-width="1.0595"><path d="m1.9738 1.0168v4.9944h28.022v-4.9944z"/><path d="m1.9738 25.977v4.9944h28.022v-4.9944z"/></g><g><rect x="6.559" y="9.4897" width="3.74" height="7.296" stroke-width=".70362"/><path transform="matrix(.94771 .99029 -1.6415 .57174 44.965 2.7122)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g><g transform="rotate(180 15.463 20.048)"><rect x="5.515" y="17.55" width="3.74" height="7.0931" stroke-width=".69377"/><path transform="matrix(.94771 .99029 -1.6415 .57174 43.921 10.783)" d="m5.3868 25.343-6.8114 0.02507 3.384-5.9114z"/></g></svg>';
 
+if (sceditor.icons.material) {
+	sceditor.icons.material.icons.hide = '<text fill="#000000" text-anchor="middle" style="line-height:0" xml:space="preserve" y="16" font-size=".8em" x="12">HIDE</text>';
+	sceditor.icons.material.icons.spoiler = icon_spoiler;
+} else if (sceditor.icons.monocons) {
+	sceditor.icons.monocons.icons.hide = '<text fill="#000000" text-anchor="middle" style="line-height:0" xml:space="preserve" y="12" font-size=".6em" x="8">HIDE</text>';
+	sceditor.icons.monocons.icons.spoiler = icon_spoiler;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
 	if (jce_config.format === 'bbcode' && sceditor.formats.bbcode) {
 		sceditor.formats.bbcode.set('quote', {
 			tags: {
@@ -39,9 +40,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 				if (citeEl !== null) {
 					name = citeEl.textContent;
-					content = content.replace(Joomla.Text._('COMMENT_TEXT_QUOTE') + citeEl.textContent, '');
+					content = content.replace(Joomla.Text._('COMMENT_TEXT_QUOTE', 'Quote') + citeEl.textContent, '');
 
-					if (!empty(parentId) && !isNaN(parseInt(parentId, 10))) {
+					if (!empty(parentId) && !isNaN(parentId)) {
 						name += ';' + parentId;
 					}
 
@@ -68,9 +69,9 @@ document.addEventListener('DOMContentLoaded', function () {
 							id = ' data-quoted="' + parseInt(id, 10) + '"';
 						}
 
-						name = '<span class="cite d-block">' + Joomla.Text._('COMMENT_TEXT_QUOTE') +
+						name = '<span class="cite d-block">' + Joomla.Text._('COMMENT_TEXT_QUOTE', 'Quote') +
 							'<span class="author fst-italic fw-semibold">' + name + '</span>' +
-						'</span>';
+							'</span>';
 					}
 				}
 
@@ -194,27 +195,39 @@ document.addEventListener('DOMContentLoaded', function () {
 		txtExec: function () {
 			this.insertText('[spoiler]', '[/spoiler]');
 		},
-		tooltip: Joomla.Text._('FORM_BBCODE_SPOILER')
+		tooltip: Joomla.Text._('FORM_BBCODE_SPOILER', 'Spoiler')
 	});
 
-	sceditor.create(jce, jce_config);
+	sceditor.create(document.getElementById(jce_config.field), jce_config);
 
-	let editorInstance = sceditor.instance(jce);
+	let editorInstance = sceditor.instance(document.getElementById(jce_config.field));
 
-	editorInstance.bind('keyup blur focus', function () {
-		const counterEl = document.querySelector('.jce-counter');
-		const maxlength = parseInt(jce_config.maxlength, 10);
+	// Do not create and register sceditor in JoomlaEditorSceditor class. This will not work!
+	JoomlaEditor.register(new SceditorDecorator(editorInstance, 'sceditor', jce_config.field));
+
+	editorInstance.bind('keyup blur focus contextmenu nodeChanged', function () {
+		const counterEl = document.querySelector('.jce-counter'),
+			maxlength = parseInt(document.querySelector('#' + jce_config.field).maxLength, 10);
 
 		if (counterEl) {
 			if (!maxlength) {
 				return true;
 			}
 
-			const length = maxlength - editorInstance.val().length;
-			const charsEl = document.querySelector('.jce-counter .chars');
-			charsEl.textContent = (length < 0) ? '0' : length.toString();
+			let length, totalLength;
 
-			if (editorInstance.val().length >= maxlength) {
+			if (editorInstance.inSourceMode()) {
+				length = editorInstance.getSourceEditorValue(true).length;
+			} else {
+				length = editorInstance.getWysiwygEditorValue(true).length;
+			}
+
+			totalLength = maxlength - length;
+
+			const charsEl = document.querySelector('.jce-counter .chars');
+			charsEl.textContent = (totalLength < 0) ? '0' : totalLength.toString();
+
+			if (length >= maxlength) {
 				if (jce_limitreached)
 				{
 					return true;
@@ -223,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				jce_limitreached = true; // Display error message only once
 				counterEl.insertAdjacentHTML(
 					'beforeend',
-					'<span class="limit-error badge text-bg-danger bg-opacity-75 fw-normal">' + Joomla.Text._('ERROR_YOUR_COMMENT_IS_TOO_LONG') + '</span>'
+					'<span class="limit-error badge text-bg-danger bg-opacity-75 fw-normal">' + Joomla.Text._('ERROR_YOUR_COMMENT_IS_TOO_LONG', 'Comment too long') + '</span>'
 				);
 			} else {
 				// Check previous state
@@ -239,27 +252,93 @@ document.addEventListener('DOMContentLoaded', function () {
 	.addShortcut('ctrl+enter', function () {
 		// Required to update original textarea when shortcut pressed in editor area.
 		editorInstance.updateOriginal();
-		document.forms['comments-form'].submit();
+		document.querySelector('#commentForm button[data-submit-task="comment.apply"]').click();
 	});
-
-	/** @method JcommentsFormSubmit() */
-	const comment_form = document.querySelector('#comments-form');
-
-	if (comment_form !== null) {
-		document.getElementById('comments-form').addEventListener('submit', function (e) {
-			e.preventDefault();
-
-			const length = editorInstance.val().length,
-				min = parseInt(jce_config.minlength, 10),
-				max = parseInt(jce_config.maxlength, 10);
-console.log(length);
-			if (min !== 0 && length <= min) {
-				Jcomments.showError('', '#system-message-container'); // TODO Не работает
-			}
-
-			if (max !== 0 && length >= max) {
-				Jcomments.showError('', '#system-message-container');
-			}
-		});
-	}
 });
+
+class SceditorDecorator extends JoomlaEditorDecorator {
+	/**
+	 * Get editor value
+	 *
+	 * @return  {string}
+	 */
+	getValue() {
+		return this.instance.val();
+	}
+
+	/**
+	 * Set editor value
+	 *
+	 * @param   {string}  value   Button.
+	 *
+	 * @return  {SceditorDecorator}
+	 */
+	setValue(value) {
+		this.instance.val(value);
+
+		return this;
+	}
+
+	/**
+	 * Get textarea ID
+	 *
+	 * @return  {string}
+	 */
+	getId() {
+		return jce_config.field;
+	}
+
+	/**
+	 * Get selected text
+	 *
+	 * @return  {string}
+	 */
+	getSelection() {
+		return this.instance.getRangeHelper().selectedHtml();
+	}
+
+	/**
+	 * Replace the selected text. If nothing selected, will insert the data at the cursor.
+	 *
+	 * @param   {string}  value   Text
+	 *
+	 * @return  {SceditorDecorator}
+	 */
+	replaceSelection(value) {
+		this.instance.insert(value);
+
+		return this;
+	}
+
+	/**
+	 * Toggles the editor disabled mode.
+	 *
+	 * @param   {boolean}  enable   True to enable, false or undefined to disable.
+	 *
+	 * @return  {SceditorDecorator}
+	 */
+	disable(enable) {
+		if (enable) {
+			const jce = document.getElementById(jce_config.field);
+
+			sceditor.create(jce, jce_config);
+			sceditor.instance(jce);
+		} else {
+			this.instance.destroy();
+		}
+
+		return this;
+	}
+
+	focus() {
+		this.instance.focus();
+	}
+}
+
+class JoomlaEditorSceditor extends HTMLElement {
+	constructor() {
+		super();
+	}
+}
+
+customElements.define('joomla-editor-sceditor', JoomlaEditorSceditor);

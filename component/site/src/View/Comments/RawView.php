@@ -131,7 +131,7 @@ class RawView extends BaseHtmlView
 
 		if (!in_array($this->objectInfo->object_access, $user->getAuthorisedViewLevels()))
 		{
-			echo new JsonResponse(null, Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE'), true);
+			echo new JsonResponse(null, ucfirst(Text::_('JERROR_LAYOUT_YOU_HAVE_NO_ACCESS_TO_THIS_PAGE')), true);
 
 			$app->close();
 		}

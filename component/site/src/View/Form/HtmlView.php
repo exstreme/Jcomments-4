@@ -102,6 +102,12 @@ class HtmlView extends BaseHtmlView
 	protected $displayForm = true;
 
 	/**
+	 * @var    string  Page header and form title
+	 * @since  4.1
+	 */
+	protected $formTitle = '';
+
+	/**
 	 * Execute and display a template script.
 	 *
 	 * @param   string  $tpl   The name of the template file to parse; automatically searches through the template paths.
@@ -148,27 +154,31 @@ class HtmlView extends BaseHtmlView
 		PluginHelper::importPlugin('jcomments');
 
 		// Set up document title
-		if (empty($app->input->getInt('comment_id')))
+		if ($app->input->getInt('quote') == 1)
 		{
-			$title = 'FORM_HEADER_ADD';
+			$this->formTitle = 'FORM_HEADER_QUOTE';
+		}
+		elseif ($app->input->getInt('reply') == 1)
+		{
+			$this->formTitle = 'FORM_HEADER_REPLY';
 		}
 		else
 		{
-			if ($app->input->getInt('quote') == 1)
+			if (empty($app->input->getInt('comment_id')))
 			{
-				$title = 'FORM_HEADER_QUOTE';
+				$this->formTitle = 'FORM_HEADER_ADD';
 			}
 			else
 			{
-				$title = 'FORM_HEADER_EDIT';
+				$this->formTitle = 'FORM_HEADER_EDIT';
 			}
 		}
 
-		$this->setDocumentTitle(Text::_($title));
+		$this->setDocumentTitle(Text::_($this->formTitle));
 		$this->item = $this->get('Item');
 		$input = Factory::getApplication()->input;
 
-		if ($input->getInt('comment_id') > 0 && $input->getInt('quote') == 0)
+		if ($input->getInt('comment_id') > 0 && ($input->getInt('quote') == 0 && $input->getInt('reply') == 0))
 		{
 			$this->canComment = $acl->canEdit($this->item);
 		}
@@ -177,6 +187,10 @@ class HtmlView extends BaseHtmlView
 			if ($input->getInt('quote') > 0)
 			{
 				$this->canComment = $acl->canQuote();
+			}
+			elseif ($input->getInt('reply') > 0)
+			{
+				$this->canComment = $acl->canReply();
 			}
 			else
 			{
@@ -272,7 +286,7 @@ class HtmlView extends BaseHtmlView
 		{
 			if ($captchaSet === $plugin->name)
 			{
-				$this->item->captchaEnabled = true;
+				$this->captchaEnabled = true;
 				break;
 			}
 		}

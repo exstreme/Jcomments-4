@@ -77,17 +77,7 @@ if (empty($item->comment_id) && (!$displayForm && !$form->getValue('parent'))): 
 <?php endif; ?>
 
 <div class="form-layout form-comment-container my-2 p-1 <?php echo $displayFormClass; ?>">
-	<div class="form-header h6">
-		<?php if (empty($item->comment_id)):
-			echo Text::_('FORM_HEADER_ADD');
-		else:
-			if ($app->input->getInt('quote') == 1):
-				echo Text::_('FORM_HEADER_QUOTE');
-			else:
-				echo Text::_('FORM_HEADER_EDIT');
-			endif;
-		endif; ?>
-	</div>
+	<div class="form-header h6"><?php echo Text::_($viewObject->get('formTitle')); ?></div>
 
 	<?php if ($item->policy != ''): ?>
 		<div class="mb-2 alert alert-info comments-policy" role="alert"><?php echo $item->policy; ?></div>
@@ -125,7 +115,7 @@ if (empty($item->comment_id) && (!$displayForm && !$form->getValue('parent'))): 
 			<?php echo $form->renderField('comment'); ?>
 			<?php if ($params->get('show_commentlength')
 				&& ($params->get('editor_type') == 'component' || $params->get('editor_type') == 'joomla' && $app->getConfig()->get('editor') == 'none')): ?>
-				<div class="col-12 text-secondary small jce-counter d-none">
+				<div class="col-12 text-secondary small jce-counter d-none mb-1">
 
 					<?php if ($form->getFieldAttribute('comment', 'maxlength', 0) > 0): ?>
 						<?php echo Text::sprintf('FORM_CHARSLEFT', '<span class="chars">' . $form->getFieldAttribute('comment', 'maxlength', 0) . '</span>'); ?>
@@ -170,7 +160,7 @@ if (empty($item->comment_id) && (!$displayForm && !$form->getValue('parent'))): 
 
 			<?php echo LayoutHelper::render('params', $viewObject, '', array('component' => 'com_jcomments')); ?>
 
-			<?php if ($item->captchaEnabled): ?>
+			<?php if ($viewObject->get('captchaEnabled')): ?>
 				<?php echo $form->renderField('comment_captcha'); ?>
 			<?php endif; ?>
 
@@ -188,7 +178,8 @@ if (empty($item->comment_id) && (!$displayForm && !$form->getValue('parent'))): 
 		</fieldset>
 
 		<div class="start-0 btn-container">
-			<button class="btn btn-success" type="button" data-submit-task="comment.apply">
+			<button class="btn btn-success" type="button" data-submit-task="comment.apply"
+					title="<?php echo Text::_('FORM_SEND_HINT'); ?>">
 				<span class="icon-check" aria-hidden="true"></span> <?php echo Text::_('JSAVE'); ?>
 			</button>
 
@@ -203,7 +194,7 @@ if (empty($item->comment_id) && (!$displayForm && !$form->getValue('parent'))): 
 				<span class="icon-eye" aria-hidden="true"></span> <?php echo Text::_('FORM_PREVIEW'); ?>
 			</button>
 
-			<button class="btn btn-danger <?php echo empty($item->comment_id) ? 'd-none' : ''; ?>"
+			<button class="btn btn-danger <?php echo empty($item->comment_id) && (empty($app->input->getInt('quote')) && empty($app->input->getInt('reply'))) ? 'd-none' : ''; ?>"
 					type="button" data-submit-task="comment.cancel"
 					data-cancel="<?php echo $form->getValue('parent') > 0 ? 'hideEditForm' : 'hideAddForm'; ?>">
 				<span class="icon-cancel" aria-hidden="true"></span> <?php echo Text::_('JCANCEL'); ?>

@@ -232,7 +232,7 @@ class JcommentsAcl
 				->createModel('Blacklist', 'Site', array('ignore_request' => true));
 			$isBlacklisted = $blacklistModel->isBlacklisted(IpHelper::getIp(), $user);
 
-			// Check of logged in user is not banned.
+			// Check if logged in user is not banned.
 			if ($isBlacklisted['block'])
 			{
 				$this->userBlocked       = true;

@@ -152,9 +152,14 @@ class ObjectHelper
 			$info = new \StdClass;
 		}
 
-		$info->object_lang  = !is_null($info->object_lang) ? $info->object_lang : $language;
-		$info->object_id    = $objectID;
-		$info->object_group = $objectGroup;
+		$info->object_id     = $objectID;
+		$info->object_group  = $objectGroup;
+		$info->catid         = !isset($info->catid) ? $info->category_id : $info->catid;
+		$info->object_lang   = !isset($info->object_lang) ? (is_null($language) ? $info->lang : $language) : $info->object_lang;
+		$info->object_title  = !isset($info->object_title) ? $info->title : $info->object_title;
+		$info->object_link   = !isset($info->object_link) ? $info->link : $info->object_link;
+		$info->object_access = !isset($info->object_access) ? $info->access : $info->object_access;
+		$info->object_owner  = !isset($info->object_owner) ? $info->userid : $info->object_owner;
 
 		return $info;
 	}

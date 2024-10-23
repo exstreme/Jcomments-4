@@ -192,21 +192,35 @@ class JceditorField extends TextareaField
 	 */
 	protected function getInput()
 	{
-		$app          = Factory::getApplication();
-		$doc          = $app->getDocument();
-		$params       = JcommentsComponentHelper::getParams('com_jcomments');
-		$format       = $params->def('editor_format', 'bbcode');
-		$maxlength    = JcommentsComponentHelper::getAllowedCommentsLength()['max'];
-		$editorConfig = array(
+		$app           = Factory::getApplication();
+		$doc           = $app->getDocument();
+		$params        = JcommentsComponentHelper::getParams('com_jcomments');
+		$format        = $params->def('editor_format', 'bbcode');
+		$commentLength = JcommentsComponentHelper::getAllowedCommentsLength();
+		$editorConfig  = array(
 			'field'       => $this->id,
 			'editor_type' => $params->get('editor_type'),
 			'editor'      => $app->get('editor'),
-			'format'      => $format,
-			'maxlength'   => $maxlength === 0 ? null : $maxlength // TODO Неправильная проверка для админа
+			'format'      => $format
 		);
+
+		// Set up minlength in data attribute 'cause Joomla textarea layout have no such attribute.
+		$this->dataAttributes['minlength'] = $commentLength['min'] === 0
+			? null : ($app->getIdentity()->get('isRoot') ? null : $commentLength['min']);
+		$this->maxlength = $commentLength['max'] === 0 ? null : ($app->getIdentity()->get('isRoot') ? null : $commentLength['max']);
+
+		Text::script('ERROR_YOUR_COMMENT_IS_TOO_SHORT');
+		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
 		/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
 		$wa = $doc->getWebAssetManager();
+
+		/** @var \Joomla\CMS\WebAsset\WebAssetRegistry $wr */
+		$wr = $wa->getRegistry();
+		$wr->addRegistryFile('media/com_jcomments/joomla.asset.json');
+
+		$wa->useScript('jcomments.form');
+		$wa->useScript('editors');
 
 		if ($format == 'xhtml' && $params->get('editor_type') == 'joomla')
 		{
@@ -217,7 +231,6 @@ class JceditorField extends TextareaField
 				'syntax'    => (string) $this->element['syntax']
 			);
 			$doc->addScriptOptions('jcomments', array('editor' => $editorConfig));
-			$wa->useScript('editors');
 
 			return $editor->display(
 				$this->name,
@@ -261,12 +274,8 @@ class JceditorField extends TextareaField
 
 		$emojiEnabled = in_array('emoji', ToolbarHelper::getStandardButtons($buttons));
 
-		/** @var \Joomla\CMS\WebAsset\WebAssetRegistry $wr */
-		$wr = $wa->getRegistry();
-		$wr->addRegistryFile('media/com_jcomments/joomla.asset.json');
-
 		$wa->registerAndUseStyle(
-			'jceditor.theme.square',
+			'jceditor.theme.' . strtolower($editorTheme),
 			'media/com_jcomments/css/editor/' . $editorTheme . '.css',
 			array('version' => '4.1.0')
 		)->addInlineStyle(
@@ -274,8 +283,10 @@ class JceditorField extends TextareaField
 			.sceditor-button-hide div { background-image: url("' . $themeUrl . '/hide.png"); }
 			.sceditor-button-spoiler div { background-image: url("' . $themeUrl . '/spoiler.png"); }
 			' . ($emojiEnabled ? '.sceditor-button-emoji div { background-image: url("' . $themeUrl . '/emoji.png"); }' : '')
-		)->registerAndUseStyle('jceditor.theme.square.custom', 'media/com_jcomments/css/editor/' . $editorTheme . '-custom.css')
-			->useScript('jceditor.core');
+		)->registerAndUseStyle(
+			'jceditor.theme.' . strtolower($editorTheme) . '.custom',
+			'media/com_jcomments/css/editor/' . $editorTheme . '-custom.css'
+		)->useScript('jceditor.core');
 
 		if ($format == 'bbcode')
 		{
@@ -312,7 +323,9 @@ class JceditorField extends TextareaField
 		if ($js > '')
 		{
 			$wa->addInlineScript(
-				"document.addEventListener('DOMContentLoaded', function () {" . $js . "});",
+				"document.addEventListener('DOMContentLoaded', function () {
+					" . $js . "
+				});",
 				['name' => 'jceditor.format.custom', 'position' => 'before'],
 				[],
 				['jceditor.init']
@@ -325,14 +338,12 @@ class JceditorField extends TextareaField
 		}
 
 		$wa->useScript('jceditor.init');
-			/*->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2']);*/
+		//$wa->registerAndUseScript('twemoji', 'media/com_jcomments/js/twemoji.js', ['version' => '14.1.2']);
 
 		Text::script('COMMENT_TEXT_CODE');
 		Text::script('COMMENT_TEXT_QUOTE');
 		Text::script('FORM_BBCODE_HIDE');
 		Text::script('FORM_BBCODE_SPOILER');
-		Text::script('ERROR_YOUR_COMMENT_IS_TOO_SHORT');
-		Text::script('ERROR_YOUR_COMMENT_IS_TOO_LONG');
 
 		$editorConfig['style']         = Uri::root() . 'media/com_jcomments/css/editor/content/'
 			. File::makeSafe($params->get('custom_css', 'frontend-style') . '.css');
@@ -372,7 +383,7 @@ class JceditorField extends TextareaField
 
 		$doc->addScriptOptions('jcomments', array('editor' => $editorConfig));
 
-		return parent::getInput();
+		return '<joomla-editor-sceditor>' . parent::getInput() . '</joomla-editor-sceditor>';
 	}
 
 	/**

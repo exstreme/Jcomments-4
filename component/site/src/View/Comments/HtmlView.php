@@ -84,6 +84,12 @@ class HtmlView extends BaseHtmlView
 	protected $objectID = 0;
 
 	/**
+	 * @var    boolean  Should we show a captcha form for the submission of the comment?
+	 * @since  4.1
+	 */
+	protected $captchaEnabled = false;
+
+	/**
 	 * @var    boolean  Indicate if user can subscribe
 	 * @since  4.1
 	 */
@@ -282,21 +288,10 @@ class HtmlView extends BaseHtmlView
 			{
 				if ($captchaSet === $plugin->name)
 				{
-					$this->item->captchaEnabled = true;
+					$this->captchaEnabled = true;
 					break;
 				}
 			}
-
-			/*$objectInfo->userid = $user->id;
-			$dispatcher->dispatch(
-				'onJCommentsCommentAfterAdd',
-				AbstractEvent::create(
-					'onJCommentsCommentAfterAdd',
-					array(
-						'subject' => $objectInfo
-					)
-				)
-			);*/
 		}
 
 		parent::display($tpl);

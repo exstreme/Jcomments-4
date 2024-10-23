@@ -103,7 +103,7 @@ class DisplayController extends BaseController
 		// Check for edit form.
 		if ($viewName === 'form' && $layout !== 'report')
 		{
-			if ($this->input->getInt('quote') != 1 && !$this->checkEditId('com_jcomments.edit.comment', $commentId))
+			if (($this->input->getInt('quote') != 1 && $this->input->getInt('reply') != 1) && !$this->checkEditId('com_jcomments.edit.comment', $commentId))
 			{
 				// Somehow the person just went to the form - we don't allow that.
 				throw new \Exception(Text::sprintf('JLIB_APPLICATION_ERROR_UNHELD_ID', $commentId), 403);

@@ -14,11 +14,12 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_docman extends JCommentsPlugin
+class jc_com_docman extends JcommentsPlugin
 {
-	public function getObjectTitle($id)
+	public function getObjectTitle($id): string
 	{
 		/** @var \Joomla\Database\DatabaseInterface $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');
@@ -34,7 +35,7 @@ class jc_com_docman extends JCommentsPlugin
 		return $db->loadResult();
 	}
 
-	public function getObjectLink($id)
+	public function getObjectLink($id): string
 	{
 		static $itemid = null;
 
@@ -71,7 +72,7 @@ class jc_com_docman extends JCommentsPlugin
 		return Route::_($link);
 	}
 
-	public function getObjectOwner($id)
+	public function getObjectOwner($id): int
 	{
 		/** @var \Joomla\Database\DatabaseInterface $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');

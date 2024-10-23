@@ -13,13 +13,15 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Registry\Registry;
 
-class jc_com_jcomments extends JCommentsPlugin
+class jc_com_jcomments extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language)
 	{
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 		$menu = self::getMenuItem($id);
 
 		if ($menu != '')

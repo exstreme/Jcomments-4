@@ -702,7 +702,7 @@ class ObjectsModel extends BaseDatabaseModel
 
 					if ($table->load($row->id))
 					{
-						$table->link = $objectInfo->link;
+						$table->link = $objectInfo->object_link;
 						$table->store();
 					}
 				}

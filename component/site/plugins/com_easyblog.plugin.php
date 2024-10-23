@@ -12,13 +12,15 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_easyblog extends JCommentsPlugin
+class jc_com_easyblog extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		$routerHelper = JPATH_ADMINISTRATOR . '/components/com_easyblog/includes/router.php';
 

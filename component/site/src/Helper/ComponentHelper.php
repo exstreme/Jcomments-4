@@ -15,6 +15,7 @@ namespace Joomla\Component\Jcomments\Site\Helper;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\InputFilter;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Plugin\PluginHelper;
@@ -39,7 +40,8 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 	 */
 	public static function loadComponentAssets()
 	{
-		$document = Factory::getApplication()->getDocument();
+		$app = Factory::getApplication();
+		$document = $app->getDocument();
 
 		if ($document->getType() != 'html')
 		{
@@ -58,7 +60,7 @@ class ComponentHelper extends \Joomla\CMS\Component\ComponentHelper
 
 		if ($pluginParams->get('disable_template_css') == 0)
 		{
-			$style = File::makeSafe($params->get('custom_css'));
+			$style = InputFilter::getInstance()->clean($params->get('custom_css'));
 
 			if ($style != 'frontend-style')
 			{

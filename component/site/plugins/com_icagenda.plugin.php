@@ -15,9 +15,11 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_icagenda extends JCommentsPlugin
+class jc_com_icagenda extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
@@ -33,7 +35,7 @@ class jc_com_icagenda extends JCommentsPlugin
 		$db->setQuery($query);
 		$row = $db->loadObject();
 
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		if (!empty($row))
 		{

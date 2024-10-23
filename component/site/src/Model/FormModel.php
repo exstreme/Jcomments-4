@@ -119,9 +119,26 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	protected function loadFormData()
 	{
-		if (Factory::getApplication()->input->getInt('quote') == 1)
+		$app  = Factory::getApplication();
+		$user = $app->getIdentity();
+
+		if ($app->input->getInt('quote') == 1)
 		{
+			$this->setState('comment.id', 0);
 			$data = $this->getQuotedItem();
+		}
+		elseif ($app->input->getInt('reply') == 1)
+		{
+			// Override empty comment_id
+			$this->setState('comment.id', 0);
+			$data = $this->getItem();
+			$data->parent = $app->input->getInt('comment_id');
+
+			if (!$user->get('guest'))
+			{
+				$data->userid = $user->get('id');
+				$data->email = $user->get('email');
+			}
 		}
 		else
 		{
@@ -255,18 +272,20 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	/**
 	 * Method to get form data for quoted comment.
 	 *
+	 * @param   integer|null  $pk  The id of the primary key.
+	 *
 	 * @return  object  Data object
 	 *
 	 * @throws  \Exception
 	 *
 	 * @since   4.1
 	 */
-	public function getQuotedItem()
+	public function getQuotedItem($pk = null)
 	{
 		$app           = Factory::getApplication();
 		$params        = ComponentHelper::getParams('com_jcomments');
 		$user          = $app->getIdentity();
-		$commentId     = $app->input->getInt('comment_id');
+		$commentId     = (!empty($pk)) ? $pk : $app->input->getInt('comment_id');
 		$result        = (object) array();
 		$parentComment = $this->getItem($commentId);
 
@@ -275,8 +294,17 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 			return $result;
 		}
 
-		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $result */
-		$result = $parentComment;
+		/** @var \Joomla\Component\Jcomments\Administrator\Table\CommentTable $parentComment */
+		$result->object_id = $parentComment->object_id;
+		$result->object_group = $parentComment->object_group;
+
+		if (!$user->get('guest'))
+		{
+			$result->userid = $user->get('id');
+			$result->email = $user->get('email');
+		}
+
+		$result->comment = $parentComment->comment;
 
 		if ($params->get('editor_format') == 'bbcode')
 		{
@@ -321,6 +349,9 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 					<span class="cite d-block">' . Text::_('COMMENT_TEXT_QUOTE') . '<span class="author fst-italic fw-semibold">' . $authorName . '</span></span>' . $result->comment . '
 				</blockquote><br>';
 			}
+
+			// Quoted original comment
+			$result->quoted = $parentComment->comment;
 		}
 
 		return $result;
@@ -830,10 +861,19 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 	 */
 	protected function preprocessData($context, &$data, $group = 'content')
 	{
-		$user         = Factory::getApplication()->getIdentity();
-		$data->name   = $data->userid ? $data->username : $data->name;
-		$data->email  = !empty($data->email) ? $data->email : $user->get('email');
-		$data->userid = !empty($data->userid) ? $data->userid : $user->get('id');
+		$app  = Factory::getApplication();
+		$user = $app->getIdentity();
+
+		if ($app->input->getInt('reply') == 1 || $app->input->getInt('quote') == 1 && $app->input->getInt('comment_id', 0) > 0)
+		{
+			$data->parent = $app->input->getInt('comment_id');
+		}
+		else
+		{
+			$data->name   = $data->userid ? $data->username : $data->name;
+			$data->email  = !empty($data->email) ? $data->email : $user->get('email');
+			$data->userid = !empty($data->userid) ? $data->userid : $user->get('id');
+		}
 
 		parent::preprocessData($context, $data, $group);
 	}
@@ -886,11 +926,6 @@ class FormModel extends \Joomla\Component\Jcomments\Administrator\Model\CommentM
 		if ($user->authorise('comment.captcha', $this->option))
 		{
 			$form->removeField('comment_captcha');
-		}
-
-		if ($app->input->getInt('quote') == 1)
-		{
-			$form->setValue('parent', '', $app->input->getInt('comment_id'));
 		}
 
 		$usernameMaxlength = $params->get('username_maxlength');

@@ -23,10 +23,8 @@ extract($displayData);
 $app            = Factory::getApplication();
 $user           = $app->getIdentity();
 $commentData    = $comment->commentData;
-$addUrl        = 'index.php?option=com_jcomments&view=comment&object_id=' . $comment->object_id
-	. '&object_group=' . $comment->object_group . '&task=comment.add&comment_id=' . $comment->id;
 $editUrl        = 'index.php?option=com_jcomments&view=comment&object_id=' . $comment->object_id
-	. '&object_group=' . $comment->object_group . '&task=comment.edit&comment_id=' . $comment->id;
+	. '&object_group=' . $comment->object_group;
 $reportUrl      = 'index.php?option=com_jcomments&view=form&object_id=' . $comment->object_id
 	. '&object_group=' . $comment->object_group . '&view=form&tmpl=component&comment_id=' . $comment->id . '&layout=report';
 $groupClass     = '';
@@ -93,7 +91,7 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 			<div class="rounded comment-avatar">
 				<?php
 				/** @note The profileLink and profileLinkTarget comming from avatar plugin and set to default
-				 *        in JcommentsContentHelper::prepareComment
+				 *        in JcommentsContentHelper::prepareComment()
 				 */
 				$srcset = isset($comment->avatarAlt) ? ' srcset="' . $comment->avatarAlt . '"' : '';
 
@@ -248,8 +246,8 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 
 				<?php if ($comment->adminPanel->get('button.edit')): ?>
 					<a class="cmd-edit<?php echo $inPreviewMode; ?>"
-					   href="<?php echo Route::_($editUrl . '&return=' . $comment->returnUrl); ?>"
-					   data-url="<?php echo Route::_($editUrl); ?>"
+					   href="<?php echo Route::_($editUrl . '&task=comment.edit&comment_id=' . $comment->id . '&return=' . $comment->returnUrl); ?>"
+					   data-url="<?php echo Route::_($editUrl . '&task=comment.edit&comment_id=' . $comment->id); ?>"
 					   title="<?php echo Text::_('JACTION_EDIT'); ?>">
 						<span class="icon-edit" aria-hidden="true"></span>
 					</a>
@@ -327,9 +325,10 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 			$userPanelLinkClass = !$comment->published ? ' pe-none' : '';
 			$userPanelLinkAriaAttr = !$comment->published ? ' tabindex="-1" aria-disabled="true"' : '' ?>
 			<div class="col pe-0 text-end user-panel">
-				<?php if ($comment->userPanel->get('button.reply') && $app->input->getCmd('task') != 'show'): ?>
+				<?php if ($comment->userPanel->get('button.reply')): ?>
 					<a href="#" <?php echo $userPanelLinkAriaAttr; ?>
-					   class="cmd-reply<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>">
+					   class="cmd-reply<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
+					   data-url="<?php echo Route::_($editUrl . '&task=comment.add&comment_id=' . $comment->id . '&reply=1', true, 0, true); ?>">
 						<?php echo Text::_('BUTTON_REPLY'); ?>
 					</a><?php if ($comment->userPanel->get('button.quote') || ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id'))): ?> &vert;<?php endif; ?>
 				<?php endif; ?>
@@ -337,12 +336,13 @@ $inPreviewMode = ($app->input->getInt('preview') || $app->input->getWord('task')
 				<?php if ($comment->userPanel->get('button.quote')): ?>
 					<a href="#" <?php echo $userPanelLinkAriaAttr; ?>
 					   class="cmd-quote<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
-					   data-url="<?php echo Route::_($addUrl . '&quote=1', true, 0, true); ?>">
+					   data-url="<?php echo Route::_($editUrl . '&task=comment.add&comment_id=' . $comment->id . '&quote=1', true, 0, true); ?>"
+					   data-quote-url="<?php echo Route::_('index.php?option=com_jcomments&task=comment.getQuote&comment_id=' . $comment->id . '&format=json', true, 0, true); ?>">
 						<?php echo Text::_('BUTTON_REPLY_WITH_QUOTE'); ?>
 					</a>
 				<?php endif; ?>
 
-				<?php if ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id')): ?>
+				<?php if ($comment->userPanel->get('button.report') && $comment->userid != $user->get('id') && !$user->get('isRoot')): ?>
 					<?php if ($comment->userPanel->get('button.quote') && $comment->userPanel->get('button.reply')): ?> &vert;<?php endif; ?>
 					<a class="cmd-report link-warning<?php echo $userPanelLinkClass; ?><?php echo $inPreviewMode; ?>"
 					   href="#"

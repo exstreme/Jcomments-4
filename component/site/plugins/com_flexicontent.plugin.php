@@ -11,15 +11,17 @@
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
 defined('_JEXEC') or die;
 
-class jc_com_flexicontent extends JCommentsPlugin
+class jc_com_flexicontent extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		$routerHelper = JPATH_ROOT . '/components/com_flexicontent/helpers/route.php';
 

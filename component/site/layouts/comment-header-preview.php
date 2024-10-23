@@ -16,8 +16,11 @@ use Joomla\CMS\Language\Text;
 
 /** @var array $displayData */
 ?>
-<div class="row py-1 border-bottom rounded text-bg-primary comment-preview-title">
-	<div class="col-auto">
+<div class="row justify-content-start py-1 border-bottom rounded text-bg-primary comment-preview-title">
+	<div class="col-12">
 		<span class="icon icon-eye pe-2"></span> <?php echo Text::_('COMMENT_PREVIEW_TITLE'); ?>
+		<a href="#" class="d-inline-block link-light float-end close-preview" title="<?php echo Text::_('JCLOSE'); ?>">
+			<span class="icon icon-cancel"></span>
+		</a>
 	</div>
 </div>

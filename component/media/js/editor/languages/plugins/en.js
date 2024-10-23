@@ -91,6 +91,7 @@
 	sceditor.locale['en']['musical-instrument'] = 'Musical instruments';
 	sceditor.locale['en']['phone'] = 'Phones';
 	sceditor.locale['en']['computer'] = 'Computers';
+	sceditor.locale['en']['light-video'] = 'Light & Video';
 	sceditor.locale['en']['book-paper'] = 'Books & Papers';
 	sceditor.locale['en']['money'] = 'Money';
 	sceditor.locale['en']['mail'] = 'Mail';

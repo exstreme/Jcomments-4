@@ -15,11 +15,12 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_hikashop extends JCommentsPlugin
+class jc_com_hikashop extends JcommentsPlugin
 {
-	public function getObjectTitle($id)
+	public function getObjectTitle($id): string
 	{
 		/** @var \Joomla\Database\DatabaseInterface $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');
@@ -45,7 +46,7 @@ class jc_com_hikashop extends JCommentsPlugin
 		return $name;
 	}
 
-	public function getObjectLink($id)
+	public function getObjectLink($id): string
 	{
 		$itemid = self::getItemid('com_hikashop');
 		$itemid = $itemid > 0 ? '&Itemid=' . $itemid : '';
@@ -54,7 +55,7 @@ class jc_com_hikashop extends JCommentsPlugin
 		return Route::_('index.php?option=com_hikashop&task=product.show&cid=' . $id . $itemid);
 	}
 
-	public function getObjectOwner($id)
+	public function getObjectOwner($id): int
 	{
 		/** @var \Joomla\Database\DatabaseInterface $db */
 		$db    = Factory::getContainer()->get('DatabaseDriver');

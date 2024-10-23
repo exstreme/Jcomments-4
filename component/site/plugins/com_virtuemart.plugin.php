@@ -13,13 +13,15 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_virtuemart extends JCommentsPlugin
+class jc_com_virtuemart extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 		$configHelper = JPATH_ADMINISTRATOR . '/components/com_virtuemart/helpers/config.php';
 
 		if (is_file($configHelper))

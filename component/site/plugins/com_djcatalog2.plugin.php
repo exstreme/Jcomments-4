@@ -13,13 +13,15 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_djcatalog2 extends JCommentsPlugin
+class jc_com_djcatalog2 extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		$djcatalog2RouterHelper = JPATH_ROOT . '/components/com_djcatalog2/helpers/route.php';
 

@@ -20,9 +20,11 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsObjectinfo;
+use Joomla\Component\Jcomments\Site\Library\Jcomments\JcommentsPlugin;
 use Joomla\Database\ParameterType;
 
-class jc_com_jdownloads extends JCommentsPlugin
+class jc_com_jdownloads extends JcommentsPlugin
 {
 	public function getObjectInfo($id, $language = null)
 	{
@@ -99,7 +101,7 @@ class jc_com_jdownloads extends JCommentsPlugin
 			}
 		}
 
-		$info = new JCommentsObjectInfo;
+		$info = new JcommentsObjectInfo;
 
 		if (!empty($download))
 		{

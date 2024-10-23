@@ -95,6 +95,7 @@
 	sceditor.locale['ru']['musical-instrument'] = 'Музыкальные инструменты';
 	sceditor.locale['ru']['phone'] = 'Телефоны';
 	sceditor.locale['ru']['computer'] = 'Компьютеры';
+	sceditor.locale['ru']['light-video'] = 'Освещение и видео';
 	sceditor.locale['ru']['book-paper'] = 'Книги и тетради';
 	sceditor.locale['ru']['money'] = 'Деньги';
 	sceditor.locale['ru']['mail'] = 'Почта';

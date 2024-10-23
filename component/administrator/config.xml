@@ -6,14 +6,12 @@
 					name="enable_categories"
 					type="category"
 					extension="com_content"
-					default="*"
+					default=""
 					multiple="true"
 					layout="joomla.form.field.list-fancy-select"
 					label="A_CATEGORIES"
 					description="AP_CATEGORIES_DESC"
-					required="true"
 			>
-				<option value="">JOPTION_DO_NOT_USE</option>
 				<option value="*">JOPTION_ALL_CATEGORIES</option>
 			</field>
 		</fieldset>
@@ -749,6 +747,7 @@
 					default="3"
 					filter="integer"
 					class="w-20"
+					showon="stopforumspam:1"
 			/>
 		</fieldset>
 

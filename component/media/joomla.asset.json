@@ -13,24 +13,25 @@
     {
       "name": "jcomments.style",
       "type": "style",
-      "uri": "com_jcomments/frontend-style.css"
+      "uri": "com_jcomments/frontend-style.min.css"
     },
     {
       "name": "jceditor.plg.emoji.styles",
       "type": "style",
-      "uri": "com_jcomments/editor/plugins/emoji/emoji.css",
+      "uri": "com_jcomments/editor/plugins/emoji/emoji.min.css",
       "version": "0.0.1"
     },
     {
       "name": "locutus",
       "type": "script",
-      "uri": "com_jcomments/locutus.js",
+      "uri": "com_jcomments/locutus.min.js",
       "version": "1.3.2"
     },
     {
       "name": "jcomments.admin.fields",
       "type": "script",
-      "uri": "com_jcomments/admin-fields-es5.js"
+      "uri": "com_jcomments/admin-fields-es5.min.js",
+      "version": "4.1.0"
     },
     {
       "name": "jcomments.progressbar",
@@ -57,19 +58,20 @@
         "bootstrap.modal",
         "webcomponent.hidden-mail",
         "form.validate"
-      ]
+      ],
+      "version": "4.1.0"
     },
     {
-      "name": "com_content.form-edit",
+      "name": "jcomments.form",
       "type": "script",
-      "uri": "com_content/form-edit.min.js",
+      "uri": "com_jcomments/jcomments.form.min.js",
       "dependencies": [
-        "core"
+        "es-module-shims",
+        "form.validate"
       ],
       "attributes": {
         "type": "module"
-      },
-      "version": "ff12aa"
+      }
     },
     {
       "name": "kwood.plugin",
@@ -93,87 +95,92 @@
     {
       "name": "jceditor.core",
       "type": "script",
-      "uri": "com_jcomments/editor/sceditor.js",
+      "uri": "com_jcomments/editor/sceditor.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.alternativelist",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/alternative-lists.js",
+      "uri": "com_jcomments/editor/plugins/alternative-lists.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.autosave",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/autosave.js",
+      "uri": "com_jcomments/editor/plugins/autosave.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.autoyoutube",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/autoyoutube.js",
+      "uri": "com_jcomments/editor/plugins/autoyoutube.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.dragdrop",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/dragdrop.js",
+      "uri": "com_jcomments/editor/plugins/dragdrop.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.emoji",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/emoji.js"
+      "uri": "com_jcomments/editor/plugins/emoji.min.js"
     },
     {
       "name": "jceditor.plg.format",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/format.js",
+      "uri": "com_jcomments/editor/plugins/format.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.plaintext",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/plaintext.js",
+      "uri": "com_jcomments/editor/plugins/plaintext.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.plg.undo",
       "type": "script",
-      "uri": "com_jcomments/editor/plugins/undo.js",
+      "uri": "com_jcomments/editor/plugins/undo.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.format.bbcode",
       "type": "script",
-      "uri": "com_jcomments/editor/formats/bbcode.js",
+      "uri": "com_jcomments/editor/formats/bbcode.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.format.html",
       "type": "script",
-      "uri": "com_jcomments/editor/formats/xhtml.js",
+      "uri": "com_jcomments/editor/formats/xhtml.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.icons.material",
       "type": "script",
-      "uri": "com_jcomments/editor/icons/material.js",
+      "uri": "com_jcomments/editor/icons/material.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.icons.monocons",
       "type": "script",
-      "uri": "com_jcomments/editor/icons/monocons.js",
+      "uri": "com_jcomments/editor/icons/monocons.min.js",
       "version": "3.2.0"
     },
     {
       "name": "jceditor.init",
       "type": "script",
-      "uri": "com_jcomments/editor/init.js",
+      "uri": "com_jcomments/editor/joomla-editor-sceditor.min.js",
       "dependencies": [
-        "locutus"
-      ]
+        "locutus",
+        "jceditor.core",
+        "editors"
+      ],
+      "attributes": {
+        "type": "module"
+      }
     }
   ]
 }
