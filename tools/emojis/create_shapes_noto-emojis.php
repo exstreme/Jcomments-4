@@ -7,6 +7,7 @@ if (!$config)
 }
 
 $tileWidth = (int) $config['tile_width'];
+$tileWidthFlags = (int) $config['tile_width_flags'];
 $tileHeight = (int) $config['tile_height'];
 $numberOfCols = (int) $config['cols_per_row'];
 $pxBetweenTiles = (int) $config['px_between_tiles'];
@@ -17,16 +18,10 @@ if (!is_dir($config['dst_dir_shapes']))
 	mkdir($config['dst_dir_shapes'], 0777, true);
 }
 
-function indexToCoords($index)
+function indexToCoords($index, $tileWidth, $tileHeight, $options)
 {
-	$tileWidth = $GLOBALS['tileWidth'];
-	$pxBetweenTiles = $GLOBALS['pxBetweenTiles'];
-	$leftOffSet = $GLOBALS['leftOffSet'];
-	$topOffSet = $GLOBALS['topOffSet'];
-	$numberOfCols = $GLOBALS['numberOfCols'];
-
-	$x = ($index % $numberOfCols) * ($tileWidth + $pxBetweenTiles) + $leftOffSet;
-	$y = floor($index / $numberOfCols) * ($tileWidth + $pxBetweenTiles) + $topOffSet;
+	$x = ($index % $options['cols_per_row']) * ($tileWidth + $options['px_between_tiles']);
+	$y = floor($index / $options['cols_per_row']) * ($tileHeight + $options['px_between_tiles']);
 
 	return array($x, $y);
 }
@@ -111,7 +106,12 @@ foreach ($list as $i => $imgSrc)
 		{
 			$srcImagePath = $config['dst_dir_resized'] . '/' . $filename;
 
-			list($x, $y) = indexToCoords($index);
+			list($x, $y) = indexToCoords(
+				$index,
+				$tileWidth,
+				$config['tile_height'],
+				$config
+			);
 			$tileImg = imagecreatefrompng($srcImagePath);
 			imagecopy($mapImage, $tileImg, $x, $y, 0, 0, $tileWidth, $tileHeight);
 			imagedestroy($tileImg);
@@ -123,19 +123,13 @@ foreach ($list as $i => $imgSrc)
 
 			echo '<i class="' . $groupClassName . ' ' . $className . '"></i>';
 		}
-
-		echo '</div>';
 	}
 	else
 	{
-		$tileWidth = 32;
-
 		// Create base image
-		$_tileWidth = $tileWidth + $pxBetweenTiles;
+		$_tileWidth = $tileWidthFlags + $pxBetweenTiles;
 		$mapWidth = round($_tileWidth * $numberOfCols);
-		$_totalWidth = count($imgSrc) * $_tileWidth;
-		$mapHeight = round($_totalWidth / $numberOfCols);
-		$mapHeight = $mapHeight < $tileHeight ? max($mapHeight, $tileHeight) : $mapHeight + $tileHeight;
+		$mapHeight = (count($imgSrc) * $config['tile_height']) / $config['cols_per_row'] + 8;
 
 		$mapImage = imagecreatetruecolor(floor($mapWidth), floor($mapHeight));
 		imagesavealpha($mapImage, true);
@@ -156,22 +150,27 @@ foreach ($list as $i => $imgSrc)
 			}
 
 			$size = @getimagesize($srcImagePath);
-			list($x, $y) = indexToCoords($index);
+			list($x, $y) = indexToCoords(
+				$index,
+				$tileWidthFlags,
+				$config['flag_height'],
+				$config
+			);
 			$tileImg = imagecreatefrompng($srcImagePath);
-			imagecopy($mapImage, $tileImg, $x, $y, 0, 0, $tileWidth, $tileHeight);
+			imagecopy($mapImage, $tileImg, $x, $y, 0, 0, $tileWidthFlags, $tileHeight);
 			imagedestroy($tileImg);
 
 			$left = $x == 0 ? '0' : '-' . $x . 'px';
 			$top = $y == 0 ? '0' : '-' . $y . 'px';
 			$className = str_ireplace('emoji_', '', preg_replace('#\.[^.]*$#', '', $filename));
-			$width = (int) $size[0] > 16 ? ' width: ' . (int) $size[0] . 'px;' : '';
+			$width = ' width: ' . (int) $size[0] . 'px;';
 			$cssPos .= 'i.' . $groupClassName . '.' . $className . '{background-position:' . $left . ' ' . $top . ';' . $width . '}' . "\n";
 
 			echo '<i class="' . $groupClassName . ' ' . $className . '"></i>';
 		}
-
-		echo '</div>';
 	}
+
+	echo '</div>';
 
 	imagepng($mapImage, $config['dst_dir_shapes'] . '/' . $i . '.png', (int) $config['shape_compress'], PNG_NO_FILTER);
 	imagedestroy($mapImage);
