@@ -549,7 +549,7 @@ class JComments
 
 				$captchaEngine = $config->get('captcha_engine', 'kcaptcha');
 
-				if (($captchaEngine == 'kcaptcha')
+				if (($captchaEngine == 'kcaptcha') || ($captchaEngine == 'turnstile')
 					|| ($captchaEngine == 'recaptcha') || ($captchaEngine == 'recaptcha_invisible')
 					|| ($captchaEngine == 'hcaptcha') || ($captchaEngine == 'hcaptcha_invisible')
 				)
