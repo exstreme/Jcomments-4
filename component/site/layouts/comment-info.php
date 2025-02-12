@@ -44,8 +44,8 @@ $commentBoxIndentStyle = ($displayData->getVar('avatar') == 1) ? ' avatar-indent
 		<span itemprop="name"><?php echo $comment->author ?></span>
 	<?php endif; ?>
 	</dd>
-
-	<?php if (($displayData->getVar('comment-show-email') > 0) && ($comment->email != '')): ?>
+<!-- 152-FZ RF -->
+	<?php /* if (($displayData->getVar('comment-show-email') > 0) && ($comment->email != '')): ?>
 		<dd>
 			<?php // Only Super user can see real email.
 			if (!Factory::getApplication()->getIdentity()->get('isRoot')):
@@ -57,7 +57,7 @@ $commentBoxIndentStyle = ($displayData->getVar('avatar') == 1) ? ' avatar-indent
 				</a>
 			<?php endif; ?>
 		</dd>
-	<?php endif; ?>
+	<?php endif; */ ?>
 
 	<dd class="published">
 		<span class="icon-calendar icon-fw" aria-hidden="true"></span>
