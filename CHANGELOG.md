@@ -1,3 +1,18 @@
+###### 4.0.34
+- \+ Added finder plugin
+- \+ Added Cloudflare Turnstile CAPTCHA
+- \# fixed #192
+- \# fixed #191
+- \# fixed #190
+- \+ Added support for Membership Pro for Avatar plugin.
+
+###### 4.0.33
+- \# fixed bug with filter state for language field in admin.
+- \# fixed bug with empty ID when save edited comment in backend.
+- \# fixed #176
+- \# fixed #181
+- \# fixed #181
+
 ###### 4.0.32
 - \# fixed bug #175
 - \# fixed #173
