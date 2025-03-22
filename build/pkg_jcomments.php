@@ -17,8 +17,6 @@ use Joomla\CMS\Cache\CacheControllerFactoryInterface;
 use Joomla\CMS\Cache\Controller\CallbackController;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\File;
-use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Installer\Installer;
 use Joomla\CMS\Installer\InstallerAdapter;
@@ -26,6 +24,8 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Database\DatabaseDriver;
+use Joomla\Filesystem\File;
+use Joomla\Filesystem\Path;
 
 /**
  * JComments package installer class
@@ -48,16 +48,15 @@ class pkg_jcommentsInstallerScript
 	 * @param   string     $action     Which action is happening (install|uninstall|discover_install|update)
 	 * @param   Installer  $installer  The class calling this method
 	 *
-	 * @return  boolean  True on success
+	 * @return  bool  True on success
 	 *
 	 * @since   3.7.0
 	 */
 	public function preflight($action, $installer)
 	{
-		if (!version_compare(JVERSION, '4.0.0', 'ge'))
+		if (!version_compare(JVERSION, '4.4.2', 'ge'))
 		{
-			echo "<h1>Unsupported Joomla! version</h1>";
-			echo "<p>This component can only be installed on Joomla! 4.0 or later</p>";
+			echo '<h1>Unsupported Joomla version!</h1><p>This component can only be installed on Joomla! 4.4.2 or later</p>';
 
 			return false;
 		}
@@ -68,7 +67,7 @@ class pkg_jcommentsInstallerScript
 	/**
 	 * Called only with install
 	 *
-	 * @return  boolean  True on success
+	 * @return  bool  True on success
 	 *
 	 * @throws  Exception
 	 * @since   4.0.0
@@ -131,7 +130,7 @@ class pkg_jcommentsInstallerScript
 	 * @param   string            $action     Which action is happening (install|uninstall|discover_install|update)
 	 * @param   InstallerAdapter  $installer  The class calling this method
 	 *
-	 * @return  boolean  True on success
+	 * @return  bool  True on success
 	 *
 	 * @throws  Exception
 	 * @since   4.0.0
@@ -152,7 +151,7 @@ class pkg_jcommentsInstallerScript
 			Path::clean(JPATH_ROOT . '/administrator/components/com_jcomments/jcomments.xml')
 		);
 
-		$data           = new stdClass;
+		$data           = new stdClass();
 		$data->finish   = Text::_('A_INSTALL_COMPLETE');
 		$data->next     = Uri::root() . 'administrator/index.php?option=com_config&view=component&component=com_jcomments&return=';
 		$data->action   = $action;
@@ -191,7 +190,7 @@ class pkg_jcommentsInstallerScript
 			Path::clean(JPATH_ROOT . '/administrator/components/com_jcomments/jcomments.xml')
 		);
 
-		$data           = new stdClass;
+		$data           = new stdClass();
 		$data->finish   = Text::_('A_UNINSTALL_COMPLETE');
 		$data->action   = 'uninstall';
 		$data->xml      = $componentXML;
@@ -248,7 +247,7 @@ class pkg_jcommentsInstallerScript
 	/**
 	 * Enable or disable component plugins.
 	 *
-	 * @param   integer  $state  Item state.
+	 * @param   int  $state  Item state.
 	 *
 	 * @return  void
 	 *
@@ -370,7 +369,7 @@ class pkg_jcommentsInstallerScript
 	 *
 	 * @param   string  $filename  Filename with sql.
 	 *
-	 * @return  boolean
+	 * @return  bool
 	 *
 	 * @since   4.0
 	 */

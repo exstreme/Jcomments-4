@@ -24,6 +24,7 @@ class PkgBuilder
 		'com_jcomments/packages/plg_jcommentslock_jcomments.zip' => 'plugins/editors-xtd/jcommentslock',
 		'com_jcomments/packages/plg_jcommentsoff_jcomments.zip'  => 'plugins/editors-xtd/jcommentsoff',
 		'com_jcomments/packages/plg_jcommentson_jcomments.zip'   => 'plugins/editors-xtd/jcommentson',
+		'com_jcomments/packages/plg_finder_jcomments.zip'        => 'plugins/finder',
 		'com_jcomments/packages/plg_quickicon_jcomments.zip'     => 'plugins/quickicon',
 		'com_jcomments/packages/plg_system_jcomments.zip'        => 'plugins/system',
 		'com_jcomments/packages/plg_user_jcomments.zip'          => 'plugins/user'
@@ -80,7 +81,7 @@ class PkgBuilder
 	/**
 	 * Update xml file with new extension version
 	 *
-	 * @var   boolean
+	 * @var   bool
 	 * @since 4.0
 	 */
 	private $updateXML = false;
@@ -88,7 +89,7 @@ class PkgBuilder
 	/**
 	 * Create a hash file alongside the zip file.
 	 *
-	 * @var   boolean
+	 * @var   bool
 	 * @since 4.0
 	 */
 	private $shaFile = false;
@@ -157,7 +158,7 @@ class PkgBuilder
 	 * @param   string  $srcPath  Source folder, file to zip.
 	 * @param   string  $dstPath  Destination path with filename and extension.
 	 *
-	 * @return  boolean
+	 * @return  bool
 	 *
 	 * @since   4.0
 	 */
@@ -175,7 +176,7 @@ class PkgBuilder
 			}
 		}
 
-		$zip = new ZipArchive;
+		$zip = new ZipArchive();
 		$zip->open($dstPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
 		$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcPath), RecursiveIteratorIterator::LEAVES_ONLY);
@@ -502,7 +503,7 @@ class PkgBuilder
 	 *
 	 * @param   string  $path  Path to a file
 	 *
-	 * @return  SimpleXMLElement|boolean  Return boolean false on error, SimpleXMLElement object otherwise.
+	 * @return  SimpleXMLElement|bool  Return boolean false on error, SimpleXMLElement object otherwise.
 	 *
 	 * @since   4.0
 	 */
@@ -528,4 +529,4 @@ class PkgBuilder
 	}
 }
 
-$class = new PkgBuilder;
+$class = new PkgBuilder();

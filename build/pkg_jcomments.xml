@@ -18,6 +18,7 @@
 		<file type="plugin" id="jcommentslock" group="editors-xtd">plg_jcommentslock_jcomments.zip</file>
 		<file type="plugin" id="jcommentsoff" group="editors-xtd">plg_jcommentsoff_jcomments.zip</file>
 		<file type="plugin" id="jcommentson" group="editors-xtd">plg_jcommentson_jcomments.zip</file>
+		<file type="plugin" id="jcomments" group="finder">plg_finder_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="quickicon">plg_quickicon_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="system">plg_system_jcomments.zip</file>
 		<file type="plugin" id="jcomments" group="user">plg_user_jcomments.zip</file>

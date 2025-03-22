@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="finder" method="upgrade">
+	<name>plg_finder_jcomments</name>
+	<creationDate>May 2024</creationDate>
+	<author>JComments team</author>
+	<copyright>2006-2023 by Sergey M. Litvinov and exstreme and Vladimir Globulopolis</copyright>
+	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
+	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
+	<version>4.1.0</version>
+	<description>PLG_FINDER_JCOMMENTS_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\Finder\Jcomments</namespace>
+
+	<files>
+		<folder plugin="jcomments">services</folder>
+		<folder>src</folder>
+	</files>
+	
+	<languages folder="admin">
+		<language tag="en-GB">language/en-GB/plg_finder_jcomments.ini</language>
+		<language tag="en-GB">language/en-GB/plg_finder_jcomments.sys.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_finder_jcomments.ini</language>
+		<language tag="ru-RU">language/ru-RU/plg_finder_jcomments.sys.ini</language>
+	</languages>
+	
+	<config>
+		<fields name="params">
+			<fieldset name="basic" addfieldprefix="Joomla\Component\Finder\Administrator\Field">
+				<field
+					name="taxonomies"
+					type="taxonomytypes"
+					label="PLG_FINDER_CONTENT_TAXONOMIES_LABEL"
+					default="type,language,author"
+					multiple="true"
+					>
+					<option value="author">PLG_FINDER_CONTENT_TAXONOMIES_AUTHOR</option>
+					<option value="language">PLG_FINDER_CONTENT_TAXONOMIES_LANGUAGE</option>
+					<option value="type">PLG_FINDER_CONTENT_TAXONOMIES_TYPE</option>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+</extension>
