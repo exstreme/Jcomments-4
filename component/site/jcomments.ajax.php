@@ -547,7 +547,12 @@ class JCommentsAJAX
 
 						$subscriptionModel = new JcommentsModelSubscriptions;
 						$subscriptionModel->subscribe(
-							$comment->object_id, $comment->object_group, $comment->userid, $comment->email, $comment->name, $comment->lang
+							objectID: $comment->object_id,
+                            objectGroup: $comment->object_group,
+                            userID: $comment->userid,
+                            name: $comment->name,
+                            email: $comment->email,
+                            lang: $comment->lang,
 						);
 					}
 
