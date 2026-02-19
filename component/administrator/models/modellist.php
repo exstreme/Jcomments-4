@@ -25,7 +25,7 @@ class JCommentsModelList extends ListModel
 	protected $tableName = null;
 	protected $tablePrefix = 'JCommentsTable';
 
-	public function __construct($config = array(), MVCFactoryInterface $factory = null)
+	public function __construct($config = array(), ?MVCFactoryInterface $factory = null)
 	{
 		parent::__construct($config, $factory);
 
