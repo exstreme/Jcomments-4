@@ -17,7 +17,7 @@ ob_start();
 
 $app = Factory::getApplication();
 
-if ($app->input->get('option') !== 'com_jcomments')
+if ($app->getInput()->get('option') !== 'com_jcomments')
 {
 	$app->getLanguage()->load('com_jcomments', JPATH_SITE);
 }

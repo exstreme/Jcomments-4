@@ -59,11 +59,11 @@ final class LegacyDispatcher implements DispatcherInterface
 	 */
 	public function dispatch(): void
 	{
-		$this->app->input = $this->input;
-
 		$entrypoint = $this->app->isClient('administrator')
 			? JPATH_ADMINISTRATOR . '/components/com_jcomments/jcomments.php'
 			: JPATH_ROOT . '/components/com_jcomments/jcomments.php';
+
+		$input = $this->input;
 
 		require $entrypoint;
 	}

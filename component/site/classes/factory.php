@@ -122,7 +122,7 @@ class JCommentsFactory
 		$tmpl->addGlobalVar('smilesurl', self::getLink('smilies', $objectID, $objectGroup));
 		$tmpl->addGlobalVar('template', $templateName);
 		$tmpl->addGlobalVar('template_url', $templateUrl);
-		$tmpl->addGlobalVar('itemid', $app->input->getInt('Itemid') ?: 1);
+		$tmpl->addGlobalVar('itemid', $app->getInput()->getInt('Itemid') ?: 1);
 		$tmpl->addGlobalVar('direction', $language->isRTL() ? 'rtl' : 'ltr');
 		$tmpl->addGlobalVar('comment-object_id', $objectID);
 		$tmpl->addGlobalVar('comment-object_group', $objectGroup);

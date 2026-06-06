@@ -42,7 +42,7 @@ class JCommentsViewComment extends HtmlView
 		$canDo      = ContentHelper::getActions('com_jcomments', 'component');
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
 
-		Factory::getApplication()->input->set('hidemainmenu', 1);
+		Factory::getApplication()->getInput()->set('hidemainmenu', 1);
 
 		ToolbarHelper::title(Text::_('A_COMMENT_EDIT'));
 

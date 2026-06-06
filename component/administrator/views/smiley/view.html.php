@@ -36,7 +36,7 @@ class JCommentsViewSmiley extends HtmlView
 
 	protected function addToolbar()
 	{
-		Factory::getApplication()->input->set('hidemainmenu', 1);
+		Factory::getApplication()->getInput()->set('hidemainmenu', 1);
 
 		$userId     = Factory::getApplication()->getIdentity()->get('id');
 		$canDo      = ContentHelper::getActions('com_jcomments', 'component');

@@ -86,7 +86,7 @@ abstract class JCommentsModelForm extends AdminModel
 		$table = $this->getTable();
 		$key = $table->getKeyName();
 
-		$pk = Factory::getApplication()->input->getInt($key);
+		$pk = Factory::getApplication()->getInput()->getInt($key);
 		$this->setState($this->getName() . '.id', $pk);
 	}
 }

@@ -137,7 +137,7 @@ class JCommentsAJAX
 
 		if ((int) $config->get('report_reason_required') == 0)
 		{
-			Factory::getApplication()->input->post->set('commentid', (int) $id);
+			Factory::getApplication()->getInput()->post->set('commentid', (int) $id);
 			$response = JCommentsFactory::getAjaxResponse();
 			$response->addAssign($target, 'innerHTML', '<div id="comments-report-form"></div>');
 
@@ -378,7 +378,7 @@ class JCommentsAJAX
 
 							try
 							{
-								$app->triggerEvent('onCheckAnswer', array($app->input->getCmd('turnstile')));
+								$app->triggerEvent('onCheckAnswer', array($app->getInput()->getCmd('turnstile')));
 							}
 							catch (Exception $e)
 							{
@@ -1410,9 +1410,9 @@ class JCommentsAJAX
 		$response = JCommentsFactory::getAjaxResponse();
 		$user     = $app->getIdentity();
 
-		$id     = $app->input->getInt('commentid');
-		$reason = $app->input->getString('reason');
-		$name   = $app->input->getString('name');
+		$id     = $app->getInput()->getInt('commentid');
+		$reason = $app->getInput()->getString('reason');
+		$name   = $app->getInput()->getString('name');
 		$ip     = $_SERVER['REMOTE_ADDR'];
 
 		if (empty($reason))
@@ -1608,9 +1608,9 @@ class JCommentsAJAX
 	{
 		$app = Factory::getApplication();
 
-		$hash = $app->input->post->get('hash', '');
-		$step = $app->input->post->getInt('step');
-		$lang = $app->input->post->get('lang', '');
+		$hash = $app->getInput()->post->get('hash', '');
+		$step = $app->getInput()->post->getInt('step');
+		$lang = $app->getInput()->post->get('lang', '');
 
 		if ($hash === md5($app->get('secret')))
 		{

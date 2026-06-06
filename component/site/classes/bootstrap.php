@@ -59,7 +59,7 @@ final class JCommentsLegacyBootstrap
 		self::register();
 
 		$app    = Factory::getApplication();
-		$input  = $app->input;
+		$input  = $app->getInput();
 		$task   = $input->getCmd('task', 'display');
 		$format = $input->getCmd('format', '');
 

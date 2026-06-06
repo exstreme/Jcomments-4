@@ -88,7 +88,7 @@ $wa->useScript('keepalive')
 		<?php echo HTMLHelper::_('uitab.endTabSet'); ?>
 	</div>
 
-	<input type="hidden" name="return" value="<?php echo Factory::getApplication()->input->getBase64('return'); ?>">
+	<input type="hidden" name="return" value="<?php echo Factory::getApplication()->getInput()->getBase64('return'); ?>">
 	<input type="hidden" name="task" value=""/>
 	<?php echo HTMLHelper::_('form.token'); ?>
 </form>

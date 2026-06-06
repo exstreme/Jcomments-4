@@ -53,10 +53,10 @@ class JCommentsViewComments extends AbstractView
 		$app         = Factory::getApplication();
 		$user        = $app->getIdentity();
 		$language    = JCommentsFactory::getLanguageFilter() ? $app->getLanguage()->getTag() : null;
-		$itemsType   = $app->input->getWord('task', 'rss');
-		$objectID    = $app->input->getInt('object_id', 0);
-		$objectGroup = $app->input->getString('object_group', 'com_content');
-		$limit       = $app->input->getInt('limit', (int) $config->get('feed_limit', 100));
+		$itemsType   = $app->getInput()->getWord('task', 'rss');
+		$objectID    = $app->getInput()->getInt('object_id', 0);
+		$objectGroup = $app->getInput()->getString('object_group', 'com_content');
+		$limit       = $app->getInput()->getInt('limit', (int) $config->get('feed_limit', 100));
 		$lm          = $limit != (int) $config->get('feed_limit') ? ('&limit=' . $limit) : '';
 
 		// If no group or id specified - return 404
@@ -118,7 +118,7 @@ class JCommentsViewComments extends AbstractView
 		}
 		elseif ($itemsType == 'rss_user')
 		{
-			$uid = $app->input->getInt('userid', 0);
+			$uid = $app->getInput()->getInt('userid', 0);
 
 			if (empty($uid))
 			{

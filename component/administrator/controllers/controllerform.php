@@ -142,7 +142,7 @@ class JCommentsControllerForm extends BaseController
 		$app     = Factory::getApplication();
 		$model   = $this->getModel();
 		$table   = $model->getTable();
-		$cid     = $app->input->post->get('cid', array(), 'array');
+		$cid     = $app->getInput()->post->get('cid', array(), 'array');
 		$context = "$this->option.edit.$this->context";
 
 		if (empty($key))
@@ -155,7 +155,7 @@ class JCommentsControllerForm extends BaseController
 			$urlVar = $key;
 		}
 
-		$recordId = (int) (count($cid) ? $cid[0] : $app->input->getInt($urlVar));
+		$recordId = (int) (count($cid) ? $cid[0] : $app->getInput()->getInt($urlVar));
 
 		if (!$this->allowEdit(array($key => $recordId), $key))
 		{
@@ -195,7 +195,7 @@ class JCommentsControllerForm extends BaseController
 		$app      = Factory::getApplication();
 		$language = $app->getLanguage();
 		$task     = $this->getTask();
-		$data     = $app->input->post->get('jform', array(), 'array');
+		$data     = $app->getInput()->post->get('jform', array(), 'array');
 		$model    = $this->getModel();
 		$table    = $model->getTable();
 		$key      = $table->getKeyName();
@@ -219,7 +219,7 @@ class JCommentsControllerForm extends BaseController
 			throw new RuntimeException($model->getError(), 500);
 		}
 
-		$recordId = $app->input->getInt($key);
+		$recordId = $app->getInput()->getInt($key);
 
 		if (!$this->checkEditId($context, $recordId))
 		{
@@ -336,7 +336,7 @@ class JCommentsControllerForm extends BaseController
 		$key     = $table->getKeyName();
 		$context = "$this->option.edit.$this->context";
 
-		$recordId = $app->input->getInt($key);
+		$recordId = $app->getInput()->getInt($key);
 
 		if ($recordId)
 		{
@@ -365,8 +365,8 @@ class JCommentsControllerForm extends BaseController
 	protected function getRedirectToItem($recordId = null, $urlVar = 'id')
 	{
 		$app    = Factory::getApplication();
-		$tmpl   = $app->input->get('tmpl');
-		$layout = $app->input->get('layout', 'edit');
+		$tmpl   = $app->getInput()->get('tmpl');
+		$layout = $app->getInput()->get('layout', 'edit');
 		$url    = 'index.php?option=' . $this->option . '&view=' . $this->view_item;
 
 		if ($tmpl)
@@ -389,7 +389,7 @@ class JCommentsControllerForm extends BaseController
 
 	protected function getRedirectToList()
 	{
-		$tmpl = Factory::getApplication()->input->get('tmpl');
+		$tmpl = Factory::getApplication()->getInput()->get('tmpl');
 		$url  = 'index.php?option=' . $this->option . '&view=' . $this->view_list;
 
 		if ($tmpl)

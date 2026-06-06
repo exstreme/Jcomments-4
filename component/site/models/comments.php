@@ -72,7 +72,7 @@ class JcommentsModelComments extends ListModel
 
 		$this->setState('list.limit', $limit);
 
-		$limitstart = $app->input->getUInt('limitstart', 0);
+		$limitstart = $app->getInput()->getUInt('limitstart', 0);
 		$this->setState('list.start', $limitstart);
 
 		$this->setState('list.ordering', $params->get('orderby'));

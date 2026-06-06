@@ -72,7 +72,7 @@ class JCommentsSystem
 	 */
 	public static function getReturnPage()
 	{
-		$input  = Factory::getApplication()->input;
+		$input  = Factory::getApplication()->getInput();
 		$return = $input->get('return', null, 'base64');
 
 		if (empty($return) || !Uri::isInternal(base64_decode($return)))

@@ -77,7 +77,7 @@ class JCommentsModelComment extends JCommentsModelForm
 
 		if (empty($data))
 		{
-			$data          = $this->getItem($app->input->getInt('id'));
+			$data          = $this->getItem($app->getInput()->getInt('id'));
 			$data->comment = strip_tags(str_replace('<br />', "\n", $data->comment));
 		}
 

@@ -46,7 +46,7 @@ class JCommentsViewComments extends HtmlView
 		$this->items  = $this->get('Items');
 		$this->menu   = $app->getMenu();
 		$this->params = ComponentHelper::getParams('com_jcomments');
-		$this->itemid = $app->input->get('Itemid', 0, 'int');
+		$this->itemid = $app->getInput()->get('Itemid', 0, 'int');
 		$user         = $app->getIdentity();
 
 		if (count($errors = $this->get('Errors')))

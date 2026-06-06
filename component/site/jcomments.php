@@ -34,7 +34,7 @@ require_once JPATH_ROOT . '/components/com_jcomments/models/jcomments.php';
 ob_end_clean();
 
 $app = Factory::getApplication();
-$task = $app->input->get('task', '');
+$task = $app->getInput()->get('task', '');
 
 // TODO Must be placed in main component view class.
 $app->getDocument()->getWebAssetManager()->useScript('jquery');
@@ -65,8 +65,8 @@ switch ($task)
 
 		break;
 	case 'notifications-cron':
-		$limit  = $app->input->getInt('limit', 10);
-		$secret = trim($app->input->get('secret', ''));
+		$limit  = $app->getInput()->getInt('limit', 10);
+		$secret = trim($app->getInput()->get('secret', ''));
 
 		if ($secret == $app->get('secret'))
 		{
@@ -92,13 +92,13 @@ switch ($task)
 
 		break;
 	default:
-		$jcOption = $app->input->get('option', '');
-		$jcAjax   = $app->input->get('jtxf', '');
+		$jcOption = $app->getInput()->get('option', '');
+		$jcAjax   = $app->getInput()->get('jtxf', '');
 
 		if ($jcOption == 'com_jcomments' && $jcAjax == '' && !$app->isClient('administrator'))
 		{
-			$itemid = $app->input->getInt('Itemid');
-			$tmpl   = $app->input->get('tmpl');
+			$itemid = $app->getInput()->getInt('Itemid');
+			$tmpl   = $app->getInput()->get('tmpl');
 
 			if ($itemid !== 0 && $tmpl !== 'component')
 			{
@@ -1417,9 +1417,9 @@ class JComments
 	{
 		$app       = Factory::getApplication();
 		$config    = ComponentHelper::getParams('com_jcomments');
-		$cmd       = strtolower($app->input->get('cmd', ''));
-		$hash      = $app->input->get('hash', '');
-		$id        = $app->input->getInt('id', 0);
+		$cmd       = strtolower($app->getInput()->get('cmd', ''));
+		$hash      = $app->getInput()->get('hash', '');
+		$id        = $app->getInput()->getInt('id', 0);
 		$link      = str_replace('/administrator', '', Uri::root()) . 'index.php';
 		$checkHash = JCommentsFactory::getCmdHash($cmd, $id);
 

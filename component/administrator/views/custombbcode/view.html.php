@@ -47,7 +47,7 @@ class JCommentsViewCustombbcode extends HtmlView
 		$checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
 		$isNew      = ($this->item->id == 0);
 
-		$app->input->set('hidemainmenu', 1);
+		$app->getInput()->set('hidemainmenu', 1);
 		ToolbarHelper::title(Text::_('A_CUSTOM_BBCODE'));
 
 		if (!$checkedOut && $canDo->get('core.edit'))
