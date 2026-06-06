@@ -31,7 +31,7 @@ final class LegacyDispatcherFactory implements ComponentDispatcherFactoryInterfa
 	 *
 	 * @since   4.1.0
 	 */
-	public function createDispatcher(CMSApplicationInterface $application, Input $input = null): DispatcherInterface
+	public function createDispatcher(CMSApplicationInterface $application, ?Input $input = null): DispatcherInterface
 	{
 		return new LegacyDispatcher($application, $input ?? $application->getInput());
 	}

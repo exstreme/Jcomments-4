@@ -16,11 +16,7 @@ use Joomla\CMS\Factory;
 ob_start();
 
 $app = Factory::getApplication();
-
-if ($app->getInput()->get('option') !== 'com_jcomments')
-{
-	$app->getLanguage()->load('com_jcomments', JPATH_SITE);
-}
+$app->getLanguage()->load('com_jcomments', JPATH_SITE);
 
 ob_end_clean();
 

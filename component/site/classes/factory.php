@@ -198,7 +198,7 @@ class JCommentsFactory
 				return Uri::root(true) . '/' . trim(str_replace('\\', '/', $config->get('smilies_path')), '/') . '/';
 
 			case 'captcha':
-				mt_srand((double) microtime() * 1000000);
+				mt_srand((int) ((float) microtime() * 1000000));
 				$random = mt_rand(10000, 99999);
 
 				return Route::_('index.php?option=com_jcomments&task=captcha&format=raw&ac=' . $random, false);
@@ -291,6 +291,6 @@ class JCommentsFactory
 			}
 		}
 
-		return (boolean) $enabled;
+		return (bool) $enabled;
 	}
 }
