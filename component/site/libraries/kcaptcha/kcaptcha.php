@@ -17,7 +17,7 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Filesystem\Path;
+use Joomla\Filesystem\Path;
 
 /**
  * @package  KCAPTCHA
