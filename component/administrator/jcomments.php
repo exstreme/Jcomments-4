@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
 $app = Factory::getApplication();
+$app->getLanguage()->load('com_jcomments', JPATH_ADMINISTRATOR);
 
 if (!$app->getIdentity()->authorise('core.manage', 'com_jcomments'))
 {
