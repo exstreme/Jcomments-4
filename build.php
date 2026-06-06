@@ -22,6 +22,7 @@ class PkgBuilder
 		'com_jcomments/packages/plg_jcommentslock_jcomments.zip' => 'plugins/editors-xtd/jcommentslock',
 		'com_jcomments/packages/plg_jcommentsoff_jcomments.zip'  => 'plugins/editors-xtd/jcommentsoff',
 		'com_jcomments/packages/plg_jcommentson_jcomments.zip'   => 'plugins/editors-xtd/jcommentson',
+		'com_jcomments/packages/plg_finder_jcomments.zip'        => 'plugins/finder',
 		'com_jcomments/packages/plg_quickicon_jcomments.zip'     => 'plugins/quickicon',
 		'com_jcomments/packages/plg_system_jcomments.zip'        => 'plugins/system',
 		'com_jcomments/packages/plg_user_jcomments.zip'          => 'plugins/user'

@@ -14,8 +14,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Table\Table;
 
-Table::addIncludePath(JPATH_COMPONENT . '/tables');
-
 class JCommentsModelBlacklist extends JCommentsModelForm
 {
 	public function getTable($type = 'Blacklist', $prefix = 'JCommentsTable', $config = array())

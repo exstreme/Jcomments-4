@@ -12,6 +12,7 @@
 
 	<files>
 		<folder>src</folder>
+		<folder>services</folder>
 
 		<filename plugin="autosubscribe">autosubscribe.php</filename>
 	</files>

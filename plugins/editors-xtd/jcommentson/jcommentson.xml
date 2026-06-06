@@ -10,6 +10,7 @@
 
 	<files>
 		<filename plugin="jcommentson">jcommentson.php</filename>
+		<folder>services</folder>
 	</files>
 
 	<languages>

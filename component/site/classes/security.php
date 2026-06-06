@@ -28,7 +28,8 @@ class JCommentsSecurity
 	public static function notAuth()
 	{
 		header('HTTP/1.0 403 Forbidden');
-		jexit(Text::_('JERROR_ALERTNOAUTHOR'));
+		echo Text::_('JERROR_ALERTNOAUTHOR');
+		Factory::getApplication()->close();
 	}
 
 	public static function badRequest()

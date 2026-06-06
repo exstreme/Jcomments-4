@@ -5,9 +5,12 @@
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>4.0.35</version>
+	<version>5.0.0</version>
 	<description>JComments lets your users comment on content items.</description>
 	<namespace path="src">Joomla\Component\Jcomments</namespace>
+	<compatibility>
+		<version>6</version>
+	</compatibility>
 
 	<install>
 		<sql>
@@ -80,6 +83,8 @@
 			<folder>helpers</folder>
 			<folder>install</folder>
 			<folder>models</folder>
+			<folder>services</folder>
+			<folder>src</folder>
 			<folder>tables</folder>
 			<folder>views</folder>
 		</files>

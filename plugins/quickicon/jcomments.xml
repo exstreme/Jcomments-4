@@ -10,6 +10,7 @@
 
 	<files>
 		<filename plugin="jcomments">jcomments.php</filename>
+		<folder>services</folder>
 	</files>
 
 	<languages folder="admin">

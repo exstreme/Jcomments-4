@@ -11,6 +11,7 @@
 
 	<files>
 		<filename plugin="jcomments">jcomments.php</filename>
+		<folder>services</folder>
 		<folder>forms</folder>
 	</files>
 

@@ -14,7 +14,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\Uri\Uri;
@@ -38,7 +37,7 @@ $app = Factory::getApplication();
 $task = $app->input->get('task', '');
 
 // TODO Must be placed in main component view class.
-\Joomla\CMS\HTML\HTMLHelper::_('jquery.framework');
+$app->getDocument()->getWebAssetManager()->useScript('jquery');
 
 switch ($task)
 {
@@ -80,15 +79,15 @@ switch ($task)
 
 		JCommentsAJAX::refreshObjectsAjax();
 
-		jexit();
+		$app->close();
 	case 'subscriptions.add':
 	case 'subscriptions.remove':
 	case 'show_all':
 	case 'rss':
 	case 'rss_full':
 	case 'rss_user':
-		$controller = BaseController::getInstance('JComments');
-		$controller->execute($app->input->get('task'));
+		[$controller, $controllerTask] = JCommentsLegacyBootstrap::createController('Jcomments', JPATH_ROOT . '/components/com_jcomments');
+		$controller->execute($controllerTask);
 		$controller->redirect();
 
 		break;
@@ -1428,8 +1427,6 @@ class JComments
 		{
 			if ((int) $config->get('enable_quick_moderation') == 1)
 			{
-				Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
-
 				/** @var JCommentsTableComment $comment */
 				$comment = Table::getInstance('Comment', 'JCommentsTable');
 

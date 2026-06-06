@@ -15,11 +15,11 @@
 		</tags>
 		<maintainer>exstreme and Globulopolis</maintainer>
 		<maintainerurl>https://github.com/exstreme/Jcomments-4</maintainerurl>
-		<php_minimum>7.2.0</php_minimum>
+		<php_minimum>8.3.0</php_minimum>
 		<supported_databases mysql="5.6.0" mariadb="10.0" />
 		<sha256>32fca4b466fb909044f8f17d60f0af48c84c6febf09ec54fbd2ef1bba4dbf431</sha256>
 		<sha384>1d2e881296ad32aaec256b452ecb42a1c3bc96217e39a61465ff7cefa8571adca84e10b193963bfe485beaedf38c831f</sha384>
 		<sha512>14193cd65bdf094ce327c1f7763f16863adedbbe16829524010bf945de5a6b70cfabe9d7532039d7a17f791e9adc0864781d14ab5964e09c57aefd7247ef54cd</sha512>
-		<targetplatform name="joomla" version="[45].[0123456789]|10"/>
+		<targetplatform name="joomla" version="[6].[0123456789]|10"/>
 	</update>				
 </updates>

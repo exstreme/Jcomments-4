@@ -53,8 +53,6 @@ class JCommentsNotification
 
 			if (count(get_object_vars($subscribers)))
 			{
-				Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
-
 				$email = Factory::getApplication()->getIdentity()->get('email');
 				$data = self::prepareData($data, $type);
 
@@ -115,8 +113,6 @@ class JCommentsNotification
 
 			if (!empty($items))
 			{
-				Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
-
 				self::lock(array_keys($items));
 
 				foreach ($items as $item)

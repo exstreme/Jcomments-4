@@ -81,7 +81,7 @@ class KCAPTCHA
     {
         // Test if GD+ is loaded.
         if (!extension_loaded('gd')) {
-            jexit('GD+ library is not available!');
+            throw new RuntimeException('GD+ library is not available!');
         }
 
         $fonts            = array();
@@ -101,7 +101,7 @@ class KCAPTCHA
 
             closedir($handle);
         } else {
-            jexit('Fonts not found.');
+            throw new RuntimeException('Fonts not found.');
         }
 
         $alphabetLength = strlen($this->alphabet);

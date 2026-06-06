@@ -4,7 +4,7 @@
 	<author>JComments team</author>
 	<creationDate>June 2024</creationDate>
 	<packagename>jcomments</packagename>
-	<version>4.0.35</version>
+	<version>5.0.0</version>
 	<url>https://github.com/exstreme/Jcomments-4</url>
 	<packager>JComments team</packager>
 	<packagerurl>https://github.com/exstreme/Jcomments-4</packagerurl>
@@ -24,8 +24,7 @@
 	</files>
 
 	<compatibility>
-		<version>4</version>
-		<version>5</version>
+		<version>6</version>
 	</compatibility>
 
 	<blockChildUninstall>true</blockChildUninstall>

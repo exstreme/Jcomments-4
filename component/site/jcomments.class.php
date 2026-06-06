@@ -24,5 +24,6 @@ if ($app->input->get('option') !== 'com_jcomments')
 
 ob_end_clean();
 
-JLoader::registerPrefix('JComments', JPATH_ROOT . '/components/com_jcomments/classes/');
-JLoader::registerPrefix('JComments', JPATH_ROOT . '/components/com_jcomments/helpers/');
+require_once __DIR__ . '/classes/bootstrap.php';
+
+JCommentsLegacyBootstrap::register();

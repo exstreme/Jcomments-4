@@ -79,8 +79,6 @@ class JcommentsModelSubscriptions extends BaseDatabaseModel implements DatabaseM
 			return false;
 		}
 
-		Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
-
 		/** @var JCommentsTableSubscription $subscription */
 		$subscription = Table::getInstance('Subscription', 'JCommentsTable');
 

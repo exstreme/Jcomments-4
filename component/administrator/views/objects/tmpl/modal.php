@@ -11,13 +11,14 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
-HTMLHelper::_('stylesheet', 'media/com_jcomments/css/backend-style.css');
-HTMLHelper::_('jquery.framework');
-HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.progressbar.js');
-HTMLHelper::_('script', 'media/com_jcomments/js/jcomments.objects.js');
+$wa = Factory::getApplication()->getDocument()->getWebAssetManager();
+$wa->registerAndUseStyle('com_jcomments.backend', 'media/com_jcomments/css/backend-style.css');
+$wa->useScript('jquery');
+$wa->registerAndUseScript('com_jcomments.progressbar', 'media/com_jcomments/js/jcomments.progressbar.js');
+$wa->registerAndUseScript('com_jcomments.objects', 'media/com_jcomments/js/jcomments.objects.js');
 ?>
 <script type="text/javascript">
     (function ($) {

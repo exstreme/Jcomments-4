@@ -37,7 +37,9 @@ if ((version_compare(phpversion(), '5.1.0') >= 0))
 	date_default_timezone_set('UTC');
 }
 
-Table::addIncludePath(JPATH_ROOT . '/administrator/components/com_jcomments/tables');
+require_once JPATH_ROOT . '/components/com_jcomments/classes/bootstrap.php';
+
+JCommentsLegacyBootstrap::register();
 
 /**
  * Frontend event handler

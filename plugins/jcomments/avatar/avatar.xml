@@ -11,6 +11,7 @@
 
 	<files>
 		<filename plugin="avatar">avatar.php</filename>
+		<folder>services</folder>
 	</files>
 
 	<languages>

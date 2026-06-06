@@ -13,7 +13,6 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
 
 $app = Factory::getApplication();
 
@@ -28,13 +27,8 @@ if (!defined('JPATH_COMPONENT'))
 	define('JPATH_COMPONENT', JPATH_BASE . '/components/com_jcomments');
 }
 
-JLoader::registerPrefix('JComments', JPATH_ROOT . '/components/com_jcomments/classes/');
-JLoader::registerPrefix('JComments', JPATH_ROOT . '/components/com_jcomments/helpers/');
-JLoader::register('JCommentsControllerForm', JPATH_COMPONENT . '/controllers/controllerform.php');
-JLoader::register('JCommentsControllerList', JPATH_COMPONENT . '/controllers/controllerlist.php');
-JLoader::register('JCommentsModelForm', JPATH_COMPONENT . '/models/modelform.php');
-JLoader::register('JCommentsModelList', JPATH_COMPONENT . '/models/modellist.php');
+require_once JPATH_ROOT . '/components/com_jcomments/classes/bootstrap.php';
 
-$controller = BaseController::getInstance('JComments');
-$controller->execute($app->input->get('task'));
+[$controller, $task] = JCommentsLegacyBootstrap::createController('JComments', JPATH_COMPONENT);
+$controller->execute($task);
 $controller->redirect();

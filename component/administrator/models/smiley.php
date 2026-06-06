@@ -14,8 +14,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Table\Table;
 
-Table::addIncludePath(JPATH_COMPONENT . '/tables');
-
 class JCommentsModelSmiley extends JCommentsModelForm
 {
 	public function getTable($type = 'Smiley', $prefix = 'JCommentsTable', $config = array())
