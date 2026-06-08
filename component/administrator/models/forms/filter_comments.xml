@@ -68,10 +68,11 @@
 				class="form-select"
 				sql_select="object_group AS value, object_group AS name"
 				sql_from="#__jcomments"
-				sql_order="value ASC"
+				sql_where="object_group != ''"
+				sql_order="object_group ASC"
 				key_field="value"
 				value_field="name"
-				sql_group="value"
+				sql_group="object_group"
 				onchange="this.form.submit();"
 		>
 			<option value="">A_FILTER_COMPONENT</option>

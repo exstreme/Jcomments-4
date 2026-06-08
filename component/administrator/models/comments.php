@@ -232,8 +232,8 @@ class JCommentsModelComments extends JCommentsModelList
 		$search = $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
 		$this->setState('filter.search', $search);
 
-		$state = $app->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
-		$this->setState('filter.state', $state);
+		$published = $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '');
+		$this->setState('filter.published', $published);
 
 		$state = $app->getUserStateFromRequest($this->context . '.filter.ip', 'filter_ip', '', 'string');
 		$this->setState('filter.ip', $state);
