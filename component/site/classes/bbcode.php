@@ -306,13 +306,16 @@ class JCommentsBBCode
 
 		// URL (external)
 		$patterns[]     = '#\[url\](http:\/\/)?([^\s<\"\']*?)\[\/url\]#iu';
-		$replacements[] = '<a href="http://\\2" rel="external nofollow" target="_blank">\\2</a>'; // TODO Support https
+		$replacements[] = '<a href="http://\\2" rel="external nofollow" target="_blank">\\2</a>';
+
+		$patterns[]     = '#\[url\](https:\/\/)?([^\s<\"\']*?)\[\/url\]#iu';
+		$replacements[] = '<a href="https://\\2" rel="external nofollow" target="_blank">\\2</a>';
 
 		$patterns[]     = '/\[url=([a-z]*\:\/\/)([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
 		$replacements[] = '<a href="\\1\\2" rel="external nofollow" target="_blank">\\3</a>';
 
 		$patterns[]     = '/\[url=([^\s<\"\'\]]*?)\](.*?)\[\/url\]/iu';
-		$replacements[] = '<a href="http://\\1" rel="external nofollow" target="_blank">\\2</a>'; // TODO Support https
+		$replacements[] = '<a href="https://\\1" rel="external nofollow" target="_blank">\\2</a>';
 
 		$patterns[]     = '#\[url\](.*?)\[\/url\]#iu';
 		$replacements[] = '\\1';
