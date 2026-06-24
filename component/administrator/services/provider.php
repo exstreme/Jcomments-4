@@ -9,7 +9,9 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;
 use Joomla\CMS\Extension\ComponentInterface;
-use Joomla\Component\Jcomments\Administrator\Dispatcher\LegacyDispatcherFactory;
+use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
+use Joomla\CMS\Extension\Service\Provider\MVCFactory;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\Component\Jcomments\Administrator\Extension\JcommentsComponent;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
@@ -27,16 +29,19 @@ return new class implements ServiceProviderInterface
 	 */
 	public function register(Container $container): void
 	{
-		$container->set(
-			ComponentDispatcherFactoryInterface::class,
-			static fn () => new LegacyDispatcherFactory()
-		);
+		$namespace = '\\Joomla\\Component\\Jcomments';
+
+		$container->registerServiceProvider(new MVCFactory($namespace));
+		$container->registerServiceProvider(new ComponentDispatcherFactory($namespace));
 
 		$container->set(
 			ComponentInterface::class,
-			static fn (Container $container) => new JcommentsComponent(
-				$container->get(ComponentDispatcherFactoryInterface::class)
-			)
+			static function (Container $container): JcommentsComponent {
+				$component = new JcommentsComponent($container->get(ComponentDispatcherFactoryInterface::class));
+				$component->setMVCFactory($container->get(MVCFactoryInterface::class));
+
+				return $component;
+			}
 		);
 	}
 };

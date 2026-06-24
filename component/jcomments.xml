@@ -41,6 +41,7 @@
 		<folder>models</folder>
 		<folder>plugins</folder>
 		<folder>sef_ext</folder>
+		<folder>src</folder>
 		<folder>tpl</folder>
 		<folder>views</folder>
 	</files>
