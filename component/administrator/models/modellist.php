@@ -29,10 +29,17 @@ class JCommentsModelList extends ListModel
 	{
 		parent::__construct($config, $factory);
 
-		parent::addIncludePath(JPATH_BASE . '/components/com_jcomments/tables');
+		Table::addIncludePath(JPATH_BASE . '/components/com_jcomments/tables');
 
 		// Get table name
 		$this->tableName = substr($this->getName(), 0, -1);
+	}
+
+	public function getTable($name = '', $prefix = 'JCommentsTable', $options = array())
+	{
+		$name = $name ?: $this->tableName;
+
+		return Table::getInstance($name, $prefix, $options);
 	}
 
 	public function delete(&$pks)
