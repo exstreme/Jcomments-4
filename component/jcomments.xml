@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" method="upgrade">
 	<name>com_jcomments</name>
-	<creationDate>January 2023</creationDate>
+	<creationDate>July 2026</creationDate>
 	<author>JComments team</author>
 	<authorUrl>https://github.com/exstreme/Jcomments-4</authorUrl>
 	<license>https://www.gnu.org/copyleft/gpl.html GNU/GPL</license>
-	<version>5.0.2</version>
+	<version>5.0.3</version>
 	<description>JComments lets your users comment on content items.</description>
 	<namespace path="src">Joomla\Component\Jcomments</namespace>
 	<compatibility>
