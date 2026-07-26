@@ -112,7 +112,6 @@ final class Jcomments extends Adapter implements SubscriberInterface
 			[
 				'onFinderChangeState' => 'onFinderChangeState',
 				'onFinderAfterDelete' => 'onFinderAfterDelete',
-				'onFinderBeforeSave'  => 'onFinderBeforeSave',
 				'onFinderAfterSave'   => 'onFinderAfterSave',
 			],
 			parent::getSubscribedEvents()
@@ -165,9 +164,7 @@ final class Jcomments extends Adapter implements SubscriberInterface
 
 	/**
 	 * Smart Search after save content method.
-	 * Reindexes the link information for an article that has been saved.
-	 * It also makes adjustments if the access level of an item or the
-	 * category to which it belongs has changed.
+	 * Reindexes the link information for a comment that has been saved.
 	 *
 	 * @param   FinderEvent\AfterSaveEvent   $event  The event instance.
 	 *
@@ -180,60 +177,10 @@ final class Jcomments extends Adapter implements SubscriberInterface
 	{
 		$context = $event->getContext();
 		$row     = $event->getItem();
-		$isNew   = $event->getIsNew();
 
-		// We only want to handle articles here.
-		if ($context === 'com_content.article' || $context === 'com_content.form') {
-			// Check if the access levels are different.
-			if (!$isNew && $this->old_access != $row->access) {
-				// Process the change.
-				$this->itemAccessChange($row);
-			}
-
-			// Reindex the item.
+		if ($context === 'com_jcomments.comment' || $context === 'com_jcomments.form')
+		{
 			$this->reindex($row->id);
-		}
-
-		// Check for access changes in the category.
-		if ($context === 'com_categories.category') {
-			// Check if the access levels are different.
-			if (!$isNew && $this->old_cataccess != $row->access) {
-				$this->categoryAccessChange($row);
-			}
-		}
-	}
-
-	/**
-	 * Smart Search before content save method.
-	 * This event is fired before the data is actually saved.
-	 *
-	 * @param   FinderEvent\BeforeSaveEvent   $event  The event instance.
-	 *
-	 * @return  void
-	 *
-	 * @since   2.5
-	 * @throws  \Exception on database error.
-	 */
-	public function onFinderBeforeSave(FinderEvent\BeforeSaveEvent $event)
-	{
-		$context = $event->getContext();
-		$row     = $event->getItem();
-		$isNew   = $event->getIsNew();
-
-		// We only want to handle articles here.
-		if ($context === 'com_content.article' || $context === 'com_content.form') {
-			// Query the database for the old access level if the item isn't new.
-			if (!$isNew) {
-				$this->checkItemAccess($row);
-			}
-		}
-
-		// Check for access levels from the category.
-		if ($context === 'com_categories.category') {
-			// Query the database for the old access level if the item isn't new.
-			if (!$isNew) {
-				$this->checkCategoryAccess($row);
-			}
 		}
 	}
 
@@ -254,16 +201,56 @@ final class Jcomments extends Adapter implements SubscriberInterface
 		$pks     = $event->getPks();
 		$value   = $event->getValue();
 
-		// We only want to handle articles here.
 		if ($context === 'com_jcomments.comment' || $context === 'com_jcomments.form')
 		{
-			$this->itemStateChange($pks, $value);
+			ArrayHelper::toInteger($pks);
+
+			foreach ($pks as $pk)
+			{
+				$this->reindex($pk);
+			}
 		}
 
 		// Handle when the plugin is disabled.
 		if ($context === 'com_plugins.plugin' && $value === 0)
 		{
 			$this->pluginDisable($pks);
+		}
+	}
+
+	/**
+	 * Removes all JComments entries from the finder index when the plugin is disabled.
+	 *
+	 * @param   array  $pks  A list of plugin IDs.
+	 *
+	 * @return  void
+	 *
+	 * @since   5.0.2
+	 * @throws  \Exception on database error.
+	 */
+	protected function pluginDisable($pks): void
+	{
+		foreach ($pks as $pk)
+		{
+			if ($this->getPluginType($pk) !== strtolower($this->context))
+			{
+				continue;
+			}
+
+			$db = $this->getDatabase();
+			$query = $db->getQuery(true)
+				->select($db->quoteName('link_id'))
+				->from($db->quoteName('#__finder_links'))
+				->where($db->quoteName('type_id') . ' = ' . (int) $this->type_id);
+
+			$db->setQuery($query);
+
+			foreach ($db->loadColumn() as $linkId)
+			{
+				$this->indexer->remove((int) $linkId);
+			}
+
+			break;
 		}
 	}
 
