@@ -12,6 +12,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Table\Table;
 use Joomla\Utilities\ArrayHelper;
 
@@ -92,13 +93,6 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 			$table->button_image     = trim(strip_tags($table->button_image));
 			$table->button_css       = trim(strip_tags($table->button_css));
 
-			$table->pattern                 = stripslashes($table->pattern);
-			$table->replacement_html        = stripslashes($table->replacement_html);
-			$table->replacement_text        = stripslashes($table->replacement_text);
-			$table->simple_pattern          = stripslashes($table->simple_pattern);
-			$table->simple_replacement_html = stripslashes($table->simple_replacement_html);
-			$table->simple_replacement_text = stripslashes($table->simple_replacement_text);
-
 			if ($table->simple_replacement_text == '')
 			{
 				$table->simple_replacement_text = strip_tags($table->simple_replacement_html);
@@ -108,7 +102,7 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 			{
 				$tokens               = array();
 				$tokens['TEXT']       = array('([\w0-9-\+\=\!\?\(\)\[\]\{\}\/\&\%\*\#\.,_ ]+)' => '$1');
-				$tokens['SIMPLETEXT'] = array('([\A-Za-z0-9-\+\.,_ ]+)' => '$1');
+				$tokens['SIMPLETEXT'] = array('([A-Za-z0-9\-\+\.,_ ]+)' => '$1');
 				$tokens['IDENTIFIER'] = array('([\w0-9-_]+)' => '$1');
 				$tokens['NUMBER']     = array('([0-9]+)' => '$1');
 				$tokens['ALPHA']      = array('([A-Za-z]+)' => '$1');
@@ -127,14 +121,21 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 						$token_type = $m[1][$n];
 
 						reset($tokens[strtoupper($token_type)]);
-						list($match, $replace) = each($tokens[strtoupper($token_type)]);
+						$match   = key($tokens[strtoupper($token_type)]);
+						$replace = current($tokens[strtoupper($token_type)]);
 
 						$repad = array();
 
 						if (preg_match_all('/(?<!\\\\)\$([0-9]+)/', $replace, $repad))
 						{
 							$repad   = $pad + sizeof(array_unique($repad[0]));
-							$replace = preg_replace('/(?<!\\\\)\$([0-9]+)/e', "'\${' . (\$1 + \$pad) . '}'", $replace);
+							$replace = preg_replace_callback(
+								'/(?<!\\\\)\$([0-9]+)/',
+								function ($matches) use ($pad) {
+									return '${' . ((int) $matches[1] + $pad) . '}';
+								},
+								$replace
+							);
 							$pad     = $repad;
 						}
 
@@ -160,6 +161,20 @@ class JCommentsModelCustomBBCode extends JCommentsModelForm
 				if ($old_simple_replacement_text != $table->simple_replacement_text || $table->replacement_text == '')
 				{
 					$table->replacement_text = $replacement_text;
+				}
+			}
+
+			if ($table->pattern != '')
+			{
+				// Test the pattern the same way as JCommentsCustombbcode does at runtime
+				$testPattern = '#' . preg_replace('#(\\\w)#u', '\p{L}', $table->pattern) . '#ismu';
+
+				if (@preg_match($testPattern, '') === false)
+				{
+					$error = error_get_last();
+					$this->setError(Text::sprintf('A_CUSTOM_BBCODE_ERROR_INVALID_PATTERN', $error ? $error['message'] : ''));
+
+					return false;
 				}
 			}
 

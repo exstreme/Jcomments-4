@@ -62,6 +62,12 @@ class JCommentsCustombbcode
 				// details: http://www.phpwact.org/php/i18n/utf-8#w_w_b_b_meta_characters
 				$code->pattern = preg_replace('#(\\\w)#u', '\p{L}', $code->pattern);
 
+				// Skip broken patterns, otherwise preg_replace() returns null and wipes the comment text
+				if (@preg_match('#' . $code->pattern . '#ismu', '') === false)
+				{
+					continue;
+				}
+
 				// Check button permission
 				if ($acl->enableCustomBBCode($code->button_acl))
 				{
@@ -100,15 +106,25 @@ class JCommentsCustombbcode
 		{
 			ob_start();
 			$filterReplacement = $this->text_replacements;
-			$str               = preg_replace($this->filter_patterns, $filterReplacement, $str);
+			$result            = preg_replace($this->filter_patterns, $filterReplacement, $str);
 			ob_end_clean();
+
+			if ($result !== null)
+			{
+				$str = $result;
+			}
 		}
 
 		if ($forceStrip === true)
 		{
 			ob_start();
-			$str = preg_replace($this->patterns, $this->text_replacements, $str);
+			$result = preg_replace($this->patterns, $this->text_replacements, $str);
 			ob_end_clean();
+
+			if ($result !== null)
+			{
+				$str = $result;
+			}
 		}
 
 		return $str;
@@ -119,8 +135,13 @@ class JCommentsCustombbcode
 		if (count($this->patterns))
 		{
 			ob_start();
-			$str = preg_replace($this->patterns, ($textReplacement ? $this->text_replacements : $this->html_replacements), $str);
+			$result = preg_replace($this->patterns, ($textReplacement ? $this->text_replacements : $this->html_replacements), $str);
 			ob_end_clean();
+
+			if ($result !== null)
+			{
+				$str = $result;
+			}
 		}
 
 		return $str;
