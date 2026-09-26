@@ -107,40 +107,72 @@ function jtAJAX()
 		return true;
 	};
 
+	// Client side actions which server can call via JoomlaTuneAjaxResponse::addCall()
+	this.actions = {};
+	this.register = function(name, callback) {this.actions[name] = callback;};
+
+	// Callbacks called after element content was replaced by 'as' command. Scripts inside HTML are not executed.
+	this.assignHandlers = [];
+	this.onAssign = function(callback) {this.assignHandlers.push(callback);};
+
+	this.parseResponse = function(sText)
+	{
+		try {return JSON.parse(sText);} catch (e) {}
+		// Skip possible PHP notices printed before JSON
+		var idx = sText.indexOf('[{');
+		if (idx > 0) {
+			try {return JSON.parse(sText.substring(idx));} catch (e) {}
+		}
+		return null;
+	};
+
+	this.isArgument = function(v)
+	{
+		return v === null || typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
+	};
+
 	this.processResponse = function(sText)
 	{
-		if(sText==='') return false;
-		if(sText.substring(0,3)!='[ {'){var idx=sText.indexOf('[ {');sText=sText.substr(idx);}
-		var result;try {result=eval(sText);}catch(e){}
-		if ('undefined' == typeof result) {return false;}
+		if (sText === '') return false;
+		var result = this.parseResponse(sText);
+		if (!Array.isArray(result)) {this.error('Invalid response'); return false;}
 
-		var cmd, id, property, data, obj = null;
+		for (var i = 0; i < result.length; i++) {
+			var c = result[i] || {}, obj;
 
-		for (var i=0;i<result.length;i++) {
-			cmd 		= result[i]['n'];
-			id 		= result[i]['t'];
-			property	= result[i]['p'];
-			data 		= result[i]['d'];
-			obj 		= this.$(id);
-
-			switch(cmd) {
-				case 'as': if(obj){eval("obj."+property+"=data;");} break;
-				case 'al': if(data){alert(data);} break;
-				case 'js': if(data){eval(data);} break;
-				default: this.error('Unknown command: ' + cmd);break;
+			switch (c.n) {
+				case 'as':
+					obj = this.$(c.t);
+					if (obj && (c.p === 'innerHTML' || c.p === 'value')) {
+						obj[c.p] = c.d;
+						for (var h = 0; h < this.assignHandlers.length; h++) {this.assignHandlers[h](obj);}
+					}
+					break;
+				case 'al':
+					if (c.d) {alert(c.d);}
+					break;
+				case 'call':
+					if (!Object.prototype.hasOwnProperty.call(this.actions, c.t)) {
+						this.error('Unknown action: ' + c.t);
+					} else if (!Array.isArray(c.d) || !c.d.every(this.isArgument)) {
+						this.error('Invalid arguments for action: ' + c.t);
+					} else {
+						this.actions[c.t].apply(null, c.d);
+					}
+					break;
+				case 'js':
+					// Deprecated. Blocked by Content-Security-Policy without 'unsafe-eval'.
+					try {(new Function(c.d))();} catch (e) {this.error('Script command failed: ' + e.message);}
+					break;
+				default:
+					this.error('Unknown command: ' + c.n);
+					break;
 			}
 		}
-		
-		delete result;
-		delete cmd;
-		delete id;
-		delete property;
-		delete data;
-		delete obj;
 		return true;
 	};
 
-	this.error = function(){};
+	this.error = function(m){if (window.console) {console.warn('jtajax: ' + m);}};
 }
 var jtajax = new jtAJAX();
 }
