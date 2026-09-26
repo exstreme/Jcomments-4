@@ -37,8 +37,85 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 	echo $displayData->getVar('comments-html-before-form');
 	?>
 
+	<?php
+	// Editor configuration. Stored as inert JSON and applied by jcomments.initForm(), no inline script required.
+	$formConfig = array('buttons' => array(), 'smiles' => array(), 'smilesUrl' => '', 'counter' => null);
+
+	if ($displayData->getVar('comments-form-bbcode', 0) == 1)
+	{
+		$bbcodes = array(
+			'b'     => array(0 => Text::_('FORM_BBCODE_B'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
+			'i'     => array(0 => Text::_('FORM_BBCODE_I'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
+			'u'     => array(0 => Text::_('FORM_BBCODE_U'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
+			's'     => array(0 => Text::_('FORM_BBCODE_S'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
+			'img'   => array(0 => Text::_('FORM_BBCODE_IMG'), 1 => Text::_('BBCODE_HINT_ENTER_FULL_URL_TO_THE_IMAGE')),
+			'url'   => array(0 => Text::_('FORM_BBCODE_URL'), 1 => Text::_('BBCODE_HINT_ENTER_FULL_URL')),
+			'hide'  => array(0 => Text::_('FORM_BBCODE_HIDE'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT_TO_HIDE_IT_FROM_UNREGISTERED')),
+			'quote' => array(0 => Text::_('FORM_BBCODE_QUOTE'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT_TO_QUOTE')),
+			'list'  => array(0 => Text::_('FORM_BBCODE_LIST'), 1 => Text::_('BBCODE_HINT_ENTER_LIST_ITEM_TEXT'))
+		);
+
+		foreach ($bbcodes as $k => $v)
+		{
+			if ($displayData->getVar('comments-form-bbcode-' . $k, 0) == 1)
+			{
+				$formConfig['buttons'][] = array($k, trim($v[0]), trim($v[1]));
+			}
+		}
+	}
+
+	$customBBCodes = $displayData->getVar('comments-form-custombbcodes');
+
+	if (!empty($customBBCodes))
+	{
+		foreach ($customBBCodes as $code)
+		{
+			if ($code->button_enabled)
+			{
+				$formConfig['buttons'][] = array(
+					'custombbcode' . $code->id,
+					trim($code->button_title),
+					empty($code->button_prompt) ? Text::_('BBCODE_HINT_ENTER_TEXT') : Text::_($code->button_prompt),
+					$code->button_open_tag,
+					$code->button_close_tag,
+					$code->button_css,
+					$code->button_image
+				);
+			}
+		}
+	}
+
+	$smiles = $displayData->getVar('comment-form-smiles');
+
+	if (!empty($smiles))
+	{
+		$formConfig['smilesUrl'] = $displayData->getVar('smilesurl');
+
+		foreach ($smiles as $code => $icon)
+		{
+			$formConfig['smiles'][] = array(trim($code), trim($icon));
+		}
+	}
+
+	if ($displayData->getVar('comments-form-showlength-counter', 0) == 1)
+	{
+		$formConfig['counter'] = array(
+			(int) $displayData->getVar('comment-maxlength'),
+			Text::_('FORM_CHARSLEFT_PREFIX'),
+			Text::_('FORM_CHARSLEFT_SUFFIX'),
+			'counter'
+		);
+	}
+
+	$formConfig = htmlspecialchars(
+		json_encode($formConfig, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR),
+		ENT_QUOTES,
+		'UTF-8'
+	);
+	?>
 	<a id="addcomments" href="#addcomments"></a>
-	<form class="d-grid gap-2 validate" id="comments-form" name="comments-form" action="javascript:void();" autocomplete="off">
+	<form class="d-grid gap-2 validate" id="comments-form" name="comments-form" action="javascript:void();" autocomplete="off"
+		  data-config="<?php echo $formConfig; ?>">
 		<?php
 		// Trigger onJCommentsFormPrepend event
 		$displayData->getFormFields($displayData->getVar('comments-form-html-prepend'));
@@ -192,109 +269,6 @@ if ($displayData->getVar('comments-form-link', 0) == 1): ?>
 			<div style="clear: both;"></div>
 		</div>
 		<br>
-
-		<?php
-		$script = "
-function JCommentsInitializeForm()
-{
-	var jcEditor = new JCommentsEditor('comments-form-comment', true);
-";
-		if ($displayData->getVar('comments-form-bbcode', 0) == 1)
-		{
-			$bbcodes = array(
-				'b'     => array(0 => Text::_('FORM_BBCODE_B'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
-				'i'     => array(0 => Text::_('FORM_BBCODE_I'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
-				'u'     => array(0 => Text::_('FORM_BBCODE_U'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
-				's'     => array(0 => Text::_('FORM_BBCODE_S'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT')),
-				'img'   => array(0 => Text::_('FORM_BBCODE_IMG'), 1 => Text::_('BBCODE_HINT_ENTER_FULL_URL_TO_THE_IMAGE')),
-				'url'   => array(0 => Text::_('FORM_BBCODE_URL'), 1 => Text::_('BBCODE_HINT_ENTER_FULL_URL')),
-				'hide'  => array(0 => Text::_('FORM_BBCODE_HIDE'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT_TO_HIDE_IT_FROM_UNREGISTERED')),
-				'quote' => array(0 => Text::_('FORM_BBCODE_QUOTE'), 1 => Text::_('BBCODE_HINT_ENTER_TEXT_TO_QUOTE')),
-				'list'  => array(0 => Text::_('FORM_BBCODE_LIST'), 1 => Text::_('BBCODE_HINT_ENTER_LIST_ITEM_TEXT'))
-			);
-
-			foreach ($bbcodes as $k => $v)
-			{
-				if ($displayData->getVar('comments-form-bbcode-' . $k, 0) == 1)
-				{
-					$title  = trim(JCommentsText::jsEscape($v[0]));
-					$text   = trim(JCommentsText::jsEscape($v[1]));
-					$script .= "
-	jcEditor.addButton('$k','$title','$text');
-";
-				}
-			}
-		}
-
-		$customBBCodes = $displayData->getVar('comments-form-custombbcodes');
-
-		if (!empty($customBBCodes))
-		{
-			foreach ($customBBCodes as $code)
-			{
-				if ($code->button_enabled)
-				{
-					$k         = 'custombbcode' . $code->id;
-					$title     = trim(JCommentsText::jsEscape($code->button_title));
-					$text      = empty($code->button_prompt) ? Text::_('BBCODE_HINT_ENTER_TEXT') : Text::_($code->button_prompt);
-					$open_tag  = $code->button_open_tag;
-					$close_tag = $code->button_close_tag;
-					$icon      = $code->button_image;
-					$css       = $code->button_css;
-					$script    .= "
-	jcEditor.addButton('$k','$title','$text','$open_tag','$close_tag','$css','$icon');
-";
-				}
-			}
-		}
-
-		$smiles = $displayData->getVar('comment-form-smiles');
-
-		if (!empty($smiles))
-		{
-			$script .= "
-	jcEditor.initSmiles('" . $displayData->getVar("smilesurl") . "');
-";
-
-			foreach ($smiles as $code => $icon)
-			{
-				$code   = trim(JCommentsText::jsEscape($code));
-				$icon   = trim(JCommentsText::jsEscape($icon));
-				$script .= "
-	jcEditor.addSmile('$code','$icon');
-";
-			}
-		}
-
-		if ($displayData->getVar('comments-form-showlength-counter', 0) == 1)
-		{
-			$script .= "
-	jcEditor.addCounter(" . $displayData->getVar('comment-maxlength') . ", '" . Text::_('FORM_CHARSLEFT_PREFIX') . "', '" . Text::_('FORM_CHARSLEFT_SUFFIX') . "', 'counter');
-";
-		}
-
-		$script .= "	jcomments.setForm(new JCommentsForm('comments-form', jcEditor));
-}
-
-";
-		if ($displayData->getVar('comments-form-ajax', 0) == 1)
-		{
-			$script .= "
-setTimeout(JCommentsInitializeForm, 100);
-";
-		}
-		else
-		{
-			$script .= "
-if (window.addEventListener) {window.addEventListener('load',JCommentsInitializeForm,false);}
-else if (document.addEventListener){document.addEventListener('load',JCommentsInitializeForm,false);}
-else if (window.attachEvent){window.attachEvent('onload',JCommentsInitializeForm);}
-else {if (typeof window.onload=='function'){var oldload=window.onload;window.onload=function(){oldload();JCommentsInitializeForm();}} else window.onload=JCommentsInitializeForm;} 
-";
-		}
-
-		echo '<script type="text/javascript">' . $script . '</script>';
-		?>
 
 		<?php
 		// Trigger onJCommentsFormAfterDisplay event

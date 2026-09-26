@@ -34,39 +34,39 @@ if (!defined ('JOOMLATUNE_AJAX'))
 			$this->aCommands[] = $aAttributes;
 		}
 
+		/**
+		 * Assign HTML (or value) to an element. Embedded <script> blocks are removed, they are never executed.
+		 * Client side initialization must be done via jtajax.onAssign() callback.
+		 */
 		function addAssign($sTarget,$sAttribute,$sData)
 		{
-			$scripts = array();
-			// small hack to auto execute JavaScript code returned through ajax
-			if (preg_match('/\<script/', $sData)) {
-				$regexp = '/<script[^>]+>(.*?)<\/script>/ism';
-				$matches = array();
-				preg_match_all($regexp, $sData, $matches);
-
-				for ($i = 0, $n = count($matches[0]); $i < $n; $i++) {
-					if ($matches[1][$i] != '') {
-						$sData = str_replace($matches[0][$i], '', $sData);
-						$scripts[] = trim(preg_replace(array('#^<!--#ism', '#\/\/-->$#ism'), '', $matches[1][$i]));
-					}
-				}
-			}
+			$sData = preg_replace('#<script\b[^>]*>.*?</script>#is', '', (string) $sData);
 
 			$this->addCommand(array('n'=>'as','t'=>$sTarget,'p'=>$sAttribute),$sData);
-
-			if (count($scripts)) {
-				foreach ($scripts as $script) {
-					$this->addCommand(array('n'=>'js'),$script);
-				}
-			}
 
 			return $this;
 		}
 
+		/**
+		 * Call client side action registered via jtajax.register(name, callback).
+		 *
+		 * @param   string  $sAction  Action name, e.g. 'jcomments.updateList'
+		 * @param   array   $aArgs    List of scalar arguments
+		 */
+		function addCall($sAction, array $aArgs = array())
+		{
+			$this->addCommand(array('n'=>'call','t'=>$sAction),array_values($aArgs));
+			return $this;
+		}
+
+		/**
+		 * Execute raw JavaScript on client. Does not work with Content-Security-Policy without 'unsafe-eval'.
+		 *
+		 * @deprecated  5.0.5  Use addCall() with an action registered via jtajax.register().
+		 */
 		function addScript($sJS)
 		{
-			$sJS = str_replace("\n", '\n', $sJS);
-			$sJS = str_replace("\r", '', $sJS);
-			$this->addCommand(array('n'=>'js'),$sJS);
+			$this->addCommand(array('n'=>'js'),str_replace("\r", '', $sJS));
 			return $this;
 		}
 
@@ -78,12 +78,15 @@ if (!defined ('JOOMLATUNE_AJAX'))
 
 		function getOutput()
 		{
-			$output = '';
-			if (is_array($this->aCommands)) {
-				$output = JoomlaTuneAjaxResponse::php2js($this->aCommands);
+			$flags = JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR;
+
+			try {
+				$output = json_encode(is_array($this->aCommands) ? $this->aCommands : array(), $flags);
+			} catch (JsonException $e) {
+				$output = json_encode(array(array('n'=>'al','d'=>'JSON error: '.$e->getMessage())), $flags);
 			}
 			if (trim($this->sEncoding)) {
-				@header('content-type: text/plain; charset="'.$this->sEncoding.'"');
+				@header('content-type: application/json; charset="'.$this->sEncoding.'"');
 			}
 			return $output;
 		}
@@ -216,7 +219,7 @@ if (!defined ('JOOMLATUNE_AJAX'))
 			} else {
 				$oResponse = $this->_callFunction($sFunctionName, $aArgs);
 			}
-			@header('content-type: text/plain; charset="'.$this->sEncoding.'"');
+			@header('content-type: application/json; charset="'.$this->sEncoding.'"');
 			print $oResponse->getOutput();
 			exit();
 		}

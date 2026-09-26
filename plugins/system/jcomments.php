@@ -171,11 +171,11 @@ class PlgSystemJComments extends CMSPlugin
 			}
 
 			// Include JComments JavaScript library
-			$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v4.0.js');
+			$document->addScript(Uri::root(true) . '/media/com_jcomments/js/jcomments-v4.0.js?v=5.0.5');
 
 			if (!defined('JOOMLATUNE_AJAX_JS'))
 			{
-				$document->addScript(Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4');
+				$document->addScript(Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=5.0.5');
 				define('JOOMLATUNE_AJAX_JS', 1);
 			}
 

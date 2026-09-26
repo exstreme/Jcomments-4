@@ -261,3 +261,31 @@ if (file_exists($comments)) {
 ```
 
 Replace `echo $this->loadTemplate('reviews');` by the `//echo $this->loadTemplate('reviews');` to disable builtin VitrueMart reviews system.
+### AJAX responses and Content-Security-Policy
+
+Since 5.0.5 AJAX responses are plain JSON and are processed without `eval`, so JComments works with a
+Content-Security-Policy that does not allow `'unsafe-eval'`. The server can only call client side actions
+that were registered in advance:
+
+```php
+// PHP, e.g. in a plugin event handler
+$response = JCommentsFactory::getAjaxResponse();
+$response->addCall('myplugin.highlight', [$commentId, 'yellow']); // arguments must be scalars or null
+```
+
+```js
+// JavaScript, loaded by your plugin after the JComments scripts
+jtajax.register('myplugin.highlight', function (id, color) {
+    document.getElementById('comment-' + id).style.background = color;
+});
+```
+
+Unknown actions are rejected. `<script>` blocks inside HTML sent via `addAssign()` are removed and never executed.
+Use `jtajax.onAssign(function (element) {...})` to initialize inserted markup (JComments uses it to
+initialize the comment form from the JSON stored in the form's `data-config` attribute).
+
+`JoomlaTuneAjaxResponse::addScript()` is deprecated. It still works only if the site's CSP allows `'unsafe-eval'`.
+
+Template overrides of `layouts/comment-form.php` made before 5.0.5 contain an inline initialization script.
+Such forms still work on page load, but when the form is loaded via AJAX it is initialized without
+BBCode buttons, smiles and counter. Update the override to output the `data-config` attribute on the `<form>` tag.

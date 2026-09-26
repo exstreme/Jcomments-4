@@ -817,6 +817,66 @@ JComments.prototype = {
 		jtajax.finishLoading = function () {
 			th.busy.hide();
 		};
+		jtajax.onAssign(function () {
+			th.initForm(false);
+		});
+		this.registerActions();
+	},
+	// Actions which server can call in AJAX response. See JoomlaTuneAjaxResponse::addCall()
+	registerActions: function () {
+		var methods = ['error', 'message', 'clear', 'updateComment', 'updateTree', 'updateList', 'scrollToList',
+			'scrollToComment', 'showEdit', 'insertText', 'updateVote', 'closeReport'];
+		methods.forEach(function (m) {
+			jtajax.register('jcomments.' + m, function () {
+				var jc = window.jcomments;
+				if (jc) {
+					jc[m].apply(jc, arguments);
+				}
+			});
+		});
+		['grecaptcha', 'hcaptcha', 'turnstile'].forEach(function (c) {
+			jtajax.register(c + '.reset', function () {
+				if (window[c] && typeof window[c].reset === 'function') {
+					window[c].reset();
+				}
+			});
+		});
+		jtajax.register('mailto', function (email) {
+			if (typeof email === 'string' && /^[^\s@<>:"'\/\\?#]+@[^\s@<>:"'\/\\?#]+$/.test(email)) {
+				window.location.href = 'mailto:' + email;
+			}
+		});
+	},
+	/**
+	 * Initialize comments form from JSON config in form's data-config attribute.
+	 *
+	 * @param   {boolean}  requireConfig  Skip forms without config (e.g. old template override with inline init script)
+	 */
+	initForm: function (requireConfig) {
+		var f = this.$('comments-form');
+		if (!f || f.dataset.jcInitialized || (requireConfig && !f.dataset.config)) {
+			return;
+		}
+		var config = {};
+		try {
+			config = JSON.parse(f.dataset.config || '{}');
+		} catch (e) {
+		}
+		var editor = new JCommentsEditor('comments-form-comment', true);
+		(config.buttons || []).forEach(function (b) {
+			editor.addButton.apply(editor, b);
+		});
+		if (config.smiles && config.smiles.length) {
+			editor.initSmiles(config.smilesUrl);
+			config.smiles.forEach(function (s) {
+				editor.addSmile(s[0], s[1]);
+			});
+		}
+		if (config.counter) {
+			editor.addCounter.apply(editor, config.counter);
+		}
+		f.dataset.jcInitialized = '1';
+		this.setForm(new JCommentsForm('comments-form', editor));
 	},
 	reinit: function (oi, og) {
 		this.oi = oi;
@@ -1023,10 +1083,14 @@ JComments.prototype = {
 	},
 	fade: function (id, s, e, m) {
 		var speed = Math.round(m / 100), timer = 0;
+		var step = function (i) {
+			setTimeout(function () {
+				JComments.prototype.setOpacity(id, i);
+			}, (timer++ * speed));
+		};
 		if (s > e) {
 			for (var i = s; i >= e; i--) {
-				setTimeout("JComments.prototype.setOpacity('" + id + "'," + i + ")", (timer * speed));
-				timer++;
+				step(i);
 			}
 			var o = JComments.prototype.$(id);
 			if (o) {
@@ -1036,8 +1100,7 @@ JComments.prototype = {
 			}
 		} else if (s < e) {
 			for (var i = s; i <= e; i++) {
-				setTimeout("JComments.prototype.setOpacity('" + id + "'," + i + ")", (timer * speed));
-				timer++;
+				step(i);
 			}
 		}
 	},
@@ -1486,6 +1549,12 @@ JComments.prototype = {
 	}
 };
 
+window.addEventListener('load', function () {
+	if (window.jcomments) {
+		window.jcomments.initForm(true);
+	}
+});
+
 document.addEventListener('DOMContentLoaded', function () {
 	document.body.addEventListener('click', async function (e) {
 		if (e.target && e.target.id == 'addcomments') {
@@ -1494,12 +1563,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			jcomments.showForm(el.dataset.object_id, el.dataset.object_group, 'comments-form-link');
 		} else if (e.target && e.target.id == 'comments-form-send') {
 			e.preventDefault();
+			// Comments list is updated by the save response itself
 			try {
 				await jcomments.saveCommentAsync();
-				var jc = window.jcomments;
-				if (jc) {
-					jc.showPage(jc.oi, jc.og, 0);
-				}
 			} catch (error) {
 				console.error('Error saving comment:', error);
 			}

@@ -24,12 +24,12 @@ class JCommentsSystem
 {
 	public static function getCoreJS()
 	{
-		return Uri::root(true) . '/media/com_jcomments/js/jcomments-v4.0.js';
+		return Uri::root(true) . '/media/com_jcomments/js/jcomments-v4.0.js?v=5.0.5';
 	}
 
 	public static function getAjaxJS()
 	{
-		return Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=4';
+		return Uri::root(true) . '/components/com_jcomments/libraries/joomlatune/ajax.js?v=5.0.5';
 	}
 
 	public static function getCSS($isRTL = false, $template = '')

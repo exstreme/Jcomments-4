@@ -93,21 +93,21 @@ class JCommentsAJAX
 		$message = str_replace("\n", '\n', $message);
 		$message = str_replace('\n', '<br />', $message);
 
-		return JCommentsText::jsEscape($message);
+		return $message;
 	}
 
 	public static function showErrorMessage($message, $name = '', $target = '')
 	{
 		$message  = self::escapeMessage($message);
 		$response = JCommentsFactory::getAjaxResponse();
-		$response->addScript("jcomments.error('$message','$target','$name');");
+		$response->addCall('jcomments.error', [$message, $target, $name]);
 	}
 
 	public static function showInfoMessage($message, $target = '')
 	{
 		$message  = self::escapeMessage($message);
 		$response = JCommentsFactory::getAjaxResponse();
-		$response->addScript("jcomments.message('$message', '$target');");
+		$response->addCall('jcomments.message', [$message, $target]);
 	}
 
 	public static function showForm($objectID, $objectGroup, $target)
@@ -183,7 +183,7 @@ class JCommentsAJAX
 
 			if ($objectGroup == '' || $objectID == '')
 			{
-				$response->addAlert(self::escapeMessage(Text::_('JERROR_AN_ERROR_HAS_OCCURRED')));
+				$response->addAlert(Text::_('JERROR_AN_ERROR_HAS_OCCURRED'));
 
 				return $response;
 			}
@@ -203,7 +203,7 @@ class JCommentsAJAX
 						$message = Text::_('ERROR_CANT_COMMENT');
 					}
 
-					$response->addAlert(self::escapeMessage($message));
+					$response->addAlert($message);
 
 					return $response;
 				}
@@ -319,7 +319,7 @@ class JCommentsAJAX
 							{
 								self::showErrorMessage(Text::_('ERROR_CAPTCHA'), 'captcha');
 								JCommentsCaptcha::destroy();
-								$response->addScript("jcomments.clear('captcha');");
+								$response->addCall('jcomments.clear', ['captcha']);
 
 								return $response;
 							}
@@ -343,7 +343,7 @@ class JCommentsAJAX
 							catch (Exception $e)
 							{
 								self::showErrorMessage($e->getMessage());
-								$response->addScript("grecaptcha.reset()");
+								$response->addCall('grecaptcha.reset', []);
 
 								return $response;
 							}
@@ -367,7 +367,7 @@ class JCommentsAJAX
 							catch (Exception $e)
 							{
 								self::showErrorMessage($e->getMessage());
-								$response->addScript("hcaptcha.reset()");
+								$response->addCall('hcaptcha.reset', []);
 
 								return $response;
 							}
@@ -383,7 +383,7 @@ class JCommentsAJAX
 							catch (Exception $e)
 							{
 								self::showErrorMessage($e->getMessage());
-								$response->addScript("turnstile.reset()");
+								$response->addCall('turnstile.reset', []);
 
 								return $response;
 							}
@@ -604,26 +604,26 @@ class JCommentsAJAX
 					{
 						Log::add($comment->getError(), Log::ERROR, 'com_jcomments');
 
-						$response->addScript("jcomments.clear('comment');");
+						$response->addCall('jcomments.clear', ['comment']);
 
 						if (!$user->authorise('comment.captcha', 'com_jcomments'))
 						{
 							if ($config->get('captcha_engine', 'kcaptcha') == 'kcaptcha')
 							{
 								JCommentsCaptcha::destroy();
-								$response->addScript("jcomments.clear('captcha');");
+								$response->addCall('jcomments.clear', ['captcha']);
 							}
 							elseif ($config->get('captcha_engine', 'kcaptcha') == 'recaptcha')
 							{
-								$response->addScript("grecaptcha.reset()");
+								$response->addCall('grecaptcha.reset', []);
 							}
 							elseif ($config->get('captcha_engine', 'kcaptcha') == 'turnstile')
 							{
-								$response->addScript("turnstile.reset()");
+								$response->addCall('turnstile.reset', []);
 							}
 							elseif ($config->get('captcha_engine', 'kcaptcha') == 'hcaptcha')
 							{
-								$response->addScript("hcaptcha.reset()");
+								$response->addCall('hcaptcha.reset', []);
 							}
 						}
 
@@ -653,8 +653,8 @@ class JCommentsAJAX
 						if ($merged)
 						{
 							$commentText = $comment->comment;
-							$html        = JCommentsText::jsEscape(JComments::getCommentItem($comment));
-							$response->addScript("jcomments.updateComment(" . $comment->id . ", '$html');");
+							$html        = JComments::getCommentItem($comment);
+							$response->addCall('jcomments.updateComment', [$comment->id, $html]);
 							$comment->comment = $commentText;
 						}
 						else
@@ -666,16 +666,14 @@ class JCommentsAJAX
 								if ($count > 1)
 								{
 									$html = JComments::getCommentListItem($comment);
-									$html = JCommentsText::jsEscape($html);
 									$mode = ((int) $config->get('comments_tree_order') == 1
 										|| ((int) $config->get('comments_tree_order') == 2 && $comment->parent > 0)) ? 'b' : 'a';
-									$response->addScript("jcomments.updateTree('$html','$comment->parent','$mode');");
+									$response->addCall('jcomments.updateTree', [$html, $comment->parent, $mode]);
 								}
 								else
 								{
 									$html = JComments::getCommentsTree($comment->object_id, $comment->object_group);
-									$html = JCommentsText::jsEscape($html);
-									$response->addScript("jcomments.updateTree('$html',null);");
+									$response->addCall('jcomments.updateTree', [$html, null]);
 								}
 							}
 							else
@@ -685,15 +683,14 @@ class JCommentsAJAX
 								{
 									// Update only added comment
 									$html = JComments::getCommentListItem($comment);
-									$html = JCommentsText::jsEscape($html);
 
 									if ($config->get('comments_list_order') == 'DESC')
 									{
-										$response->addScript("jcomments.updateList('$html','p');");
+										$response->addCall('jcomments.updateList', [$html, 'p']);
 									}
 									else
 									{
-										$response->addScript("jcomments.updateList('$html','a');");
+										$response->addCall('jcomments.updateList', [$html, 'a']);
 									}
 								}
 								else
@@ -704,14 +701,13 @@ class JCommentsAJAX
 										$comment->object_group,
 										JComments::getCommentPage($comment->object_id, $comment->object_group, $comment->id)
 									);
-									$html = JCommentsText::jsEscape($html);
-									$response->addScript("jcomments.updateList('$html','r');");
+									$response->addCall('jcomments.updateList', [$html, 'r']);
 								}
 
 								// Scroll to first comment
 								if ($config->get('comments_list_order') == 'DESC')
 								{
-									$response->addScript("jcomments.scrollToList();");
+									$response->addCall('jcomments.scrollToList', []);
 								}
 							}
 						}
@@ -724,7 +720,7 @@ class JCommentsAJAX
 					}
 
 					// Clear comments textarea & update comment length counter if needed
-					$response->addScript("jcomments.clear('comment');");
+					$response->addCall('jcomments.clear', ['comment']);
 
 					if (!$user->authorise('comment.captcha', 'com_jcomments'))
 					{
@@ -733,19 +729,19 @@ class JCommentsAJAX
 							require_once JPATH_ROOT . '/components/com_jcomments/jcomments.captcha.php';
 
 							JCommentsCaptcha::destroy();
-							$response->addScript("jcomments.clear('captcha');");
+							$response->addCall('jcomments.clear', ['captcha']);
 						}
 						elseif ($config->get('captcha_engine', 'kcaptcha') == 'recaptcha')
 						{
-							$response->addScript("grecaptcha.reset();");
+							$response->addCall('grecaptcha.reset', []);
 						}
 						elseif ($config->get('captcha_engine', 'kcaptcha') == 'turnstile')
 						{
-							$response->addScript("turnstile.reset();");
+							$response->addCall('turnstile.reset', []);
 						}
 						elseif ($config->get('captcha_engine', 'kcaptcha') == 'hcaptcha')
 						{
-							$response->addScript("hcaptcha.reset();");
+							$response->addCall('hcaptcha.reset', []);
 						}
 					}
 				}
@@ -765,7 +761,7 @@ class JCommentsAJAX
 
 				if (!empty($bannedMessage))
 				{
-					$message = self::escapeMessage($bannedMessage);
+					$message = $bannedMessage;
 				}
 			}
 
@@ -812,11 +808,11 @@ class JCommentsAJAX
 						{
 							if ($count > 0)
 							{
-								$response->addScript("jcomments.updateComment('$id','');");
+								$response->addCall('jcomments.updateComment', [$id, '']);
 							}
 							else
 							{
-								$response->addScript("jcomments.updateTree('',null);");
+								$response->addCall('jcomments.updateTree', ['', null]);
 							}
 						}
 						else
@@ -833,25 +829,24 @@ class JCommentsAJAX
 									$currentPage = min($currentPage, $pagination->getTotalPages());
 
 									$html = JComments::getCommentsList($objectID, $objectGroup, $currentPage);
-									$html = JCommentsText::jsEscape($html);
-									$response->addScript("jcomments.updateList('$html','r');");
+									$response->addCall('jcomments.updateList', [$html, 'r']);
 								}
 								else
 								{
-									$response->addScript("jcomments.updateComment('$id','');");
+									$response->addCall('jcomments.updateComment', [$id, '']);
 								}
 							}
 							else
 							{
-								$response->addScript("jcomments.updateList('','r');");
+								$response->addCall('jcomments.updateList', ['', 'r']);
 							}
 						}
 					}
 					else
 					{
 						$comment->markAsDeleted();
-						$html = JCommentsText::jsEscape(JComments::getCommentItem($comment));
-						$response->addScript("jcomments.updateComment(" . $comment->id . ", '$html');");
+						$html = JComments::getCommentItem($comment);
+						$response->addCall('jcomments.updateComment', [$comment->id, $html]);
 					}
 
 					JCommentsEvent::trigger('onJCommentsCommentAfterDelete', array(&$comment));
@@ -973,11 +968,11 @@ class JCommentsAJAX
 			{
 				$comment->checkout($user->id);
 
-				$name     = ($comment->userid) ? '' : JCommentsText::jsEscape($comment->name);
-				$email    = ($comment->userid) ? '' : JCommentsText::jsEscape($comment->email);
-				$homepage = JCommentsText::jsEscape($comment->homepage);
-				$text     = JCommentsText::jsEscape(JCommentsText::br2nl($comment->comment));
-				$title    = JCommentsText::jsEscape(str_replace("\n", '', JCommentsText::br2nl($comment->title)));
+				$name     = ($comment->userid) ? '' : $comment->name;
+				$email    = ($comment->userid) ? '' : $comment->email;
+				$homepage = $comment->homepage;
+				$text     = JCommentsText::br2nl($comment->comment);
+				$title    = str_replace("\n", '', JCommentsText::br2nl($comment->title));
 
 				if ((int) $loadForm == 1)
 				{
@@ -985,7 +980,7 @@ class JCommentsAJAX
 					$response->addAssign('comments-form-link', 'innerHTML', $form);
 				}
 
-				$response->addScript("jcomments.showEdit(" . $comment->id . ", '$name', '$email', '$homepage', '$title', '$text');");
+				$response->addCall('jcomments.showEdit', [$comment->id, $name, $email, $homepage, $title, $text]);
 			}
 			else
 			{
@@ -1084,8 +1079,8 @@ class JCommentsAJAX
 							}
 						}
 
-						$html = JCommentsText::jsEscape(JComments::getCommentItem($comment));
-						$response->addScript("jcomments.updateComment(" . $comment->id . ", '$html');");
+						$html = JComments::getCommentItem($comment);
+						$response->addCall('jcomments.updateComment', [$comment->id, $html]);
 					}
 					else
 					{
@@ -1152,10 +1147,8 @@ class JCommentsAJAX
 					$response->addAssign('comments-form-link', 'innerHTML', $form);
 				}
 
-				$commentName = JCommentsText::jsEscape($commentName);
-				$commentText = JCommentsText::jsEscape($commentText);
-				$text        = '[quote name="' . $commentName . '"]' . $commentText . '[/quote]\n';
-				$response->addScript("jcomments.insertText('" . $text . "');");
+				$text        = '[quote name="' . $commentName . '"]' . $commentText . "[/quote]\n";
+				$response->addCall('jcomments.insertText', [$text]);
 			}
 			else
 			{
@@ -1173,14 +1166,12 @@ class JCommentsAJAX
 		if ($config->get('template_view') == 'tree')
 		{
 			$html = JComments::getCommentsTree($objectID, $objectGroup, $page);
-			$html = JCommentsText::jsEscape($html);
-			$response->addScript("jcomments.updateTree('$html',null);");
+			$response->addCall('jcomments.updateTree', [$html, null]);
 		}
 		else
 		{
 			$html = JComments::getCommentsList($objectID, $objectGroup, $page);
-			$html = JCommentsText::jsEscape($html);
-			$response->addScript("jcomments.updateList('$html','r');");
+			$response->addCall('jcomments.updateList', [$html, 'r']);
 		}
 	}
 
@@ -1217,7 +1208,7 @@ class JCommentsAJAX
 			}
 
 			self::updateCommentsList($response, $comment->object_id, $comment->object_group, $page);
-			$response->addScript("jcomments.scrollToComment('$id');");
+			$response->addCall('jcomments.scrollToComment', [$id]);
 		}
 		else
 		{
@@ -1252,7 +1243,7 @@ class JCommentsAJAX
 			{
 				if (md5((string) $email) == $hash)
 				{
-					$response->addScript("window.location='mailto:$email';");
+					$response->addCall('mailto', [$email]);
 				}
 			}
 		}
@@ -1374,8 +1365,7 @@ class JCommentsAJAX
 					$tmpl->addObject('tpl_comment', 'comment', $comment);
 
 					$html = $tmpl->renderTemplate('tpl_comment');
-					$html = JCommentsText::jsEscape($html);
-					$response->addScript("jcomments.updateVote('" . $comment->id . "','$html');");
+					$response->addCall('jcomments.updateVote', [$comment->id, $html]);
 				}
 				else
 				{
@@ -1514,11 +1504,10 @@ class JCommentsAJAX
 								$html = Text::_('REPORT_SUCCESSFULLY_SENT');
 								$html = str_replace("\n", '\n', $html);
 								$html = str_replace('\n', '<br />', $html);
-								$html = JCommentsText::jsEscape($html);
 							}
 						}
 
-						$response->addScript("jcomments.closeReport('$html');");
+						$response->addCall('jcomments.closeReport', [$html]);
 					}
 					else
 					{
