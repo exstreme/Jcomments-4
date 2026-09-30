@@ -19,9 +19,6 @@ use Joomla\CMS\Table\Table;
 use Joomla\CMS\Uri\Uri;
 use Joomla\String\StringHelper;
 
-error_reporting(E_ALL);
-@ini_set('error_reporting', E_ALL);
-
 // Regular expression for links
 const _JC_REGEXP_LINK = '#(^|\s|\>|\()((http://|https://|news://|ftp://|www.)\w+[^\s\<\>\"\'\)]+)#iu';
 const _JC_REGEXP_EMAIL = '#([\w\.\-]+)@(\w+[\w\.\-]*\.\w{2,6})#iu';
